@@ -315,6 +315,41 @@ def tirar_xadrez(im: Image.Image) -> Image.Image:
     return Image.fromarray(a, "RGBA")
 
 
+CORTE_PESCOCO = .29   # cabeças: corta o pescoço desenhado (o que fica atrás desta fração da largura)
+
+
+def ajustar_peca(nome: str, im: Image.Image) -> Image.Image:
+    """Cabeça sem pescoço (o jogo desenha o pescoço) e corpo enrolado sem o toco no alto."""
+    a = np.asarray(im).copy()
+    h, w = a.shape[:2]
+    if nome.startswith("cabeca"):
+        a[:, : int(w * CORTE_PESCOCO), 3] = 0
+        a[int(h * .74):, : int(w * .5), 3] = 0          # resto do pescoço embaixo da mandíbula
+        return cortar(Image.fromarray(a, "RGBA"))
+    if nome == "corpo":
+        al = a[:, :, 3] > 0
+        tem = al.any(axis=0)
+        topo = np.where(tem, al.argmax(axis=0), h)
+        cols = np.where(tem)[0]
+        meio = cols[(cols > cols.min() + (cols.max() - cols.min()) * .2) & (cols < cols.max() - (cols.max() - cols.min()) * .2)]
+        linha = int(np.median(topo[meio]))
+        toco = np.where(topo < linha - 8)[0]
+        toco = toco[(toco > cols.min() + 10) & (toco < cols.max() - 10)]
+        if len(toco):
+            x0, x1 = toco.min() - 1, toco.max() + 2
+            a[: linha + 1, x0:x1, 3] = 0
+        return Image.fromarray(a, "RGBA")
+    return im
+
+
+def gomo_do_corpo(corpo: Image.Image) -> Image.Image:
+    """Faixa do anel do meio do rolo (larga), para o pescoço ter a mesma escama do corpo."""
+    w, h = corpo.size
+    alt = int(w * .15)
+    cy = int(h * .58)
+    return corpo.crop((int(w * .3), cy - alt // 2, int(w * .7), cy + alt // 2))
+
+
 def tapar_buracos(im: Image.Image, cor=(232, 96, 26)) -> Image.Image:
     """Buracos transparentes cercados de desenho (ex.: o miolo do anel do gomo) viram lava."""
     a = np.asarray(im).copy()
@@ -357,6 +392,10 @@ def preparar_partes(pasta: Path) -> dict | None:
         itens.append((nome, px))
     if not itens:
         return None
+    itens = [(n, ajustar_peca(n, im)) for n, im in itens]
+    corpo = dict(itens).get("corpo")
+    if corpo is not None:
+        itens.append(("gomo_corpo", gomo_do_corpo(corpo)))
     folha, pos = empacotar(itens)
     saida = DESTINO / f"{chave}.png"
     saida.parent.mkdir(parents=True, exist_ok=True)
@@ -368,17 +407,21 @@ def preparar_partes(pasta: Path) -> dict | None:
         if n.startswith("cabeca"):
             al = np.asarray(im)[:, :, 3] > 0
             h, w = al.shape
-            sub = al[int(h * .55):, : int(w * .45)]
-            ys, xs = np.where(sub)
-            if len(xs):
-                pescocos[n] = [round(float(xs.mean()) / w, 3), round((float(ys.mean()) + int(h * .55)) / h, 3)]
+            ys = np.where(al[:, :3].any(axis=1))[0]
+            if len(ys):
+                pescocos[n] = [0.04, round(float((ys.min() + ys.max()) / 2) / h, 3)]
     # corpo enrolado: ponto de onde sai o pescoço (o topo do desenho), em fração da imagem
     for n, im in itens:
         if n == "corpo":
             al = np.asarray(im)[:, :, 3] > 0
-            ys, xs = np.where(al)
-            topo = ys.min(); faixa = xs[ys <= topo + max(2, im.height // 25)]
-            pescocos["corpo"] = [round(float(faixa.mean()) / im.width, 3), round((topo + im.height * .03) / im.height, 3)]
+            hh, ww = al.shape
+            tem = al.any(axis=0)
+            topo = np.where(tem, al.argmax(axis=0), hh)
+            cols = np.where(tem)[0]
+            c = cols[(cols > cols.min() + (cols.max() - cols.min()) * .35) & (cols < cols.max() - (cols.max() - cols.min()) * .35)]
+            fundo = c[topo[c] > np.median(topo[c]) + 2]   # o buraco onde ficava o toco
+            x = float(fundo.mean()) if len(fundo) else float(c.mean())
+            pescocos["corpo"] = [round(x / ww, 3), round((float(np.median(topo[c])) + hh * .06) / hh, 3)]
     return {"tipo": "partes", "pixel": True, "img": f"{chave}.png", "partes": {n: list(pos[n]) for n, _ in itens},
             "pescocos": pescocos}
 

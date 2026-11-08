@@ -145,6 +145,11 @@ Pessoal (família).
   ligado à borda), o rolo tem 340 px de largura na tela; a ferramenta mede o toco do pescoço no alto
   da imagem e o pescoço (gomos que se multiplicam ao esticar) sai dali. As posições da cabeça
   (descanso, rajada, aviso do bote) são relativas a esse toco.
+  Ajuste de 2026-11-08 (Erick): a ferramenta corta o pescoço desenhado das cabeças (o que fica atrás
+  de 29% da largura e embaixo da mandíbula) e apaga o toco do alto do rolo. O pescoço é um tubo
+  contínuo feito com uma faixa de escamas recortada do próprio rolo (`gomo_corpo`), da mesma
+  espessura do anel. O rolo tem 400 px e sai pela borda direita da tela (parece não ter fim), e o
+  pescoço ficou mais comprido.
 - **Inimigos do PixelLab (2026-11-08):** brasa (`andar`, `parado`; 34 px no jogo) e vaga-lume
   (`voar`, uma vespa de fogo; 40 px, sempre virada para o herói). Originais em `originais/`.
 - **Sombra (2026-11-08):** fica no chão ou no galho embaixo do herói, menor e mais clara quanto

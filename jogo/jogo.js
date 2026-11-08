@@ -293,7 +293,7 @@ CHEFES.boitata = (() => {
     return pts;
   }
   // com a imagem do corpo enrolado: o pescoço sai do toco desenhado no alto dela
-  const CORPO_W = 340;
+  const CORPO_W = 400;
   function topoCorpo(b) {
     const S = sprite(b.cfg.sprite), c = S && S.partes && S.partes.corpo, f = S && S.pescocos && S.pescocos.corpo;
     if (!c || !f || b.dead) return null;
@@ -303,18 +303,18 @@ CHEFES.boitata = (() => {
   // pescoço: curva do alto do rolo até a cabeça
   function pescoco(b) {
     const top = b.topo, pts = [];
-    const n = clamp(Math.ceil(Math.hypot(b.hx - top.x, b.hy - top.y) * 1.25 / 17), 8, 48);   // estica sem abrir buraco
+    const n = clamp(Math.ceil(Math.hypot(b.hx - top.x, b.hy - top.y) * 1.3 / 14), 10, 60);   // estica sem abrir buraco
     const cx = (top.x + b.hx) / 2 + 20, cy = Math.min(top.y, b.hy) - 40;
     for (let i = 1; i <= n; i++) {
       const t = i / (n + 1), u = 1 - t;
-      pts.push({ x: u * u * top.x + 2 * u * t * cx + t * t * b.hx, y: u * u * top.y + 2 * u * t * cy + t * t * b.hy, r: 30 - t * 6 });
+      pts.push({ x: u * u * top.x + 2 * u * t * cx + t * t * b.hx, y: u * u * top.y + 2 * u * t * cy + t * t * b.hy, r: 31 - t * 5 });
     }
     return pts;
   }
   return {
     enraged,
     criar(cfg) {
-      const cx = ARENA.x1 - 215;
+      const cx = ARENA.x1 - 150;   // o rolo sai pela borda direita: parece não ter fim
       const b = { cfg, cx, subir: 320, hx: cx - 40, hy: GROUND - 300, rx: cx - 40, ry: GROUND - 300,
         fire: cfg.vida, max: cfg.vida, state: 'enter', st: 0, step: -1, flash: 0, volley: 0, botes: 0,
         ang: Math.PI, dead: false, deadT: 0, popped: 0, tx: 0, ty: 0, ox: 0, oy: 0, pts: [], neck: [], topo: { x: cx, y: GROUND - 200 } };
@@ -327,7 +327,7 @@ CHEFES.boitata = (() => {
       const pcx = player.x + player.w / 2, pcy = player.y + player.h / 2;
       // posições relativas ao toco do pescoço (alto do rolo)
       const T = b.topo || { x: b.cx, y: GROUND - 200 };
-      const restX = T.x - 120 + Math.sin(time * 1.3) * 24, restY = T.y - 95 + Math.sin(time * 2.1) * 12;
+      const restX = T.x - 230 + Math.sin(time * 1.3) * 30, restY = T.y - 110 + Math.sin(time * 2.1) * 14;
 
       if (b.dead) {
         b.deadT += dt;
@@ -349,7 +349,7 @@ CHEFES.boitata = (() => {
       } else if (b.state === 'idle') {
         if (b.st > (enraged(b) ? 1.0 : 1.6)) next(b);
       } else if (b.state === 'aimfire') {
-        tx = T.x - 90; ty = T.y - 140; follow = 4;
+        tx = T.x - 200; ty = T.y - 170; follow = 4;
         const first = .7, gap = enraged(b) ? .55 : .8, volleys = enraged(b) ? 3 : 2;
         if (b.volley < volleys && b.st > first + b.volley * gap) {
           const n = enraged(b) ? 5 : 3, base = Math.atan2(pcy - b.hy, pcx - b.hx);
@@ -363,7 +363,7 @@ CHEFES.boitata = (() => {
         if (b.st > first + volleys * gap + .5) next(b);
       } else if (b.state === 'strikePrep') {
         // encolhe e treme: aviso do bote
-        tx = T.x - 40 + Math.sin(time * 55) * 4; ty = T.y - 45; follow = 8;
+        tx = T.x - 90 + Math.sin(time * 55) * 4; ty = T.y - 60; follow = 8;
         if (b.st > (enraged(b) ? .55 : .85)) {
           b.state = 'strike'; b.st = 0; b.ox = b.hx; b.oy = b.hy;
           b.tx = Math.max(pcx, b.cx - ALCANCE); b.ty = GROUND - 30;
@@ -388,7 +388,7 @@ CHEFES.boitata = (() => {
       if (circleRect(b.hx, b.hy, 28, player)) {
         if (b.state === 'strike') hurtPlayer(D.veneno, b.hx, D.venenoSeg); else hurtPlayer(D.mordida, b.hx);
       }
-      if (b.state !== 'enter' && circleRect(b.cx, GROUND - 70, 125, player)) hurtPlayer(D.mordida, b.cx);
+      if (b.state !== 'enter' && circleRect(b.cx, GROUND - 70, 150, player)) hurtPlayer(D.mordida, b.cx);
       if (Math.random() < dt * (enraged(b) ? 30 : 18)) {
         const s = b.pts[(Math.random() * b.pts.length) | 0];
         particles.push({ x: s.x + rnd(-10, 10), y: s.y - 14, vx: rnd(-20, 20), vy: rnd(-90, -40), life: .7, max: .7, c: FIRE[(Math.random() * 3) | 0], s: rnd(2, 4), g: -40 });
@@ -397,13 +397,13 @@ CHEFES.boitata = (() => {
     acertoCirculo(b, x, y, r) {
       if (Math.hypot(x - b.hx, y - b.hy) < 36 + r) return { x: b.hx, y: b.hy, mult: 1.5 };
       for (const s of b.neck) if (Math.hypot(x - s.x, y - s.y) < s.r + r) return { x: s.x, y: s.y, mult: .8 };
-      if (Math.hypot(x - b.cx, y - (GROUND - 100)) < 160 + r) return { x, y, mult: .6 };
+      if (Math.hypot(x - b.cx, y - (GROUND - 110)) < 180 + r) return { x, y, mult: .6 };
       return null;
     },
     acertoRet(b, rr) {
       if (circleRect(b.hx, b.hy, 34, rr)) return { x: b.hx, y: b.hy, mult: 1.5 };
       for (const s of b.neck) if (circleRect(s.x, s.y, s.r, rr)) return { x: s.x, y: s.y, mult: .8 };
-      if (circleRect(b.cx, GROUND - 100, 160, rr)) return { x: rr.x + rr.w / 2, y: rr.y + rr.h / 2, mult: .6 };
+      if (circleRect(b.cx, GROUND - 110, 180, rr)) return { x: rr.x + rr.w / 2, y: rr.y + rr.h / 2, mult: .6 };
       return null;
     },
     luzes(b) {
@@ -422,8 +422,9 @@ CHEFES.boitata = (() => {
       // um gomo (sprite do PixelLab ou desenho de reserva)
       const gomo = (x, y, r, ang) => {
         x = Math.round(x - camX); y = Math.round(y);
-        if (P && P.gomo) {
-          const [qx, qy, qw, qh] = P.gomo, k = (r * 2.3) / qh, larg = Math.max(qw * k, r * 2.1);
+        const pg = P && (P.gomo_corpo || P.gomo);
+        if (pg) {
+          const [qx, qy, qw, qh] = pg, k = (r * 2.1) / qh, larg = Math.max(qw * k, r * 2.1);
           ctx.save(); ctx.translate(x, y); ctx.rotate(ang); if (Math.cos(ang) < 0) ctx.scale(1, -1);
           ctx.imageSmoothingEnabled = !S.pixel; ctx.drawImage(S.image, qx, qy, qw, qh, -larg / 2, -qh * k / 2, larg, qh * k);
           ctx.imageSmoothingEnabled = true; ctx.restore();
@@ -446,10 +447,30 @@ CHEFES.boitata = (() => {
           gomo(s.x, s.y, s.r, Math.atan2(nx.y - s.y, nx.x - s.x));
         }
       }
-      // pescoço
-      for (let i = 0; i < nNeck; i++) {
+      // pescoço: tubo contínuo com a faixa de escamas do rolo correndo ao longo dele
+      const faixa = P && P.gomo_corpo;
+      if (faixa && pp === 0) {
+        const [qx, qy, qw, qh] = faixa, chain = [b.topo, ...b.neck, { x: b.hx, y: b.hy, r: b.neck.length ? b.neck[b.neck.length - 1].r : 26 }];
+        let acc = 0;
+        ctx.imageSmoothingEnabled = !S.pixel;
+        for (let i = 0; i < chain.length - 1; i++) {
+          const a0 = chain[i], a1 = chain[i + 1], d = Math.hypot(a1.x - a0.x, a1.y - a0.y), r = (a0.r || 30);
+          const k = qh / (r * 2), sw = Math.max(1, d * k);
+          let sx = acc % qw; acc += sw;
+          ctx.save(); ctx.translate(Math.round(a0.x - camX), Math.round(a0.y)); ctx.rotate(Math.atan2(a1.y - a0.y, a1.x - a0.x));
+          let feito = 0;
+          while (feito < sw - .01) {   // a fatia pode dar a volta no fim da faixa
+            const pedaco = Math.min(sw - feito, qw - sx);
+            ctx.drawImage(S.image, qx + sx, qy, pedaco, qh, feito / k - .5, -r, pedaco / k + 1.5, r * 2);
+            feito += pedaco; sx = (sx + pedaco) % qw;
+          }
+          ctx.restore();
+        }
+        ctx.imageSmoothingEnabled = true;
+      }
+      if (!(faixa && pp === 0)) for (let i = 0; i < nNeck; i++) {
         const s = b.neck[i], nx = i + 1 < b.neck.length ? b.neck[i + 1] : { x: b.hx, y: b.hy };
-        if (i % 5 === 2) flame(s.x - camX, s.y - s.r * .6, s.r * .8, s.r * (rage ? 1.3 : 1), time * 12 + i * 2.3);
+        if (!(P && P.gomo_corpo) && i % 5 === 2) flame(s.x - camX, s.y - s.r * .6, s.r * .8, s.r * (rage ? 1.3 : 1), time * 12 + i * 2.3);
         gomo(s.x, s.y, s.r, Math.atan2(nx.y - s.y, nx.x - s.x));
       }
       if (pp > 0) return;
@@ -462,11 +483,10 @@ CHEFES.boitata = (() => {
       const venom = b.state === 'strikePrep' || b.state === 'strike';
       if (P && P.cabeca) {
         const ataque = P.cabeca_ataque && (b.state === 'aimfire' || venom);
-        const nomeC = ataque ? 'cabeca_ataque' : 'cabeca', [qx, qy, qw, qh] = P[nomeC], k = 100 / qw;
+        const nomeC = ataque ? 'cabeca_ataque' : 'cabeca', [qx, qy, qw, qh] = P[nomeC], k = 74 / qw;
         const [nx, ny] = (S.pescocos && S.pescocos[nomeC]) || [.45, .5];
         ctx.imageSmoothingEnabled = !S.pixel;
-        ctx.rotate(.38);
-        const hx0 = -6 - nx * qw * k, hy0 = 2 - ny * qh * k;
+        const hx0 = -14 - nx * qw * k, hy0 = -ny * qh * k;
         ctx.drawImage(S.image, qx, qy, qw, qh, hx0, hy0, qw * k, qh * k);
         if (b.flash > 0) { ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = Math.min(1, b.flash * 3) * .6; ctx.drawImage(S.image, qx, qy, qw, qh, hx0, hy0, qw * k, qh * k); ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over'; }
         ctx.imageSmoothingEnabled = true;
