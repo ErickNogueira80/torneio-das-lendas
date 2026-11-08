@@ -355,6 +355,9 @@ down. Same size in both frames, no numbers.
 
 ## 4. Fundo da floresta incendiada (3 camadas e o chão)
 
+Os fundos podem ser gerados em qualquer IA de imagem (ChatGPT, Gemini), até em estilo pintado: a
+ferramenta transforma em pixel art (grade de 2×2, 32 cores). Feito para a floresta em 2026-11-08.
+
 As camadas ficam uma na frente da outra e andam em velocidades diferentes, o que dá
 profundidade. Precisam **emendar nas laterais** (a borda direita continua na esquerda), porque o
 jogo repete a imagem. Se a emenda não ficar perfeita, me mandem assim mesmo que eu ajusto.

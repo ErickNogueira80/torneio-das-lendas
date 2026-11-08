@@ -16,6 +16,7 @@ window.FASES = {
   boitata: {
     // escuridão do estilo Lanterna: 0 = sem escuro, 1 = breu (só se vê onde há luz)
     escuridao: 0.78,
+    luaNoCeu: [0.52, 0.38],   // onde está a lua na imagem do céu (fração da largura e da altura)
     id: 'boitata',
     nome: 'A floresta do Boitatá',
     imagemTitulo: '../web/locais/03-a-chegada-ao-mundo-espiritual.jpg',

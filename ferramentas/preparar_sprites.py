@@ -57,7 +57,11 @@ PERSONAGEM = {
 }
 ALTURA_ESPECIFICA = {"inimigos/vagalume": 34}
 PARTES_LADO = {"cabeca": 256, "gomo": 160, "rabo": 128}   # maior lado de cada parte na folha
-FUNDO_ALTURA = {"ceu": 810, "longe": 540, "perto": 630, "chao": 256}
+# Fundos em pixel art: cada pixel da arte vira 2x2 na tela virtual (FUNDO_PIXEL). Alturas na
+# resolução da arte: céu 270 (tela 540), longe 180 (360), perto 210 (420), chão 128 (ladrilho 256).
+FUNDO_PIXEL = 2
+FUNDO_ALTURA = {"ceu": 270, "longe": 180, "perto": 210, "chao": 128}
+FUNDO_CORES = 32   # cores por camada (paleta limitada, cara de 16 bits)
 
 
 def remover_fundo(img: Image.Image) -> Image.Image:
@@ -305,7 +309,23 @@ def preparar_partes(pasta: Path) -> dict | None:
     return {"tipo": "partes", "img": f"{chave}.png", "partes": {n: list(pos[n]) for n, _ in itens}}
 
 
-def preparar_fundo(pasta: Path) -> dict | None:
+def pixelizar(im: Image.Image, largura: int, altura: int, cores: int) -> Image.Image:
+    """Reduz para a grade da pixel art (média de cada bloco), limita a paleta e deixa a
+    transparência só ligada ou desligada."""
+    tem_alfa = im.mode == "RGBA"
+    # pré-multiplica a transparência para a cor do fundo removido não vazar na média dos blocos
+    pequeno = (im.convert("RGBa").resize((largura, altura), Image.BOX).convert("RGBA") if tem_alfa
+               else im.resize((largura, altura), Image.BOX))
+    rgb = pequeno.convert("RGB").quantize(colors=cores, method=Image.Quantize.MEDIANCUT,
+                                          dither=Image.Dither.NONE).convert("RGB")
+    if not tem_alfa:
+        return rgb
+    alfa = pequeno.getchannel("A").point(lambda a: 255 if a >= 128 else 0)
+    rgb.putalpha(alfa)
+    return rgb
+
+
+def preparar_fundo(pasta: Path, ajustes: dict) -> dict | None:
     chave = f"fundos/{pasta.name}"
     camadas = {}
     for arq in sorted(pasta.iterdir()):
@@ -313,21 +333,33 @@ def preparar_fundo(pasta: Path) -> dict | None:
         if arq.suffix.lower() not in EXTS or nome not in FUNDO_ALTURA:
             continue
         im = Image.open(arq)
-        alvo = FUNDO_ALTURA[nome]
+        aj = ajustes.get(f"{chave}/{nome}", {})
+        if aj.get("corteTopo"):            # ex.: tirar a crosta clara de cima do chão
+            im = im.crop((0, round(im.height * float(aj["corteTopo"])), im.width, im.height))
         transparente = nome in ("longe", "perto")
-        im = remover_fundo(im) if transparente else im.convert("RGB")
-        f = alvo / im.height
-        im = im.resize((max(1, round(im.width * f)), alvo), Image.LANCZOS)
-        ext = "png" if transparente else "jpg"
-        saida = DESTINO / chave / f"{nome}.{ext}"
-        saida.parent.mkdir(parents=True, exist_ok=True)
-        if ext == "jpg":
-            im.save(saida, "JPEG", quality=84, optimize=True, progressive=True)
+        if transparente:
+            borda = np.concatenate([np.asarray(im.convert("RGB"))[0], np.asarray(im.convert("RGB"))[:, 0]])
+            fundo_verde = int(np.argmax(np.median(borda, axis=0))) == 1
+            im = remover_fundo(im)
+            if fundo_verde:   # tira o halo verde que sobra nas bordas (o fundo verde exige arte sem verde)
+                a = np.asarray(im).copy()
+                a[:, :, 1] = np.minimum(a[:, :, 1], np.maximum(a[:, :, 0], a[:, :, 2]))
+                # brilho (brasa) misturado com o verde vira amarelo-esverdeado: puxa para laranja
+                r, g, bl = (a[:, :, i].astype(np.int32) for i in range(3))
+                amarelado = (g > r * 0.8) & (g > bl + 30)
+                a[:, :, 1] = np.where(amarelado, (r * 0.55).astype(np.uint8), a[:, :, 1])
+                im = Image.fromarray(a, "RGBA")
         else:
-            im.save(saida, optimize=True)
-        camadas[nome] = f"{chave}/{nome}.{ext}"
-        print(f"  {chave}/{nome}: {im.width}x{im.height} ({saida.stat().st_size // 1024} KB)")
-    return {"tipo": "fundo", "camadas": camadas} if camadas else None
+            im = im.convert("RGB")
+        alvo = FUNDO_ALTURA[nome]
+        largura = max(1, round(im.width * alvo / im.height))
+        im = pixelizar(im, largura, alvo, int(aj.get("cores", FUNDO_CORES)))
+        saida = DESTINO / chave / f"{nome}.png"
+        saida.parent.mkdir(parents=True, exist_ok=True)
+        im.save(saida, optimize=True)
+        camadas[nome] = f"{chave}/{nome}.png"
+        print(f"  {chave}/{nome}: {im.width}x{im.height} pixel ({saida.stat().st_size // 1024} KB)")
+    return {"tipo": "fundo", "pixel": FUNDO_PIXEL, "camadas": camadas} if camadas else None
 
 
 def main():
@@ -347,7 +379,7 @@ def main():
         if r:
             saida[f"chefes/{pasta.name}"] = r
     for pasta in sorted((ORIGEM / "fundos").glob("*/")):
-        r = preparar_fundo(pasta)
+        r = preparar_fundo(pasta, ajustes)
         if r:
             saida[f"fundos/{pasta.name}"] = r
     DESTINO.mkdir(parents=True, exist_ok=True)

@@ -693,17 +693,25 @@ function drawTree(x, base, h, w, b, color) {
 // camada de imagem repetida na horizontal, com paralaxe; base = y do pé da imagem
 function tiled(img, par, base, height) {
   const k = height / img.naturalHeight, w = img.naturalWidth * k;
+  ctx.imageSmoothingEnabled = !fundoPixel();
   let x = -((camX * par) % w); if (x > 0) x -= w;
   for (; x < W; x += w) ctx.drawImage(img, x, base - height, w + 1, height);
+  ctx.imageSmoothingEnabled = true;
 }
+const fundoPixel = () => (SPR[FASE.fundo] && SPR[FASE.fundo].pixel) || 0;
+// posição da lua na tela: a do céu desenhado (FASE.luaNoCeu, em fração da imagem) ou a padrão
+let luaTela = [760, 120];
 
 function drawBackground() {
   const C = FASE.cores, F = FASE.fundo;
   const ceu = layer(F, 'ceu'), longe = layer(F, 'longe'), perto = layer(F, 'perto');
   if (ceu) {
     const k = Math.max(W / ceu.naturalWidth, H / ceu.naturalHeight);
-    const w = ceu.naturalWidth * k, over = Math.max(0, w - W);
-    ctx.drawImage(ceu, -over * clamp(camX / Math.max(1, LEVEL_END - W), 0, 1), 0, w, ceu.naturalHeight * k);
+    const w = ceu.naturalWidth * k, over = Math.max(0, w - W), x0 = -over * clamp(camX / Math.max(1, LEVEL_END - W), 0, 1);
+    ctx.imageSmoothingEnabled = !fundoPixel();
+    ctx.drawImage(ceu, x0, 0, w, ceu.naturalHeight * k);
+    ctx.imageSmoothingEnabled = true;
+    if (FASE.luaNoCeu) luaTela = [x0 + FASE.luaNoCeu[0] * w, FASE.luaNoCeu[1] * ceu.naturalHeight * k];
   } else {
     const g = ctx.createLinearGradient(0, 0, 0, H);
     g.addColorStop(0, C.ceu[0]); g.addColorStop(.55, C.ceu[1]); g.addColorStop(.8, C.ceu[2]); g.addColorStop(1, C.ceu[3]);
@@ -742,7 +750,9 @@ function drawWorld() {
   for (const s of SOLIDS) {
     const x = s.x - camX; if (x > W || x + s.w < 0) continue;
     if (groundPattern) {
-      ctx.save(); ctx.translate(-camX, s.y); ctx.fillStyle = groundPattern; ctx.fillRect(s.x, 0, s.w, s.h); ctx.restore();
+      const z = fundoPixel() || 1;   // o ladrilho em pixel art é guardado pequeno e ampliado aqui
+      ctx.save(); ctx.translate(-camX, s.y); ctx.scale(z, z); ctx.imageSmoothingEnabled = z === 1;
+      ctx.fillStyle = groundPattern; ctx.fillRect(s.x / z, 0, s.w / z, s.h / z); ctx.restore();
       continue;
     }
     ctx.fillStyle = C.chao; ctx.fillRect(x, s.y, s.w, s.h);
@@ -789,7 +799,7 @@ function luzes() {
   const L = [], p = player, f = Math.sin(time * 7) * 4 + Math.sin(time * 13) * 2;
   // [x na tela, y, raio, cor 'R,G,B' ou null, força do brilho colorido]
   L.push([p.x + p.w / 2 - camX, p.y + p.h / 2, 200 + f, '255,225,180', .14]);
-  L.push([760, 120, 150, null, 0]);   // a lua
+  L.push([luaTela[0], luaTela[1], 150, null, 0]);   // a lua
   for (const o of shots) L.push([o.x - camX, o.y, 90, PODER.corLuz || '150,210,255', .5]);
   for (const b of fireballs) L.push([b.x - camX, b.y, 130, '255,140,40', .55]);
   for (const e of enemies) if (!e.dead && e.T.luz) L.push([e.x + e.w / 2 - camX, e.y + e.h / 2, e.T.luz + f, e.T.corLuz || '255,150,60', .4]);

@@ -87,6 +87,11 @@ Pessoal (família).
   bola de fogo e perdem a espada), `dano` (taking damage, 3-5) e `morrer` (dying, mostrado ao ser
   derrotado). A escolha dos quadros fica em `img/sprites/ajustes.json`; os GIFs originais, em
   `pixellab/`. O boneco tem 62 px de altura no jogo, ampliado sem borrar.
+- **Fundos em pixel art (2026-11-08):** as camadas (`ceu`, `longe`, `perto`, `chao`) podem vir de
+  qualquer IA de imagem, até em estilo pintado; a ferramenta reduz para a grade da pixel art (cada
+  pixel da arte = 2×2 na tela), limita a 32 cores e tira o halo verde. Na fase, `luaNoCeu` diz
+  onde está a lua na imagem do céu (para a luz da lua bater). O chão da floresta tem a crosta
+  clara de cima cortada (`corteTopo` no `ajustes.json`).
 - **Luz no escuro (estilo Lanterna, 2026-11-08):** cada fase tem `escuridao` (0 a 1; o Boitatá
   usa 0,78). Só se vê em volta das fontes de luz: o herói, a lua, os poderes (`corLuz` em
   `PODERES`), os inimigos (`luz` e `corLuz` em `INIMIGOS`), o chão em chamas, os pontos de
