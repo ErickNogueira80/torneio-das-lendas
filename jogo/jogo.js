@@ -12,7 +12,7 @@
 // ---------- tela e escala ----------
 const W = 960, H = 540;
 const cv = document.getElementById('c');
-const tela = cv.getContext('2d');
+const tela = cv.getContext('2d', { alpha: false });   // tela opaca: o navegador compõe mais rápido
 let ctx = tela;   // contexto atual: a tela, ou a tela interna do mundo enquanto o mundo é desenhado
 // O mundo (cenário, luz, personagens) é desenhado numa tela interna de 960x540 e ampliado de uma
 // vez, sem borrar: é o jeito normal de pixel art e custa bem menos que desenhar tudo na
@@ -713,6 +713,34 @@ function tiled(img, par, base, height, desloc = 0) {
   ctx.imageSmoothingEnabled = true;
 }
 const fundoPixel = () => (SPR[FASE.fundo] && SPR[FASE.fundo].pixel) || 0;
+// Faixas prontas: as camadas de árvores são montadas UMA vez numa imagem larga do tamanho que a
+// câmera percorre (uma faixa para o fundo, com a neblina, e outra para o meio). Por quadro o jogo
+// só copia um pedaço de cada. Por isso a densidade das camadas não pesa: pode ter quantas
+// árvores quiser.
+let faixasProntas = null;
+function faixas() {
+  if (faixasProntas) return faixasProntas;
+  const F = FASE.fundo, longe = layer(F, 'longe'), perto = layer(F, 'perto');
+  if (!longe || !perto || typeof document === 'undefined' || HD) return null;
+  const parL = .28, parM = .55, alcance = Math.max(LEVEL_END, ARENA.x1) - W;
+  const nova = par => { const c = document.createElement('canvas'); c.width = Math.ceil(alcance * par + W) + 4; c.height = H; return c; };
+  const pinta = (g, img, base, altura, desloc = 0) => {
+    const nw = img.naturalWidth || img.width, nh = img.naturalHeight || img.height;
+    const w = nw * altura / nh;
+    g.imageSmoothingEnabled = !fundoPixel();
+    for (let x = -desloc * w; x < g.canvas.width; x += w) g.drawImage(img, Math.round(x), base - altura, Math.ceil(w) + 1, altura);
+  };
+  const L = nova(parL), gl = L.getContext('2d');
+  pinta(gl, longe, GROUND - 20, 330);
+  pinta(gl, tom(longe, '20,10,24', .35), GROUND, 400, .5);
+  const fog = gl.createLinearGradient(0, 300, 0, H);
+  fog.addColorStop(0, 'rgba(120,60,40,0)'); fog.addColorStop(1, 'rgba(120,60,40,.35)');
+  gl.fillStyle = fog; gl.fillRect(0, 300, L.width, H - 300);
+  const M = nova(parM), gm = M.getContext('2d');
+  pinta(gm, tom(perto, '26,12,22', .3), GROUND + 6, 360, .37);
+  pinta(gm, perto, GROUND + 10, 430);
+  return (faixasProntas = { longe: L, meio: M, parL, parM });
+}
 // cópia escurecida (ou tingida) de uma camada, guardada para não refazer a cada quadro
 const TOM = new Map();
 function tom(img, cor, forca) {
@@ -753,7 +781,15 @@ function drawFrente() {
     }
   }
 }
-let retratoV = null;
+let retratoV = null, retratoP = null;
+// o retrato original é grande: guarda uma cópia já no tamanho da tela do aparelho
+function retratoPronto(im, w, h) {
+  const k = dpr * scale, pw = Math.max(1, Math.round(w * k)), ph = Math.max(1, Math.round(h * k));
+  if (retratoP && retratoP.width === pw && retratoP.height === ph) return retratoP;
+  const c = document.createElement('canvas'); c.width = pw; c.height = ph;
+  const g = c.getContext('2d'); g.imageSmoothingQuality = 'high'; g.drawImage(im, 0, 0, pw, ph);
+  return (retratoP = c);
+}
 function retratoVermelho(im) {
   if (retratoV) return retratoV;
   const c = document.createElement('canvas'); c.width = im.naturalWidth; c.height = im.naturalHeight;
@@ -771,7 +807,7 @@ function drawRetrato() {
   const atras = p.x - camX < w + 10 && p.y + p.h > H - h;
   ctx.save();
   ctx.globalAlpha = atras ? .3 : .93;
-  ctx.drawImage(im, -6 + tremor, H - h + 8 + resp, w, h);
+  ctx.drawImage(retratoPronto(im, w, h), -6 + tremor, H - h + 8 + resp, w, h);
   ctx.restore();
   if (p.inv > 0.7 && state === 'play') {   // leva dano: o retrato pisca em vermelho (só onde há desenho)
     ctx.save(); ctx.globalAlpha = .55 * (p.inv - .7) / .5;
@@ -798,7 +834,12 @@ function drawBackground() {
     ctx.fillStyle = 'rgba(255,170,110,.18)'; ctx.beginPath(); ctx.arc(760, 120, 70, 0, Math.PI * 2); ctx.fill();
     ctx.fillStyle = C.lua; ctx.beginPath(); ctx.arc(760, 120, 38, 0, Math.PI * 2); ctx.fill();
   }
-  if (longe) {
+  const fx = faixas();
+  if (fx) {   // camadas já montadas em 2 faixas: 2 desenhos por quadro em vez de 5
+    ctx.drawImage(fx.longe, -Math.round(camX * fx.parL), 0);
+    ctx.drawImage(fx.meio, -Math.round(camX * fx.parM), 0);
+  }
+  else if (longe) {
     tiled(longe, .22, GROUND - 20, 330);
     tiled(tom(longe, '20,10,24', .35), .36, GROUND, 400, .5);   // segunda fileira, mais perto e mais escura
   }
@@ -809,10 +850,13 @@ function drawBackground() {
     ctx.lineTo(W, H); ctx.fill();
     for (const t of FAR) { const x = t.x - camX * .3; const sx = ((x % 6650) + 6650) % 6650 - 200; if (sx < -100 || sx > W + 100) continue; drawTree(sx, 420, t.h, t.w, t.b, C.arvoreLonge); }
   }
-  const fog = ctx.createLinearGradient(0, 300, 0, H);
-  fog.addColorStop(0, 'rgba(120,60,40,0)'); fog.addColorStop(1, 'rgba(120,60,40,.35)');
-  ctx.fillStyle = fog; ctx.fillRect(0, 300, W, H - 300);
-  if (perto) {
+  if (!fx) {
+    const fog = ctx.createLinearGradient(0, 300, 0, H);
+    fog.addColorStop(0, 'rgba(120,60,40,0)'); fog.addColorStop(1, 'rgba(120,60,40,.35)');
+    ctx.fillStyle = fog; ctx.fillRect(0, 300, W, H - 300);
+  }
+  if (fx) { /* troncos já estão na faixa do meio */ }
+  else if (perto) {
     tiled(tom(perto, '26,12,22', .3), .48, GROUND + 6, 360, .37);   // troncos do meio
     tiled(perto, .62, GROUND + 10, 430);
   }
@@ -911,7 +955,7 @@ function drawLuz() {
   ctx.drawImage(luzCv, 0, 0, W, H);
   ctx.save(); ctx.globalCompositeOperation = 'lighter';
   for (const [x, y, r, cor, forca] of L) {
-    if (!cor || !forca) continue;
+    if (!cor || forca < .45) continue;   // brilho colorido só nas luzes fortes (custa caro)
     const g = ctx.createRadialGradient(x, y, 0, x, y, r * .8);
     g.addColorStop(0, `rgba(${cor},${forca * .35})`); g.addColorStop(1, `rgba(${cor},0)`);
     ctx.fillStyle = g; ctx.fillRect(x - r, y - r, 2 * r, 2 * r);
@@ -1227,6 +1271,13 @@ function drawPortrait() {
 }
 
 const HD = params.has('hd');
+// ?perf: tempo médio (ms) de cada parte do desenho, para achar o que pesa
+const PERF = params.has('perf') ? {} : null;
+function medir(nome, fn) {
+  if (!PERF) return fn();
+  const t0 = performance.now(); fn();
+  const m = PERF[nome] || (PERF[nome] = { s: 0, n: 0 }); m.s += performance.now() - t0; m.n++;
+}
 let mundoCv = null, mundoCtx = null;
 let fpsN = 0, fpsT = 0, fps = 0;
 function draw() {
@@ -1238,22 +1289,28 @@ function draw() {
   if (portrait) { drawPortrait(); ctx.restore(); return; }
   if (state === 'title') { drawTitle(); ctx.restore(); return; }
   if (!HD) {
-    if (!mundoCv) { mundoCv = document.createElement('canvas'); mundoCv.width = W; mundoCv.height = H; mundoCtx = mundoCv.getContext('2d'); }
+    if (!mundoCv) { mundoCv = document.createElement('canvas'); mundoCv.width = W; mundoCv.height = H; mundoCtx = mundoCv.getContext('2d', { alpha: false }); }
     ctx = mundoCtx; ctx.setTransform(1, 0, 0, 1, 0, 0);
   }
   const sh = shake > 0 ? shake * 14 : 0;
   ctx.save(); ctx.translate(rnd(-sh, sh), rnd(-sh, sh));
-  drawBackground(); drawWorld(); drawEnemies();
-  if (bossActive && boss) CHEFE.desenhar(boss);
-  drawChao(); drawPlayer(); drawProjectiles(); drawParticles(); drawFrente();
+  medir('fundo', drawBackground); medir('mundo', () => { drawWorld(); drawEnemies(); });
+  if (bossActive && boss) medir('chefe', () => CHEFE.desenhar(boss));
+  medir('perso', () => { drawChao(); drawPlayer(); drawProjectiles(); drawParticles(); });
+  medir('frente', drawFrente);
   ctx.restore();
-  drawLuz();
+  medir('luz', drawLuz);
   if (!HD) {
     ctx = tela;
     ctx.imageSmoothingEnabled = false; ctx.drawImage(mundoCv, 0, 0, W, H); ctx.imageSmoothingEnabled = true;
   }
   drawRetrato(); drawHUD(); drawTouch();
-  if (params.has('fps')) {
+  if (PERF) {
+    ctx.fillStyle = 'rgba(0,0,0,.7)'; ctx.fillRect(W - 230, 60, 220, 22 + 18 * Object.keys(PERF).length);
+    ctx.fillStyle = '#9f9'; ctx.font = '14px monospace'; ctx.textAlign = 'left';
+    Object.entries(PERF).forEach(([k, m], i) => ctx.fillText(k.padEnd(7) + (m.s / Math.max(1, m.n)).toFixed(2) + ' ms', W - 220, 80 + i * 18));
+  }
+  if (params.has('fps') || PERF) {
     const agora = performance.now() / 1000; fpsN++; if (agora - fpsT >= 1) { fps = Math.round(fpsN / (agora - fpsT)); fpsN = 0; fpsT = agora; }
     ctx.fillStyle = '#9f9'; ctx.font = 'bold 16px sans-serif'; ctx.textAlign = 'right'; ctx.fillText(fps + ' fps', W - 12, 46);
   }

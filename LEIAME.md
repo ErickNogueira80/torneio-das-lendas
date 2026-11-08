@@ -76,6 +76,11 @@ Pessoal (família).
   no canto inferior esquerdo durante a fase, como no estilo Lanterna; treme e pisca em vermelho
   quando o herói leva dano e fica transparente quando o herói passa por trás. `?semretrato`
   esconde.
+- **Desempenho (2026-11-08):** as camadas de árvores são montadas uma vez, no início da fase, em 2
+  faixas largas (fundo com neblina, parallax 0,28; meio, 0,55); por quadro o jogo só copia um
+  pedaço de cada. A densidade das camadas não pesa, só o número de faixas. Brilho colorido só nas
+  luzes fortes; retrato guardado no tamanho da tela; telas opacas. `?perf` mostra o custo de cada
+  parte do desenho.
 - **Cenário denso (2026-11-08):** além das camadas da fase, o motor desenha uma segunda fileira de
   árvores distantes e uma de troncos do meio (cópias escurecidas das camadas), tufos, pedras e
   galhos no chão, e um primeiro plano de moitas e cipós em blocos de pixel.
