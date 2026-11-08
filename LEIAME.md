@@ -105,6 +105,9 @@ Pessoal (família).
   `PODERES`), os inimigos (`luz` e `corLuz` em `INIMIGOS`), o chão em chamas, os pontos de
   controle, o pingente e o chefe (função `luzes` no módulo do chefe). O chão e as plataformas têm
   uma borda de brasa que brilha no escuro, para os pulos continuarem legíveis.
+- **Publicar o jogo:** trocar o `?v=` dos três scripts em `jogo/index.html` (qualquer valor novo,
+  ex.: o hash do commit), para o celular não misturar arquivos novos com antigos do cache. Erros do
+  jogo aparecem numa faixa vermelha embaixo da tela, com o navegador do aparelho.
 - **Parâmetros de teste:** `?heroi=agua|fogo|terra` testa outro herói (`?heroi=ar` é o humano
   desperto); `?fase=<chave>`;
   `?boss` começa no chefe; `?demo` joga sozinho; `&ff=600` avança 600 quadros; `&touch` mostra os
