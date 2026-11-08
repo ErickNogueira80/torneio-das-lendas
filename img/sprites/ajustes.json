@@ -1,0 +1,7 @@
+{
+ "herois/humano/pular": {"quadros": [2, 3, 4]},
+ "herois/humano/cair": {"quadros": [5, 6]},
+ "herois/humano/espada": {"quadros": [3, 4, 5]},
+ "herois/humano/poder": {"quadros": [6]},
+ "herois/humano/dano": {"quadros": [3, 4, 5]}
+}

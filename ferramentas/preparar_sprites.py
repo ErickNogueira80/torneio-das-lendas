@@ -22,6 +22,12 @@ Folha com várias poses: `<animacao>_folha.png` (ex.: correr_folha.png) com as p
 Aceita .png, .jpg, .jpeg e .webp. O fundo é detectado pela cor das bordas da imagem; se a
 imagem já vier com transparência, ela é mantida.
 
+Pixel art (PixelLab): se a pasta de um personagem tiver GIFs com nome de animação
+(`parado.gif`, `correr.gif`, ...), ela entra no modo pixel: usa só os GIFs, não redimensiona, mantém
+todos os quadros na mesma caixa e usa a mesma âncora (os pés do `parado`) em todas as animações,
+para o boneco não tremer. No ajustes.json, `"quadros": [2, 3, 4]` escolhe quais quadros do GIF
+entram (contando do 1) e `"altura"` muda a altura do boneco no jogo (padrão 62 px).
+
 Ajustes finos (opcional): `img/sprites/ajustes.json`, por exemplo
   {"herois/humano/pular_1": {"escala": 0.9}, "herois/humano/espada_2": {"dx": -6}}
   escala: multiplica o tamanho do quadro; dx/dy: desloca o quadro (em pixels da folha).
@@ -41,7 +47,8 @@ RAIZ = Path(__file__).resolve().parent.parent
 ORIGEM = RAIZ / "img" / "sprites"
 DESTINO = RAIZ / "jogo" / "sprites"
 EXTS = {".png", ".jpg", ".jpeg", ".webp"}
-ANIMS = ["parado", "correr", "pular", "cair", "espada", "poder", "dano", "andar", "voar"]
+ANIMS = ["parado", "correr", "pular", "cair", "espada", "poder", "dano", "morrer", "andar", "voar"]
+PIXEL_ALTURA = 62   # altura do boneco em pixel art no jogo (px da tela virtual)
 
 # altura no jogo (px da tela virtual 960x540) e altura na folha (resolução guardada)
 PERSONAGEM = {
@@ -157,8 +164,56 @@ def separar_folha(img: Image.Image) -> list[Image.Image]:
     return pecas
 
 
+def preparar_pixel(grupo: str, pasta: Path, ajustes: dict, gifs: list[Path]) -> dict | None:
+    """Modo pixel: quadros dos GIFs sem redimensionar, caixa e âncora comuns."""
+    from PIL import ImageSequence
+    chave = f"{grupo}/{pasta.name}"
+    anims: dict[str, list[Image.Image]] = {}
+    for arq in gifs:
+        anim = arq.stem.lower()
+        quadros = [f.convert("RGBA") for f in ImageSequence.Iterator(Image.open(arq))]
+        escolha = ajustes.get(f"{chave}/{anim}", {}).get("quadros")
+        if escolha:
+            quadros = [quadros[i - 1] for i in escolha if 0 < i <= len(quadros)]
+        anims[anim] = quadros
+    if not anims:
+        return None
+    # caixa comum a todos os quadros
+    caixas = [np.where(np.asarray(q)[:, :, 3] > 0) for qs in anims.values() for q in qs]
+    caixas = [(xs.min(), ys.min(), xs.max() + 1, ys.max() + 1) for ys, xs in caixas if len(xs)]
+    x0 = min(c[0] for c in caixas); y0 = min(c[1] for c in caixas)
+    x1 = max(c[2] for c in caixas); y1 = max(c[3] for c in caixas)
+    # âncora: pés do primeiro quadro do parado (ou da primeira animação)
+    base = (anims.get("parado") or next(iter(anims.values())))[0]
+    alfa = np.asarray(base)[:, :, 3] > 0
+    ys, xs = np.where(alfa)
+    pe_y = ys.max() + 1
+    altura_boneco = pe_y - ys.min()
+    faixa = alfa[pe_y - max(2, altura_boneco // 4):pe_y]
+    pesos = faixa.sum(axis=0)
+    pe_x = float((pesos * np.arange(len(pesos))).sum() / max(1, pesos.sum())) + 0.5
+    itens = []
+    for anim, qs in anims.items():
+        for i, q in enumerate(qs, 1):
+            itens.append((anim, i, f"{anim}_{i}", q.crop((x0, y0, x1, y1))))
+    folha, pos = empacotar([(n, im) for _, _, n, im in itens])
+    saida = DESTINO / f"{chave}.png"
+    saida.parent.mkdir(parents=True, exist_ok=True)
+    folha.save(saida, optimize=True)
+    quadros: dict[str, list] = {}
+    for anim, _, nome, _ in itens:
+        x, y, w, h = pos[nome]
+        quadros.setdefault(anim, []).append([x, y, w, h, round(pe_x - x0, 1), float(pe_y - y0)])
+    alvo = float(ajustes.get(chave, {}).get("altura", PIXEL_ALTURA))
+    resumo = ", ".join(f"{a} {len(q)}" for a, q in quadros.items())
+    print(f"  {chave} (pixel): {resumo} -> {saida.relative_to(RAIZ)} ({saida.stat().st_size // 1024} KB)")
+    return {"tipo": "personagem", "pixel": True, "img": f"{chave}.png",
+            "escala": round(alvo / altura_boneco, 4), "quadros": quadros}
+
+
 def preparar_personagem(grupo: str, pasta: Path, ajustes: dict) -> dict | None:
     chave = f"{grupo}/{pasta.name}"
+    gifs = [a for a in sorted(pasta.iterdir()) if a.suffix.lower() == ".gif" and a.stem.lower() in ANIMS]
     cfg = PERSONAGEM[grupo]
     altura_jogo = ALTURA_ESPECIFICA.get(chave, cfg["altura"])
     atlas_h = cfg["atlas"]
@@ -207,6 +262,11 @@ def preparar_personagem(grupo: str, pasta: Path, ajustes: dict) -> dict | None:
             (DESTINO / retrato).parent.mkdir(parents=True, exist_ok=True)
             im.save(DESTINO / retrato, optimize=True)
             print(f"  {chave}: retrato -> jogo/sprites/{retrato}")
+    if gifs:
+        r = preparar_pixel(grupo, pasta, ajustes, gifs)
+        if r and retrato:
+            r["retrato"] = retrato
+        return r
     if not itens:
         return {"tipo": "personagem", "retrato": retrato, "quadros": {}} if retrato else None
     folha, pos = empacotar([(nome, im) for _, nome, im, _, _ in itens])

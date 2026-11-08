@@ -74,7 +74,7 @@ function layer(key, name) { const s = SPR[key]; return s && s.imgs && ready(s.im
 loadSprites();
 
 // desenha um quadro de personagem com os pés em (x, y); face = 1 direita, -1 esquerda
-const ANIM_RESERVA = { correr: ['parado'], cair: ['pular', 'parado'], pular: ['parado'], espada: ['parado'], poder: ['espada', 'parado'], dano: ['parado'], andar: ['parado'], voar: ['parado'] };
+const ANIM_RESERVA = { correr: ['parado'], cair: ['pular', 'parado'], pular: ['parado'], espada: ['parado'], poder: ['espada', 'parado'], dano: ['parado'], morrer: ['dano', 'parado'], andar: ['parado'], voar: ['parado'] };
 const temAnim = (s, anim) => !!(s.quadros && s.quadros[anim] && s.quadros[anim].length);
 function drawFrame(s, anim, t, x, y, face, sx = 1, sy = 1, rot = 0) {
   let fr = s.quadros && s.quadros[anim];
@@ -84,6 +84,7 @@ function drawFrame(s, anim, t, x, y, face, sx = 1, sy = 1, rot = 0) {
   const [qx, qy, qw, qh, ax, ay] = fr[Math.floor(Math.max(0, t)) % fr.length];
   const k = s.escala;
   ctx.save(); ctx.translate(x, y); if (rot) ctx.rotate(rot * face); ctx.scale(face * k * sx, k * sy);
+  if (s.pixel) ctx.imageSmoothingEnabled = false;   // pixel art: ampliar sem borrar
   ctx.drawImage(s.image, qx, qy, qw, qh, -ax, -ay, qw, qh);
   ctx.restore();
   return true;
@@ -234,7 +235,8 @@ function hurtPlayer(dmg, srcX, poison = 0) {
   shake = .25;
   if (player.hp <= 0) die();
 }
-function die() { player.hp = 0; state = 'dead'; pointers.clear(); }
+let deadAt = 0;
+function die() { player.hp = 0; state = 'dead'; deadAt = time; pointers.clear(); }
 
 function gainXp(n, x, y) {
   player.xp += n;
@@ -642,7 +644,7 @@ function chooseLevel(i) {
 function menuTap(p) {
   if (portrait) return;
   if (state === 'title') { goFullscreen(); newGame(); }
-  else if (state === 'dead') { respawn(); state = 'play'; }
+  else if (state === 'dead') { if (time - deadAt < 0.9) return; respawn(); state = 'play'; }
   else if (state === 'victory') { state = 'title'; }
   else if (state === 'levelup') { for (let i = 0; i < 4; i++) if (overlap({ x: p.x, y: p.y, w: 1, h: 1 }, lvCard(i))) chooseLevel(i); }
 }
@@ -769,14 +771,20 @@ function drawWorld() {
   }
 }
 
-function playerAnim() {
+// t = índice do quadro. Golpes, dano, pulo e morte avançam pelo progresso (0 a 1) e param no
+// último quadro; parado e corrida repetem.
+const QUADROS_ANTIGOS = 2;   // imagens pintadas: espada com 2 quadros
+function playerAnim(S) {
   const p = player;
-  if (p.inv > 0.7 && state === 'play') return { a: 'dano', t: 0 };
-  if (p.swordT > 0) return { a: 'espada', t: (1 - p.swordT / 0.18) * 1.99 };
-  if (p.powerT > 0) return { a: 'poder', t: 0 };
-  if (!p.onGround) return { a: p.vy < 0 ? 'pular' : 'cair', t: 0 };
-  if (Math.abs(p.vx) > 20) return { a: 'correr', t: p.anim * 2.2 };
-  return { a: 'parado', t: time * 2 };
+  const n = a => (S && S.quadros && S.quadros[a] && S.quadros[a].length) || QUADROS_ANTIGOS;
+  const prog = (a, k) => ({ a, t: Math.min(n(a) - 1, clamp(k, 0, 1) * n(a)) });
+  if (state === 'dead') return prog('morrer', (time - deadAt) / 1.1);
+  if (p.inv > 0.7 && state === 'play') return prog('dano', (1 - p.inv) / 0.3);
+  if (p.swordT > 0) return prog('espada', 1 - p.swordT / 0.18);
+  if (p.powerT > 0) return prog('poder', 1 - p.powerT / 0.2);
+  if (!p.onGround) return p.vy < 0 ? prog('pular', 1 + p.vy / JUMP_V) : prog('cair', p.vy / 600);
+  if (Math.abs(p.vx) > 20) return { a: 'correr', t: S && S.pixel ? p.anim : p.anim * 2.2 };
+  return { a: 'parado', t: time * (S && S.pixel ? 5 : 2) };
 }
 
 function drawPlayer() {
@@ -785,7 +793,7 @@ function drawPlayer() {
   const x = Math.round(p.x - camX), y = Math.round(p.y), f = p.face;
   const S = sprite(HEROI.sprite);
   if (S) {
-    const { a, t } = playerAnim();
+    const { a, t } = playerAnim(S);
     const sq = p.landT > 0 ? p.landT / 0.14 : 0;
     let bob = a === 'correr' ? -Math.abs(Math.sin(p.anim * 6)) * 2 : a === 'parado' ? Math.sin(time * 3) * .8 : 0;
     // Pose que ainda não tem imagem: o próprio jogo dá o movimento à imagem que existe
@@ -1023,6 +1031,9 @@ function drawLevelUp() {
 }
 
 function drawDead() {
+  const fade = clamp((time - deadAt - 0.6) / 0.6, 0, 1);   // deixa ver a queda do herói antes
+  if (fade <= 0) return;
+  ctx.globalAlpha = fade;
   ctx.fillStyle = 'rgba(30,6,6,.7)'; ctx.fillRect(0, 0, W, H);
   ctx.textAlign = 'center'; ctx.fillStyle = '#ff9a8a'; ctx.font = 'bold 42px Cinzel, serif';
   ctx.fillText('Você foi derrotado', W / 2, 220);
@@ -1030,6 +1041,7 @@ function drawDead() {
   ctx.fillText('Seu nível e seus atributos continuam com você.', W / 2, 262);
   ctx.fillStyle = '#f5d48a'; ctx.font = 'bold 22px Cinzel, serif';
   ctx.fillText(showTouch ? 'Toque para voltar ao último ponto de controle' : 'Clique ou Enter para voltar ao último ponto de controle', W / 2, 320);
+  ctx.globalAlpha = 1;
 }
 
 function drawVictory() {

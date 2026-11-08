@@ -79,6 +79,14 @@ Pessoal (família).
 - **Imagem só do herói parado:** se uma pose não tem imagem, o jogo anima a imagem que existe
   (inclina, quica, estica). Com só o `parado_1` o herói já funciona. A ferramenta também aceita
   folhas com várias poses (`correr_folha.png`, `poses_folha.png`) e recorta sozinha.
+- **Herói em pixel art (2026-11-08):** o humano veio do PixelLab (GIFs de 80×80, só a direção
+  east). Em `img/sprites/herois/humano/` (no git; os PNGs pintados antigos ficam em `pintado/`,
+  fora do git) cada animação é um GIF com o nome do jogo: `parado` (breathing idle), `correr`
+  (running 6 frames), `pular` e `cair` (running jump, quadros 2-4 e 5-6; o "jumping" perdia a
+  espada), `espada` (sword slash, quadros 3-5), `poder` (fireball, só o quadro 6: os outros têm
+  bola de fogo e perdem a espada), `dano` (taking damage, 3-5) e `morrer` (dying, mostrado ao ser
+  derrotado). A escolha dos quadros fica em `img/sprites/ajustes.json`; os GIFs originais, em
+  `pixellab/`. O boneco tem 62 px de altura no jogo, ampliado sem borrar.
 - **Parâmetros de teste:** `?heroi=agua|fogo|terra` testa outro herói (`?heroi=ar` é o humano
   desperto); `?fase=<chave>`;
   `?boss` começa no chefe; `?demo` joga sozinho; `&ff=600` avança 600 quadros; `&touch` mostra os
