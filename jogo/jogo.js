@@ -516,8 +516,11 @@ function updatePlayer(dt) {
   p.dropT = Math.max(0, (p.dropT || 0) - dt);
   if (!p.onGround) p.onPlat = false;
   if (p.vy >= 0 && p.dropT <= 0) for (const pl of PLATS) {
-    if (p.x + p.w > pl.x && p.x < pl.x + pl.w && prevBottom <= pl.y + 2 && p.y + p.h >= pl.y) { p.y = pl.y - p.h; p.vy = 0; p.onGround = true; p.onPlat = true; }
+    if (p.x + p.w > pl.x && p.x < pl.x + pl.w && prevBottom <= pl.y + 2 && p.y + p.h >= pl.y) { p.y = pl.y - p.h; p.vy = 0; p.onGround = true; p.onPlat = pl; }
   }
+  // plano do desenho: 1 = caminho da frente (chão), 0 = galhos; no ar mantém o que era
+  const alvoPlano = p.onPlat ? 0 : p.onGround ? 1 : p.plano ?? 1;
+  p.plano = (p.plano ?? 1) + (alvoPlano - (p.plano ?? 1)) * Math.min(1, dt * 10);
   if (p.onGround && !wasGround && fallV > 350) p.landT = 0.14;
   p.landT = Math.max(0, p.landT - dt);
   p.anim += Math.abs(p.vx) * dt * 0.05;
@@ -952,6 +955,20 @@ function piso() {
 // monta cada árvore com elas: tronco repetido na vertical, raiz na base, galho esticado até a
 // largura da plataforma (espelhado quando vai para a esquerda). Sem imagens, desenha sozinho.
 let arvoresProntas = null;
+const perfilGalho = new Map();   // 'x|y da plataforma' -> quanto o galho desce ali (o herói acompanha)
+// caminho pela frente das árvores: perto de uma árvore com raiz, o herói e as brasas descem na tela
+// e passam por cima das raízes, na frente do tronco (só no desenho; a física não muda)
+const FRENTE_MAX = 44;
+function caminhoFrente(x) {
+  const AR = arvoresProntas; if (!AR) return 0;
+  let m = 0;
+  for (const t of AR) {
+    const rz = t.raizFrente; if (!rz) continue;
+    const cx = rz.x + rz.w / 2, meia = rz.w * .5, d = Math.abs(x - cx) / meia;
+    if (d < 1) { const s = 1 - d; m = Math.max(m, FRENTE_MAX * s * s * (3 - 2 * s)); }
+  }
+  return m;
+}
 function pecasArvore() {
   const F = FASE.fundo, t = layer(F, 'arvore_tronco'), g = layer(F, 'arvore_galho');
   const meta = (SPR[F] && SPR[F].meta) || {};
@@ -986,12 +1003,20 @@ function arvores() {
       for (let y = pe - th; y > -th; y -= th) ctx2.drawImage(t, Math.round(tx - tw / 2 - x0), Math.round(y), tw, th + 1);
       const gh = gal.naturalHeight * z, topo = ((meta.arvore_galho && meta.arvore_galho.topo) || 0) * z;
       for (const pl of g) {
-        const daDireita = pl.x > tx, ini = daDireita ? tx + tw * .35 : pl.x, fim = daDireita ? pl.x + pl.w : tx - tw * .35, L = fim - ini;
+        const daDireita = pl.x > tx, ini = daDireita ? tx + tw * .35 : pl.x, fim = daDireita ? pl.x + pl.w : tx - tw * .35, L = Math.round(fim - ini);
         const y = Math.round(pl.y - topo);   // o topo medido do galho fica na altura da plataforma
-        ctx2.save();
-        if (daDireita) ctx2.drawImage(gal, Math.round(ini - x0), y, Math.round(L), gh);
-        else { ctx2.translate(Math.round(fim - x0), 0); ctx2.scale(-1, 1); ctx2.drawImage(gal, 0, y, Math.round(L), gh); }
-        ctx2.restore();
+        // rascunho: o galho esticado (e espelhado se vai para a esquerda), com folga para o caimento
+        const rasc = document.createElement('canvas'); rasc.width = L; rasc.height = gh;
+        const gr = rasc.getContext('2d'); gr.imageSmoothingEnabled = false;
+        if (daDireita) gr.drawImage(gal, 0, 0, L, gh); else { gr.translate(L, 0); gr.scale(-1, 1); gr.drawImage(gal, 0, 0, L, gh); }
+        // caimento em direção à ponta + ondulação, em degraus de 2 px; o herói pisa seguindo isso
+        const cai = 6 + r() * 7, fase = r() * 6;
+        for (let sx = 0; sx < L; sx += 4) {
+          const k = daDireita ? sx / L : 1 - sx / L;                       // 0 no tronco, 1 na ponta
+          const dy = Math.round((cai * k * k + Math.sin(k * 7 + fase) * 1.6 * k) / 2) * 2;
+          ctx2.drawImage(rasc, sx, 0, 4, gh, Math.round(ini - x0) + sx, y + dy, 4, gh);
+          perfilGalho.set(Math.floor((ini + sx) / 4) * 4 + '|' + pl.y, dy);
+        }
       }
       // raiz em 2,5D: desenhada depois do piso, descendo pela frente do chão em direção à tela
       let raizFrente = null;
@@ -1054,6 +1079,12 @@ function arvores() {
 }
 
 // quanto o desenho do piso sobe (-) ou desce (+) em relação à linha da física, no ponto x
+function deslocDesenho(cx, noChao, plat, plano) {
+  if (plat && plat.y !== undefined) return { dy: perfilGalho.get(Math.floor(cx / 4) * 4 + '|' + plat.y) || 0, esc: 1 };
+  const fr = caminhoFrente(cx) * plano, k = fr / FRENTE_MAX;
+  const rel = noChao ? relevo(cx) * (1 - k) : 0;
+  return { dy: fr + rel, esc: 1 + .08 * k };
+}
 function relevo(x) {
   const P = pisoPronto; if (!P) return 0;
   const y = P.topos.get(Math.floor(x / 4) * 4);
@@ -1148,11 +1179,11 @@ let luzCv = null, luzCtx = null;
 function luzes() {
   const L = [], p = player, f = Math.sin(time * 7) * 4 + Math.sin(time * 13) * 2;
   // [x na tela, y, raio, cor 'R,G,B' ou null, força do brilho colorido]
-  L.push([p.x + p.w / 2 - camX, p.y + p.h / 2, 200 + f, '255,225,180', .14]);
+  L.push([p.x + p.w / 2 - camX, p.y + p.h / 2 + deslocDesenho(p.x + p.w / 2, p.onGround, p.onPlat, p.plano ?? 1).dy, 200 + f, '255,225,180', .14]);
   L.push([luaTela[0], luaTela[1], 150, null, 0]);   // a lua
   for (const o of shots) L.push([o.x - camX, o.y, 90, PODER.corLuz || '150,210,255', .5]);
   for (const b of fireballs) L.push([b.x - camX, b.y, 130, '255,140,40', .55]);
-  for (const e of enemies) if (!e.dead && e.T.luz) L.push([e.x + e.w / 2 - camX, e.y + e.h / 2, e.T.luz + f, e.T.corLuz || '255,150,60', .4]);
+  for (const e of enemies) if (!e.dead && e.T.luz) { const anda = e.T.mov === 'patrulha' && e.y + e.h >= GROUND - 2; L.push([e.x + e.w / 2 - camX, e.y + e.h / 2 + (anda ? deslocDesenho(e.x + e.w / 2, true, null, 1).dy : 0), e.T.luz + f, e.T.corLuz || '255,150,60', .4]); }
   for (const hz of HAZARDS) for (let x = hz.x + 25; x < hz.x + hz.w; x += 50) L.push([x - camX, GROUND - 10, 95 + f, '255,120,30', .4]);
   CHECKS.forEach((c, i) => { if (i > 0) L.push([c + 2 - camX, GROUND - 50, i <= checkpoint ? 110 : 60, i <= checkpoint ? '160,220,255' : null, .3]); });
   if (bossActive && boss && CHEFE.luzes) for (const [x, y, r, cor] of CHEFE.luzes(boss)) L.push([x - camX, y, r, cor, .45]);
@@ -1182,14 +1213,6 @@ function drawLuz() {
     g.addColorStop(0, `rgba(${cor},${forca * .35})`); g.addColorStop(1, `rgba(${cor},0)`);
     ctx.fillStyle = g; ctx.fillRect(x - r, y - r, 2 * r, 2 * r);
   }
-  // bordas de brasa: o chão e as plataformas continuam legíveis no escuro (o buraco é onde não há brilho)
-  const pulso = .75 + Math.sin(time * 2.2) * .25;
-  ctx.fillStyle = `rgba(255,120,45,${.32 * pulso})`;
-  const P = piso();
-  if (P) for (let x = Math.floor(camX / 4) * 4; x < camX + W; x += 4) { const y = P.topos.get(x); if (y !== undefined) ctx.fillRect(x - camX, y, 4, 2); }
-  for (const s of SOLIDS) { if (P && s.y >= GROUND - 1) continue; const x = s.x - camX; if (x < W && x + s.w > 0) ctx.fillRect(x, s.y, s.w, 2); }
-  ctx.fillStyle = `rgba(255,150,70,${.5 * pulso})`;
-  for (const q of PLATS) { const x = q.x - camX; if (x < W && x + q.w > 0) ctx.fillRect(x + 4, q.y, q.w - 8, 2); }
   ctx.restore();
 }
 
@@ -1212,8 +1235,8 @@ function playerAnim(S) {
 function drawPlayer() {
   const p = player;
   if (p.inv > 0 && Math.floor(p.inv * 12) % 2 === 0 && state === 'play') return;
-  // no chão, o desenho acompanha o relevo do piso (a física continua reta)
-  const noPiso = p.onGround && !p.onPlat ? relevo(p.x + p.w / 2) : 0;
+  // o desenho acompanha o relevo do piso, a curva do galho e o caminho pela frente das árvores
+  const { dy: noPiso, esc } = deslocDesenho(p.x + p.w / 2, p.onGround, p.onPlat, p.plano ?? 1);
   const x = Math.round(p.x - camX), y = Math.round(p.y + noPiso), f = p.face;
   const S = sprite(HEROI.sprite);
   if (S) {
@@ -1235,7 +1258,7 @@ function drawPlayer() {
       else if (a === 'parado') { ey = 1 + Math.sin(time * 3) * .012; }
     }
     ctx.fillStyle = 'rgba(0,0,0,.35)'; ctx.beginPath(); ctx.ellipse(x + p.w / 2, y + p.h + 1, 15, 3, 0, 0, Math.PI * 2); ctx.fill();
-    drawFrame(S, a, t, x + p.w / 2, y + p.h + 1 + bob, f, ex * (1 + sq * .12), ey * (1 - sq * .14), rot);
+    drawFrame(S, a, t, x + p.w / 2, y + p.h + 1 + bob, f, esc * ex * (1 + sq * .12), esc * ey * (1 - sq * .14), rot);
   } else drawPlayerShape(x, y, f);
   if (p.swordT > 0) {
     const k = 1 - p.swordT / 0.18;
@@ -1281,6 +1304,9 @@ function drawPlayerShape(x, y, f) {
 function drawEnemies() {
   for (const e of enemies) {
     const x = e.x - camX; if (x < -60 || x > W + 60) continue;
+    const anda = e.T.mov === 'patrulha' && e.y + e.h >= GROUND - 2;
+    const dE = anda ? deslocDesenho(e.x + e.w / 2, true, null, 1).dy : 0;
+    ctx.save(); ctx.translate(0, Math.round(dE));
     const S = sprite(e.T.sprite);
     if (S) {
       const face = e.T.mov === 'patrulha' ? (e.vx > 0 ? 1 : -1) : 1;
@@ -1305,6 +1331,7 @@ function drawEnemies() {
       ctx.fillStyle = 'rgba(0,0,0,.6)'; ctx.fillRect(x, e.y - 14, e.w, 4);
       ctx.fillStyle = '#ffb36b'; ctx.fillRect(x, e.y - 14, e.w * e.hp / e.max, 4);
     }
+    ctx.restore();
   }
 }
 

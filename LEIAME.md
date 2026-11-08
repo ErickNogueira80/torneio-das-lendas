@@ -79,7 +79,7 @@ Pessoal (família).
 - **Piso irregular (2026-11-08):** o chão principal da fase é montado uma vez numa imagem pronta,
   com topo ondulado em degraus de pixel, montinhos, beiradas quebradas nos buracos, crosta, tufos,
   pedras e brasas. A física continua reta (`GROUND`); o desenho do herói acompanha o relevo
-  (função `relevo`), e a borda de brasa no escuro segue o contorno.
+  (função `relevo`).
 - **Plataformas = galhos (2026-11-08):** plataformas vizinhas (vão < 130 px) dividem uma árvore
   grande: o tronco fica no vão e cada plataforma é um galho grosso saindo dele (plataforma
   sozinha ganha tronco na ponta direita). Tronco com casca, nós, oco e rachaduras em brasa,
@@ -90,6 +90,10 @@ Pessoal (família).
   galho com 12 px de espessura (o topo medido vai na altura da plataforma; o pedaço de tronco
   grudado na esquerda é cortado) e a raiz é escalada para o tronco dela ter a largura do tronco.
   A raiz é desenhada na frente do piso, descendo pela face do chão (efeito 2,5D).
+  Cada galho cai em direção à ponta, com ondulação própria (fatias de 4 px); o herói pisa
+  seguindo essa curva (`perfilGalho`). Perto de uma árvore com raiz, o herói e as brasas descem
+  até 44 px na tela e ficam 8% maiores, passando por cima das raízes, na frente do tronco
+  (`caminhoFrente`; só no desenho, a física não muda).
 - **Baús escondidos (2026-11-08):** `baus` na ficha da fase (x, y do chão/galho, xp, cura,
   texto). Abrem ao encostar. O primeiro fica no galho alto (y 185) de uma árvore própria em
   x 1600, que só se alcança pulando do galho de 282 da árvore vizinha (conferido em simulação:
@@ -127,8 +131,7 @@ Pessoal (família).
 - **Luz no escuro (estilo Lanterna, 2026-11-08):** cada fase tem `escuridao` (0 a 1; o Boitatá
   usa 0,78). Só se vê em volta das fontes de luz: o herói, a lua, os poderes (`corLuz` em
   `PODERES`), os inimigos (`luz` e `corLuz` em `INIMIGOS`), o chão em chamas, os pontos de
-  controle, o pingente e o chefe (função `luzes` no módulo do chefe). O chão e as plataformas têm
-  uma borda de brasa que brilha no escuro, para os pulos continuarem legíveis.
+  controle, o pingente e o chefe (função `luzes` no módulo do chefe). (As bordas de brasa no chão e nos galhos saíram em 2026-11-08, a pedido do Erick.)
 - **Publicar o jogo:** trocar o `?v=` dos três scripts em `jogo/index.html` (qualquer valor novo,
   ex.: o hash do commit), para o celular não misturar arquivos novos com antigos do cache. Erros do
   jogo aparecem numa faixa vermelha embaixo da tela, com o navegador do aparelho.
