@@ -80,6 +80,10 @@ Pessoal (família).
   com topo ondulado em degraus de pixel, montinhos, beiradas quebradas nos buracos, crosta, tufos,
   pedras e brasas. A física continua reta (`GROUND`); o desenho do herói acompanha o relevo
   (função `relevo`), e a borda de brasa no escuro segue o contorno.
+- **Plataformas = galhos (2026-11-08):** plataformas vizinhas (vão < 130 px) dividem uma árvore
+  grande: o tronco fica no vão e cada plataforma é um galho grosso saindo dele (plataforma
+  sozinha ganha tronco na ponta direita). Tronco com casca, nós, oco e rachaduras em brasa,
+  galhos secos no alto. Montadas uma vez (função `arvores`); a colisão não mudou.
 - **Desempenho (2026-11-08):** as camadas de árvores são montadas uma vez, no início da fase, em 2
   faixas largas (fundo com neblina, parallax 0,28; meio, 0,55); por quadro o jogo só copia um
   pedaço de cada. A densidade das camadas não pesa, só o número de faixas. Brilho colorido só nas

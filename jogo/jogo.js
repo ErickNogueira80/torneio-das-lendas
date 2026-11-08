@@ -931,6 +931,82 @@ function piso() {
   return (pisoPronto = { c, topos });
 }
 
+// ---------- plataformas = galhos de árvores grandes (montadas uma vez) ----------
+// Plataformas vizinhas (vão menor que 130 px) dividem uma árvore: o tronco fica no vão e cada
+// plataforma vira um galho grosso saindo dele. Plataforma sozinha ganha tronco na ponta direita.
+// O topo de cada galho fica exatamente na altura da plataforma (a colisão não muda).
+let arvoresProntas = null;
+function arvores() {
+  if (arvoresProntas) return arvoresProntas;
+  if (typeof document === 'undefined') return null;
+  const lista = [...PLATS].sort((a, b) => a.x - b.x), grupos = [];
+  for (const pl of lista) {
+    const g = grupos[grupos.length - 1], ult = g && g[g.length - 1];
+    if (ult && pl.x - (ult.x + ult.w) < 130 && g.length < 2) g.push(pl); else grupos.push([pl]);
+  }
+  const B = 2, q = v => Math.round(v / B) * B;
+  const COR = { casca: '#2c1c17', sulco: '#1a0f0c', luz: '#4a3129', brilho: '#5e4034', brasa: '#ff7a2e' };
+  arvoresProntas = grupos.map((g, gi) => {
+    const r = mulberry(100 + gi);
+    let tx, tw;   // centro e largura do tronco
+    if (g.length === 2) { const a = g[0].x + g[0].w, b = g[1].x; tx = (a + b) / 2; tw = clamp(b - a + 40, 64, 104); }
+    else { tx = g[0].x + g[0].w + 18; tw = 66; }
+    const x0 = Math.floor(Math.min(...g.map(p => p.x), tx - tw) - 40), x1 = Math.ceil(Math.max(...g.map(p => p.x + p.w), tx + tw) + 40);
+    const c = document.createElement('canvas'); c.width = x1 - x0; c.height = H;
+    const ctx2 = c.getContext('2d'), R2 = (x, y, w, h, cor) => { ctx2.fillStyle = cor; ctx2.fillRect(q(x - x0), q(y), Math.max(B, q(w)), Math.max(B, q(h))); };
+    const sobreChao = SOLIDS.some(s => tx >= s.x && tx < s.x + s.w && s.y >= GROUND - 1);
+    const pe = sobreChao ? GROUND + 8 : H;
+    // tronco: fica um pouco mais fino para cima, bordas tortas, sulcos verticais, rachaduras em brasa
+    for (let y = 0; y < pe; y += B) {
+      const k = y / pe, w = tw * (.78 + .22 * k) + (r() - .5) * 3;
+      let l = tx - w / 2 + Math.sin(y * .03 + gi) * 3;
+      if (sobreChao && y > pe - 40) { const f = (y - (pe - 40)) / 40; l -= f * f * 22; R2(l, y, w + f * f * 44, B, COR.casca); continue; }   // raízes
+      R2(l, y, w, B, COR.casca);
+      R2(l, y, 4, B, COR.luz);                       // luz na borda esquerda
+      R2(l + w - 4, y, 4, B, COR.sulco);             // sombra na direita
+      for (let sx = 10; sx < w - 8; sx += 9) if ((y + sx * 7) % 23 > 4) R2(l + sx + Math.sin(y * .05 + sx) * 1.5, y, 2, B, COR.sulco);
+    }
+    for (let i = 0; i < 5; i++) { const yy = 60 + r() * (pe - 140); R2(tx - tw * .2 + r() * tw * .3, yy, 2, 6 + r() * 10, COR.brasa); }
+    for (let i = 0; i < 4; i++) {                    // nós da casca
+      const nx = tx - tw * .3 + r() * tw * .5, ny = 40 + r() * (pe - 120);
+      R2(nx - 6, ny - 2, 14, 10, COR.sulco); R2(nx - 4, ny, 10, 6, COR.casca); R2(nx - 2, ny + 2, 6, 2, COR.luz);
+    }
+    { const oy = 110 + r() * 60, ox = tx - 8;        // oco escuro com brilho de brasa no fundo
+      for (let y = 0; y < 28; y += B) { const w = 18 * Math.sin(Math.PI * y / 28) + 2; R2(ox + 9 - w / 2, oy + y, w, B, '#0a0507'); }
+      R2(ox + 6, oy + 18, 6, 2, '#a8401a'); }
+    // galhos secos no alto do tronco
+    for (let i = 0; i < 3; i++) {
+      const lado = i % 2 ? -1 : 1, y0 = 30 + i * 55 + r() * 20;
+      for (let j = 0; j < 11; j++) R2(tx + lado * (tw / 2 - 6 + j * 7), y0 - j * 5, 9, 10 - j * .7, COR.casca);
+      for (let j = 0; j < 5; j++) R2(tx + lado * (tw / 2 + 30 + j * 6), y0 - 22 + j * 3, 7, 4, COR.casca);   // forquilha
+    }
+    // galhos-plataforma
+    for (const pl of g) {
+      const daDireita = pl.x > tx;                    // galho sai do tronco para a direita?
+      const ini = daDireita ? tx + tw * .38 : pl.x, fim = daDireita ? pl.x + pl.w : tx - tw * .38, comp = fim - ini;   // nasce na borda do tronco
+      for (let x = ini; x < fim; x += B) {
+        const dist = daDireita ? x - ini : fim - x, k = dist / comp;          // 0 no tronco, 1 na ponta
+        const esp = 26 - k * 11 + Math.sin(x * .17) * 1.6;                    // espessura
+        const pontaQuebrada = k > .95 ? (r() * 6) : 0;
+        R2(x, pl.y, B, esp - pontaQuebrada, COR.casca);
+        R2(x, pl.y, B, 2, COR.brilho);                                        // topo claro (onde se pisa)
+        R2(x, pl.y + 2, B, 2, COR.luz);
+        R2(x, pl.y + esp - 4 - pontaQuebrada, B, 4, COR.sulco);               // sombra embaixo
+        if ((x * 13) % 29 < 3) R2(x, pl.y + 6, B, esp - 10, COR.sulco);        // veios
+      }
+      { const nx = daDireita ? tx + tw / 2 - 10 : tx - tw / 2 - 8;            // nó onde o galho nasce
+        R2(nx, pl.y - 2, 18, 34, COR.casca); R2(nx + 4, pl.y + 26, 10, 4, COR.sulco); }
+      for (let i = 0; i < 3; i++) {                                           // raminhos e cipós embaixo
+        const xx = ini + comp * (.25 + i * .25), len = 8 + r() * 26;
+        for (let y = 0; y < len; y += B) R2(xx + (y % 8 < 4 ? 0 : 2), pl.y + 20 + y, 2, B, COR.sulco);
+      }
+      const brasaX = ini + comp * (.3 + r() * .5); R2(brasaX, pl.y + 6, 4, 2, COR.brasa);
+    }
+    return { c, x0 };
+  });
+  return arvoresProntas;
+}
+
 // quanto o desenho do piso sobe (-) ou desce (+) em relação à linha da física, no ponto x
 function relevo(x) {
   const P = pisoPronto; if (!P) return 0;
@@ -941,6 +1017,8 @@ function relevo(x) {
 function drawWorld() {
   const C = FASE.cores, chao = layer(FASE.fundo, 'chao');
   if (chao && !groundPattern) groundPattern = ctx.createPattern(chao, 'repeat');
+  const AR = arvores();
+  if (AR) for (const t of AR) { const x = Math.round(t.x0 - camX); if (x < W && x + t.c.width > 0) ctx.drawImage(t.c, x, 0); }
   const P = piso();
   if (P) {
     const sx = clamp(Math.round(camX), 0, P.c.width - W);
@@ -962,7 +1040,7 @@ function drawWorld() {
     ctx.fillStyle = 'rgba(255,120,40,.6)';
     for (let i = 0; i < s.w; i += 37) { const ex = x + i + ((i * 13) % 20); if ((i / 37 | 0) % 3 === 0) ctx.fillRect(ex, s.y + 6 + (i % 7), 3, 2); }
   }
-  for (const p of PLATS) {
+  if (!AR) for (const p of PLATS) {
     const x = p.x - camX; if (x > W || x + p.w < 0) continue;
     ctx.fillStyle = '#3a2418'; roundRect(x, p.y, p.w, 16, 8); ctx.fill();
     ctx.fillStyle = '#1e120c'; roundRect(x, p.y + 9, p.w, 7, 4); ctx.fill();
