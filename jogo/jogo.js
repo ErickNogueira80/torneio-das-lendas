@@ -411,8 +411,8 @@ CHEFES.boitata = (() => {
       ctx.rotate(clamp(a > Math.PI ? a - Math.PI * 2 : a, -.9, .9));
       if (b.state === 'lungePrep') ctx.translate(Math.sin(time * 60) * 2, 0);
       const venom = b.state === 'lungePrep' || b.state === 'lunge';
+      let flashHead = null;
       if (P && P.cabeca) {
-        flame(-14, -16, 34, rage ? 56 : 40, time * 10);
         // boca aberta nos ataques (bola de fogo, preparo e avanço da mordida)
         const ataque = P.cabeca_ataque && (b.state === 'aimfire' || venom);
         const nomeC = ataque ? 'cabeca_ataque' : 'cabeca', [qx, qy, qw, qh] = P[nomeC], k = 92 / qw;
@@ -420,7 +420,12 @@ CHEFES.boitata = (() => {
         const [nx, ny] = (S.pescocos && S.pescocos[nomeC]) || [.45, .5];
         ctx.imageSmoothingEnabled = !S.pixel;
         if (P.gomo) { const [gx, gy, gw, gh] = P.gomo, gk = 46 / gh; ctx.drawImage(S.image, gx, gy, gw, gh, -16 - gw * gk / 2, -gh * gk / 2, gw * gk, gh * gk); }
-        ctx.drawImage(S.image, qx, qy, qw, qh, -10 - nx * qw * k, 2 - ny * qh * k, qw * k, qh * k);
+        // gira a cabeça para o pescoço da arte (que desce para trás) apontar para o corpo
+        ctx.rotate(.38);
+        const hx0 = -6 - nx * qw * k, hy0 = 2 - ny * qh * k;
+        ctx.drawImage(S.image, qx, qy, qw, qh, hx0, hy0, qw * k, qh * k);
+        flashHead = () => { ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = Math.min(1, b.flash * 3) * .6;
+          ctx.drawImage(S.image, qx, qy, qw, qh, hx0, hy0, qw * k, qh * k); ctx.restore(); };
         ctx.imageSmoothingEnabled = true;
         if (venom) { ctx.fillStyle = 'rgba(140,255,100,.3)'; ctx.beginPath(); ctx.arc(26, 10, 18, 0, Math.PI * 2); ctx.fill(); }
       } else {
@@ -440,8 +445,8 @@ CHEFES.boitata = (() => {
         ctx.fillStyle = eg; ctx.beginPath(); ctx.arc(14, -8, 12, 0, Math.PI * 2); ctx.fill();
         ctx.fillStyle = '#fff7d0'; ctx.beginPath(); ctx.arc(14, -8, 4, 0, Math.PI * 2); ctx.fill();
       }
-      if (b.state === 'aimfire') { ctx.fillStyle = 'rgba(255,220,120,.4)'; ctx.beginPath(); ctx.arc(30, 4, 14 + Math.sin(time * 20) * 4, 0, Math.PI * 2); ctx.fill(); }
-      if (b.flash > 0) { ctx.fillStyle = 'rgba(200,235,255,.7)'; ctx.beginPath(); ctx.ellipse(4, 0, 40, 28, 0, 0, Math.PI * 2); ctx.fill(); }
+      if (b.state === 'aimfire' && !flashHead) { ctx.fillStyle = 'rgba(255,220,120,.4)'; ctx.beginPath(); ctx.arc(30, 4, 14 + Math.sin(time * 20) * 4, 0, Math.PI * 2); ctx.fill(); }
+      if (b.flash > 0) { if (flashHead) flashHead(); else { ctx.fillStyle = 'rgba(200,235,255,.7)'; ctx.beginPath(); ctx.ellipse(4, 0, 40, 28, 0, 0, Math.PI * 2); ctx.fill(); } }
       ctx.restore();
     },
   };
