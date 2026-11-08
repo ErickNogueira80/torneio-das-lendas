@@ -601,6 +601,11 @@
     "cx": 98.0,
     "cy": 95.4,
     "r": 65.6
+   },
+   "pergaminho": {
+    "img": "hud/pergaminho.png",
+    "w": 1090,
+    "h": 520
    }
   }
  },

@@ -527,6 +527,7 @@ CHEFES.boitata = (() => {
 const CHEFE = CHEFES[CHEFE_CFG.tipo];
 
 function startBoss() {
+  encontrar(FASE_ID);
   bossActive = true;
   boss = CHEFE.criar(CHEFE_CFG);
   banner = 3.6;
@@ -549,7 +550,7 @@ function damageBoss(hit, dmg, kind) {
   floatText(hit.x, hit.y - 30, (hit.mult > 1 ? 'Crítico! ' : '') + '-' + d, hit.mult > 1 ? '#9fe7ff' : '#d9ecff');
   burst(hit.x, hit.y, kind === 'espada' ? 8 : 14, kind === 'espada' ? FIRE : PODER.rastro, 180, .6, -60);
   if (b.fire <= 0) {
-    b.dead = true; b.deadT = 0; fireballs = [];
+    b.dead = true; b.deadT = 0; fireballs = []; contarMorte(FASE_ID);
     floatText(b.hx, b.hy - 60, 'O fogo se apagou!', '#ffffff');
   }
 }
@@ -672,7 +673,7 @@ function damageEnemy(e, dmg, kind) {
   floatText(e.x, e.y - 8, '-' + d, res > 1 ? '#9fe7ff' : '#fff');
   burst(e.x + e.w / 2, e.y + e.h / 2, 8, cores, 150, .4);
   if (e.hp <= 0) {
-    e.dead = true;
+    e.dead = true; contarMorte(e.tipo);
     burst(e.x + e.w / 2, e.y + e.h / 2, 18, cores, 220, .7);
     gainXp(e.T.xp, e.x, e.y);
   }
@@ -781,12 +782,14 @@ function menuTap(p) {
   if (state === 'title') { goFullscreen(); abrirHerois(); }
   else if (state === 'herois') { tocarHerois(p); }
   else if (state === 'mapa') { tocarMapa(p); }
+  else if (state === 'bestiario') { tocarBestiario(p); }
   else if (state === 'dead') { if (time - deadAt < 0.9) return; respawn(); state = 'play'; }
   else if (state === 'victory') { concluir(FASE_ID); abrirMapa(); }
   else if (state === 'levelup') { for (let i = 0; i < 4; i++) if (overlap({ x: p.x, y: p.y, w: 1, h: 1 }, lvCard(i))) chooseLevel(i); }
 }
 function menuKey(code) {
   if (state === 'mapa') { teclaMapa(code); return; }
+  if (state === 'bestiario') { teclaBestiario(code); return; }
   if (state === 'herois') { teclaHerois(code); return; }
   if (state === 'levelup') { const n = { Digit1: 0, Digit2: 1, Digit3: 2, Digit4: 3 }[code]; if (n !== undefined) chooseLevel(n); return; }
   if (['Enter', 'Space', 'KeyJ', 'KeyZ'].includes(code)) menuTap({ x: W / 2, y: H / 2 });
@@ -818,7 +821,9 @@ function entrarLocal(l) {
   if (l.fase === FASE_ID) newGame();
   else location.search = '?fase=' + l.fase + '&play';
 }
+const BOTAO_BEST = { x: 16, y: H - 56, w: 150, h: 40 };
 function tocarMapa(p) {
+  if (overlap({ x: p.x, y: p.y, w: 1, h: 1 }, BOTAO_BEST)) { abrirBestiario(); return; }
   posCartao();
   const l = LOCAIS[mapaSel];
   if (l && l.fase && overlap({ x: p.x, y: p.y, w: 1, h: 1 }, BOTAO)) { entrarLocal(l); return; }
@@ -827,6 +832,7 @@ function tocarMapa(p) {
   if (melhor >= 0) { if (melhor === mapaSel && LOCAIS[melhor].fase) entrarLocal(LOCAIS[melhor]); else { mapaSel = melhor; imgLocal(LOCAIS[melhor]); } }
 }
 function teclaMapa(code) {
+  if (code === 'KeyB') { abrirBestiario(); return; }
   if (code === 'ArrowRight' || code === 'KeyD' || code === 'ArrowUp') mapaSel = (mapaSel + 1) % LOCAIS.length;
   else if (code === 'ArrowLeft' || code === 'KeyA' || code === 'ArrowDown') mapaSel = (mapaSel + LOCAIS.length - 1) % LOCAIS.length;
   else if (['Enter', 'Space', 'KeyJ', 'KeyZ'].includes(code)) entrarLocal(LOCAIS[mapaSel]);
@@ -906,6 +912,10 @@ function drawMapa() {
   ctx.fillText((window.MAPA && MAPA.titulo) || 'Mapa', W / 2, H - 28);
   ctx.fillStyle = '#b3a88f'; ctx.font = '13px "Crimson Pro", serif';
   ctx.fillText(showTouch ? 'Toque num local · toque de novo para entrar' : 'Setas escolhem o local · Enter entra', W / 2, H - 10);
+  // botão do bestiário
+  { const B = BOTAO_BEST; ctx.fillStyle = 'rgba(14,10,20,.85)'; roundRect(B.x, B.y, B.w, B.h, 10); ctx.fill();
+    ctx.strokeStyle = '#c9a24e'; ctx.lineWidth = 1.5; ctx.stroke();
+    ctx.fillStyle = '#f5d48a'; ctx.textAlign = 'center'; ctx.font = 'bold 16px Cinzel, serif'; ctx.fillText('Bestiário', B.x + B.w / 2, B.y + 26); }
   // cartão do local escolhido
   const l = LOCAIS[mapaSel]; if (!l) return;
   posCartao();
@@ -942,6 +952,94 @@ function drawMapa() {
     ctx.fillStyle = '#8a8296'; ctx.textAlign = 'center'; ctx.font = 'italic 16px "Crimson Pro", serif';
     ctx.fillText('Bloqueado · em breve', B.x + B.w / 2, B.y + 24);
   }
+}
+
+// ---------- bestiário ----------
+const BEST = window.BESTIARIO || [];
+function registro() { try { return JSON.parse(localStorage.getItem('tdl_bestiario') || '{}'); } catch (_) { return {}; } }
+function salvarRegistro(r) { try { localStorage.setItem('tdl_bestiario', JSON.stringify(r)); } catch (_) { /* sem armazenamento */ } }
+let REG = registro();
+function encontrar(id) { if (!id || (REG[id] && REG[id].visto)) return; REG[id] = { ...(REG[id] || { mortes: 0 }), visto: true }; salvarRegistro(REG); }
+function contarMorte(id) { if (!id) return; const r = REG[id] || { mortes: 0 }; REG[id] = { visto: true, mortes: (r.mortes || 0) + 1 }; salvarRegistro(REG); }
+let bestSel = 0;
+const bestImgs = {};
+const tileBest = i => ({ x: 22 + (i % 3) * 100, y: 66 + Math.floor(i / 3) * 96, w: 92, h: 88 });
+const BOTAO_VOLTAR = { x: 22, y: H - 50, w: 140, h: 38 };
+function abrirBestiario() { state = 'bestiario'; pointers.clear(); REG = registro(); }
+function tocarBestiario(p) {
+  const pt = { x: p.x, y: p.y, w: 1, h: 1 };
+  if (overlap(pt, BOTAO_VOLTAR)) { abrirMapa(); return; }
+  BEST.forEach((b, i) => { if (overlap(pt, tileBest(i))) bestSel = i; });
+}
+function teclaBestiario(code) {
+  if (code === 'ArrowRight' || code === 'KeyD') bestSel = (bestSel + 1) % BEST.length;
+  else if (code === 'ArrowLeft' || code === 'KeyA') bestSel = (bestSel + BEST.length - 1) % BEST.length;
+  else if (code === 'ArrowDown' || code === 'KeyS') bestSel = Math.min(BEST.length - 1, bestSel + 3);
+  else if (code === 'ArrowUp' || code === 'KeyW') bestSel = Math.max(0, bestSel - 3);
+  else if (['Escape', 'Backspace', 'KeyB'].includes(code)) abrirMapa();
+}
+// imagem de uma criatura dentro de uma caixa (sprite do jogo ou ilustração)
+function imagemCriatura(b, x, y, w, h) {
+  const S = b.sprite && SPR[b.sprite];
+  if (S && S.partes && b.parte && ready(S.image)) {
+    const [qx, qy, qw, qh] = S.partes[b.parte], k = Math.min(w / qw, h / qh) * .9;
+    ctx.imageSmoothingEnabled = false; ctx.drawImage(S.image, qx, qy, qw, qh, x + w / 2 - qw * k / 2, y + h / 2 - qh * k / 2, qw * k, qh * k); ctx.imageSmoothingEnabled = true; return;
+  }
+  if (S && S.quadros && ready(S.image)) {
+    const fr = (S.quadros.parado || S.quadros.andar || S.quadros.voar || Object.values(S.quadros)[0])[0], [qx, qy, qw, qh] = fr, k = Math.min(w / qw, h / qh) * .9;
+    ctx.imageSmoothingEnabled = false; ctx.drawImage(S.image, qx, qy, qw, qh, x + w / 2 - qw * k / 2, y + h / 2 - qh * k / 2, qw * k, qh * k); ctx.imageSmoothingEnabled = true; return;
+  }
+  if (b.img) {
+    if (!bestImgs[b.id] && typeof Image === 'function') { bestImgs[b.id] = new Image(); bestImgs[b.id].src = b.img; }
+    const im = bestImgs[b.id];
+    if (ready(im)) { const k = Math.max(w / im.naturalWidth, h / im.naturalHeight), sw = w / k, sh = h / k; ctx.drawImage(im, (im.naturalWidth - sw) / 2, (im.naturalHeight - sh) / 2, sw, sh, x, y, w, h); return; }
+  }
+  ctx.fillStyle = '#e3b75a'; ctx.textAlign = 'center'; ctx.font = 'bold 30px Cinzel, serif'; ctx.fillText('✦', x + w / 2, y + h / 2 + 10);
+}
+function drawBestiario() {
+  const g = ctx.createRadialGradient(W / 2, H * .45, 40, W / 2, H * .45, W * .7);
+  g.addColorStop(0, '#2a2238'); g.addColorStop(1, '#0b0910'); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  ctx.textAlign = 'left'; ctx.fillStyle = '#f5d48a'; ctx.font = 'bold 28px Cinzel, serif'; ctx.fillText('Bestiário', 22, 44);
+  const vistos = BEST.filter(b => REG[b.id] && REG[b.id].visto).length;
+  ctx.fillStyle = '#b3a88f'; ctx.font = '13px "Crimson Pro", serif'; ctx.fillText(`${vistos} de ${BEST.length} encontrados`, 190, 42);
+  BEST.forEach((b, i) => {
+    const T = tileBest(i), visto = REG[b.id] && REG[b.id].visto, sel = i === bestSel;
+    ctx.fillStyle = 'rgba(14,10,20,.85)'; roundRect(T.x, T.y, T.w, T.h, 8); ctx.fill();
+    ctx.strokeStyle = sel ? '#f5d48a' : 'rgba(201,162,78,.35)'; ctx.lineWidth = sel ? 2 : 1; ctx.stroke();
+    ctx.save(); roundRect(T.x + 4, T.y + 4, T.w - 8, T.h - 24, 6); ctx.clip();
+    if (visto) imagemCriatura(b, T.x + 4, T.y + 4, T.w - 8, T.h - 24);
+    else { ctx.fillStyle = '#16111e'; ctx.fillRect(T.x, T.y, T.w, T.h); ctx.fillStyle = 'rgba(227,183,90,.5)'; ctx.textAlign = 'center'; ctx.font = 'bold 34px Cinzel, serif'; ctx.fillText('?', T.x + T.w / 2, T.y + 50); }
+    ctx.restore();
+    ctx.textAlign = 'center'; ctx.fillStyle = visto ? '#ece4d4' : '#6e6680'; ctx.font = '12px "Crimson Pro", serif';
+    let n = visto ? b.nome.replace(/ \(.*\)/, '') : '???'; ctx.fillText(n.length > 15 ? n.slice(0, 14) + '…' : n, T.x + T.w / 2, T.y + T.h - 7);
+  });
+  // ficha no pergaminho
+  const b = BEST[bestSel], visto = b && REG[b.id] && REG[b.id].visto, px = 340, py = 40, pw = 600, ph = 470;
+  const art = pecaHud('pergaminho');
+  if (art) ctx.drawImage(art.image, px - 10, py - 10, pw + 20, ph + 20);
+  else { ctx.fillStyle = '#dcc48f'; roundRect(px, py, pw, ph, 12); ctx.fill(); }
+  ctx.textAlign = 'center';
+  ctx.fillStyle = '#5a1e0c'; ctx.font = '36px "IM Fell English SC", Cinzel, serif';
+  ctx.fillText(visto ? b.nome : '???', px + pw / 2, py + 92);
+  ctx.fillStyle = '#6e4a24'; ctx.font = 'italic 16px "IM Fell English", serif';
+  ctx.fillText(visto ? (b.tipo === 'chefe' ? 'Guardião' : 'Criatura') : 'Ainda não encontrado', px + pw / 2, py + 116);
+  ctx.fillStyle = 'rgba(110,74,36,.6)'; ctx.fillRect(px + pw / 2 - 100, py + 126, 200, 1);
+  if (visto) {
+    ctx.save(); roundRect(px + pw / 2 - 60, py + 138, 120, 90, 8); ctx.clip(); imagemCriatura(b, px + pw / 2 - 60, py + 138, 120, 90); ctx.restore();
+    ctx.fillStyle = '#3a2410'; ctx.font = '16px "IM Fell English", serif';
+    let y = wrap(b.d, px + pw / 2, py + 252, pw - 150, 20);
+    ctx.fillStyle = '#5a1e0c'; ctx.font = 'italic 15px "IM Fell English", serif';
+    ctx.fillText('Ataques: ' + b.at.join(' · '), px + pw / 2, y + 8);
+    ctx.fillStyle = '#3a2410'; ctx.font = '18px "IM Fell English SC", serif';
+    ctx.fillText('Derrotados: ' + ((REG[b.id] && REG[b.id].mortes) || 0), px + pw / 2, py + ph - 70);
+  } else {
+    ctx.fillStyle = 'rgba(90,60,30,.5)'; ctx.font = 'bold 90px "IM Fell English SC", serif'; ctx.fillText('?', px + pw / 2, py + 260);
+    ctx.fillStyle = '#3a2410'; ctx.font = 'italic 16px "IM Fell English", serif';
+    ctx.fillText('Encontre esta criatura para conhecer sua história.', px + pw / 2, py + 320);
+  }
+  const V = BOTAO_VOLTAR; ctx.fillStyle = 'rgba(14,10,20,.85)'; roundRect(V.x, V.y, V.w, V.h, 10); ctx.fill();
+  ctx.strokeStyle = '#c9a24e'; ctx.lineWidth = 1.5; ctx.stroke();
+  ctx.fillStyle = '#f5d48a'; ctx.font = 'bold 15px Cinzel, serif'; ctx.fillText('← Mapa', V.x + V.w / 2, V.y + 25);
 }
 
 // ---------- seleção de herói ----------
@@ -1729,6 +1827,7 @@ function drawPlayerShape(x, y, f) {
 function drawEnemies() {
   for (const e of enemies) {
     const x = e.x - camX; if (x < -60 || x > W + 60) continue;
+    if (x > 0 && x < W) encontrar(e.tipo);
     const anda = e.T.mov === 'patrulha' && e.y + e.h >= GROUND - 2;
     const dE = anda ? deslocDesenho(e.x + e.w / 2, true, null, 1).dy : 0;
     ctx.save(); ctx.translate(0, Math.round(dE));
@@ -2116,6 +2215,7 @@ function draw() {
   if (portrait) { drawPortrait(); ctx.restore(); return; }
   if (state === 'title') { drawTitle(); ctx.restore(); return; }
   if (state === 'mapa') { drawMapa(); ctx.restore(); return; }
+  if (state === 'bestiario') { drawBestiario(); ctx.restore(); return; }
   if (state === 'herois') { drawHerois(); ctx.restore(); return; }
   if (!HD) {
     if (!mundoCv) { mundoCv = document.createElement('canvas'); mundoCv.width = W; mundoCv.height = H; mundoCtx = mundoCv.getContext('2d', { alpha: false }); }
@@ -2162,7 +2262,8 @@ function frame(now) {
 }
 if (DEMO || params.has('play')) newGame();
 else if (params.has('mapa')) abrirMapa();   // teste: abre direto no mapa
-else if (params.has('herois')) abrirHerois();   // teste: abre na seleção de herói
+else if (params.has('herois')) abrirHerois();
+else if (params.has('bestiario')) abrirBestiario();   // teste: abre no bestiário   // teste: abre na seleção de herói
 // teste: ?demo&ff=600 avança 600 quadros antes de desenhar (para capturas de tela)
 for (let i = 0, n = +params.get('ff') || 0; i < n && state === 'play'; i++) { update(1 / 60); jumpPressed = swordPressed = powerPressed = false; }
 requestAnimationFrame(frame);

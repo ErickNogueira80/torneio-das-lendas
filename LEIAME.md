@@ -176,6 +176,11 @@ Pessoal (família).
   nome, um subtítulo e uma descrição do chefe, sem dica de como derrotar (`placa` na ficha da fase).
   Letras: IM Fell English (Google Fonts). Sem a imagem `img/sprites/hud/pergaminho.png` (prompt na
   seção 4.7), o jogo desenha um pergaminho simples.
+- **Bestiário no jogo (2026-11-08):** botão "Bestiário" no mapa (ou tecla B). 12 criaturas
+  (`dados/bestiario.js`: brasa, vespa de fogo e os 10 do bestiário da Milena; o pesadelo como
+  Fobétor). Tudo "???" até o primeiro encontro (inimigo aparecer na tela ou o chefe acordar); depois
+  mostra imagem, descrição, ataques e "Derrotados: N", num pergaminho (`hud/pergaminho`). Sem "como
+  derrotar". Registro guardado no navegador (`tdl_bestiario`). `?bestiario` abre direto.
 - **Sombra (2026-11-08):** fica no chão ou no galho embaixo do herói, menor e mais clara quanto
   mais alto ele pula.
 - **Mapa (2026-11-08):** a região escolhida fica iluminada e o resto escurece; o cartão de uma
