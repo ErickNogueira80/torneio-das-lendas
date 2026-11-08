@@ -504,6 +504,51 @@ Moonlight, soft fog between the regions, small glowing lights along the path. No
 no letters, no numbers, no compass, no frame, no characters. Wide image, aspect ratio 16:9.
 ```
 
+## 4.4 Baú (Gemini) e inimigos da floresta (PixelLab)
+
+O baú é um objeto parado com dois estados, como o altar: Gemini ou ChatGPT, e a ferramenta tira o
+fundo, alinha e pixeliza. Os inimigos se mexem o tempo todo: PixelLab, tipo **Custom**, câmera
+**Sidescroller**, 48 px, animações só na direção **East**.
+
+**`objetos/bau/bau_fechado.png`** (1:1)
+
+```
+Create an image. A small old wooden treasure chest for a dark fantasy 2D side-scrolling game,
+closed, dark weathered wood with tarnished gold metal bands and a round gold lock, a few scratches
+and a little moss, slightly mysterious. Side view (seen from the front-side), centered, full object
+visible, plain solid #00FF00 green background, no shadow, no ground, no text. Painterly 2D game art
+style. Square image, aspect ratio 1:1.
+```
+
+**`objetos/bau/bau_aberto.png`** (1:1, com o fechado anexado)
+
+```
+Create an image. The exact same treasure chest as the attached image, same size, same position and
+same colors, but now open: the lid is lifted back, a warm golden glow comes from inside, gold coins
+and a small glowing potion are visible, a few golden sparkles float up. Side view, centered, plain
+solid #00FF00 green background, no shadow, no ground, no text. Painterly 2D game art style. Square
+image, aspect ratio 1:1.
+```
+
+**Brasa** (PixelLab, `inimigos/brasa/`): animações andando (4 a 6 quadros) e parada.
+
+```
+Small living flame creature, a round blob of fire with two big dark eyes and tiny stubby black
+feet, cute but mischievous. Bright yellow core, orange body, red flickering edges, small sparks.
+Clean readable silhouette, black outline, 16-bit detailed pixel art. Side view facing right.
+```
+
+**Vaga-lume de fogo** (PixelLab, `inimigos/vagalume/`): animação voando (4 a 6 quadros).
+
+```
+Fire firefly creature, small dark insect body with a big round glowing ember abdomen, translucent
+amber wings, tiny glowing eyes, leaving little sparks. Clean readable silhouette, black outline,
+16-bit detailed pixel art. Side view facing right.
+```
+
+Se o tipo Custom não animar bem a brasa, ela pode continuar desenhada pelo jogo (fogo animado no
+código fica bom).
+
 ## 5. Ficha dos 3 heróis com constelação (para a Milena)
 
 O humano já está definido (o 4º jogador, sem constelação). Antes das imagens de cada herói dos
