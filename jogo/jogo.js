@@ -70,6 +70,7 @@ async function loadSprites() {
       const s = { ...v };
       if (v.img) { s.image = new Image(); s.image.src = 'sprites/' + v.img; }
       if (v.retrato) { s.retratoImg = new Image(); s.retratoImg.src = 'sprites/' + v.retrato; }
+      if (v.pecas) for (const pc of Object.values(v.pecas)) { pc.image = new Image(); pc.image.src = 'sprites/' + pc.img; }
       if (v.camadas) { s.imgs = {}; for (const [c, p] of Object.entries(v.camadas)) { const im = new Image(); im.src = 'sprites/' + p; s.imgs[c] = im; } }
       SPR[k] = s;
     }
@@ -1340,7 +1341,12 @@ function drawWorld() {
     ctx.fillStyle = i <= checkpoint ? '#9fe7ff' : '#7a6a5a';
     ctx.beginPath(); ctx.arc(x + 2, GROUND - 50, 7, 0, Math.PI * 2); ctx.fill();
   });
-  if (!bossDefeated) {
+  const placaS = SPR['objetos/placa'], placa = placaS && placaS.camadas && layer('objetos/placa', Object.keys(placaS.camadas)[0]);
+  if (placa) {
+    const z = placaS.pixel || 2, w = placa.naturalWidth * z, h = placa.naturalHeight * z, px = ARENA.x0 + 40;
+    const x = Math.round(px - camX - w / 2);
+    if (x > -w && x < W + w) { ctx.imageSmoothingEnabled = false; ctx.drawImage(placa, x, Math.round(GROUND + relevo(px) + 4 - h), w, h); ctx.imageSmoothingEnabled = true; }
+  } else if (!bossDefeated) {
     const x = ARENA.x0 + 40 - camX;
     if (x > -40 && x < W + 40) {
       ctx.fillStyle = '#3b2a20'; ctx.fillRect(x, GROUND - 60, 6, 60); ctx.fillRect(x - 26, GROUND - 70, 58, 30);
@@ -1371,6 +1377,7 @@ function luzes() {
   });
   if (bossActive && boss && CHEFE.luzes) for (const [x, y, r, cor] of CHEFE.luzes(boss)) L.push([x - camX, y, r, cor, .45]);
   if (pendant) L.push([pendant.x - camX, pendant.y, 120, '220,230,255', .45]);
+  if (SPR['objetos/placa']) L.push([ARENA.x0 + 40 - camX, GROUND - 40, 80 + f, '255,130,50', .35]);
   for (const b of baus) L.push([b.x - camX, b.y - 10, b.aberto ? 110 : 70, '255,210,90', b.aberto ? .5 : .3]);
   return L.filter(l => l[0] > -l[2] && l[0] < W + l[2] && l[1] > -l[2] && l[1] < H + l[2]);
 }
@@ -1597,6 +1604,44 @@ function bar(x, y, w, h, frac, color, back = 'rgba(0,0,0,.55)') {
   if (frac > 0) { ctx.fillStyle = color; roundRect(x, y, Math.max(h, w * clamp(frac, 0, 1)), h, h / 2); ctx.fill(); }
 }
 
+function drawHUDArte(p, dtH, bV, bB, cN) {
+  seguirRastro('hp', p.hp / maxHp(), dtH);
+  // painel discreto atrás
+  const pg = ctx.createLinearGradient(10, 0, 330, 0); pg.addColorStop(0, 'rgba(8,5,12,.7)'); pg.addColorStop(1, 'rgba(8,5,12,0)');
+  ctx.fillStyle = pg; ctx.fillRect(10, 8, 320, 82);
+  // medalhão do nível
+  const md = 70, mk = md / cN.h, mx = 12, my = 12;
+  ctx.fillStyle = '#1c1218'; ctx.beginPath(); ctx.arc(mx + cN.cx * mk, my + cN.cy * mk, cN.r * mk + 1, 0, Math.PI * 2); ctx.fill();
+  const mg = ctx.createRadialGradient(mx + cN.cx * mk - 6, my + cN.cy * mk - 8, 2, mx + cN.cx * mk, my + cN.cy * mk, cN.r * mk);
+  mg.addColorStop(0, '#3a2a30'); mg.addColorStop(1, '#120a10'); ctx.fillStyle = mg; ctx.fill();
+  ctx.drawImage(cN.image, mx, my, cN.w * mk, md);
+  ctx.textAlign = 'center'; ctx.fillStyle = '#c9a24e'; ctx.font = '9px "Crimson Pro", serif';
+  ctx.fillText('NÍVEL', mx + cN.cx * mk, my + cN.cy * mk - 9);
+  ctx.fillStyle = '#f6d98a'; ctx.font = 'bold 22px Cinzel, serif'; ctx.fillText(p.lvl, mx + cN.cx * mk, my + cN.cy * mk + 13);
+  // vida e energia
+  const vene = p.poison > 0;
+  barraArte(bV, 86, 16, 220, 24, p.hp / maxHp(), rastro.hp, vene ? '#a8f07a' : '#f0605a', vene ? '#3f8a2a' : '#8e1c22');
+  barraArte(bV, 86, 42, 190, 18, p.pe / maxPe(), 0, PODER.cores[1], PODER.cores[2]);
+  // XP: filete dourado fino
+  const xf = clamp(p.xp / xpNeed(), 0, 1);
+  ctx.fillStyle = 'rgba(0,0,0,.6)'; ctx.fillRect(100, 66, 170, 3); ctx.fillStyle = '#e3b75a'; ctx.fillRect(100, 66, 170 * xf, 3);
+  ctx.textAlign = 'left'; ctx.font = 'bold 11px "Crimson Pro", serif'; ctx.fillStyle = '#fff';
+  ctx.fillText(Math.ceil(Math.max(0, p.hp)) + ' / ' + maxHp(), 112, 32);
+  ctx.fillStyle = '#e8f2ff'; ctx.font = 'bold 10px "Crimson Pro", serif'; ctx.fillText(Math.floor(p.pe) + ' / ' + maxPe(), 110, 55);
+  ctx.fillStyle = '#b3a88f'; ctx.font = '12px "Crimson Pro", serif';
+  ctx.fillText(`${HEROI.nome} · V${p.attr.V} F${p.attr.F} I${p.attr.I} A${p.attr.A}`, 100, 82);
+  // chefe
+  if (bossActive && boss && !boss.dead) {
+    const frac = boss.fire / boss.max, furia = CHEFE.enraged && CHEFE.enraged(boss);
+    seguirRastro('boss', frac, dtH);
+    const pc = bB || bV, bh = 34, bw = 440, bx = W / 2 - bw / 2, by = H - bh - 6;
+    ctx.textAlign = 'center'; ctx.fillStyle = '#ffd9a0'; ctx.font = 'bold 19px Cinzel, serif';
+    ctx.fillText(CHEFE_CFG.nome, W / 2, by - 4);
+    barraArte(pc, bx, by, bw, bh, frac, rastro.boss, furia ? '#ff6a3a' : '#ffb04a', furia ? '#8a1206' : '#b33a0e');
+  } else rastro.boss = 1;
+  drawBanner();
+}
+
 // ---------- barras estilizadas ----------
 // Moldura escura com fio dourado, ponteiras em losango, brilho em cima, marcas a cada 10% e o
 // "rastro" claro do dano (a parte perdida some devagar, como nos jogos de ação sombrios).
@@ -1625,8 +1670,28 @@ function barraOrnada(x, y, w, h, frac, lag, c1, c2, marcas = true) {
   losango(x - 4, y + h / 2, h / 2 + 3, '#c9a24e', '#3a2a14');                              // ponteiras
   losango(x + w + 4, y + h / 2, h / 2 + 3, '#c9a24e', '#3a2a14');
 }
+// barra com a moldura da IA: pontas fixas, meio esticado; o enchimento vai por baixo, no buraco
+function pecaHud(nome) { const h = SPR.hud && SPR.hud.pecas && SPR.hud.pecas[nome]; return h && ready(h.image) ? h : null; }
+function barraArte(pc, x, y, w, h, frac, lag, c1, c2) {
+  frac = clamp(frac, 0, 1); lag = clamp(Math.max(lag, frac), 0, 1);
+  const k = h / pc.h, cL = pc.ix0 + 6, cR = pc.w - pc.ix1 + 6;            // largura das pontas (px da imagem)
+  const ix = x + pc.ix0 * k, iy = y + pc.iy0 * k, iw = w - (pc.ix0 + pc.w - pc.ix1) * k, ih = (pc.iy1 - pc.iy0) * k;
+  ctx.fillStyle = '#140c12'; ctx.fillRect(ix, iy, iw, ih);
+  if (lag > frac) { ctx.fillStyle = 'rgba(245,228,190,.85)'; ctx.fillRect(ix + iw * frac, iy, iw * (lag - frac), ih); }
+  if (frac > 0) {
+    const g = ctx.createLinearGradient(0, iy, 0, iy + ih); g.addColorStop(0, c1); g.addColorStop(1, c2);
+    ctx.fillStyle = g; ctx.fillRect(ix, iy, iw * frac, ih);
+    ctx.fillStyle = 'rgba(255,255,255,.2)'; ctx.fillRect(ix, iy, iw * frac, Math.max(1, ih * .28));
+  }
+  const im = pc.image;
+  ctx.drawImage(im, 0, 0, cL, pc.h, x, y, cL * k, h);                                       // ponta esquerda
+  ctx.drawImage(im, cL, 0, pc.w - cL - cR, pc.h, x + cL * k, y, w - (cL + cR) * k, h);       // meio esticado
+  ctx.drawImage(im, pc.w - cR, 0, cR, pc.h, x + w - cR * k, y, cR * k, h);                   // ponta direita
+}
 function drawHUD() {
   const p = player, dtH = 1 / 60;
+  const bV = pecaHud('barra_vida'), bB = pecaHud('barra_boss'), cN = pecaHud('circulo_nivel');
+  if (bV && cN) { drawHUDArte(p, dtH, bV, bB, cN); return; }
   seguirRastro('hp', p.hp / maxHp(), dtH);
   // painel com cantos dourados
   ctx.fillStyle = 'rgba(10,6,14,.72)'; ctx.fillRect(12, 10, 286, 76);
@@ -1671,6 +1736,10 @@ function drawHUD() {
     barraOrnada(bx, by, bw, 14, frac, rastro.boss, furia ? '#ff6a3a' : '#ffb04a', furia ? '#8a1206' : '#b33a0e');
     ctx.fillStyle = '#ece4d4'; ctx.font = '10px "Crimson Pro", serif'; ctx.fillText(CHEFE_CFG.rotuloVida, W / 2, by + 11);
   } else rastro.boss = 1;
+  drawBanner();
+}
+
+function drawBanner() {
   if (banner > 0) {
     const a = clamp(Math.min(banner, 3.6 - banner) * 2, 0, 1);
     ctx.globalAlpha = a;

@@ -120,6 +120,13 @@ Pessoal (família).
   brilho, marcas a cada 10% e o rastro claro do dano (a parte perdida some devagar). Painel do
   herói com cantos dourados e medalhão do nível. A barra do chefe fica embaixo, no centro (entre
   os botões de toque), com o nome entre filetes e pontas em chama, que ficam vermelhas na fúria.
+- **HUD com arte (2026-11-08):** molduras do Gemini em `img/sprites/hud/` (`barra_boss`,
+  `barra_vida`, `circulo_nivel`). A parte magenta marca onde vai o enchimento; a ferramenta deixa
+  transparente, guarda a posição e não pixeliza (o HUD fica nítido). O jogo corta a barra em 3
+  (pontas fixas, meio esticado), enche por baixo da moldura com o gradiente, o brilho e o rastro do
+  dano. Sem essas imagens, volta o HUD desenhado pelo código.
+- **Placa do chefe (2026-11-08):** `img/sprites/objetos/placa/placa_boss.jpg` (35 px da arte),
+  antes da arena, com um brilho de brasa fraco no escuro.
 - **Sombra (2026-11-08):** fica no chão ou no galho embaixo do herói, menor e mais clara quanto
   mais alto ele pula.
 - **Mapa (2026-11-08):** a região escolhida fica iluminada e o resto escurece; o cartão de uma

@@ -300,6 +300,44 @@
    "fechado": "objetos/bau/fechado.png"
   }
  },
+ "objetos/placa": {
+  "tipo": "objeto",
+  "pixel": 2,
+  "camadas": {
+   "boss": "objetos/placa/boss.png"
+  }
+ },
+ "hud": {
+  "tipo": "hud",
+  "pecas": {
+   "barra_boss": {
+    "img": "hud/barra_boss.png",
+    "w": 1045,
+    "h": 96,
+    "ix0": 97,
+    "iy0": 15,
+    "ix1": 947,
+    "iy1": 67
+   },
+   "barra_vida": {
+    "img": "hud/barra_vida.png",
+    "w": 891,
+    "h": 96,
+    "ix0": 65,
+    "iy0": 15,
+    "ix1": 825,
+    "iy1": 81
+   },
+   "circulo_nivel": {
+    "img": "hud/circulo_nivel.png",
+    "w": 196,
+    "h": 192,
+    "cx": 98.0,
+    "cy": 95.4,
+    "r": 65.6
+   }
+  }
+ },
  "mapa": {
   "tipo": "fundo",
   "camadas": {

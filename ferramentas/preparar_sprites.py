@@ -481,6 +481,61 @@ def preparar_mapa(pasta: Path) -> dict | None:
     return {"tipo": "fundo", "camadas": {"mundo": "mapa/mundo.png"}}
 
 
+HUD_ALTURA = {"barra": 96, "circulo": 192}   # altura guardada (px reais; o HUD não é pixel art)
+
+
+def preparar_hud(pasta: Path) -> dict | None:
+    """Molduras do HUD (Gemini): a parte magenta (#FF00FF) é onde o jogo desenha o enchimento.
+    Ela vira transparente e a posição dela vai para o sprites.json. Não pixeliza (fica nítido)."""
+    pecas = {}
+    for arq in sorted(pasta.iterdir()):
+        if arq.suffix.lower() not in EXTS:
+            continue
+        nome = arq.stem.lower()
+        im = _sem_verde(remover_fundo(Image.open(arq)))
+        a = np.asarray(im).astype(np.int32)
+        mag = (np.abs(a[:, :, 0] - 255) + a[:, :, 1] + np.abs(a[:, :, 2] - 255) < 200) & (a[:, :, 3] > 0)
+        # o magenta perto do verde do fundo é tratado como "parte de dentro" mesmo se escurecido
+        ys, xs = np.where(mag)
+        if len(xs) == 0:
+            print(f"  aviso: {arq.name} sem magenta; ignorado")
+            continue
+        circulo = nome.startswith("circulo") or nome.startswith("medalhao")
+        b = a.copy()
+        if circulo:
+            cx, cy = xs.mean(), ys.mean(); r = (xs.max() - xs.min() + ys.max() - ys.min()) / 4
+            yy, xx = np.mgrid[0:a.shape[0], 0:a.shape[1]]
+            dentro = (xx - cx) ** 2 + (yy - cy) ** 2 <= (r + 2) ** 2
+        else:
+            # retângulo do enchimento: usa as linhas/colunas com bastante magenta (ignora respingos)
+            cols = np.where(mag.sum(axis=0) > mag.sum(axis=0).max() * .5)[0]
+            rows = np.where(mag.sum(axis=1) > mag.sum(axis=1).max() * .5)[0]
+            x0, x1, y0, y1 = cols.min(), cols.max() + 1, rows.min(), rows.max() + 1
+            dentro = np.zeros(mag.shape, bool); dentro[y0 - 1:y1 + 1, x0 - 1:x1 + 1] = True
+        b[:, :, 3] = np.where(dentro, 0, b[:, :, 3])
+        im = Image.fromarray(b.clip(0, 255).astype(np.uint8), "RGBA")
+        # corta a sobra transparente, mas lembra onde ficou a parte de dentro
+        al = np.asarray(im)[:, :, 3] > 25
+        al = al | dentro
+        yy2, xx2 = np.where(al)
+        bx0, by0, bx1, by1 = xx2.min(), yy2.min(), xx2.max() + 1, yy2.max() + 1
+        im = im.crop((bx0, by0, bx1, by1))
+        alvo = HUD_ALTURA["circulo" if circulo else "barra"]
+        f = alvo / im.height
+        im = im.resize((max(1, round(im.width * f)), alvo), Image.LANCZOS)
+        meta = {"w": im.width, "h": im.height}
+        if circulo:
+            meta.update(cx=round((cx - bx0) * f, 1), cy=round((cy - by0) * f, 1), r=round(r * f, 1))
+        else:
+            meta.update(ix0=round((x0 - bx0) * f), iy0=round((y0 - by0) * f), ix1=round((x1 - bx0) * f), iy1=round((y1 - by0) * f))
+        saida = DESTINO / "hud" / f"{nome}.png"
+        saida.parent.mkdir(parents=True, exist_ok=True)
+        im.save(saida, optimize=True)
+        pecas[nome] = {"img": f"hud/{nome}.png", **meta}
+        print(f"  hud/{nome}: {im.width}x{im.height} {meta}")
+    return {"tipo": "hud", "pecas": pecas} if pecas else None
+
+
 def main():
     if not ORIGEM.exists():
         print(f"Nada a fazer: crie {ORIGEM.relative_to(RAIZ)} com as imagens.")
@@ -505,6 +560,10 @@ def main():
         r = preparar_objeto(pasta)
         if r:
             saida[f"objetos/{pasta.name}"] = r
+    if (ORIGEM / "hud").is_dir():
+        r = preparar_hud(ORIGEM / "hud")
+        if r:
+            saida["hud"] = r
     if (ORIGEM / "mapa").is_dir():
         r = preparar_mapa(ORIGEM / "mapa")
         if r:
