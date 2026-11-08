@@ -37,14 +37,29 @@ Pessoal (família).
 | `web/` | Versões menores das imagens, usadas pelo portal |
 | `ferramentas/otimizar_imagens.py` | Gera `web/` a partir de `img/` (rodar depois de adicionar imagens) |
 | `index.html` | O portal: início, aventura, bestiário, signos, caderno, transcrição e sugestões |
-| `jogo/` | Jogo de plataforma com RPG (protótipo, fase do Boitatá): `index.html`, `jogo.js`, manifest e ícones |
+| `jogo/` | Jogo de plataforma com RPG (protótipo, fase do Boitatá): `index.html`, `jogo.js` (motor), `dados/herois.js`, `dados/fases.js`, manifest e ícones |
+| `04-prompts-sprites.md` | Prompts das imagens do jogo (herói, Boitatá em 3 partes, inimigos, fundo em camadas) e a ficha dos 4 heróis para a Milena |
+| `ferramentas/preparar_sprites.py` | Transforma as imagens de `img/sprites/` (fora do git) nas folhas de `jogo/sprites/` + `sprites.json` |
 
 ## Jogo (protótipo)
 
 - Link: https://ericknogueira80.github.io/torneio-das-lendas/jogo/ (também pelo botão "▶ Jogo" do
   portal). Roda no navegador do celular (deitado) e do computador; dá para "Adicionar à tela
   inicial".
-- Tudo em `jogo/jogo.js`, desenhado no canvas, sem biblioteca. Tela virtual de 960×540.
+- Sem biblioteca; tela virtual de 960×540. Três partes:
+  - `jogo/dados/herois.js`: fichas dos heróis (atributos, poder, cores de reserva, pasta das
+    imagens) e dos 4 poderes (água, fogo, pedra, vento). Hoje só "o humano" está disponível; os
+    4 heróis dos signos têm fichas-modelo (`disponivel: false`) esperando a ficha da Milena.
+  - `jogo/dados/fases.js`: fichas das fases (plataformas, buracos, inimigos, chefe, textos) e dos
+    tipos de inimigo, com resistência por elemento (`resist`; 0 = imune, o chefe absorve e
+    recupera).
+  - `jogo/jogo.js`: o motor (física, combate, chefes, telas, desenho). Cada chefe é um módulo em
+    `CHEFES` (hoje só `boitata`).
+- **Imagens:** o motor carrega `jogo/sprites/sprites.json` se existir; o que faltar usa o desenho
+  de reserva. Fluxo: gerar com os prompts de `04-prompts-sprites.md`, salvar em `img/sprites/...`,
+  rodar `python ferramentas/preparar_sprites.py`, commit e push. A ferramenta remove o fundo de
+  cor lisa, corta, iguala a altura, alinha os pés e monta as folhas (testada com imagens de
+  teste em 2026-11-07).
 - **Fase do Boitatá:** floresta incendiada com 3 buracos, plataformas, chão em chamas, 7 inimigos
   (brasas e vaga-lumes de fogo) e 3 pontos de controle. No fim, a arena do chefe.
 - **RPG:** atributos do caderno (Vigor, Força, Intelecto, Agilidade). Vida = 40 + 15×V; espada =
@@ -56,11 +71,16 @@ Pessoal (família).
   água apaga as bolas de fogo. Com menos de 35% de fogo ele fica mais rápido. Derrotado, vira pó
   prateado e deixa o pingente (como na p. 11).
 - **Controles:** toque (◀ ▶, pular, espada, água) ou teclado (setas/A-D, ↑/W/Espaço, J/Z, K/X).
-- **Parâmetros de teste:** `?boss` começa no chefe; `?demo` joga sozinho; `&ff=600` avança 600
-  quadros; `&touch` mostra os botões no computador.
-- **Próximas fases:** uma por monstro do bestiário, com ele como chefe no fim (Mula sem cabeça,
-  Robin Hood, Nessie...). Para criar uma, o caminho é separar os dados da fase (plataformas,
-  inimigos, chefe) do motor, que hoje estão juntos no `jogo.js`.
+- **Parâmetros de teste:** `?heroi=agua|fogo|terra|ar` testa outro herói; `?fase=<chave>`;
+  `?boss` começa no chefe; `?demo` joga sozinho; `&ff=600` avança 600 quadros; `&touch` mostra os
+  botões no computador; `?semimagens` ignora as imagens.
+- **Elementos contra o Boitatá:** água 1,2× (e apaga as bolas de fogo), pedra e vento 0,8×, fogo
+  é absorvido (o herói de fogo precisa da espada nessa fase).
+- **Plano:** etapa 1 (motor separado em dados, imagens com reserva, ferramenta e prompts) feita
+  em 2026-11-07. Etapa 2: gerar as imagens do humano, do Boitatá e do fundo; a Milena preencher a
+  ficha dos 4 heróis. Etapa 3: tela de escolha de herói, poderes e fraquezas por chefe, imagens
+  dos 4 heróis. Depois, as fases novas (uma por monstro do bestiário): cada uma é uma ficha nova
+  em `fases.js` e um módulo de chefe novo em `CHEFES`.
 
 ## Como atualizar o portal
 
