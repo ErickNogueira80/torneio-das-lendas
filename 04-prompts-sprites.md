@@ -18,7 +18,7 @@ que o jogo usa. Enquanto uma imagem não existe, o jogo continua com o desenho d
 6. **Sempre anexar a imagem de referência** (o retrato oficial) ao pedir as poses, com a frase
    "mesmo personagem, mesma roupa, mesmas cores".
 
-**Bloco de estilo** (colar antes de cada prompt, como nos prompts dos locais):
+**Bloco de estilo** (já vem dentro de cada prompt das seções 1 a 4; fica aqui só como referência):
 
 ```
 Style: 2D side-scrolling video game character art, fantasy RPG, semi-realistic hand-painted look
@@ -83,8 +83,8 @@ img/sprites/herois/humano/poder_1.png
 img/sprites/herois/humano/dano_1.png
 img/sprites/herois/humano/correr_folha.png ou poses_folha.png   (opcional: várias poses numa imagem)
 img/sprites/chefes/boitata/cabeca.png, gomo.png, rabo.png
-img/sprites/inimigos/brasa/andar_1.png, andar_2.png
-img/sprites/inimigos/vagalume/voar_1.png, voar_2.png
+img/sprites/inimigos/brasa/andar_folha.png      (ou andar_1.png e andar_2.png)
+img/sprites/inimigos/vagalume/voar_folha.png    (ou voar_1.png e voar_2.png)
 img/sprites/fundos/boitata/ceu.png, longe.png, perto.png, chao.png
 ```
 
@@ -99,75 +99,186 @@ O humano é o 4º jogador: o "normal", sem constelação e sem atributo forte, c
 mais difícil (na história, é o Câncer escondido). Ele é o primeiro a ganhar imagens porque já
 está no jogo. Mais adiante os 3 heróis com constelação terão o seu conjunto, com as mesmas poses.
 
+Cada bloco abaixo é um prompt **completo**: copie o bloco inteiro e cole numa mensagem só. Nos
+prompts de pose, **anexe o retrato oficial** na mesma mensagem.
+
 ### 1.1 Retrato oficial (fazer primeiro)
 
-Gere de 3 a 5 versões e escolham a preferida. Ela vira a referência de todas as poses.
+Gere de 3 a 5 versões e escolham a preferida. Ela vira a referência de todas as poses. Salvar
+como `retrato.png` (e, se quiserem, uma cópia como `parado_1.png`: só com ela o herói já anda).
 
 ```
-An original young adventurer, about 16 years old, ordinary human with no magic marks. Short messy
-dark brown hair, determined friendly face. Wears a simple deep blue tunic with a golden belt,
-a darker navy short cape, brown leather boots and bracers, and carries a short steel sword.
-No green anywhere on the character. Standing in a relaxed neutral pose, full body, side view
-facing right.
+Create an image. An original young adventurer, about 16 years old, ordinary human with no magic
+marks. Short messy dark brown hair, determined friendly face. Wears a simple deep blue tunic with
+a golden belt, a darker navy short cape, brown leather boots and bracers, and carries a short
+steel sword. No green anywhere on the character. Standing in a relaxed neutral pose.
+
+Style: 2D side-scrolling video game character art, fantasy RPG, semi-realistic hand-painted look
+with clean readable silhouette, rich colors, soft rim light, consistent proportions. Full body,
+side view facing right, centered, plain solid #00FF00 green background, no shadow, no ground,
+no text, no frame.
 ```
 
-### 1.2 Poses (sempre com o retrato anexado)
+### 1.2 Corrida numa folha só (recomendado)
 
-Comece cada pedido com: `Same character as the reference image, same outfit and colors, same
-proportions.` e depois a pose:
+Salvar como `correr_folha.png`. A ferramenta recorta os 4 quadros.
 
-| Arquivo | Pose |
-|---|---|
-| `parado_1` | `Idle stance, standing, sword held low in the right hand, slight breathing posture.` |
-| `correr_1` | `Running, right leg forward and left leg back, arms swinging, cape flowing behind.` |
-| `correr_2` | `Running, legs passing each other under the body (mid-stride), cape flowing.` |
-| `correr_3` | `Running, left leg forward and right leg back, arms swinging, cape flowing behind.` |
-| `correr_4` | `Running, legs passing each other under the body, other arm forward, cape flowing.` |
-| `pular_1` | `Jumping upward, knees bent, one arm raised, cape trailing down.` |
-| `cair_1` | `Falling down, legs slightly apart preparing to land, arms out for balance, cape lifted up.` |
-| `espada_1` | `Sword attack wind-up, sword raised behind the head, body twisted back.` |
-| `espada_2` | `Sword slash finished, arm fully extended forward, sword horizontal in front, lunging.` |
-| `poder_1` | `Casting a spell, free hand stretched forward with open palm, glowing light in the palm.` |
-| `dano_1` | `Getting hit, recoiling backward, eyes shut, arms up defensively.` |
+```
+Create an image. Same character as the attached reference image, same outfit, colors and
+proportions, same art style. Sprite sheet of a 4-frame running cycle in a single row:
+frame 1 right leg forward, frame 2 legs passing under the body, frame 3 left leg forward,
+frame 4 legs passing under the body with the other arm forward. Evenly spaced with empty space
+between frames, all frames the same size, cape flowing behind.
+Full body, side view facing right, centered, plain solid #00FF00 green background, no shadow,
+no ground, no text, no frame. No numbers.
+```
+
+### 1.3 Poses, uma por imagem
+
+**`parado_1.png`**
+
+```
+Create an image. Same character as the attached reference image, same outfit, colors and
+proportions, same art style.
+Idle stance, standing, sword held low in the right hand, slight breathing posture.
+Full body, side view facing right, centered, plain solid #00FF00 green background, no shadow,
+no ground, no text, no frame.
+```
+
+**`pular_1.png`**
+
+```
+Create an image. Same character as the attached reference image, same outfit, colors and
+proportions, same art style.
+Jumping upward, knees bent, one arm raised, cape trailing down.
+Full body, side view facing right, centered, plain solid #00FF00 green background, no shadow,
+no ground, no text, no frame.
+```
+
+**`cair_1.png`**
+
+```
+Create an image. Same character as the attached reference image, same outfit, colors and
+proportions, same art style.
+Falling down, legs slightly apart preparing to land, arms out for balance, cape lifted up.
+Full body, side view facing right, centered, plain solid #00FF00 green background, no shadow,
+no ground, no text, no frame.
+```
+
+**`espada_1.png`**
+
+```
+Create an image. Same character as the attached reference image, same outfit, colors and
+proportions, same art style.
+Sword attack wind-up, sword raised behind the head, body twisted back.
+Full body, side view facing right, centered, plain solid #00FF00 green background, no shadow,
+no ground, no text, no frame.
+```
+
+**`espada_2.png`**
+
+```
+Create an image. Same character as the attached reference image, same outfit, colors and
+proportions, same art style.
+Sword slash finished, arm fully extended forward, sword horizontal in front, lunging.
+Full body, side view facing right, centered, plain solid #00FF00 green background, no shadow,
+no ground, no text, no frame.
+```
+
+**`poder_1.png`**
+
+```
+Create an image. Same character as the attached reference image, same outfit, colors and
+proportions, same art style.
+Casting a spell, free hand stretched forward with open palm, glowing light in the palm.
+Full body, side view facing right, centered, plain solid #00FF00 green background, no shadow,
+no ground, no text, no frame.
+```
+
+**`dano_1.png`**
+
+```
+Create an image. Same character as the attached reference image, same outfit, colors and
+proportions, same art style.
+Getting hit, recoiling backward, eyes shut, arms up defensively.
+Full body, side view facing right, centered, plain solid #00FF00 green background, no shadow,
+no ground, no text, no frame.
+```
+
+Se não usar a folha de corrida, dá para gerar os quadros soltos (`correr_1` a `correr_4`) com o
+mesmo modelo, trocando a pose pela descrição de cada quadro da seção 1.2.
 
 **Dicas:** se uma pose sair com outra roupa ou outra cor, descarte e gere de novo. Se ficar quase
-certa, dá para pedir "mesma imagem, mas com a capa azul-marinho" em vez de começar do zero.
-Para a corrida, 4 quadros é o ideal; com 2 (`correr_1` e `correr_3`) já funciona.
+certa, peça "mesma imagem, mas com a capa azul-marinho" em vez de começar do zero.
 
 ---
 
 ## 2. Boitatá em 3 partes
 
 O jogo monta a cobra: uma cabeça, vários gomos iguais e a ponta do rabo. As chamas que dançam por
-cima são do próprio jogo, então as partes podem ter só brasas e rachaduras brilhando.
+cima são do próprio jogo, então as partes podem ter só brasas e rachaduras brilhando. Gere a
+cabeça primeiro e anexe-a nos pedidos do gomo e do rabo, para as cores baterem.
+
+**`chefes/boitata/cabeca.png`**
 
 ```
-Part of a giant serpent made of living fire from Brazilian folklore (the Boitatá): charred
-black-red ember skin with glowing orange cracks, small flickering flames, eyes like bright
-burning coals. Isolated game asset, side view, plain solid #00FF00 green background, no text.
+Create an image. Part of a giant serpent made of living fire from Brazilian folklore (the
+Boitatá): charred black-red ember skin with glowing orange cracks, small flickering flames, eyes
+like bright burning coals. Isolated 2D game asset, painterly fantasy RPG style, side view, plain
+solid #00FF00 green background, no shadow, no text, no frame.
+Only the HEAD of the serpent, facing right, mouth slightly open showing sharp fangs, no neck
+or a very short neck.
 ```
 
-| Arquivo | Complemento do prompt |
-|---|---|
-| `cabeca` | `Only the HEAD of the serpent, facing right, mouth slightly open showing sharp fangs, no neck or a very short neck.` |
-| `gomo` | `Only ONE round BODY SEGMENT of the serpent, roughly circular, like a thick slice of the body seen from the side, no head, no tail.` |
-| `rabo` | `Only the TAIL TIP of the serpent, tapering to a point, pointing left.` |
+**`chefes/boitata/gomo.png`**
+
+```
+Create an image. Part of a giant serpent made of living fire from Brazilian folklore (the
+Boitatá): charred black-red ember skin with glowing orange cracks, small flickering flames, eyes
+like bright burning coals. Isolated 2D game asset, painterly fantasy RPG style, side view, plain
+solid #00FF00 green background, no shadow, no text, no frame.
+Only ONE round BODY SEGMENT of the serpent, roughly circular, like a thick slice of the body
+seen from the side, no head, no tail. Same colors as the attached head.
+```
+
+**`chefes/boitata/rabo.png`**
+
+```
+Create an image. Part of a giant serpent made of living fire from Brazilian folklore (the
+Boitatá): charred black-red ember skin with glowing orange cracks, small flickering flames, eyes
+like bright burning coals. Isolated 2D game asset, painterly fantasy RPG style, side view, plain
+solid #00FF00 green background, no shadow, no text, no frame.
+Only the TAIL TIP of the serpent, tapering to a point, pointing left. Same colors as the
+attached head.
+```
 
 ---
 
 ## 3. Inimigos pequenos
 
+Os dois quadros de cada um vêm numa imagem só:
+
+**`inimigos/brasa/andar_folha.png`**
+
 ```
-Small original fire creature for a 2D platform game, cute but mischievous, isolated, side view
-facing right, plain solid #00FF00 green background, no text.
+Create an image. Small original fire creature for a 2D platform game, cute but mischievous,
+painterly fantasy RPG style, isolated, side view facing right, plain solid #00FF00 green
+background, no shadow, no text, no frame.
+A living flame blob with two dark eyes and tiny feet. Sprite sheet of 2 walking frames in a
+single row with empty space between them: left foot forward, then right foot forward with the
+flame leaning the other way. Same size in both frames, no numbers.
 ```
 
-| Arquivo | Complemento do prompt |
-|---|---|
-| `inimigos/brasa/andar_1` | `A living flame blob with two dark eyes and tiny feet, walking, left foot forward.` |
-| `inimigos/brasa/andar_2` | `Same flame creature, walking, right foot forward, flame leaning the other way.` |
-| `inimigos/vagalume/voar_1` | `A glowing fire firefly with a bright ember body and translucent wings raised up.` |
-| `inimigos/vagalume/voar_2` | `Same fire firefly, wings lowered down.` |
+**`inimigos/vagalume/voar_folha.png`**
+
+```
+Create an image. Small original fire creature for a 2D platform game, cute but mischievous,
+painterly fantasy RPG style, isolated, side view facing right, plain solid #00FF00 green
+background, no shadow, no text, no frame.
+A glowing fire firefly with a bright ember body and translucent wings. Sprite sheet of 2 flying
+frames in a single row with empty space between them: wings raised up, then wings lowered
+down. Same size in both frames, no numbers.
+```
 
 ---
 
@@ -177,18 +288,45 @@ As camadas ficam uma na frente da outra e andam em velocidades diferentes, o que
 profundidade. Precisam **emendar nas laterais** (a borda direita continua na esquerda), porque o
 jogo repete a imagem. Se a emenda não ficar perfeita, me mandem assim mesmo que eu ajusto.
 
+**`fundos/boitata/ceu.png`** (16:9)
+
 ```
-2D side-scrolling game background layer, burned dead forest at dusk, smoky orange and purple
-atmosphere, painterly style matching a fantasy RPG, seamless horizontally tileable, no characters,
-no text.
+Create an image. 2D side-scrolling game background layer, burned dead forest at dusk, smoky
+orange and purple atmosphere, painterly style matching a fantasy RPG, seamless horizontally
+tileable (the left and right edges must match), no characters, no text.
+Wide 16:9 image. Only the SKY: smoky dusk gradient from deep purple at the top to burning
+orange near the horizon, a large pale ember-colored moon, drifting ash. No trees, no ground.
 ```
 
-| Arquivo | Complemento do prompt | Formato |
-|---|---|---|
-| `ceu` | `Only the SKY: smoky dusk gradient from deep purple at the top to burning orange near the horizon, a large pale ember-colored moon, drifting ash. No trees, no ground.` | 16:9 |
-| `longe` | `Only DISTANT burned tree silhouettes and low hills, dark purple-brown, flat bottom edge, on a plain solid #00FF00 green background (the sky area must be pure green).` | 21:9 ou 3:1 |
-| `perto` | `Only a few CLOSER burned tree trunks with broken branches and faint glowing embers, sparse with big gaps, flat bottom edge, on a plain solid #00FF00 green background.` | 21:9 ou 3:1 |
-| `chao` | `Square seamless tileable texture of burnt dark soil and ash with tiny glowing embers, seen from the side, the top edge slightly lighter like an ash crust.` | 1:1 |
+**`fundos/boitata/longe.png`** (21:9)
+
+```
+Create an image. 2D side-scrolling game background layer, burned dead forest at dusk, smoky
+orange and purple atmosphere, painterly style matching a fantasy RPG, seamless horizontally
+tileable (the left and right edges must match), no characters, no text.
+Very wide 21:9 image. Only DISTANT burned tree silhouettes and low hills, dark purple-brown,
+flat bottom edge, on a plain solid #00FF00 green background (the sky area must be pure green).
+```
+
+**`fundos/boitata/perto.png`** (21:9)
+
+```
+Create an image. 2D side-scrolling game background layer, burned dead forest at dusk, smoky
+orange and purple atmosphere, painterly style matching a fantasy RPG, seamless horizontally
+tileable (the left and right edges must match), no characters, no text.
+Very wide 21:9 image. Only a few CLOSER burned tree trunks with broken branches and faint
+glowing embers, sparse with big gaps, flat bottom edge, on a plain solid #00FF00 green background.
+```
+
+**`fundos/boitata/chao.png`** (1:1)
+
+```
+Create an image. 2D side-scrolling game background layer, burned dead forest at dusk, smoky
+orange and purple atmosphere, painterly style matching a fantasy RPG, seamless horizontally
+tileable (the left and right edges must match), no characters, no text.
+Square 1:1 seamless tileable texture of burnt dark soil and ash with tiny glowing embers, seen
+from the side, the top edge slightly lighter like an ash crust.
+```
 
 ---
 
