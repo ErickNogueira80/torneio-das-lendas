@@ -106,11 +106,17 @@ Pessoal (família).
   Altura: 27 px da arte (54 na tela), um pouco mais baixo que o herói (62).
 - **Golpe de espada (2026-11-08):** onda de ar em meia-lua (função `drawGolpe`) que abre e afina
   enquanto some, com fio branco, riscos de vento e um pouco de poeira; substituiu a faixa em arco.
+- **Seleção de herói (2026-11-08):** depois do título vem "Escolha seu herói", com os 4 jogadores
+  de `SELECAO_HEROIS` (herois.js): o humano (retrato, "sem constelação · difícil") e os 3 com
+  constelação (Áries/Água, Libra ou Sagitário/Fogo, Capricórnio/Terra) como silhueta do retrato com
+  "?" na cor do elemento e "em breve". Cada cartão mostra os atributos (o atributo forte na cor do
+  elemento). Escolher outro herói recarrega com `?heroi=`; depois vem o mapa. `?herois` abre direto
+  nessa tela. Para liberar um herói: `disponivel: true` e o retrato em `img/sprites/herois/<id>/`.
 - **Mapa do mundo (2026-11-08):** depois da tela de título vem o mapa (`dados/mapa.js`): 10 locais
   na ordem dos combates da história (Mula sem cabeça, Boitatá, Nessie, vaca, pesadelo, grifo,
   Kallikántzaros, Excalibur, Hidra e Olimpo), ligados por uma trilha. Só o Boitatá está liberado;
   os outros têm cadeado e "Bloqueado · em breve". O cartão mostra a ilustração pintada do local
-  (a do portal), o nome e o chefe. Fase vencida ganha um ✓ (guardado no navegador). Sem a imagem
+  (a do portal) e o nome (sem o chefe, desde 2026-11-08). Fase vencida ganha um ✓ (guardado no navegador). Sem a imagem
   do mapa (`img/sprites/mapa/mundo.png`, prompt na seção 4.3), aparece um fundo escuro.
   A imagem do mapa veio com nomes em inglês escritos pela IA; foram apagados com
   `ferramentas/apagar_textos.py` (o original fica em `img/sprites/mapa/original_com_textos.jpg`)

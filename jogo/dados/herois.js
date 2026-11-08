@@ -6,6 +6,9 @@
    - cores: usadas quando ainda não há imagem (o desenho de reserva).
    - sprite: pasta das imagens em jogo/sprites (gerada pela ferramenta preparar_sprites.py).
    - disponivel: false = ainda não aparece na escolha de herói (dá para testar com ?heroi=<chave>). */
+// Ordem dos heróis na tela de seleção (os 4 jogadores). 'ar' não entra: é o humano desperto.
+window.SELECAO_HEROIS = ['humano', 'agua', 'fogo', 'terra'];
+
 window.HEROIS = {
   // O 4º jogador (definição do Erick, 2026-11-07): o "normal", sem constelação e sem atributo
   // forte (todos em 2). Jogabilidade mais difícil. Na história, é o Câncer escondido.

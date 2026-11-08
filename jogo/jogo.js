@@ -778,7 +778,8 @@ function chooseLevel(i) {
 }
 function menuTap(p) {
   if (portrait) return;
-  if (state === 'title') { goFullscreen(); abrirMapa(); }
+  if (state === 'title') { goFullscreen(); abrirHerois(); }
+  else if (state === 'herois') { tocarHerois(p); }
   else if (state === 'mapa') { tocarMapa(p); }
   else if (state === 'dead') { if (time - deadAt < 0.9) return; respawn(); state = 'play'; }
   else if (state === 'victory') { concluir(FASE_ID); abrirMapa(); }
@@ -786,6 +787,7 @@ function menuTap(p) {
 }
 function menuKey(code) {
   if (state === 'mapa') { teclaMapa(code); return; }
+  if (state === 'herois') { teclaHerois(code); return; }
   if (state === 'levelup') { const n = { Digit1: 0, Digit2: 1, Digit3: 2, Digit4: 3 }[code]; if (n !== undefined) chooseLevel(n); return; }
   if (['Enter', 'Space', 'KeyJ', 'KeyZ'].includes(code)) menuTap({ x: W / 2, y: H / 2 });
 }
@@ -916,10 +918,10 @@ function drawMapa() {
     ctx.drawImage(im, (im.naturalWidth - sw) / 2, (im.naturalHeight - sh) / 2, sw, sh, C.x + 12, C.y + 12, iw, ih); ctx.restore();
     if (!l.fase) { ctx.fillStyle = 'rgba(10,8,16,.45)'; ctx.fillRect(C.x + 12, C.y + 12, iw, ih); }
   } else { ctx.fillStyle = '#1a1424'; ctx.fillRect(C.x + 12, C.y + 12, iw, ih); }
-  ctx.textAlign = 'left'; ctx.fillStyle = '#f5d48a'; ctx.font = 'bold 17px Cinzel, serif';
-  ctx.fillText(l.nome, C.x + 14, C.y + 166);
-  ctx.fillStyle = '#ece4d4'; ctx.font = '15px "Crimson Pro", serif';
-  ctx.fillText('Chefe: ' + l.chefe, C.x + 14, C.y + 188);
+  ctx.textAlign = 'center'; ctx.fillStyle = '#f5d48a';
+  let fs = 19; ctx.font = `bold ${fs}px Cinzel, serif`;
+  while (fs > 13 && ctx.measureText(l.nome).width > (C.w - 28) * 2) { fs--; ctx.font = `bold ${fs}px Cinzel, serif`; }
+  wrap(l.nome, C.x + C.w / 2, C.y + 170, C.w - 28, fs + 5);
   const B = BOTAO;
   if (l.fase) {
     ctx.fillStyle = 'rgba(227,183,90,.9)'; roundRect(B.x, B.y, B.w, B.h, 10); ctx.fill();
@@ -929,6 +931,98 @@ function drawMapa() {
     ctx.fillStyle = '#8a8296'; ctx.textAlign = 'center'; ctx.font = 'italic 16px "Crimson Pro", serif';
     ctx.fillText('Bloqueado · em breve', B.x + B.w / 2, B.y + 24);
   }
+}
+
+// ---------- seleção de herói ----------
+// Os 4 jogadores (SELECAO_HEROIS em herois.js). Só os com disponivel: true podem ser escolhidos;
+// os outros aparecem como silhueta com a cor do elemento e "em breve".
+const SEL = (window.SELECAO_HEROIS || ['humano']).filter(id => HEROIS[id]);
+let heroiSel = Math.max(0, SEL.indexOf(HEROI_ID));
+const COR_ELEM = { agua: '#4aa8ff', fogo: '#ff7a2a', terra: '#c8a060', ar: '#d8ecff', null: '#e3b75a' };
+const NOME_ELEM = { agua: 'Água', fogo: 'Fogo', terra: 'Terra', ar: 'Ar' };
+const cartaoHeroi = i => { const w = 196, gap = 18, x0 = (W - (SEL.length * w + (SEL.length - 1) * gap)) / 2; return { x: x0 + i * (w + gap), y: 62, w, h: 352 }; };
+const BOTAO_HEROI = { x: W / 2 - 130, y: 470, w: 260, h: 44 };
+function abrirHerois() { state = 'herois'; pointers.clear(); }
+function escolherHeroi() {
+  const id = SEL[heroiSel], h = HEROIS[id];
+  if (!h || !h.disponivel) return;
+  if (id !== HEROI_ID) { location.search = '?heroi=' + id + '&mapa'; return; }   // recarrega com o herói
+  abrirMapa();
+}
+function tocarHerois(p) {
+  const pt = { x: p.x, y: p.y, w: 1, h: 1 };
+  if (overlap(pt, BOTAO_HEROI)) { escolherHeroi(); return; }
+  SEL.forEach((id, i) => { if (overlap(pt, cartaoHeroi(i))) { if (i === heroiSel) escolherHeroi(); else heroiSel = i; } });
+}
+function teclaHerois(code) {
+  if (code === 'ArrowRight' || code === 'KeyD') heroiSel = (heroiSel + 1) % SEL.length;
+  else if (code === 'ArrowLeft' || code === 'KeyA') heroiSel = (heroiSel + SEL.length - 1) % SEL.length;
+  else if (['Enter', 'Space', 'KeyJ', 'KeyZ'].includes(code)) escolherHeroi();
+}
+// retrato do herói, ou a silhueta do retrato do humano tingida com a cor do elemento
+const silhuetas = {};
+function retratoHeroi(id) {
+  const s = SPR[HEROIS[id].sprite], im = s && s.retratoImg;
+  if (ready(im)) return { im, sil: false };
+  const base = SPR['herois/humano'] && SPR['herois/humano'].retratoImg;
+  if (!ready(base) || typeof document === 'undefined') return null;
+  if (!silhuetas[id]) {
+    const c = document.createElement('canvas'); c.width = base.naturalWidth; c.height = base.naturalHeight;
+    const g = c.getContext('2d'); g.drawImage(base, 0, 0);
+    g.globalCompositeOperation = 'source-atop'; g.fillStyle = '#0c0812'; g.fillRect(0, 0, c.width, c.height);
+    silhuetas[id] = c;
+  }
+  return { im: silhuetas[id], sil: true };
+}
+function drawHerois() {
+  const g = ctx.createRadialGradient(W / 2, H * .45, 40, W / 2, H * .45, W * .7);
+  g.addColorStop(0, '#2a2238'); g.addColorStop(1, '#0b0910'); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  ctx.textAlign = 'center'; ctx.fillStyle = '#f5d48a'; ctx.font = 'bold 30px Cinzel, serif';
+  ctx.fillText('Escolha seu herói', W / 2, 44);
+  SEL.forEach((id, i) => {
+    const h = HEROIS[id], C = cartaoHeroi(i), sel = i === heroiSel, livre = h.disponivel, cor = COR_ELEM[h.elemento] || COR_ELEM.null;
+    const lift = sel ? -6 : 0;
+    // brilho atrás do escolhido
+    if (sel) { const gl = ctx.createRadialGradient(C.x + C.w / 2, C.y + 150, 10, C.x + C.w / 2, C.y + 150, 190); gl.addColorStop(0, cor + '55'); gl.addColorStop(1, cor + '00'); ctx.fillStyle = gl; ctx.fillRect(C.x - 60, C.y - 40, C.w + 120, C.h + 80); }
+    ctx.fillStyle = 'rgba(14,10,20,.85)'; roundRect(C.x, C.y + lift, C.w, C.h, 14); ctx.fill();
+    ctx.strokeStyle = sel ? cor : 'rgba(201,162,78,.45)'; ctx.lineWidth = sel ? 2.5 : 1.2; ctx.stroke();
+    // retrato
+    const r = retratoHeroi(id);
+    ctx.save(); roundRect(C.x + 6, C.y + 6 + lift, C.w - 12, 196, 10); ctx.clip();
+    const fg = ctx.createLinearGradient(0, C.y, 0, C.y + 200); fg.addColorStop(0, cor + '33'); fg.addColorStop(1, 'rgba(10,6,16,.2)');
+    ctx.fillStyle = fg; ctx.fillRect(C.x, C.y + lift, C.w, 210);
+    if (r) {
+      const hh = 230, ww = hh * r.im.width / r.im.height;
+      ctx.drawImage(r.im, C.x + C.w / 2 - ww / 2, C.y + 8 + lift, ww, hh);
+      if (r.sil) { ctx.fillStyle = cor; ctx.font = 'bold 54px Cinzel, serif'; ctx.globalAlpha = .85; ctx.fillText('?', C.x + C.w / 2, C.y + 120 + lift); ctx.globalAlpha = 1; }
+    }
+    ctx.restore();
+    // nome, signo, elemento
+    ctx.fillStyle = livre ? '#f5d48a' : '#a89cb8'; ctx.font = 'bold 16px Cinzel, serif';
+    ctx.fillText(livre ? h.nome : (h.signo || h.nome), C.x + C.w / 2, C.y + 226 + lift);
+    ctx.fillStyle = cor; ctx.font = '13px "Crimson Pro", serif';
+    ctx.fillText(h.elemento ? 'Elemento: ' + NOME_ELEM[h.elemento] : 'Sem constelação · difícil', C.x + C.w / 2, C.y + 244 + lift);
+    // atributos
+    const nomes = { V: 'Vigor', F: 'Força', I: 'Intelecto', A: 'Agilidade' };
+    Object.keys(nomes).forEach((k, j) => {
+      const y = C.y + 262 + j * 15 + lift, v = h.attr[k];
+      ctx.textAlign = 'left'; ctx.fillStyle = '#b3a88f'; ctx.font = '12px "Crimson Pro", serif'; ctx.fillText(nomes[k], C.x + 16, y + 9);
+      for (let q = 0; q < 4; q++) { ctx.fillStyle = q < v ? (v > 2 && q === v - 1 ? cor : '#e3b75a') : 'rgba(255,255,255,.12)'; ctx.fillRect(C.x + 92 + q * 22, y, 18, 8); }
+      ctx.textAlign = 'center';
+    });
+    if (!livre) {
+      ctx.fillStyle = 'rgba(8,5,12,.35)'; roundRect(C.x, C.y + lift, C.w, C.h, 14); ctx.fill();
+      ctx.fillStyle = '#8a8296'; ctx.font = 'italic 14px "Crimson Pro", serif'; ctx.fillText('em breve', C.x + C.w / 2, C.y + C.h - 8 + lift);
+    }
+  });
+  // descrição e botão
+  const h = HEROIS[SEL[heroiSel]];
+  ctx.fillStyle = '#ece4d4'; ctx.font = 'italic 15px "Crimson Pro", serif';
+  wrap(h.disponivel ? h.descricao : 'Ainda em criação pela Milena. Volte em breve!', W / 2, 438, 720, 18);
+  const B = BOTAO_HEROI;
+  ctx.fillStyle = h.disponivel ? 'rgba(227,183,90,.92)' : 'rgba(120,110,130,.35)'; roundRect(B.x, B.y, B.w, B.h, 10); ctx.fill();
+  ctx.fillStyle = h.disponivel ? '#1a1424' : '#8a8296'; ctx.font = 'bold 18px Cinzel, serif';
+  ctx.fillText(h.disponivel ? 'Escolher' : 'Bloqueado', B.x + B.w / 2, B.y + 28);
 }
 
 // ---------- desenho ----------
@@ -1976,6 +2070,7 @@ function draw() {
   if (portrait) { drawPortrait(); ctx.restore(); return; }
   if (state === 'title') { drawTitle(); ctx.restore(); return; }
   if (state === 'mapa') { drawMapa(); ctx.restore(); return; }
+  if (state === 'herois') { drawHerois(); ctx.restore(); return; }
   if (!HD) {
     if (!mundoCv) { mundoCv = document.createElement('canvas'); mundoCv.width = W; mundoCv.height = H; mundoCtx = mundoCv.getContext('2d', { alpha: false }); }
     ctx = mundoCtx; ctx.setTransform(1, 0, 0, 1, 0, 0);
@@ -2021,6 +2116,7 @@ function frame(now) {
 }
 if (DEMO || params.has('play')) newGame();
 else if (params.has('mapa')) abrirMapa();   // teste: abre direto no mapa
+else if (params.has('herois')) abrirHerois();   // teste: abre na seleção de herói
 // teste: ?demo&ff=600 avança 600 quadros antes de desenhar (para capturas de tela)
 for (let i = 0, n = +params.get('ff') || 0; i < n && state === 'play'; i++) { update(1 / 60); jumpPressed = swordPressed = powerPressed = false; }
 requestAnimationFrame(frame);

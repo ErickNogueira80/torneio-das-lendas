@@ -13,7 +13,7 @@ window.MAPA = {
       img: '../web/locais/04-a-montanha-e-os-portoes-do-santuario-do-olimpo.jpg', x: 0.12, y: 0.42 },
     { id: 'nessie', nome: 'O lago e a "ilha"', chefe: 'Nessie', fase: null,
       img: '../web/locais/05-o-lago-e-a-ilha.jpg', x: 0.42, y: 0.8 },
-    { id: 'vaca', nome: 'O pasto da vaca e o OVNI', chefe: 'Ageláda (a vaca)', fase: null,
+    { id: 'vaca', nome: 'O pasto', chefe: 'Ageláda (a vaca)', fase: null,
       img: '../web/locais/08-o-pasto-da-vaca-e-o-ovni.jpg', x: 0.435, y: 0.45 },
     { id: 'caverna', nome: 'A caverna à noite', chefe: 'Fobétor (o pesadelo)', fase: null,
       img: '../web/locais/09-a-caverna-a-noite.jpg', x: 0.335, y: 0.21 },
