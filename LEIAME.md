@@ -37,6 +37,30 @@ Pessoal (família).
 | `web/` | Versões menores das imagens, usadas pelo portal |
 | `ferramentas/otimizar_imagens.py` | Gera `web/` a partir de `img/` (rodar depois de adicionar imagens) |
 | `index.html` | O portal: início, aventura, bestiário, signos, caderno, transcrição e sugestões |
+| `jogo/` | Jogo de plataforma com RPG (protótipo, fase do Boitatá): `index.html`, `jogo.js`, manifest e ícones |
+
+## Jogo (protótipo)
+
+- Link: https://ericknogueira80.github.io/torneio-das-lendas/jogo/ (também pelo botão "▶ Jogo" do
+  portal). Roda no navegador do celular (deitado) e do computador; dá para "Adicionar à tela
+  inicial".
+- Tudo em `jogo/jogo.js`, desenhado no canvas, sem biblioteca. Tela virtual de 960×540.
+- **Fase do Boitatá:** floresta incendiada com 3 buracos, plataformas, chão em chamas, 7 inimigos
+  (brasas e vaga-lumes de fogo) e 3 pontos de controle. No fim, a arena do chefe.
+- **RPG:** atributos do caderno (Vigor, Força, Intelecto, Agilidade). Vida = 40 + 15×V; espada =
+  6 + 3×F; água = 5 + 3×I; energia = 30 + 10×I; velocidade cresce com A. Inimigos dão XP; ao
+  subir de nível o jogador escolhe o atributo.
+- **Boitatá:** a barra de vida é o "fogo" (150), ligada ao "como derrotar" do caderno ("apagando
+  completamente seu fogo"). Ataques do bestiário: bola de fogo gigante (rajadas), mordida comum
+  (contato) e mordida venenosa (avanço rente ao chão; pular por cima). Água na cabeça = crítico;
+  água apaga as bolas de fogo. Com menos de 35% de fogo ele fica mais rápido. Derrotado, vira pó
+  prateado e deixa o pingente (como na p. 11).
+- **Controles:** toque (◀ ▶, pular, espada, água) ou teclado (setas/A-D, ↑/W/Espaço, J/Z, K/X).
+- **Parâmetros de teste:** `?boss` começa no chefe; `?demo` joga sozinho; `&ff=600` avança 600
+  quadros; `&touch` mostra os botões no computador.
+- **Próximas fases:** uma por monstro do bestiário, com ele como chefe no fim (Mula sem cabeça,
+  Robin Hood, Nessie...). Para criar uma, o caminho é separar os dados da fase (plataformas,
+  inimigos, chefe) do motor, que hoje estão juntos no `jogo.js`.
 
 ## Como atualizar o portal
 
