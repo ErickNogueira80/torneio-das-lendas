@@ -193,6 +193,50 @@ Pessoal (família).
   poderes e fraquezas por chefe, imagens dos heróis. Depois, as fases novas (uma por monstro do bestiário): cada uma é uma ficha nova
   em `fases.js` e um módulo de chefe novo em `CHEFES`.
 
+## Futuro: Godot e lojas (estudo de 2026-11-08, nada decidido)
+
+O Erick só quis entender como funcionaria. Nenhuma destas ações foi iniciada. Valores e regras das
+lojas mudam: confirmar antes de pagar.
+
+### Portar para o Godot 4
+
+- É uma reescrita, não conversão: o código é JavaScript + Canvas; o Godot usa GDScript e cenas.
+- Aproveita sem refazer: todas as imagens de `jogo/sprites`, os dados das fases e heróis, as
+  regras de RPG e o comportamento do Boitatá (como receita).
+- Refaz: o motor (física, câmera, luz, HUD, mapa, toques). Boa parte já vem pronta no Godot.
+- Ganha: luz 2D melhor (combina com o estilo Lanterna), editor visual (a Milena montaria fases
+  arrastando objetos), exportação nativa para Android, iPhone, PC e web.
+- Perde: hoje basta um link; a versão web do Godot é mais pesada (30 a 40 MB) e o normal vira
+  instalar. O Claude não consegue abrir o editor para testar: o ciclo passa a ser escrever,
+  vocês testarem e mandarem prints.
+- Quando valer a pena: fase do Boitatá fechada e hora das próximas, a Milena querendo montar fases
+  sozinha, ou lançar como app. Caminho: instalar o Godot 4, montar o projeto com a fase do Boitatá
+  e as imagens atuais, testar, e fazer as fases novas já no Godot (a versão web continua no ar).
+
+### Publicar nas lojas
+
+- **itch.io (primeiro passo sugerido):** grátis, aceita o jogo web como está, roda no navegador;
+  vitrine para colher opiniões. Pode ser gratuito ou "pague quanto quiser".
+- **Play Store:** dá para empacotar o jogo web atual (PWABuilder ou Capacitor), sem reescrever.
+  Taxa única de desenvolvedor (US$ 25 na última conferência). Exige conta de adulto, política de
+  privacidade (mesmo sem coletar dados), classificação etária (questionário) e, em contas pessoais
+  novas, um teste fechado com testadores por algumas semanas antes de liberar ao público.
+- **Steam:** empacotar como app de PC (Electron ou Tauri) ou exportar pelo Godot. Taxa por jogo
+  (US$ 100, devolvida depois de um valor em vendas), espera e revisão no primeiro lançamento,
+  página com capa, trailer e prints, formulário de impostos e declaração do uso de IA na arte.
+- **Ordem sugerida:** itch.io → Play Store com 2 ou 3 fases → Steam com o jogo mais completo (aí
+  faz sentido o Godot).
+
+### Pontos de atenção
+
+- **Conteúdo:** com uma fase só, a Steam avaliaria mal; publicar com várias fases do mapa.
+- **Direitos:** Freddy Krueger vira de vez o Fobétor; folclore (Boitatá, Mula sem cabeça) é livre;
+  conferir nos termos do Gemini e do PixelLab se o uso comercial da arte é permitido.
+- **A Milena:** menor de idade; contas, contratos e recebimento no nome do Erick, com crédito da
+  criação para ela no jogo e na loja.
+- **Público:** marcar "para crianças" traz regras bem mais rígidas no Google; classificar como
+  livre para todos, sem mirar em crianças, é mais simples.
+
 ## Como atualizar o portal
 
 1. Salvar as imagens novas em `img/local` ou `img/bestiario`.
