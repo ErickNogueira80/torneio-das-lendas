@@ -13,6 +13,11 @@ Estrutura esperada (nomes sem acento, minúsculos):
 
 Animações reconhecidas: parado, correr, pular, cair, espada, poder, dano, andar, voar.
 Arquivos com outros nomes (ex.: retrato.png) são ignorados.
+
+Folha com várias poses: `<animacao>_folha.png` (ex.: correr_folha.png) com as poses lado a lado
+(ou em linhas), separadas por fundo livre. A ferramenta recorta cada pose, na ordem de leitura
+(linha a linha, da esquerda para a direita), e mantém o tamanho relativo entre elas.
+`poses_folha.png` aceita uma folha mista: a ordem das poses tem de ser a de ORDEM_POSES abaixo.
 Aceita .png, .jpg, .jpeg e .webp. O fundo é detectado pela cor das bordas da imagem; se a
 imagem já vier com transparência, ela é mantida.
 
@@ -106,11 +111,49 @@ def empacotar(quadros: list[tuple[str, Image.Image]], largura_max=2048, margem=2
     return folha, pos
 
 
+# ordem das poses numa folha mista (poses_folha.png)
+ORDEM_POSES = ["parado_1", "correr_1", "correr_2", "correr_3", "correr_4", "pular_1", "cair_1",
+               "espada_1", "espada_2", "poder_1", "dano_1"]
+
+
 def chave_quadro(arq: Path):
-    m = re.match(r"^([a-z]+)(?:_(\d+))?$", arq.stem.lower())
-    if not m or m.group(1) not in ANIMS:
+    m = re.match(r"^([a-z]+)(?:_(\d+|folha))?$", arq.stem.lower())
+    if not m or (m.group(1) not in ANIMS and m.group(1) != "poses"):
+        return None
+    if m.group(2) == "folha":
+        return m.group(1), "folha"
+    if m.group(1) == "poses":
         return None
     return m.group(1), int(m.group(2) or 1)
+
+
+def _faixas(ocupado: np.ndarray, folga: int, minimo: int) -> list[tuple[int, int]]:
+    """Trechos contínuos ocupados, unindo vãos menores que `folga`."""
+    faixas, ini, vazio = [], None, 0
+    for i, o in enumerate(ocupado):
+        if o:
+            if ini is None:
+                ini = i
+            vazio = 0
+        elif ini is not None:
+            vazio += 1
+            if vazio >= folga:
+                faixas.append((ini, i - vazio + 1)); ini, vazio = None, 0
+    if ini is not None:
+        faixas.append((ini, len(ocupado) - vazio))
+    return [(a, b) for a, b in faixas if b - a >= minimo]
+
+
+def separar_folha(img: Image.Image) -> list[Image.Image]:
+    """Recorta as poses de uma folha (já sem fundo): linhas, depois colunas."""
+    alfa = np.asarray(img)[:, :, 3] > 25
+    h, w = alfa.shape
+    pecas = []
+    for y0, y1 in _faixas(alfa.any(axis=1), max(4, h // 60), max(8, h // 12)):
+        faixa = alfa[y0:y1]
+        for x0, x1 in _faixas(faixa.any(axis=0), max(4, w // 120), max(8, w // 40)):
+            pecas.append(cortar(img.crop((x0, y0, x1, y1))))
+    return pecas
 
 
 def preparar_personagem(grupo: str, pasta: Path, ajustes: dict) -> dict | None:
@@ -118,21 +161,41 @@ def preparar_personagem(grupo: str, pasta: Path, ajustes: dict) -> dict | None:
     cfg = PERSONAGEM[grupo]
     altura_jogo = ALTURA_ESPECIFICA.get(chave, cfg["altura"])
     atlas_h = cfg["atlas"]
-    itens = []
+    # (anim, n, nome, imagem, referência de altura)
+    brutos = []
     for arq in sorted(pasta.iterdir()):
         if arq.suffix.lower() not in EXTS:
             continue
+        stem = arq.stem.lower()
         k = chave_quadro(arq)
+        if stem == "poses_folha":
+            pecas = separar_folha(remover_fundo(Image.open(arq)))
+            ref = max(p.height for p in pecas) if pecas else 1
+            if len(pecas) != len(ORDEM_POSES):
+                print(f"  aviso: {arq.name} tem {len(pecas)} poses; esperava {len(ORDEM_POSES)} (uso as primeiras)")
+            for nome, im in zip(ORDEM_POSES, pecas):
+                a, n = nome.split("_")
+                brutos.append((a, 200 + int(n), nome, im, ref))
+            continue
         if not k:
             continue
+        if k[1] == "folha":
+            pecas = separar_folha(remover_fundo(Image.open(arq)))
+            ref = max(p.height for p in pecas) if pecas else 1
+            print(f"  {arq.name}: {len(pecas)} poses")
+            for i, im in enumerate(pecas, 1):
+                brutos.append((k[0], 100 + i, f"{k[0]}_f{i}", im, ref))
+            continue
         im = cortar(remover_fundo(Image.open(arq)))
-        aj = ajustes.get(f"{chave}/{arq.stem.lower()}", {})
-        alvo = atlas_h * float(aj.get("escala", 1))
-        fator = alvo / im.height
-        im = im.resize((max(1, round(im.width * fator)), max(1, round(alvo))), Image.LANCZOS)
+        brutos.append((k[0], k[1], stem, im, im.height))
+    itens = []
+    for anim, n, nome, im, ref in brutos:
+        aj = ajustes.get(f"{chave}/{nome}", {})
+        fator = atlas_h * float(aj.get("escala", 1)) / ref
+        im = im.resize((max(1, round(im.width * fator)), max(1, round(im.height * fator))), Image.LANCZOS)
         ax = ancora_pes(im) - float(aj.get("dx", 0))
         ay = im.height - float(aj.get("dy", 0))
-        itens.append((k, arq.stem.lower(), im, ax, ay))
+        itens.append(((anim, n), nome, im, ax, ay))
     if not itens:
         return None
     folha, pos = empacotar([(nome, im) for _, nome, im, _, _ in itens])

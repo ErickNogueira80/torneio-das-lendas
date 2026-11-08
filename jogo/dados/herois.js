@@ -7,9 +7,13 @@
    - sprite: pasta das imagens em jogo/sprites (gerada pela ferramenta preparar_sprites.py).
    - disponivel: false = ainda não aparece na escolha de herói (dá para testar com ?heroi=<chave>). */
 window.HEROIS = {
+  // O 4º jogador (definição do Erick, 2026-11-07): o "normal", sem constelação e sem atributo
+  // forte (todos em 2). Jogabilidade mais difícil. Na história, é o Câncer escondido.
+  // Por enquanto usa o poder da água só para teste; na tela de escolha (etapa 3) ele fica sem
+  // poder de elemento e ganha o vento quando despertar o Câncer (ver a ficha 'ar' abaixo).
   humano: {
-    nome: 'O humano', signo: null, elemento: null, disponivel: true,
-    descricao: 'Ainda sem constelação no braço. Os outros devem protegê-lo... ou será o contrário?',
+    nome: 'O humano', signo: null, elemento: null, disponivel: true, dificil: true,
+    descricao: 'Sem constelação no braço e sem atributo forte. Os outros devem protegê-lo... ou será o contrário?',
     attr: { V: 2, F: 2, I: 2, A: 2 },
     poder: 'agua',
     cores: { capa: '#1f3f63', roupa: '#2e5c8a', cinto: '#c8a24a', pele: '#f0c9a0', cabelo: '#2a1c18' },
@@ -17,7 +21,7 @@ window.HEROIS = {
     sprite: 'herois/humano',
   },
 
-  // ---- Modelos dos 4 heróis dos signos: a Milena preenche nome, aparência, poder e atributo forte.
+  // ---- Os 3 heróis com constelação: a Milena preenche nome, aparência, poder e atributo forte.
   // Os signos e elementos abaixo seguem a tabela do caderno (p. 1) e podem mudar.
   agua: {
     nome: 'Herói de Água', signo: 'Áries', elemento: 'agua', disponivel: false,
@@ -41,8 +45,10 @@ window.HEROIS = {
     marca: true, sprite: 'herois/terra',
   },
   ar: {
-    nome: 'Herói de Ar', signo: 'Câncer', elemento: 'ar', disponivel: false,
-    descricao: '(a definir pela Milena)',
+    // Não é um 5º herói: é o humano depois de despertar a entidade de Câncer (a virada da
+    // história). Fica aqui para testar o poder do vento (?heroi=ar).
+    nome: 'O humano desperto (Câncer)', signo: 'Câncer', elemento: 'ar', disponivel: false,
+    descricao: 'A constelação apagada finalmente brilha.',
     attr: { V: 2, F: 2, I: 2, A: 3 }, poder: 'ar',
     cores: { capa: '#5a6a8a', roupa: '#c8d4e8', cinto: '#7ab0d8', pele: '#f0c9a0', cabelo: '#d8c8a0' },
     marca: true, sprite: 'herois/ar',

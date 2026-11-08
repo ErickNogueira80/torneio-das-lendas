@@ -27,6 +27,47 @@ side view facing right, centered, plain solid #00FF00 green background, no shado
 no text, no frame.
 ```
 
+## Se a IA "viajar" (mudar roupa, rosto ou cores)
+
+Manter o mesmo personagem em várias poses é a parte mais difícil para qualquer IA de imagem. Por
+isso o jogo foi preparado para precisar de pouco.
+
+**Caminho mínimo: uma imagem só.** Com apenas o `parado_1` (pode ser o próprio retrato), o jogo
+já anima o herói sozinho: inclina para a frente ao correr, quica, estica no pulo, gira no golpe
+de espada e recua ao levar dano. A espada e o poder têm efeitos próprios. Cada pose de verdade
+que chegar depois substitui a animação feita pelo jogo. Ordem sugerida: `parado`, `correr` (2 ou
+4 quadros), `pular`, `espada` e o resto.
+
+**Técnicas que ajudam mais que trocar de IA:**
+
+1. **Todas as poses numa imagem só.** Dentro da mesma imagem a IA mantém o personagem igual com
+   muito mais facilidade. Salve como `correr_folha.png` (os quadros da corrida lado a lado) ou
+   `poses_folha.png` (as 11 poses na ordem da tabela 1.2). A ferramenta recorta cada pose sozinha
+   e mantém o tamanho de uma em relação à outra.
+2. **Editar em vez de gerar de novo.** Parta sempre da imagem aprovada e peça uma mudança por vez:
+   "mantenha tudo igual, mude só as pernas para a posição de corrida".
+3. **Conversa nova quando a IA começar a errar.** Ela "lembra" dos erros anteriores; anexe de
+   novo o retrato e recomece.
+
+Prompt da folha de corrida (com o retrato anexado):
+
+```
+Same character as the reference image, same outfit, colors and proportions. Sprite sheet of a
+4-frame running cycle in a single row, side view facing right, evenly spaced with empty space
+between frames, all frames the same size, full body, plain solid #00FF00 green background,
+no text, no numbers, no shadows.
+```
+
+**Qual IA usar:**
+
+- **ChatGPT (imagens):** a primeira indicação. É o que melhor segue a imagem anexada e edita só o
+  que foi pedido. Também faz fundo transparente (aí nem precisa do verde).
+- **Gemini:** edita bem, mas tende a trocar detalhes. Se continuar nele, use sempre a técnica 2
+  (editar a última imagem boa) e a 3 (conversa nova quando desandar).
+- **Ferramentas feitas para jogos:** Scenario e Leonardo (com referência de personagem) mantêm o
+  personagem mais estável, mas cobram e dão mais trabalho no começo. O PixelLab gera a animação
+  de caminhada pronta, mas em pixel art, o que mudaria o estilo do jogo.
+
 ## Onde salvar
 
 Salve no PC, dentro da pasta do projeto, com estes nomes (minúsculos, sem acento):
@@ -40,6 +81,7 @@ img/sprites/herois/humano/cair_1.png
 img/sprites/herois/humano/espada_1.png, espada_2.png
 img/sprites/herois/humano/poder_1.png
 img/sprites/herois/humano/dano_1.png
+img/sprites/herois/humano/correr_folha.png ou poses_folha.png   (opcional: várias poses numa imagem)
 img/sprites/chefes/boitata/cabeca.png, gomo.png, rabo.png
 img/sprites/inimigos/brasa/andar_1.png, andar_2.png
 img/sprites/inimigos/vagalume/voar_1.png, voar_2.png
@@ -53,8 +95,9 @@ gerar tudo de uma vez: cada item que chega já aparece no jogo.
 
 ## 1. O herói: "o humano"
 
-Por enquanto o herói é o humano da história, ainda sem a constelação no braço. Mais adiante cada
-um dos 4 heróis dos signos terá o seu conjunto de imagens, com as mesmas poses.
+O humano é o 4º jogador: o "normal", sem constelação e sem atributo forte, com a jogabilidade
+mais difícil (na história, é o Câncer escondido). Ele é o primeiro a ganhar imagens porque já
+está no jogo. Mais adiante os 3 heróis com constelação terão o seu conjunto, com as mesmas poses.
 
 ### 1.1 Retrato oficial (fazer primeiro)
 
@@ -149,9 +192,10 @@ no text.
 
 ---
 
-## 5. Ficha dos 4 heróis (para a Milena)
+## 5. Ficha dos 3 heróis com constelação (para a Milena)
 
-Antes das imagens de cada herói dos signos, a Milena preenche uma ficha. É a criação de personagem
+O humano já está definido (o 4º jogador, sem constelação). Antes das imagens de cada herói dos
+signos, a Milena preenche uma ficha. É a criação de personagem
 da página 34 do caderno, mais o que o jogo precisa. Com ela eu escrevo os prompts das poses e
 coloco o herói no jogo.
 
@@ -168,5 +212,6 @@ Fraqueza (opcional): algo que dá trabalho para ele
 Frase de efeito (opcional):
 ```
 
-Antes da ficha, ela precisa decidir duas pendências que estão no Leia-me: quem é o quarto
-jogador (Libra ou Sagitário) e se os elementos seguem a tabela dela ou a da astrologia comum.
+Antes da ficha, ela precisa decidir duas pendências que estão no Leia-me: se o herói de Fogo é
+de Libra (circulado na p. 1) ou de Sagitário (desenhado na p. 4), e se os elementos seguem a
+tabela dela ou a da astrologia comum.

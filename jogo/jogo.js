@@ -75,14 +75,15 @@ loadSprites();
 
 // desenha um quadro de personagem com os pés em (x, y); face = 1 direita, -1 esquerda
 const ANIM_RESERVA = { correr: ['parado'], cair: ['pular', 'parado'], pular: ['parado'], espada: ['parado'], poder: ['espada', 'parado'], dano: ['parado'], andar: ['parado'], voar: ['parado'] };
-function drawFrame(s, anim, t, x, y, face, sx = 1, sy = 1) {
+const temAnim = (s, anim) => !!(s.quadros && s.quadros[anim] && s.quadros[anim].length);
+function drawFrame(s, anim, t, x, y, face, sx = 1, sy = 1, rot = 0) {
   let fr = s.quadros && s.quadros[anim];
   if (!fr) for (const alt of (ANIM_RESERVA[anim] || [])) if (s.quadros[alt]) { fr = s.quadros[alt]; break; }
   if (!fr) fr = Object.values(s.quadros || {})[0];
   if (!fr || !fr.length) return false;
   const [qx, qy, qw, qh, ax, ay] = fr[Math.floor(Math.max(0, t)) % fr.length];
   const k = s.escala;
-  ctx.save(); ctx.translate(x, y); ctx.scale(face * k * sx, k * sy);
+  ctx.save(); ctx.translate(x, y); if (rot) ctx.rotate(rot * face); ctx.scale(face * k * sx, k * sy);
   ctx.drawImage(s.image, qx, qy, qw, qh, -ax, -ay, qw, qh);
   ctx.restore();
   return true;
@@ -786,9 +787,21 @@ function drawPlayer() {
   if (S) {
     const { a, t } = playerAnim();
     const sq = p.landT > 0 ? p.landT / 0.14 : 0;
-    const bob = a === 'correr' ? -Math.abs(Math.sin(p.anim * 6)) * 2 : a === 'parado' ? Math.sin(time * 3) * .8 : 0;
+    let bob = a === 'correr' ? -Math.abs(Math.sin(p.anim * 6)) * 2 : a === 'parado' ? Math.sin(time * 3) * .8 : 0;
+    // Pose que ainda não tem imagem: o próprio jogo dá o movimento à imagem que existe
+    // (inclina, quica e estica). Assim o herói funciona até com uma imagem só.
+    let rot = 0, ex = 1, ey = 1;
+    if (!temAnim(S, a)) {
+      if (a === 'correr') { const c = Math.sin(p.anim * 6); rot = .09 + c * .04; bob = -Math.abs(c) * 5; ey = 1 - Math.abs(c) * .03; }
+      else if (a === 'pular') { ex = .93; ey = 1.07; rot = -.04; }
+      else if (a === 'cair') { ex = 1.03; ey = .98; rot = .07; }
+      else if (a === 'espada') { rot = t < .8 ? -.16 : .2; ex = t < .8 ? 1 : 1.06; }
+      else if (a === 'poder') { rot = .1; ex = 1.04; }
+      else if (a === 'dano') { rot = -.24; }
+      else if (a === 'parado') { ey = 1 + Math.sin(time * 3) * .012; }
+    }
     ctx.fillStyle = 'rgba(0,0,0,.35)'; ctx.beginPath(); ctx.ellipse(x + p.w / 2, y + p.h + 1, 15, 3, 0, 0, Math.PI * 2); ctx.fill();
-    drawFrame(S, a, t, x + p.w / 2, y + p.h + 1 + bob, f, 1 + sq * .12, 1 - sq * .14);
+    drawFrame(S, a, t, x + p.w / 2, y + p.h + 1 + bob, f, ex * (1 + sq * .12), ey * (1 - sq * .14), rot);
   } else drawPlayerShape(x, y, f);
   if (p.swordT > 0) {
     const k = 1 - p.swordT / 0.18;

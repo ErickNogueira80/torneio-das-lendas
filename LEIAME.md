@@ -71,15 +71,24 @@ Pessoal (família).
   água apaga as bolas de fogo. Com menos de 35% de fogo ele fica mais rápido. Derrotado, vira pó
   prateado e deixa o pingente (como na p. 11).
 - **Controles:** toque (◀ ▶, pular, espada, água) ou teclado (setas/A-D, ↑/W/Espaço, J/Z, K/X).
-- **Parâmetros de teste:** `?heroi=agua|fogo|terra|ar` testa outro herói; `?fase=<chave>`;
+- **Heróis:** 4 jogadores. Três com constelação (Áries/Água, Libra ou Sagitário/Fogo,
+  Capricórnio/Terra), cada um com +1 no seu atributo forte, e o humano: o "normal", sem
+  constelação e sem atributo forte, de jogabilidade mais difícil (na história, é o Câncer
+  escondido). Por enquanto o humano usa a água só para teste; na etapa 3 fica sem poder de
+  elemento e ganha o vento ao despertar o Câncer.
+- **Imagem só do herói parado:** se uma pose não tem imagem, o jogo anima a imagem que existe
+  (inclina, quica, estica). Com só o `parado_1` o herói já funciona. A ferramenta também aceita
+  folhas com várias poses (`correr_folha.png`, `poses_folha.png`) e recorta sozinha.
+- **Parâmetros de teste:** `?heroi=agua|fogo|terra` testa outro herói (`?heroi=ar` é o humano
+  desperto); `?fase=<chave>`;
   `?boss` começa no chefe; `?demo` joga sozinho; `&ff=600` avança 600 quadros; `&touch` mostra os
   botões no computador; `?semimagens` ignora as imagens.
 - **Elementos contra o Boitatá:** água 1,2× (e apaga as bolas de fogo), pedra e vento 0,8×, fogo
   é absorvido (o herói de fogo precisa da espada nessa fase).
 - **Plano:** etapa 1 (motor separado em dados, imagens com reserva, ferramenta e prompts) feita
   em 2026-11-07. Etapa 2: gerar as imagens do humano, do Boitatá e do fundo; a Milena preencher a
-  ficha dos 4 heróis. Etapa 3: tela de escolha de herói, poderes e fraquezas por chefe, imagens
-  dos 4 heróis. Depois, as fases novas (uma por monstro do bestiário): cada uma é uma ficha nova
+  ficha dos 3 heróis com constelação. Etapa 3: tela de escolha de herói (o humano como modo
+  difícil), poderes e fraquezas por chefe, imagens dos heróis. Depois, as fases novas (uma por monstro do bestiário): cada uma é uma ficha nova
   em `fases.js` e um módulo de chefe novo em `CHEFES`.
 
 ## Como atualizar o portal
@@ -106,6 +115,11 @@ continuidade do texto.
   Lendas") no repositório. Nos arquivos públicos aparece só o primeiro nome dela, sem idade.
 - 2026-11-07: imagens originais (cerca de 2,5 MB cada) ficam fora do git; o portal usa cópias de
   até 1600 px em `web/`.
+- 2026-11-07 (Erick): o 4º jogador não tem constelação. É o "normal", sem atributo próprio, com
+  jogabilidade mais difícil.
+- 2026-11-07: a IA de imagem tem dificuldade de manter o personagem igual entre poses. O jogo
+  passa a animar uma imagem só, e a ferramenta recorta folhas com várias poses. Para gerar as
+  poses, a indicação é o ChatGPT (ver `04-prompts-sprites.md`).
 
 ## Pontos de referência (revisão de 2026-11-07)
 
@@ -132,7 +146,8 @@ Milena decidir e anote a decisão na frente.
 - [ ] **Elementos diferentes da astrologia comum** (ex.: Áries de Água). Foi de propósito? Se
   sim, explicar no mundo; se não, usar Fogo = Áries, Leão, Sagitário; Terra = Touro, Virgem,
   Capricórnio; Ar = Gêmeos, Libra, Aquário; Água = Câncer, Escorpião, Peixes.
-- [ ] **Quarto jogador:** p. 1 circula Libra; p. 4 desenha a constelação de Sagitário.
+- [ ] **Herói de Fogo, Libra ou Sagitário:** p. 1 circula Libra; p. 4 desenha a constelação de
+  Sagitário. (Decidido em 2026-11-07: o 4º jogador é o humano, sem constelação.)
 - [ ] **"O humano" ou "a humana"** (p. 5 diz "a humana").
 - [ ] **50 ou 100 anos:** renascem 100 anos depois da morte (p. 2), mas "pela primeira vez em 50
   anos todos nascem juntos" (p. 3). Sugestão: eles "despertam" adultos em vez de "nascer".
