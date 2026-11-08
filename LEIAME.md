@@ -86,6 +86,10 @@ Pessoal (família).
   galhos secos no alto. Montadas uma vez (função `arvores`); a colisão não mudou.
   Com as imagens `arvore_tronco`, `arvore_raiz` e `arvore_galho` (prompts na seção 4.1 do
   `04-prompts-sprites.md`), o jogo monta as árvores com elas; sem imagens, desenha sozinho.
+  A ferramenta mede as peças para encaixarem: o tronco fica com 40 px de largura (80 na tela), o
+  galho com 12 px de espessura (o topo medido vai na altura da plataforma; o pedaço de tronco
+  grudado na esquerda é cortado) e a raiz é escalada para o tronco dela ter a largura do tronco.
+  A raiz é desenhada na frente do piso, descendo pela face do chão (efeito 2,5D).
 - **Baús escondidos (2026-11-08):** `baus` na ficha da fase (x, y do chão/galho, xp, cura,
   texto). Abrem ao encostar. O primeiro fica no galho alto (y 185) de uma árvore própria em
   x 1600, que só se alcança pulando do galho de 282 da árvore vizinha (conferido em simulação:

@@ -268,10 +268,21 @@
   "tipo": "fundo",
   "pixel": 2,
   "camadas": {
+   "arvore_galho": "fundos/boitata/arvore_galho.png",
+   "arvore_raiz": "fundos/boitata/arvore_raiz.png",
+   "arvore_tronco": "fundos/boitata/arvore_tronco.png",
    "ceu": "fundos/boitata/ceu.png",
    "chao": "fundos/boitata/chao.png",
    "longe": "fundos/boitata/longe.png",
    "perto": "fundos/boitata/perto.png"
+  },
+  "meta": {
+   "arvore_galho": {
+    "topo": 10.1
+   },
+   "arvore_raiz": {
+    "centro": 0.498
+   }
   }
  }
 }

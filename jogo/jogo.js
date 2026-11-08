@@ -954,7 +954,8 @@ function piso() {
 let arvoresProntas = null;
 function pecasArvore() {
   const F = FASE.fundo, t = layer(F, 'arvore_tronco'), g = layer(F, 'arvore_galho');
-  return t && g ? { t, g, r: layer(F, 'arvore_raiz') } : null;
+  const meta = (SPR[F] && SPR[F].meta) || {};
+  return t && g ? { t, g, r: layer(F, 'arvore_raiz'), meta } : null;
 }
 function arvores() {
   const pecas = pecasArvore();
@@ -981,20 +982,24 @@ function arvores() {
     const pe = sobreChao ? GROUND + 8 : H;
     if (pecas) {   // ---- montagem com as imagens
       ctx2.imageSmoothingEnabled = false;
-      const { t, g: gal, r: raiz } = pecas, th = t.naturalHeight * z;
-      let base = pe;
-      if (raiz && sobreChao) { const rw = raiz.naturalWidth * z, rh = raiz.naturalHeight * z; ctx2.drawImage(raiz, Math.round(tx - rw / 2 - x0), Math.round(pe - rh), rw, rh); base = pe - rh + 6; }
-      for (let y = base - th; y > -th; y -= th) ctx2.drawImage(t, Math.round(tx - tw / 2 - x0), Math.round(y), tw, th + 1);
-      if (raiz && sobreChao) { const rw = raiz.naturalWidth * z, rh = raiz.naturalHeight * z; ctx2.drawImage(raiz, Math.round(tx - rw / 2 - x0), Math.round(pe - rh), rw, rh); }
-      const gh = gal.naturalHeight * z;
+      const { t, g: gal, r: raiz, meta } = pecas, th = t.naturalHeight * z;
+      for (let y = pe - th; y > -th; y -= th) ctx2.drawImage(t, Math.round(tx - tw / 2 - x0), Math.round(y), tw, th + 1);
+      const gh = gal.naturalHeight * z, topo = ((meta.arvore_galho && meta.arvore_galho.topo) || 0) * z;
       for (const pl of g) {
-        const daDireita = pl.x > tx, ini = daDireita ? tx + tw * .3 : pl.x, fim = daDireita ? pl.x + pl.w : tx - tw * .3, L = fim - ini;
+        const daDireita = pl.x > tx, ini = daDireita ? tx + tw * .35 : pl.x, fim = daDireita ? pl.x + pl.w : tx - tw * .35, L = fim - ini;
+        const y = Math.round(pl.y - topo);   // o topo medido do galho fica na altura da plataforma
         ctx2.save();
-        if (daDireita) ctx2.drawImage(gal, Math.round(ini - x0), pl.y, Math.round(L), gh);
-        else { ctx2.translate(Math.round(fim - x0), 0); ctx2.scale(-1, 1); ctx2.drawImage(gal, 0, pl.y, Math.round(L), gh); }
+        if (daDireita) ctx2.drawImage(gal, Math.round(ini - x0), y, Math.round(L), gh);
+        else { ctx2.translate(Math.round(fim - x0), 0); ctx2.scale(-1, 1); ctx2.drawImage(gal, 0, y, Math.round(L), gh); }
         ctx2.restore();
       }
-      return { c, x0 };
+      // raiz em 2,5D: desenhada depois do piso, descendo pela frente do chão em direção à tela
+      let raizFrente = null;
+      if (raiz && sobreChao) {
+        const rw = raiz.naturalWidth * z, rh = raiz.naturalHeight * z, cx = (meta.arvore_raiz && meta.arvore_raiz.centro) || .5;
+        raizFrente = { img: raiz, x: Math.round(tx - rw * cx), y: H + 6 - rh, w: rw, h: rh };
+      }
+      return { c, x0, raizFrente };
     }
     // tronco: fica um pouco mais fino para cima, bordas tortas, sulcos verticais, rachaduras em brasa
     for (let y = 0; y < pe; y += B) {
@@ -1085,6 +1090,11 @@ function drawWorld() {
   if (P) {
     const sx = clamp(Math.round(camX), 0, P.c.width - W);
     ctx.drawImage(P.c, sx, 0, W, P.c.height, sx - camX, PISO_TOPO, W, P.c.height);
+  }
+  if (AR) for (const t of AR) {
+    const rz = t.raizFrente; if (!rz) continue;
+    const x = Math.round(rz.x - camX); if (x > W || x + rz.w < 0) continue;
+    ctx.imageSmoothingEnabled = false; ctx.drawImage(rz.img, x, rz.y, rz.w, rz.h); ctx.imageSmoothingEnabled = true;
   }
   for (const s of SOLIDS) {
     if (P && s.y >= GROUND - 1) continue;

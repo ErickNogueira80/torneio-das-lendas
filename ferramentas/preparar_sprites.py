@@ -64,6 +64,9 @@ FUNDO_ALTURA = {"ceu": 270, "longe": 180, "perto": 210, "chao": 128,
                 # peças das árvores-plataforma (tela = o dobro): tronco que se repete na vertical,
                 # raiz da base e galho horizontal com o topo reto (onde se pisa)
                 "arvore_tronco": 150, "arvore_raiz": 40, "arvore_galho": 14}
+# As peças da árvore são escaladas pela medida que importa para o encaixe (em px da arte):
+TRONCO_LARGURA = 40   # largura do tronco
+GALHO_ESPESSURA = 12  # espessura do galho (o topo dele é onde se pisa)
 FUNDO_CORES = 32   # cores por camada (paleta limitada, cara de 16 bits)
 
 
@@ -328,9 +331,54 @@ def pixelizar(im: Image.Image, largura: int, altura: int, cores: int) -> Image.I
     return rgb
 
 
+def _colunas(alfa: np.ndarray):
+    """Para cada coluna: primeira e última linha opacas (-1 se a coluna é vazia)."""
+    op = alfa > 0
+    tem = op.any(axis=0)
+    topo = np.where(tem, op.argmax(axis=0), -1)
+    fundo = np.where(tem, op.shape[0] - 1 - op[::-1].argmax(axis=0), -1)
+    return topo, fundo
+
+
+def preparar_peca_arvore(nome: str, im: Image.Image, info: dict) -> tuple[Image.Image, int, int, dict]:
+    """Mede e escala as peças da árvore para encaixarem. Devolve (imagem, largura, altura, meta)."""
+    a = np.asarray(im)[:, :, 3]
+    h, w = a.shape
+    meta = {}
+    if nome == "arvore_galho":
+        topo, fundo = _colunas(a)
+        # tira o pedaço de tronco grudado na esquerda (colunas que vão do alto ao pé da imagem)
+        ini = 0
+        while ini < w // 3 and (topo[ini] < 0 or topo[ini] < h * .08):
+            ini += 1
+        im = cortar(im.crop((ini, 0, w, h)))
+        a = np.asarray(im)[:, :, 3]; h, w = a.shape
+        topo, fundo = _colunas(a)
+        meio = slice(int(w * .2), int(w * .7))
+        t_med = float(np.median(topo[meio])); esp = float(np.median(fundo[meio] - topo[meio]))
+        f = GALHO_ESPESSURA / max(1.0, esp)
+        meta["topo"] = round(t_med * f, 1)                  # onde fica o topo do galho, em px da arte
+    elif nome == "arvore_tronco":
+        im = cortar(im)
+        a = np.asarray(im)[:, :, 3]; h, w = a.shape
+        larg = float(np.median((a > 0).sum(axis=1)))
+        f = TRONCO_LARGURA / max(1.0, larg)
+        info["tronco"] = True
+    else:  # raiz: o tronco no alto da raiz tem de ter a largura do tronco
+        im = cortar(im)
+        a = np.asarray(im)[:, :, 3]; h, w = a.shape
+        faixa = a[: max(2, int(h * .06))]
+        larg = float(np.median((faixa > 0).sum(axis=1)))
+        f = TRONCO_LARGURA / max(1.0, larg)
+        # onde está o centro do tronco na raiz (fração da largura)
+        cols = np.where((faixa > 0).any(axis=0))[0]
+        meta["centro"] = round(float(cols.mean()) / w, 3) if len(cols) else .5
+    return im, max(1, round(w * f)), max(1, round(h * f)), meta
+
+
 def preparar_fundo(pasta: Path, ajustes: dict) -> dict | None:
     chave = f"fundos/{pasta.name}"
-    camadas = {}
+    camadas, metas, info = {}, {}, {}
     for arq in sorted(pasta.iterdir()):
         nome = arq.stem.lower()
         if arq.suffix.lower() not in EXTS or nome not in FUNDO_ALTURA:
@@ -355,16 +403,24 @@ def preparar_fundo(pasta: Path, ajustes: dict) -> dict | None:
         else:
             im = im.convert("RGB")
         if nome.startswith("arvore_"):
-            im = cortar(im)          # peças soltas: corta a sobra transparente em volta
-        alvo = FUNDO_ALTURA[nome]
-        largura = max(1, round(im.width * alvo / im.height))
+            im, largura, alvo, meta = preparar_peca_arvore(nome, im, info)
+            if meta:
+                metas[nome] = meta
+        else:
+            alvo = FUNDO_ALTURA[nome]
+            largura = max(1, round(im.width * alvo / im.height))
         im = pixelizar(im, largura, alvo, int(aj.get("cores", FUNDO_CORES)))
         saida = DESTINO / chave / f"{nome}.png"
         saida.parent.mkdir(parents=True, exist_ok=True)
         im.save(saida, optimize=True)
         camadas[nome] = f"{chave}/{nome}.png"
         print(f"  {chave}/{nome}: {im.width}x{im.height} pixel ({saida.stat().st_size // 1024} KB)")
-    return {"tipo": "fundo", "pixel": FUNDO_PIXEL, "camadas": camadas} if camadas else None
+    if not camadas:
+        return None
+    r = {"tipo": "fundo", "pixel": FUNDO_PIXEL, "camadas": camadas}
+    if metas:
+        r["meta"] = metas
+    return r
 
 
 def main():
