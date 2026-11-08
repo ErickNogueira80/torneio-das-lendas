@@ -307,7 +307,7 @@ CHEFES.boitata = (() => {
     const cx = (top.x + b.hx) / 2 + 20, cy = Math.min(top.y, b.hy) - 40;
     for (let i = 1; i <= n; i++) {
       const t = i / (n + 1), u = 1 - t;
-      pts.push({ x: u * u * top.x + 2 * u * t * cx + t * t * b.hx, y: u * u * top.y + 2 * u * t * cy + t * t * b.hy, r: 31 - t * 5 });
+      pts.push({ x: u * u * top.x + 2 * u * t * cx + t * t * b.hx, y: u * u * top.y + 2 * u * t * cy + t * t * b.hy, r: 31 - t * 8 });
     }
     return pts;
   }
@@ -483,10 +483,12 @@ CHEFES.boitata = (() => {
       const venom = b.state === 'strikePrep' || b.state === 'strike';
       if (P && P.cabeca) {
         const ataque = P.cabeca_ataque && (b.state === 'aimfire' || venom);
-        const nomeC = ataque ? 'cabeca_ataque' : 'cabeca', [qx, qy, qw, qh] = P[nomeC], k = 74 / qw;
-        const [nx, ny] = (S.pescocos && S.pescocos[nomeC]) || [.45, .5];
+        const nomeC = ataque ? 'cabeca_ataque' : 'cabeca', [qx, qy, qw, qh] = P[nomeC];
+        const [nx, ny, hc] = (S.pescocos && S.pescocos[nomeC]) || [.45, .5, .5];
+        // o crânio fica um pouco mais alto que a grossura do fim do pescoço
+        const rFim = b.neck.length ? b.neck[b.neck.length - 1].r : 24, k = (rFim * 2.3) / (hc * qh);
         ctx.imageSmoothingEnabled = !S.pixel;
-        const hx0 = -14 - nx * qw * k, hy0 = -ny * qh * k;
+        const hx0 = -8 - nx * qw * k, hy0 = -ny * qh * k;
         ctx.drawImage(S.image, qx, qy, qw, qh, hx0, hy0, qw * k, qh * k);
         if (b.flash > 0) { ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = Math.min(1, b.flash * 3) * .6; ctx.drawImage(S.image, qx, qy, qw, qh, hx0, hy0, qw * k, qh * k); ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over'; }
         ctx.imageSmoothingEnabled = true;

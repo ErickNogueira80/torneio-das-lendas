@@ -150,6 +150,11 @@ Pessoal (família).
   contínuo feito com uma faixa de escamas recortada do próprio rolo (`gomo_corpo`), da mesma
   espessura do anel. O rolo tem 400 px e sai pela borda direita da tela (parece não ter fim), e o
   pescoço ficou mais comprido.
+  Versão 3 (2026-11-08, arquivos do Erick): `cabeca.png`/`cabeca_ataque.png` vieram do PixelLab já
+  sem pescoço (64 px) e `corpo.png` é o rolo novo do Gemini sem a cabeça, em fundo azul-escuro. A
+  ferramenta tira o fundo azulado e o halo das faíscas (ficando só o corpo) e escala a cabeça pela
+  altura do crânio (`pescocos`: x, y e altura do crânio) para casar com a grossura do pescoço. As
+  versões anteriores estão em `originais/` (prefixo `v2_`).
 - **Inimigos do PixelLab (2026-11-08):** brasa (`andar`, `parado`; 34 px no jogo) e vaga-lume
   (`voar`, uma vespa de fogo; 40 px, sempre virada para o herói). Originais em `originais/`.
 - **Sombra (2026-11-08):** fica no chão ou no galho embaixo do herói, menor e mais clara quanto

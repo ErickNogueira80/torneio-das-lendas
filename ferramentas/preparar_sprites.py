@@ -296,6 +296,29 @@ def preparar_personagem(grupo: str, pasta: Path, ajustes: dict) -> dict | None:
     return r
 
 
+def tirar_fundo_azulado(im: Image.Image) -> Image.Image:
+    """Fundo azul-escuro liso (e a sombra azulada) ligado à borda ou a áreas já transparentes vira
+    transparente. O contorno preto e as escamas (avermelhados) ficam."""
+    a = np.asarray(im.convert("RGBA")).copy()
+    rgb = a[:, :, :3].astype(np.int32)
+    # fundo azulado ou o halo arroxeado das faíscas (azul > verde, nada claro); o contorno preto
+    # (verde quase zero) e as escamas avermelhadas (azul < verde) ficam
+    fundo = ((rgb[:, :, 2] - rgb[:, :, 0] >= 5) & (rgb.max(axis=2) < 70)) | (a[:, :, 3] == 0)
+    fundo |= (rgb[:, :, 2] >= rgb[:, :, 1] + 3) & (rgb[:, :, 1] >= 12) & (rgb.max(axis=2) < 60)
+    fora = np.zeros(fundo.shape, bool)
+    fora[0, :] = fundo[0, :]; fora[-1, :] = fundo[-1, :]; fora[:, 0] = fundo[:, 0]; fora[:, -1] = fundo[:, -1]
+    fora |= a[:, :, 3] == 0
+    while True:
+        c = fora.copy()
+        c[1:] |= fora[:-1]; c[:-1] |= fora[1:]; c[:, 1:] |= fora[:, :-1]; c[:, :-1] |= fora[:, 1:]
+        c &= fundo
+        if (c == fora).all():
+            break
+        fora = c
+    a[fora, 3] = 0
+    return Image.fromarray(a, "RGBA")
+
+
 def tirar_xadrez(im: Image.Image) -> Image.Image:
     """Algumas IAs desenham o xadrez da transparência como fundo de verdade. Apaga os quadrados
     cinza (pouca cor) ligados à borda da imagem, sem tocar no desenho."""
@@ -323,10 +346,8 @@ def ajustar_peca(nome: str, im: Image.Image) -> Image.Image:
     a = np.asarray(im).copy()
     h, w = a.shape[:2]
     if nome.startswith("cabeca"):
-        a[:, : int(w * CORTE_PESCOCO), 3] = 0
-        a[int(h * .74):, : int(w * .5), 3] = 0          # resto do pescoço embaixo da mandíbula
-        return cortar(Image.fromarray(a, "RGBA"))
-    if nome == "corpo":
+        return cortar(im)                              # as cabeças atuais já vêm sem pescoço
+    if nome == "corpo_com_toco":
         al = a[:, :, 3] > 0
         tem = al.any(axis=0)
         topo = np.where(tem, al.argmax(axis=0), h)
@@ -377,7 +398,25 @@ def preparar_partes(pasta: Path) -> dict | None:
             continue
         original = Image.open(arq)
         borda = np.concatenate([np.asarray(original.convert("RGB"))[0], np.asarray(original.convert("RGB"))[:, 0]]).astype(int)
-        if original.mode != "RGBA" and np.median(borda.max(axis=1) - borda.min(axis=1)) < 16:
+        if nome == "corpo" and np.median(borda[:, 2] - borda[:, 0]) >= 6 and np.median(borda.max(axis=1)) < 70:
+            im = tirar_fundo_azulado(original)          # fundo azul-escuro liso (sombra junto)
+            aa = np.asarray(im).copy(); op = aa[:, :, 3] > 0   # fica só o corpo (tira faíscas soltas)
+            def viz(m):   # vizinhos em cruz
+                c = m.copy(); c[1:] |= m[:-1]; c[:-1] |= m[1:]; c[:, 1:] |= m[:, :-1]; c[:, :-1] |= m[:, 1:]; return c
+            er = op.copy()
+            for _ in range(14):   # afina: faíscas presas por um fiozinho de brilho se soltam
+                er = ~viz(~er)
+            hh, ww = op.shape; corpo_m = np.zeros_like(op); corpo_m[int(hh * .75), int(ww * .5)] = True
+            while True:
+                c = viz(corpo_m) & er
+                if (c == corpo_m).all():
+                    break
+                corpo_m = c
+            for _ in range(16):   # devolve a borda do corpo
+                corpo_m = viz(corpo_m) & op
+            aa[~corpo_m, 3] = 0
+            im = cortar(Image.fromarray(aa, "RGBA"))
+        elif original.mode != "RGBA" and np.median(borda.max(axis=1) - borda.min(axis=1)) < 16:
             im = cortar(tirar_xadrez(original))          # fundo de xadrez cinza desenhado
         else:
             im = cortar(_sem_verde(remover_fundo(original)))
@@ -407,9 +446,13 @@ def preparar_partes(pasta: Path) -> dict | None:
         if n.startswith("cabeca"):
             al = np.asarray(im)[:, :, 3] > 0
             h, w = al.shape
-            ys = np.where(al[:, :3].any(axis=1))[0]
-            if len(ys):
-                pescocos[n] = [0.04, round(float((ys.min() + ys.max()) / 2) / h, 3)]
+            rgb = np.asarray(im)[:, :, :3].astype(int)
+            escuro = al & (rgb.max(axis=2) < 120)       # o crânio (as chamas são claras)
+            ys, xs = np.where(escuro)
+            if len(xs):
+                tras = xs <= xs.min() + max(3, (xs.max() - xs.min()) * .15)
+                pescocos[n] = [round(float(xs.min()) / w, 3), round(float(ys[tras].mean()) / h, 3),
+                               round(float(ys[tras].max() - ys[tras].min() + 1) / h, 3)]
     # corpo enrolado: ponto de onde sai o pescoço (o topo do desenho), em fração da imagem
     for n, im in itens:
         if n == "corpo":
@@ -418,10 +461,8 @@ def preparar_partes(pasta: Path) -> dict | None:
             tem = al.any(axis=0)
             topo = np.where(tem, al.argmax(axis=0), hh)
             cols = np.where(tem)[0]
-            c = cols[(cols > cols.min() + (cols.max() - cols.min()) * .35) & (cols < cols.max() - (cols.max() - cols.min()) * .35)]
-            fundo = c[topo[c] > np.median(topo[c]) + 2]   # o buraco onde ficava o toco
-            x = float(fundo.mean()) if len(fundo) else float(c.mean())
-            pescocos["corpo"] = [round(x / ww, 3), round((float(np.median(topo[c])) + hh * .06) / hh, 3)]
+            x = int(ww * .47)
+            pescocos["corpo"] = [round(x / ww, 3), round((float(topo[x]) + hh * .05) / hh, 3)]
     return {"tipo": "partes", "pixel": True, "img": f"{chave}.png", "partes": {n: list(pos[n]) for n, _ in itens},
             "pescocos": pescocos}
 
