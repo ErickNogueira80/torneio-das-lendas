@@ -121,6 +121,11 @@ continuidade do texto.
 - 2026-11-07: a IA de imagem tem dificuldade de manter o personagem igual entre poses. O jogo
   passa a animar uma imagem só, e a ferramenta recorta folhas com várias poses. Para gerar as
   poses, a indicação é o ChatGPT (ver `04-prompts-sprites.md`).
+- 2026-11-08 (Erick): o jogo migra para pixel art, no "estilo Lanterna" (apelido da referência
+  visual): boneco pequeno em pixel art (48 a 64 px) para correr e lutar, retrato grande pintado
+  para a tela de escolha, os diálogos e o HUD, e cenário escuro iluminado só pelo herói, pelo
+  fogo e pelos poderes. O boneco e as animações vêm do PixelLab (pixellab.ai, câmera
+  Sidescroller). O motor ganha modo pixel nítido e luz dinâmica.
 
 ## Pontos de referência (revisão de 2026-11-07)
 
