@@ -33,5 +33,11 @@
  },
  "fundos/boitata/chao": {
   "corteTopo": 0.25
+ },
+ "inimigos/brasa": {
+  "altura": 34
+ },
+ "inimigos/vagalume": {
+  "altura": 40
  }
 }

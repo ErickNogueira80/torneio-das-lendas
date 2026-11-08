@@ -56,7 +56,9 @@ PERSONAGEM = {
     "inimigos": {"altura": 44, "atlas": 112},
 }
 ALTURA_ESPECIFICA = {"inimigos/vagalume": 34}
-PARTES_LADO = {"cabeca": 256, "gomo": 160, "rabo": 128}   # maior lado de cada parte na folha
+PARTES_LADO = {"cabeca": 256, "cabeca_ataque": 256, "gomo": 160, "rabo": 128}   # maior lado (sem pixel)
+# peças do chefe em pixel art: maior lado em px da arte (o jogo amplia; mesmo estilo do resto)
+PARTES_PIXEL = {"cabeca": 46, "cabeca_ataque": 46, "gomo": 26, "rabo": 26}
 # Fundos em pixel art: cada pixel da arte vira 2x2 na tela virtual (FUNDO_PIXEL). Alturas na
 # resolução da arte: céu 270 (tela 540), longe 180 (360), perto 210 (420), chão 128 (ladrilho 256).
 FUNDO_PIXEL = 2
@@ -294,6 +296,24 @@ def preparar_personagem(grupo: str, pasta: Path, ajustes: dict) -> dict | None:
     return r
 
 
+def tapar_buracos(im: Image.Image, cor=(232, 96, 26)) -> Image.Image:
+    """Buracos transparentes cercados de desenho (ex.: o miolo do anel do gomo) viram lava."""
+    a = np.asarray(im).copy()
+    vazio = a[:, :, 3] == 0
+    fora = np.zeros_like(vazio)
+    fora[0, :] = vazio[0, :]; fora[-1, :] = vazio[-1, :]; fora[:, 0] = vazio[:, 0]; fora[:, -1] = vazio[:, -1]
+    while True:
+        cresce = fora.copy()
+        cresce[1:] |= fora[:-1]; cresce[:-1] |= fora[1:]; cresce[:, 1:] |= fora[:, :-1]; cresce[:, :-1] |= fora[:, 1:]
+        cresce &= vazio
+        if (cresce == fora).all():
+            break
+        fora = cresce
+    buraco = vazio & ~fora
+    a[buraco] = (*cor, 255)
+    return Image.fromarray(a, "RGBA")
+
+
 def preparar_partes(pasta: Path) -> dict | None:
     chave = f"chefes/{pasta.name}"
     itens = []
@@ -301,10 +321,13 @@ def preparar_partes(pasta: Path) -> dict | None:
         nome = arq.stem.lower()
         if arq.suffix.lower() not in EXTS or nome not in PARTES_LADO:
             continue
-        im = cortar(remover_fundo(Image.open(arq)))
-        lado = PARTES_LADO[nome]
+        im = cortar(_sem_verde(remover_fundo(Image.open(arq))))
+        lado = PARTES_PIXEL[nome]
         f = lado / max(im.width, im.height)
-        itens.append((nome, im.resize((max(1, round(im.width * f)), max(1, round(im.height * f))), Image.LANCZOS)))
+        px = pixelizar(im, max(1, round(im.width * f)), max(1, round(im.height * f)), 40)
+        if nome == "gomo":
+            px = tapar_buracos(px)
+        itens.append((nome, px))
     if not itens:
         return None
     folha, pos = empacotar(itens)
@@ -312,7 +335,7 @@ def preparar_partes(pasta: Path) -> dict | None:
     saida.parent.mkdir(parents=True, exist_ok=True)
     folha.save(saida, optimize=True)
     print(f"  {chave}: partes {', '.join(n for n, _ in itens)} -> {saida.relative_to(RAIZ)}")
-    return {"tipo": "partes", "img": f"{chave}.png", "partes": {n: list(pos[n]) for n, _ in itens}}
+    return {"tipo": "partes", "pixel": True, "img": f"{chave}.png", "partes": {n: list(pos[n]) for n, _ in itens}}
 
 
 def pixelizar(im: Image.Image, largura: int, altura: int, cores: int) -> Image.Image:
@@ -511,8 +534,12 @@ def preparar_hud(pasta: Path) -> dict | None:
             cols = np.where(mag.sum(axis=0) > mag.sum(axis=0).max() * .5)[0]
             rows = np.where(mag.sum(axis=1) > mag.sum(axis=1).max() * .5)[0]
             x0, x1, y0, y1 = cols.min(), cols.max() + 1, rows.min(), rows.max() + 1
-            dentro = np.zeros(mag.shape, bool); dentro[y0 - 1:y1 + 1, x0 - 1:x1 + 1] = True
+            m = 6; dentro = np.zeros(mag.shape, bool); dentro[max(0, y0 - m):y1 + m, max(0, x0 - m):x1 + m] = True
         b[:, :, 3] = np.where(dentro, 0, b[:, :, 3])
+        # resto de magenta nas bordas do buraco: vira cinza (a moldura não tem roxo nem rosa)
+        rosa = (b[:, :, 0] > b[:, :, 1] + 10) & (b[:, :, 2] > b[:, :, 1] + 10)
+        for c in (0, 2):
+            b[:, :, c] = np.where(rosa, b[:, :, 1], b[:, :, c])
         im = Image.fromarray(b.clip(0, 255).astype(np.uint8), "RGBA")
         # corta a sobra transparente, mas lembra onde ficou a parte de dentro
         al = np.asarray(im)[:, :, 3] > 25

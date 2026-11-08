@@ -387,8 +387,11 @@ CHEFES.boitata = (() => {
         if (part) {
           flame(x, s.y - r * .5, r * 1.1, r * (rage ? 1.9 : 1.4), time * 12 + i * 1.7);
           const [qx, qy, qw, qh] = part, k = (r * 2.4) / qh;
-          ctx.save(); ctx.translate(x, s.y); ctx.rotate(ang); if (Math.cos(ang) < 0) ctx.scale(1, -1);
-          ctx.drawImage(S.image, qx, qy, qw, qh, -qw * k / 2, -qh * k / 2, qw * k, qh * k);
+          ctx.save(); ctx.translate(Math.round(x), Math.round(s.y)); ctx.rotate(ang); if (Math.cos(ang) < 0) ctx.scale(1, -1);
+          ctx.imageSmoothingEnabled = !S.pixel;
+          // o gomo é um anel visto de lado: alarga no sentido do corpo para os gomos se sobreporem
+          const larg = Math.max(qw * k, r * 2.1);
+          ctx.drawImage(S.image, qx, qy, qw, qh, -larg / 2, -qh * k / 2, larg, qh * k);
           ctx.restore();
         } else {
           flame(x, s.y - r * .4, r * 1.3, r * (rage ? 2.4 : 1.8), time * 12 + i * 1.7);
@@ -410,8 +413,12 @@ CHEFES.boitata = (() => {
       const venom = b.state === 'lungePrep' || b.state === 'lunge';
       if (P && P.cabeca) {
         flame(-14, -16, 34, rage ? 56 : 40, time * 10);
-        const [qx, qy, qw, qh] = P.cabeca, k = 84 / qw;
+        // boca aberta nos ataques (bola de fogo, preparo e avanço da mordida)
+        const ataque = P.cabeca_ataque && (b.state === 'aimfire' || venom);
+        const [qx, qy, qw, qh] = ataque ? P.cabeca_ataque : P.cabeca, k = 92 / qw;
+        ctx.imageSmoothingEnabled = !S.pixel;
         ctx.drawImage(S.image, qx, qy, qw, qh, -qw * k * .45, -qh * k / 2, qw * k, qh * k);
+        ctx.imageSmoothingEnabled = true;
         if (venom) { ctx.fillStyle = 'rgba(140,255,100,.3)'; ctx.beginPath(); ctx.arc(26, 10, 18, 0, Math.PI * 2); ctx.fill(); }
       } else {
         flame(-6, -18, 40, rage ? 62 : 46, time * 10);
@@ -1532,7 +1539,7 @@ function drawEnemies() {
     ctx.save(); ctx.translate(0, Math.round(dE));
     const S = sprite(e.T.sprite);
     if (S) {
-      const face = e.T.mov === 'patrulha' ? (e.vx > 0 ? 1 : -1) : 1;
+      const face = e.T.mov === 'patrulha' ? (e.vx > 0 ? 1 : -1) : (player.x > e.x ? 1 : -1);
       drawFrame(S, e.T.mov === 'voo' ? 'voar' : 'andar', time * 8 + e.x * .01, x + e.w / 2, e.y + e.h + (e.T.mov === 'voo' ? 6 : 0), face);
     } else if (e.tipo === 'brasa') {
       flame(x + 13, e.y + 26, 30, 38 + Math.sin(time * 10 + e.x) * 4, time * 14 + e.x);
