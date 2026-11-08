@@ -423,7 +423,7 @@ def preparar_fundo(pasta: Path, ajustes: dict) -> dict | None:
     return r
 
 
-OBJETO_ALTURA = {"altar": 27, "bau": 15}   # altura dos objetos em px da arte (tela = o dobro)
+OBJETO_ALTURA = {"altar": 27, "bau": 15, "placa": 35}   # altura dos objetos em px da arte (tela = o dobro)
 MAPA_TAMANHO = (640, 360)        # mapa do mundo em pixel art (cada pixel = 1,5 na tela)
 
 

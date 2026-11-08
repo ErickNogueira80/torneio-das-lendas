@@ -549,6 +549,22 @@ amber wings, tiny glowing eyes, leaving little sparks. Clean readable silhouette
 Se o tipo Custom não animar bem a brasa, ela pode continuar desenhada pelo jogo (fogo animado no
 código fica bom).
 
+## 4.5 Placa do chefe (Gemini)
+
+Placa de aviso antes da arena do chefe, sem palavras: o símbolo queimado na madeira avisa. Para a
+floresta, uma cobra de fogo (o Boitatá). Salvar em `img/sprites/objetos/placa/placa.png`.
+
+```
+Create an image. An old wooden warning signpost for a dark fantasy 2D side-scrolling game: a single
+weathered wooden post stuck in the ground with one rough wooden board nailed to it. The board is
+scorched and cracked, with a coiled serpent made of flames burned into the wood as a warning
+symbol, deep claw marks across it, and a few glowing orange embers in the burned edges. Small
+burned twigs and a little ash at the base of the post. No words, no letters, no numbers. Side view
+(front of the board facing the viewer), centered, full object visible, plain solid #00FF00 green
+background, no shadow, no text. Painterly 2D game art style, burned forest mood. Portrait image,
+aspect ratio 3:4.
+```
+
 ## 5. Ficha dos 3 heróis com constelação (para a Milena)
 
 O humano já está definido (o 4º jogador, sem constelação). Antes das imagens de cada herói dos
