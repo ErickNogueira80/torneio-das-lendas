@@ -1,9 +1,80 @@
 # Jogo: prompts das imagens (sprites)
 
-Prompts para gerar, em outra IA de imagem, a arte do jogo: o herói, o Boitatá, os inimigos e o
-fundo da floresta. Depois de geradas, as imagens passam pela ferramenta
-`ferramentas/preparar_sprites.py`, que tira o fundo, corta, iguala o tamanho e monta as folhas
-que o jogo usa. Enquanto uma imagem não existe, o jogo continua com o desenho de reserva.
+Como gerar a arte do jogo. **Desde 2026-11-08 o jogo é em pixel art ("estilo Lanterna")** e os
+bonecos animados vêm do PixelLab (seção 0). O retrato pintado (seção 1.1) continua valendo para a
+tela de escolha, os diálogos e o HUD. As seções 1.2 em diante são o caminho anterior, de imagens
+pintadas pose a pose, e ficam como referência (os prompts do Boitatá, dos inimigos e dos fundos
+serão refeitos para pixel art).
+
+Depois de geradas, as imagens passam pela ferramenta `ferramentas/preparar_sprites.py`, que tira
+o fundo, corta, iguala o tamanho e monta as folhas que o jogo usa. Enquanto uma imagem não
+existe, o jogo continua com o desenho de reserva.
+
+## 0. PixelLab: o herói em pixel art (caminho atual)
+
+Roteiro para quem for operar o PixelLab (a pessoa ou um assistente no navegador).
+
+### O que já existe
+
+- Site: https://www.pixellab.ai (conta do Erick).
+- Personagem já criado: **o humano**, 56×56 px, 8 direções, vista lateral (side view). Página:
+  https://www.pixellab.ai/create-character/2b4a647c-6967-445a-96de-2dbff453b387
+- Descrição usada na criação:
+
+```
+Teenage boy adventurer, about 16 years old, fantasy RPG hero. Short messy dark brown hair,
+brown eyes, fair skin, determined friendly face. Dark navy blue short hooded cape over the
+shoulders (hood down), fastened at the chest. Deep blue knee-length tunic over gray long
+sleeves. Golden yellow belt with a square buckle and a hanging strap end. Brown leather
+bracers on both forearms. Dark blue trousers. Tall brown leather boots with folded cuffs.
+Holds a short steel sword with a simple crossguard in his right hand, pointing down.
+No green on the character. Clean readable silhouette, rich colors, 16-bit detailed pixel art.
+```
+
+O capuz saiu levantado; ficou aceito (combina com o clima escuro).
+
+### Regras para todas as animações
+
+1. Na página do personagem: **Add Animation**.
+2. **Direction: East** (olhando para a direita), só essa. O jogo espelha para a esquerda.
+3. Bloco **Template motion**, modelo **Skeleton v3** (segue o esqueleto do personagem, a roupa e a
+   espada mudam menos). Evitar o bloco *Free motion*, que redesenha livre e muda detalhes.
+4. Quando houver campo de descrição, sempre dizer que a espada fica na mão (o PixelLab tende a
+   apagar a espada em movimentos amplos).
+5. Conferir o resultado antes de passar para a próxima: mesma roupa, espada na mão em todos os
+   quadros. Se sair errado, gerar de novo. Mesmo com defeito, vale baixar: a ferramenta do jogo
+   consegue descartar quadros ruins.
+
+### Animações (em ordem de prioridade)
+
+| Jogo | Onde no PixelLab | Quadros | Descrição (se houver campo) |
+|---|---|---|---|
+| `parado` | Movement → Idle → **Breathing Idle** | 4 | `Idle breathing, standing with the short steel sword held low in the right hand.` |
+| `correr` | Movement → **Running** | **6** | `Running, holding the short steel sword in the right hand, sword always visible.` |
+| `pular` | Movement → **Jump** | o padrão | `Jumping up and landing, holding the short steel sword firmly in his right hand during the whole jump, sword always visible and attached to the hand, never dropped or released.` |
+| `espada` | Combat → **Cross Punch** (vira uma estocada; se a espada estiver na outra mão, **Lead Jab**) | o padrão | `Thrusting the short steel sword forward with the right hand, sword always visible and held firmly in the hand, never dropped.` |
+| `poder` | Combat → **Fireball** | o padrão | `Casting a spell with the free left hand, the short steel sword stays in the right hand.` |
+| `dano` | Combat → Reactions → **Taking Punch** | o padrão | `Getting hit and recoiling backward, the short steel sword stays in the right hand.` |
+
+Com só `parado` e `correr` o jogo já funciona; o resto o motor improvisa a partir da imagem parada.
+
+### Baixar e salvar
+
+- Em cada animação: **Download/Export** em **PNG** (spritesheet ou quadros soltos), com fundo
+  transparente. Se der, baixar também o GIF, que ajuda a conferir o ritmo.
+- Nomes (pode ficar na pasta Downloads; o Erick ou o Claude movem para o projeto):
+
+```
+parado_folha.png
+correr_folha.png
+pular_folha.png
+espada_folha.png
+poder_folha.png
+dano_folha.png
+```
+
+- Destino final no projeto: `img/sprites/herois/humano/`. Se o PixelLab exportar um .zip ou
+  nomes diferentes, deixar como veio e avisar; a ferramenta é ajustada ao formato.
 
 ## Regras para todas as imagens
 
