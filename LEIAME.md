@@ -155,6 +155,9 @@ Pessoal (família).
   ferramenta tira o fundo azulado e o halo das faíscas (ficando só o corpo) e escala a cabeça pela
   altura do crânio (`pescocos`: x, y e altura do crânio) para casar com a grossura do pescoço. As
   versões anteriores estão em `originais/` (prefixo `v2_`).
+  Acabamento: o rolo afunda 40 px no chão com uma sombra de contato (não flutua), o pescoço tem
+  contorno preto como o rolo (menos na saída do rolo), e a cabeça tem chamas em pixel art
+  animadas (`chamaPixel`) por cima das desenhadas, com faíscas subindo.
 - **Inimigos do PixelLab (2026-11-08):** brasa (`andar`, `parado`; 34 px no jogo) e vaga-lume
   (`voar`, uma vespa de fogo; 40 px, sempre virada para o herói). Originais em `originais/`.
 - **Sombra (2026-11-08):** fica no chão ou no galho embaixo do herói, menor e mais clara quanto

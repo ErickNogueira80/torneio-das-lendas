@@ -293,12 +293,12 @@ CHEFES.boitata = (() => {
     return pts;
   }
   // com a imagem do corpo enrolado: o pescoço sai do toco desenhado no alto dela
-  const CORPO_W = 400;
+  const CORPO_W = 400, CORPO_AFUNDA = 40;   // a volta de baixo afunda no chão (não flutua)
   function topoCorpo(b) {
     const S = sprite(b.cfg.sprite), c = S && S.partes && S.partes.corpo, f = S && S.pescocos && S.pescocos.corpo;
     if (!c || !f || b.dead) return null;
     const k = CORPO_W / c[2], h = c[3] * k;
-    return { x: b.cx - CORPO_W / 2 + f[0] * CORPO_W, y: GROUND + 14 - h + f[1] * h + b.subir, r: 26 };
+    return { x: b.cx - CORPO_W / 2 + f[0] * CORPO_W, y: GROUND + CORPO_AFUNDA - h + f[1] * h + b.subir, r: 26 };
   }
   // pescoço: curva do alto do rolo até a cabeça
   function pescoco(b) {
@@ -389,6 +389,7 @@ CHEFES.boitata = (() => {
         if (b.state === 'strike') hurtPlayer(D.veneno, b.hx, D.venenoSeg); else hurtPlayer(D.mordida, b.hx);
       }
       if (b.state !== 'enter' && circleRect(b.cx, GROUND - 70, 150, player)) hurtPlayer(D.mordida, b.cx);
+      if (Math.random() < dt * 22) particles.push({ x: b.hx + rnd(-30, 10), y: b.hy - 26, vx: rnd(-25, 25), vy: rnd(-140, -70), life: .8, max: .8, c: FIRE[(Math.random() * 3) | 0], s: rnd(2, 3.5), g: -30 });
       if (Math.random() < dt * (enraged(b) ? 30 : 18)) {
         const s = b.pts[(Math.random() * b.pts.length) | 0];
         particles.push({ x: s.x + rnd(-10, 10), y: s.y - 14, vx: rnd(-20, 20), vy: rnd(-90, -40), life: .7, max: .7, c: FIRE[(Math.random() * 3) | 0], s: rnd(2, 4), g: -40 });
@@ -438,7 +439,10 @@ CHEFES.boitata = (() => {
       if (corpo && !b.dead) {
         const [qx, qy, qw, qh] = corpo, w = CORPO_W, k = w / qw;
         ctx.imageSmoothingEnabled = !S.pixel;
-        ctx.drawImage(S.image, qx, qy, qw, qh, Math.round(b.cx - camX - w / 2), Math.round(GROUND + 14 - qh * k + b.subir), w, qh * k);
+        const sg = ctx.createRadialGradient(b.cx - camX, GROUND + 6, 10, b.cx - camX, GROUND + 6, w * .62);
+        sg.addColorStop(0, 'rgba(0,0,0,.6)'); sg.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.fillStyle = sg; ctx.beginPath(); ctx.ellipse(b.cx - camX, GROUND + 6, w * .62, 26, 0, 0, Math.PI * 2); ctx.fill();
+        ctx.drawImage(S.image, qx, qy, qw, qh, Math.round(b.cx - camX - w / 2), Math.round(GROUND + CORPO_AFUNDA - qh * k + b.subir), w, qh * k);
         ctx.imageSmoothingEnabled = true;
       } else {
         for (let i = 0; i < nRolo; i++) {
@@ -452,6 +456,14 @@ CHEFES.boitata = (() => {
       if (faixa && pp === 0) {
         const [qx, qy, qw, qh] = faixa, chain = [b.topo, ...b.neck, { x: b.hx, y: b.hy, r: b.neck.length ? b.neck[b.neck.length - 1].r : 26 }];
         let acc = 0;
+        // contorno preto, como o do rolo: um traço mais grosso por baixo da textura
+        ctx.strokeStyle = '#080305'; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+        for (let i = 2; i < chain.length - 1; i++) {   // perto do rolo não (lá o pescoço sai de dentro dele)
+          const a0 = chain[i], a1 = chain[i + 1];
+          ctx.lineWidth = (a0.r || 30) * 2 + 6;
+          ctx.beginPath(); ctx.moveTo(Math.round(a0.x - camX), Math.round(a0.y)); ctx.lineTo(Math.round(a1.x - camX), Math.round(a1.y)); ctx.stroke();
+        }
+        ctx.lineCap = 'butt';
         ctx.imageSmoothingEnabled = !S.pixel;
         for (let i = 0; i < chain.length - 1; i++) {
           const a0 = chain[i], a1 = chain[i + 1], d = Math.hypot(a1.x - a0.x, a1.y - a0.y), r = (a0.r || 30);
@@ -490,6 +502,12 @@ CHEFES.boitata = (() => {
         ctx.imageSmoothingEnabled = !S.pixel;
         const hx0 = -8 - nx * qw * k, hy0 = -ny * qh * k;
         ctx.drawImage(S.image, qx, qy, qw, qh, hx0, hy0, qw * k, qh * k);
+        // fogo vivo na cabeça: línguas de chama que dançam por cima das chamas desenhadas
+        const topoC = -hc / 2 * qh * k, larg = qw * k;
+        for (let j = 0; j < 6; j++) {
+          const fx = hx0 + larg * (.1 + j * .09), alt = (rage ? 30 : 22) + Math.sin(time * 9 + j * 1.9) * 8 + Math.sin(time * 23 + j) * 3;
+          chamaPixel(fx, topoC + 3, 13, alt, time * 11 + j * 1.7);
+        }
         if (b.flash > 0) { ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = Math.min(1, b.flash * 3) * .6; ctx.drawImage(S.image, qx, qy, qw, qh, hx0, hy0, qw * k, qh * k); ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over'; }
         ctx.imageSmoothingEnabled = true;
         if (venom) { ctx.fillStyle = 'rgba(140,255,100,.28)'; ctx.beginPath(); ctx.arc(30, 14, 20, 0, Math.PI * 2); ctx.fill(); }
@@ -916,6 +934,15 @@ function drawMapa() {
 const titleImg = new Image();
 titleImg.src = FASE.imagemTitulo;
 
+// chama em pixel art (blocos de 3 px): língua que afina para cima, amarela embaixo e vermelha na ponta
+function chamaPixel(x, y, w, h, t) {
+  const B = 3, n = Math.max(2, Math.round(h / B));
+  for (let i = 0; i < n; i++) {
+    const k = i / n, larg = Math.max(B, Math.round(w * Math.sin(Math.PI * (.25 + k * .75)) / B) * B), dx = Math.round(Math.sin(t + k * 4) * k * 4 / B) * B;
+    ctx.fillStyle = k < .2 ? '#ff7a1e' : k < .55 ? '#ffc443' : k < .82 ? '#ff6418' : '#b8200a';
+    ctx.fillRect(Math.round((x - larg / 2 + dx) / B) * B, Math.round((y - (i + 1) * B) / B) * B, larg, B);
+  }
+}
 function flame(x, y, w, h, t, inner = '#ffe28a', mid = '#ff8a1e', outer = 'rgba(200,40,10,0)') {
   const f = 1 + Math.sin(t) * .12;
   const g = ctx.createRadialGradient(x, y - h * .25, 1, x, y - h * .3, h * f);
