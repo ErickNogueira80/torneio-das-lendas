@@ -111,7 +111,8 @@ Pessoal (família).
 - **Parâmetros de teste:** `?heroi=agua|fogo|terra` testa outro herói (`?heroi=ar` é o humano
   desperto); `?fase=<chave>`;
   `?boss` começa no chefe; `?demo` joga sozinho; `&ff=600` avança 600 quadros; `&touch` mostra os
-  botões no computador; `?semimagens` ignora as imagens; `?semluz` tira a escuridão.
+  botões no computador; `?semimagens` ignora as imagens; `?semluz` tira a escuridão. `?fps` mostra os quadros por segundo; `?hd` desenha o mundo na resolução cheia
+  (normalmente o mundo é desenhado numa tela interna de 960×540 e ampliado sem borrar, bem mais leve).
 - **Elementos contra o Boitatá:** água 1,2× (e apaga as bolas de fogo), pedra e vento 0,8×, fogo
   é absorvido (o herói de fogo precisa da espada nessa fase).
 - **Plano:** etapa 1 (motor separado em dados, imagens com reserva, ferramenta e prompts) feita

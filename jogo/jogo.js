@@ -12,7 +12,12 @@
 // ---------- tela e escala ----------
 const W = 960, H = 540;
 const cv = document.getElementById('c');
-const ctx = cv.getContext('2d');
+const tela = cv.getContext('2d');
+let ctx = tela;   // contexto atual: a tela, ou a tela interna do mundo enquanto o mundo é desenhado
+// O mundo (cenário, luz, personagens) é desenhado numa tela interna de 960x540 e ampliado de uma
+// vez, sem borrar: é o jeito normal de pixel art e custa bem menos que desenhar tudo na
+// resolução do aparelho. HUD, retrato e botões vão direto na tela, nítidos. ?hd desenha tudo
+// na resolução cheia (mais pesado).
 let dpr = 1, scale = 1, ox = 0, oy = 0, portrait = false;
 function resize() {
   dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -1221,13 +1226,21 @@ function drawPortrait() {
   ctx.fillStyle = '#ece4d4'; ctx.font = '44px "Crimson Pro", serif'; ctx.fillText('Jogue com o celular deitado.', W / 2, 380);
 }
 
+const HD = params.has('hd');
+let mundoCv = null, mundoCtx = null;
+let fpsN = 0, fpsT = 0, fps = 0;
 function draw() {
+  ctx = tela;
   ctx.setTransform(1, 0, 0, 1, 0, 0);
   ctx.fillStyle = '#0b0910'; ctx.fillRect(0, 0, cv.width, cv.height);
   ctx.setTransform(dpr * scale, 0, 0, dpr * scale, ox, oy);
   ctx.save(); ctx.beginPath(); ctx.rect(0, 0, W, H); ctx.clip();
   if (portrait) { drawPortrait(); ctx.restore(); return; }
   if (state === 'title') { drawTitle(); ctx.restore(); return; }
+  if (!HD) {
+    if (!mundoCv) { mundoCv = document.createElement('canvas'); mundoCv.width = W; mundoCv.height = H; mundoCtx = mundoCv.getContext('2d'); }
+    ctx = mundoCtx; ctx.setTransform(1, 0, 0, 1, 0, 0);
+  }
   const sh = shake > 0 ? shake * 14 : 0;
   ctx.save(); ctx.translate(rnd(-sh, sh), rnd(-sh, sh));
   drawBackground(); drawWorld(); drawEnemies();
@@ -1235,7 +1248,15 @@ function draw() {
   drawChao(); drawPlayer(); drawProjectiles(); drawParticles(); drawFrente();
   ctx.restore();
   drawLuz();
+  if (!HD) {
+    ctx = tela;
+    ctx.imageSmoothingEnabled = false; ctx.drawImage(mundoCv, 0, 0, W, H); ctx.imageSmoothingEnabled = true;
+  }
   drawRetrato(); drawHUD(); drawTouch();
+  if (params.has('fps')) {
+    const agora = performance.now() / 1000; fpsN++; if (agora - fpsT >= 1) { fps = Math.round(fpsN / (agora - fpsT)); fpsN = 0; fpsT = agora; }
+    ctx.fillStyle = '#9f9'; ctx.font = 'bold 16px sans-serif'; ctx.textAlign = 'right'; ctx.fillText(fps + ' fps', W - 12, 46);
+  }
   if (state === 'levelup') drawLevelUp();
   if (state === 'dead') drawDead();
   if (state === 'victory') drawVictory();
