@@ -16,6 +16,12 @@ window.FASES = {
   boitata: {
     // escuridão do estilo Lanterna: 0 = sem escuro, 1 = breu (só se vê onde há luz)
     escuridao: 0.78,
+    // texto do pergaminho da placa antes do chefe: quem é, sem dica de como derrotar
+    placa: {
+      titulo: 'Boitatá',
+      subtitulo: 'A guardiã da floresta',
+      texto: 'Uma cobra de fogo flamejante que mora na parte mais densa da floresta. Nasceu de um grande incêndio que tomou sua vida: a floresta aprisionou sua alma em um corpo em chamas e a fez sua guardiã. Desde então, nenhum lenhador sai daqui.',
+    },
     luaNoCeu: [0.52, 0.38],   // onde está a lua na imagem do céu (fração da largura e da altura)
     id: 'boitata',
     nome: 'A floresta do Boitatá',

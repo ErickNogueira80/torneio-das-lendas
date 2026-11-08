@@ -663,6 +663,15 @@ def preparar_hud(pasta: Path) -> dict | None:
         # o magenta perto do verde do fundo é tratado como "parte de dentro" mesmo se escurecido
         ys, xs = np.where(mag)
         if len(xs) == 0:
+            if nome.startswith("pergaminho"):   # pergaminho: só tira o fundo e guarda (o texto é do jogo)
+                im = cortar(im)
+                f = 520 / im.height
+                im = im.resize((max(1, round(im.width * f)), 520), Image.LANCZOS)
+                saida = DESTINO / "hud" / f"{nome}.png"; saida.parent.mkdir(parents=True, exist_ok=True)
+                im.save(saida, optimize=True)
+                pecas[nome] = {"img": f"hud/{nome}.png", "w": im.width, "h": im.height}
+                print(f"  hud/{nome}: {im.width}x{im.height}")
+                continue
             print(f"  aviso: {arq.name} sem magenta; ignorado")
             continue
         circulo = nome.startswith("circulo") or nome.startswith("medalhao")

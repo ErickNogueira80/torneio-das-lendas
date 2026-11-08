@@ -1941,6 +1941,41 @@ function drawHUD() {
   drawBanner();
 }
 
+// ---------- pergaminho da placa do chefe ----------
+// Perto da placa (antes da arena) abre um pergaminho com quem é o chefe (FASE.placa). Com a imagem
+// hud/pergaminho, usa a arte; sem ela, desenha um pergaminho simples.
+let pergA = 0;
+function drawPergaminho() {
+  const P = FASE.placa; if (!P) return;
+  const px = ARENA.x0 + 40, perto = state === 'play' && !bossActive && !bossDefeated && Math.abs(player.x + player.w / 2 - px) < 130;
+  pergA = clamp(pergA + (perto ? 1 : -1) * (1 / 60) * 4, 0, 1);
+  if (pergA <= 0) return;
+  const w = 470, h = 250, x = W / 2 - w / 2, y = 70 - (1 - pergA) * 20;
+  ctx.save(); ctx.globalAlpha = pergA;
+  const art = pecaHud('pergaminho');
+  if (art) ctx.drawImage(art.image, x - 40, y - 30, w + 80, h + 60);
+  else {
+    const g = ctx.createLinearGradient(0, y, 0, y + h); g.addColorStop(0, '#e9d6a8'); g.addColorStop(1, '#cdb27a');
+    ctx.fillStyle = g; ctx.fillRect(x, y + 10, w, h - 20);
+    const vg = ctx.createRadialGradient(x + w / 2, y + h / 2, 60, x + w / 2, y + h / 2, w * .62);
+    vg.addColorStop(0, 'rgba(90,50,20,0)'); vg.addColorStop(1, 'rgba(90,50,20,.45)');
+    ctx.fillStyle = vg; ctx.fillRect(x, y + 10, w, h - 20);
+    for (const yy of [y, y + h - 20]) {   // rolos em cima e embaixo
+      const rg = ctx.createLinearGradient(0, yy, 0, yy + 20); rg.addColorStop(0, '#b8955a'); rg.addColorStop(.5, '#f0dfb4'); rg.addColorStop(1, '#8a6a38');
+      ctx.fillStyle = rg; roundRect(x - 14, yy, w + 28, 20, 10); ctx.fill();
+    }
+  }
+  ctx.textAlign = 'center';
+  ctx.fillStyle = '#5a1e0c'; ctx.font = '34px "IM Fell English SC", Cinzel, serif';
+  ctx.fillText(P.titulo, W / 2, y + 62);
+  ctx.fillStyle = '#6e4a24'; ctx.font = 'italic 17px "IM Fell English", serif';
+  ctx.fillText(P.subtitulo, W / 2, y + 86);
+  ctx.fillStyle = 'rgba(110,74,36,.6)'; ctx.fillRect(W / 2 - 90, y + 96, 180, 1);
+  ctx.fillStyle = '#3a2410'; ctx.font = '17px "IM Fell English", serif';
+  wrap(P.texto, W / 2, y + 124, w - 90, 21);
+  ctx.restore();
+}
+
 function drawBanner() {
   if (banner > 0) {
     const a = clamp(Math.min(banner, 3.6 - banner) * 2, 0, 1);
@@ -2098,7 +2133,7 @@ function draw() {
     ctx = tela;
     ctx.imageSmoothingEnabled = false; ctx.drawImage(mundoCv, 0, 0, W, H); ctx.imageSmoothingEnabled = true;
   }
-  drawRetrato(); drawHUD(); drawTouch();
+  drawRetrato(); drawHUD(); drawPergaminho(); drawTouch();
   if (PERF) {
     ctx.fillStyle = 'rgba(0,0,0,.7)'; ctx.fillRect(W - 230, 60, 220, 22 + 18 * Object.keys(PERF).length);
     ctx.fillStyle = '#9f9'; ctx.font = '14px monospace'; ctx.textAlign = 'left';

@@ -172,6 +172,10 @@ Pessoal (família).
   subindo) e o veneno do bote é um pingar verde das presas.
 - **Inimigos do PixelLab (2026-11-08):** brasa (`andar`, `parado`; 34 px no jogo) e vaga-lume
   (`voar`, uma vespa de fogo; 40 px, sempre virada para o herói). Originais em `originais/`.
+- **Pergaminho da placa (2026-11-08):** perto da placa antes da arena abre um pergaminho com o
+  nome, um subtítulo e uma descrição do chefe, sem dica de como derrotar (`placa` na ficha da fase).
+  Letras: IM Fell English (Google Fonts). Sem a imagem `img/sprites/hud/pergaminho.png` (prompt na
+  seção 4.7), o jogo desenha um pergaminho simples.
 - **Sombra (2026-11-08):** fica no chão ou no galho embaixo do herói, menor e mais clara quanto
   mais alto ele pula.
 - **Mapa (2026-11-08):** a região escolhida fica iluminada e o resto escurece; o cartão de uma

@@ -670,6 +670,21 @@ view, centered, plain solid #00FF00 green background outside, no text, no number
 Painterly 2D game UI art. Square image, aspect ratio 1:1.
 ```
 
+## 4.7 Pergaminho da placa do chefe (Gemini)
+
+Perto da placa antes de cada chefe abre um pergaminho com quem é o chefe (o texto é do jogo, em
+`placa` na ficha da fase). A IA faz só o pergaminho, vazio. Salvar em
+`img/sprites/hud/pergaminho.png` (o HUD não é pixelizado).
+
+```
+Create an image. An old horizontal parchment scroll for a dark fantasy game UI, front view,
+perfectly straight and centered: aged cream and light tan paper with burnt brown edges, small
+tears and stains, rolled wooden-and-paper rolls at the top and bottom edges, a thin faded red
+ornamental border drawn inside the paper. The center of the paper is EMPTY and clean, plenty of
+space for text. No text, no letters, no symbols in the middle. Plain solid #00FF00 green
+background, no shadow. Painterly 2D game UI art. Wide image, aspect ratio 16:9.
+```
+
 ## 5. Ficha dos 3 heróis com constelação (para a Milena)
 
 O humano já está definido (o 4º jogador, sem constelação). Antes das imagens de cada herói dos
