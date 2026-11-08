@@ -134,6 +134,13 @@ Pessoal (família).
   Peças com até 160 px são usadas como vieram, sem reduzir.
   A ferramenta mede o ponto do pescoço de cada cabeça (`pescocos` no sprites.json); o jogo põe
   esse ponto onde chega o corpo, com um gomo extra embaixo para emendar, e o primeiro gomo mais perto.
+- **Boitatá enrolado (2026-11-08, a pedido do Erick):** não voa mais. O corpo fica enrolado no lado
+  direito da arena (1/3 da tela); pescoço e cabeça saem do alto. Padrão: espera, rajada de bolas de
+  fogo, espera, bote. O bote é avisado (a cabeça se encolhe e treme), vai rente ao chão até onde o
+  herói estava (alcance 660 px), fica cravado 0,45 s (chance de golpear a cabeça, crítico) e volta;
+  escapa-se pulando ou ficando longe. Na fúria (< 35%): mais rápido, 5 bolas por rajada e bote
+  duplo. Cabeça vale 1,5×, pescoço 0,8×, rolo 0,6×; encostar no rolo queima. Morre virando pó
+  da cabeça ao rolo. Sem a imagem `corpo` (seção 2.2 dos prompts), o rolo é uma espiral de gomos.
 - **Inimigos do PixelLab (2026-11-08):** brasa (`andar`, `parado`; 34 px no jogo) e vaga-lume
   (`voar`, uma vespa de fogo; 40 px, sempre virada para o herói). Originais em `originais/`.
 - **Sombra (2026-11-08):** fica no chão ou no galho embaixo do herói, menor e mais clara quanto

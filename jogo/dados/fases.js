@@ -71,7 +71,7 @@ window.FASES = {
       sprite: 'chefes/boitata',
       resist: { agua: 1.2, fogo: 0, terra: 0.8, ar: 0.8, espada: 1 }, // fogo: ele absorve e recupera
       frase: ['"A floresta aprisionou sua alma em um corpo incendiado', 'e a tornou guardiã da mesma."'],
-      dica: 'Apague o fogo dele com a água!',
+      dica: 'Apague o fogo com a água · cuidado com o bote: pule ou fique longe!',
       dano: { mordida: 9, veneno: 8, venenoSeg: 3, bolaDeFogo: 12 },
     },
     vitoria: {

@@ -56,9 +56,9 @@ PERSONAGEM = {
     "inimigos": {"altura": 44, "atlas": 112},
 }
 ALTURA_ESPECIFICA = {"inimigos/vagalume": 34}
-PARTES_LADO = {"cabeca": 256, "cabeca_ataque": 256, "gomo": 160, "rabo": 128}   # maior lado (sem pixel)
+PARTES_LADO = {"cabeca": 256, "cabeca_ataque": 256, "gomo": 160, "rabo": 128, "corpo": 256}   # maior lado (sem pixel)
 # peças do chefe em pixel art: maior lado em px da arte (o jogo amplia; mesmo estilo do resto)
-PARTES_PIXEL = {"cabeca": 46, "cabeca_ataque": 46, "gomo": 26, "rabo": 26}
+PARTES_PIXEL = {"cabeca": 46, "cabeca_ataque": 46, "gomo": 26, "rabo": 26, "corpo": 160}
 # Fundos em pixel art: cada pixel da arte vira 2x2 na tela virtual (FUNDO_PIXEL). Alturas na
 # resolução da arte: céu 270 (tela 540), longe 180 (360), perto 210 (420), chão 128 (ladrilho 256).
 FUNDO_PIXEL = 2
@@ -323,7 +323,7 @@ def preparar_partes(pasta: Path) -> dict | None:
             continue
         original = Image.open(arq)
         im = cortar(_sem_verde(remover_fundo(original)))
-        if max(original.size) <= 160:
+        if max(original.size) <= (260 if nome == "corpo" else 160):
             px = im   # já é pixel art (ex.: PixelLab): usa como veio, sem reduzir de novo
         else:
             lado = PARTES_PIXEL[nome]

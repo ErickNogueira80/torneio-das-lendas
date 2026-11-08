@@ -373,6 +373,20 @@ charred black and dark red scales with glowing lava cracks, the tip turning into
 16-bit detailed pixel art, black outline, transparent background.
 ```
 
+### 2.2 Boitatá enrolado: o corpo (PixelLab, opcional)
+
+Desde 2026-11-08 o Boitatá fica enrolado no lado direito da arena (1/3 da tela) e só a cabeça
+ataca. Sem esta imagem, o jogo monta o rolo com os gomos em espiral. Com ela, o rolo fica bem mais
+bonito. Geração de imagem no PixelLab, **o maior tamanho disponível** (ideal 128×128 ou mais),
+fundo transparente. Salvar como `img/sprites/chefes/boitata/corpo.png`.
+
+```
+Giant fire serpent body coiled on itself in a big round pile, seen from the side, three thick
+coils stacked on the ground, the neck rising from the top center and cut short (no head),
+charred black and dark red scales with glowing orange lava cracks, small flames and embers on top
+of the coils. Dark fantasy boss, 16-bit detailed pixel art, black outline, transparent background.
+```
+
 ---
 
 ## 3. Inimigos pequenos
