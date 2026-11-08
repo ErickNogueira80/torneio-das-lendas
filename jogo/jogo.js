@@ -63,6 +63,7 @@ async function loadSprites() {
     for (const [k, v] of Object.entries(data)) {
       const s = { ...v };
       if (v.img) { s.image = new Image(); s.image.src = 'sprites/' + v.img; }
+      if (v.retrato) { s.retratoImg = new Image(); s.retratoImg.src = 'sprites/' + v.retrato; }
       if (v.camadas) { s.imgs = {}; for (const [c, p] of Object.entries(v.camadas)) { const im = new Image(); im.src = 'sprites/' + p; s.imgs[c] = im; } }
       SPR[k] = s;
     }
@@ -92,7 +93,7 @@ function drawFrame(s, anim, t, x, y, face, sx = 1, sy = 1, rot = 0) {
 
 // ---------- entrada (teclado e toque) ----------
 const keys = {};
-let jumpPressed = false, swordPressed = false, powerPressed = false;
+let jumpPressed = false, swordPressed = false, powerPressed = false, downPressed = false;
 const JUMP_KEYS = ['ArrowUp', 'KeyW', 'Space'], SWORD_KEYS = ['KeyJ', 'KeyZ'], POWER_KEYS = ['KeyK', 'KeyX'];
 addEventListener('keydown', e => {
   if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space'].includes(e.code)) e.preventDefault();
@@ -102,6 +103,7 @@ addEventListener('keydown', e => {
   if (JUMP_KEYS.includes(e.code)) jumpPressed = true;
   if (SWORD_KEYS.includes(e.code)) swordPressed = true;
   if (POWER_KEYS.includes(e.code)) powerPressed = true;
+  if (e.code === 'ArrowDown' || e.code === 'KeyS') downPressed = true;
 });
 addEventListener('keyup', e => { keys[e.code] = false; });
 
@@ -111,6 +113,7 @@ const BTN = [
   { id: 'sword', x: 752, y: 474, r: 42, label: 'espada' },
   { id: 'power', x: 838, y: 372, r: 42, label: PODER.nome },
   { id: 'jump', x: 872, y: 472, r: 52, label: 'pular' },
+  { id: 'down', x: 143, y: 378, r: 34, label: '▼' },
 ];
 const pointers = new Map();
 let showTouch = (typeof matchMedia === 'function' && matchMedia('(pointer: coarse)').matches) || params.has('touch');
@@ -123,6 +126,7 @@ function press(id) {
   if (id === 'jump') jumpPressed = true;
   if (id === 'sword') swordPressed = true;
   if (id === 'power') powerPressed = true;
+  if (id === 'down') downPressed = true;
 }
 const held = id => { for (const v of pointers.values()) if (v === id) return true; return false; };
 cv.addEventListener('pointerdown', e => {
@@ -499,8 +503,12 @@ function updatePlayer(dt) {
     if (p.vy > 0) { p.y = s.y - p.h; p.onGround = true; } else if (p.vy < 0) p.y = s.y + s.h;
     p.vy = 0;
   }
-  if (p.vy >= 0) for (const pl of PLATS) {
-    if (p.x + p.w > pl.x && p.x < pl.x + pl.w && prevBottom <= pl.y + 2 && p.y + p.h >= pl.y) { p.y = pl.y - p.h; p.vy = 0; p.onGround = true; }
+  // ▼ (ou seta para baixo) em cima de uma plataforma: desce por ela
+  if (downPressed && p.onPlat && wasGround) { p.dropT = 0.22; p.onPlat = false; }
+  p.dropT = Math.max(0, (p.dropT || 0) - dt);
+  if (!p.onGround) p.onPlat = false;
+  if (p.vy >= 0 && p.dropT <= 0) for (const pl of PLATS) {
+    if (p.x + p.w > pl.x && p.x < pl.x + pl.w && prevBottom <= pl.y + 2 && p.y + p.h >= pl.y) { p.y = pl.y - p.h; p.vy = 0; p.onGround = true; p.onPlat = true; }
   }
   if (p.onGround && !wasGround && fallV > 350) p.landT = 0.14;
   p.landT = Math.max(0, p.landT - dt);
@@ -691,14 +699,72 @@ function drawTree(x, base, h, w, b, color) {
 }
 
 // camada de imagem repetida na horizontal, com paralaxe; base = y do pé da imagem
-function tiled(img, par, base, height) {
-  const k = height / img.naturalHeight, w = img.naturalWidth * k;
+function tiled(img, par, base, height, desloc = 0) {
+  const nw = img.naturalWidth || img.width, nh = img.naturalHeight || img.height;
+  const k = height / nh, w = nw * k;
   ctx.imageSmoothingEnabled = !fundoPixel();
-  let x = -((camX * par) % w); if (x > 0) x -= w;
+  let x = -((camX * par + desloc * w) % w); if (x > 0) x -= w;
   for (; x < W; x += w) ctx.drawImage(img, x, base - height, w + 1, height);
   ctx.imageSmoothingEnabled = true;
 }
 const fundoPixel = () => (SPR[FASE.fundo] && SPR[FASE.fundo].pixel) || 0;
+// cópia escurecida (ou tingida) de uma camada, guardada para não refazer a cada quadro
+const TOM = new Map();
+function tom(img, cor, forca) {
+  const chave = img.src + cor + forca;
+  if (TOM.has(chave)) return TOM.get(chave);
+  const c = document.createElement('canvas'); c.width = img.naturalWidth; c.height = img.naturalHeight;
+  const g = c.getContext('2d'); g.drawImage(img, 0, 0);
+  g.globalCompositeOperation = 'source-atop'; g.fillStyle = `rgba(${cor},${forca})`; g.fillRect(0, 0, c.width, c.height);
+  TOM.set(chave, c); return c;
+}
+// tufos, pedras e galhos no chão e troncos escuros passando na frente do herói (primeiro plano)
+const TUFOS = [], FRENTE = [];
+{ const r = mulberry(7); for (let x = 0; x < 6000; x += 18 + r() * 40) TUFOS.push({ x, n: 2 + (r() * 5 | 0), h: 4 + r() * 9, pedra: r() < .18, galho: r() < .1 });
+  for (let x = 0; x < 9000; x += 120 + r() * 260) FRENTE.push({ tipo: 'moita', x, bolas: Array.from({ length: 3 + (r() * 3 | 0) }, () => [r() * 90 - 45, 26 + r() * 30]) });
+  for (let x = 200; x < 9000; x += 260 + r() * 520) FRENTE.push({ tipo: 'cipo', x, fios: Array.from({ length: 1 + (r() * 3 | 0) }, () => [r() * 40, 40 + r() * 120]) }); }
+function drawChao() {
+  ctx.fillStyle = '#140a10';
+  for (const t of TUFOS) {
+    const x = Math.round(t.x - camX); if (x < -20 || x > W + 20) continue;
+    if (!SOLIDS.some(s => t.x >= s.x && t.x < s.x + s.w)) continue;
+    if (t.pedra) { ctx.fillRect(x, GROUND - 4, 10, 4); ctx.fillRect(x + 2, GROUND - 6, 6, 2); continue; }
+    if (t.galho) { ctx.fillRect(x, GROUND - 3, 22, 2); ctx.fillRect(x + 14, GROUND - 7, 2, 4); continue; }
+    for (let i = 0; i < t.n; i++) ctx.fillRect(x + i * 3, GROUND - t.h + ((i * 7) % 5), 2, t.h - ((i * 7) % 5));
+  }
+}
+function drawFrente() {
+  // primeiro plano em pixel (blocos de 4 px): moitas escuras embaixo e cipós pendurados no alto
+  const par = 1.3, B = 4;
+  ctx.fillStyle = '#08040b';
+  const bola = (cx, cy, r) => { for (let dy = -r; dy < r; dy += B) { const hw = Math.round(Math.sqrt(r * r - dy * dy) / B) * B; ctx.fillRect(cx - hw, cy + dy, hw * 2, B); } };
+  for (const f of FRENTE) {
+    const x = Math.round((f.x - camX * par) / B) * B; if (x < -120 || x > W + 120) continue;
+    if (f.tipo === 'moita') for (const [dx, r] of f.bolas) bola(x + Math.round(dx / B) * B, H + 6, Math.round(r / B) * B);
+    else for (const [dx, len] of f.fios) {
+      const fx = x + Math.round(dx / B) * B;
+      for (let y = 0; y < len; y += B) ctx.fillRect(fx + (Math.floor(y / 24) % 2 ? B : 0), y, B, B);
+      for (let y = 16; y < len; y += 22) ctx.fillRect(fx - B, y, B * 3, B);   // folhinhas
+    }
+  }
+}
+// retrato do herói no canto da tela (como nos jogos de ação com retrato grande)
+function drawRetrato() {
+  const s = SPR[HEROI.sprite], im = s && s.retratoImg;
+  if (!ready(im) || params.has('semretrato')) return;
+  const h = 300, w = h * im.naturalWidth / im.naturalHeight, p = player;
+  const tremor = p.inv > 0.7 ? rnd(-4, 4) : 0, resp = Math.sin(time * 1.6) * 2;
+  // fica transparente quando o herói passa por trás dele (no começo da fase, por exemplo)
+  const atras = p.x - camX < w + 10 && p.y + p.h > H - h;
+  ctx.save();
+  ctx.globalAlpha = atras ? .3 : .93;
+  ctx.drawImage(im, -6 + tremor, H - h + 8 + resp, w, h);
+  ctx.restore();
+  if (p.inv > 0.7) {   // leva dano: o retrato pisca em vermelho
+    ctx.save(); ctx.globalAlpha = .25 * (p.inv - .7) / .5; ctx.fillStyle = '#ff2a1a';
+    ctx.fillRect(-6 + tremor, H - h + 8 + resp, w, h); ctx.restore();
+  }
+}
 // posição da lua na tela: a do céu desenhado (FASE.luaNoCeu, em fração da imagem) ou a padrão
 let luaTela = [760, 120];
 
@@ -719,7 +785,10 @@ function drawBackground() {
     ctx.fillStyle = 'rgba(255,170,110,.18)'; ctx.beginPath(); ctx.arc(760, 120, 70, 0, Math.PI * 2); ctx.fill();
     ctx.fillStyle = C.lua; ctx.beginPath(); ctx.arc(760, 120, 38, 0, Math.PI * 2); ctx.fill();
   }
-  if (longe) tiled(longe, .3, GROUND, 360);
+  if (longe) {
+    tiled(longe, .22, GROUND - 20, 330);
+    tiled(tom(longe, '20,10,24', .35), .36, GROUND, 400, .5);   // segunda fileira, mais perto e mais escura
+  }
   else {
     ctx.fillStyle = C.morros;
     ctx.beginPath(); ctx.moveTo(0, H);
@@ -730,7 +799,10 @@ function drawBackground() {
   const fog = ctx.createLinearGradient(0, 300, 0, H);
   fog.addColorStop(0, 'rgba(120,60,40,0)'); fog.addColorStop(1, 'rgba(120,60,40,.35)');
   ctx.fillStyle = fog; ctx.fillRect(0, 300, W, H - 300);
-  if (perto) tiled(perto, .6, GROUND + 10, 420);
+  if (perto) {
+    tiled(tom(perto, '26,12,22', .3), .48, GROUND + 6, 360, .37);   // troncos do meio
+    tiled(perto, .62, GROUND + 10, 430);
+  }
   else for (const t of MID) {
     const x = t.x - camX * .6; const sx = ((x % 9000) + 9000) % 9000 - 200; if (sx < -120 || sx > W + 120) continue;
     drawTree(sx, GROUND + 10, t.h, t.w, t.b, C.arvorePerto);
@@ -863,12 +935,14 @@ function drawPlayer() {
   const S = sprite(HEROI.sprite);
   if (S) {
     const { a, t } = playerAnim(S);
-    const sq = p.landT > 0 ? p.landT / 0.14 : 0;
-    let bob = a === 'correr' ? -Math.abs(Math.sin(p.anim * 6)) * 2 : a === 'parado' ? Math.sin(time * 3) * .8 : 0;
+    // com quadros de verdade a própria animação já respira e corre: sem balanço nem achatamento extra
+    const real = temAnim(S, a);
+    const sq = p.landT > 0 && !S.pixel ? p.landT / 0.14 : 0;
+    let bob = real ? 0 : a === 'correr' ? -Math.abs(Math.sin(p.anim * 6)) * 2 : a === 'parado' ? Math.sin(time * 3) * .8 : 0;
     // Pose que ainda não tem imagem: o próprio jogo dá o movimento à imagem que existe
     // (inclina, quica e estica). Assim o herói funciona até com uma imagem só.
     let rot = 0, ex = 1, ey = 1;
-    if (!temAnim(S, a)) {
+    if (!real) {
       if (a === 'correr') { const c = Math.sin(p.anim * 6); rot = .09 + c * .04; bob = -Math.abs(c) * 5; ey = 1 - Math.abs(c) * .03; }
       else if (a === 'pular') { ex = .93; ey = 1.07; rot = -.04; }
       else if (a === 'cair') { ex = 1.03; ey = .98; rot = .07; }
@@ -1150,10 +1224,10 @@ function draw() {
   ctx.save(); ctx.translate(rnd(-sh, sh), rnd(-sh, sh));
   drawBackground(); drawWorld(); drawEnemies();
   if (bossActive && boss) CHEFE.desenhar(boss);
-  drawPlayer(); drawProjectiles(); drawParticles();
+  drawChao(); drawPlayer(); drawProjectiles(); drawParticles(); drawFrente();
   ctx.restore();
   drawLuz();
-  drawHUD(); drawTouch();
+  drawRetrato(); drawHUD(); drawTouch();
   if (state === 'levelup') drawLevelUp();
   if (state === 'dead') drawDead();
   if (state === 'victory') drawVictory();
@@ -1165,7 +1239,7 @@ let last = performance.now();
 function frame(now) {
   const dt = clamp((now - last) / 1000, 0, 1 / 30); last = now;
   if (state === 'play' && !portrait) update(dt); else time += dt;
-  jumpPressed = swordPressed = powerPressed = false;
+  jumpPressed = swordPressed = powerPressed = downPressed = false;
   draw();
   requestAnimationFrame(frame);
 }

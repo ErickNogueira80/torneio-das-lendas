@@ -70,7 +70,15 @@ Pessoal (família).
   (contato) e mordida venenosa (avanço rente ao chão; pular por cima). Água na cabeça = crítico;
   água apaga as bolas de fogo. Com menos de 35% de fogo ele fica mais rápido. Derrotado, vira pó
   prateado e deixa o pingente (como na p. 11).
-- **Controles:** toque (◀ ▶, pular, espada, água) ou teclado (setas/A-D, ↑/W/Espaço, J/Z, K/X).
+- **Controles:** toque (◀ ▶, ▼, pular, espada, água) ou teclado (setas/A-D, ↑/W/Espaço, J/Z, K/X).
+  ▼ (ou seta para baixo/S) em cima de uma plataforma desce por ela.
+- **Retrato no canto (2026-11-08):** o retrato pintado do herói (`retrato.jpg` na pasta dele) fica
+  no canto inferior esquerdo durante a fase, como no estilo Lanterna; treme e pisca em vermelho
+  quando o herói leva dano e fica transparente quando o herói passa por trás. `?semretrato`
+  esconde.
+- **Cenário denso (2026-11-08):** além das camadas da fase, o motor desenha uma segunda fileira de
+  árvores distantes e uma de troncos do meio (cópias escurecidas das camadas), tufos, pedras e
+  galhos no chão, e um primeiro plano de moitas e cipós em blocos de pixel.
 - **Heróis:** 4 jogadores. Três com constelação (Áries/Água, Libra ou Sagitário/Fogo,
   Capricórnio/Terra), cada um com +1 no seu atributo forte, e o humano: o "normal", sem
   constelação e sem atributo forte, de jogabilidade mais difícil (na história, é o Câncer

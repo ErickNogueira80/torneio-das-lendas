@@ -261,7 +261,8 @@
      53.0
     ]
    ]
-  }
+  },
+  "retrato": "herois/humano_retrato.png"
  },
  "fundos/boitata": {
   "tipo": "fundo",

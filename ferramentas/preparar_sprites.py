@@ -12,7 +12,7 @@ Estrutura esperada (nomes sem acento, minúsculos):
   img/sprites/fundos/<fase>/<camada>.png            ex.: fundos/boitata/ceu.png, longe.png, perto.png, chao.png
 
 Animações reconhecidas: parado, correr, pular, cair, espada, poder, dano, andar, voar.
-`retrato.png` dos heróis vira `jogo/sprites/herois/<heroi>_retrato.png` (sem fundo, até 512 px de
+`retrato.png` dos heróis vira `jogo/sprites/herois/<heroi>_retrato.png` (sem fundo, até 900 px de
 altura), para a tela de escolha de herói. Arquivos com outros nomes são ignorados.
 
 Folha com várias poses: `<animacao>_folha.png` (ex.: correr_folha.png) com as poses lado a lado
@@ -260,8 +260,8 @@ def preparar_personagem(grupo: str, pasta: Path, ajustes: dict) -> dict | None:
     for arq in pasta.iterdir():
         if arq.stem.lower() == "retrato" and arq.suffix.lower() in EXTS:
             im = cortar(remover_fundo(Image.open(arq)))
-            if im.height > 512:
-                im = im.resize((max(1, round(im.width * 512 / im.height)), 512), Image.LANCZOS)
+            if im.height > 900:
+                im = im.resize((max(1, round(im.width * 900 / im.height)), 900), Image.LANCZOS)
             retrato = f"{chave}_retrato.png"
             (DESTINO / retrato).parent.mkdir(parents=True, exist_ok=True)
             im.save(DESTINO / retrato, optimize=True)
