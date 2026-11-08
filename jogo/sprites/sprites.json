@@ -499,6 +499,16 @@
     26,
     27
    ]
+  },
+  "pescocos": {
+   "cabeca": [
+    0.236,
+    0.74
+   ],
+   "cabeca_ataque": [
+    0.241,
+    0.726
+   ]
   }
  },
  "fundos/boitata": {

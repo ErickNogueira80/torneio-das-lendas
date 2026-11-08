@@ -341,7 +341,7 @@ CHEFES.boitata = (() => {
       if (follow > 0) { const k = 1 - Math.exp(-follow * dt); b.hx += (tx - b.hx) * k; b.hy += (ty - b.hy) * k; }
       let px = b.hx, py = b.hy;
       b.segs.forEach((s, i) => {
-        const d = i === 0 ? 30 : 24 - i * 0.4;
+        const d = i === 0 ? 22 : 24 - i * 0.4;
         const dx = s.x - px, dy = s.y - py, dist = Math.hypot(dx, dy) || 1;
         if (dist > d) { s.x = px + dx / dist * d; s.y = py + dy / dist * d; }
         px = s.x; py = s.y;
@@ -415,9 +415,12 @@ CHEFES.boitata = (() => {
         flame(-14, -16, 34, rage ? 56 : 40, time * 10);
         // boca aberta nos ataques (bola de fogo, preparo e avanço da mordida)
         const ataque = P.cabeca_ataque && (b.state === 'aimfire' || venom);
-        const [qx, qy, qw, qh] = ataque ? P.cabeca_ataque : P.cabeca, k = 92 / qw;
+        const nomeC = ataque ? 'cabeca_ataque' : 'cabeca', [qx, qy, qw, qh] = P[nomeC], k = 92 / qw;
+        // o pescoço da arte fica um pouco atrás do ponto da cabeça, onde chega o primeiro gomo
+        const [nx, ny] = (S.pescocos && S.pescocos[nomeC]) || [.45, .5];
         ctx.imageSmoothingEnabled = !S.pixel;
-        ctx.drawImage(S.image, qx, qy, qw, qh, -qw * k * .45, -qh * k / 2, qw * k, qh * k);
+        if (P.gomo) { const [gx, gy, gw, gh] = P.gomo, gk = 46 / gh; ctx.drawImage(S.image, gx, gy, gw, gh, -16 - gw * gk / 2, -gh * gk / 2, gw * gk, gh * gk); }
+        ctx.drawImage(S.image, qx, qy, qw, qh, -10 - nx * qw * k, 2 - ny * qh * k, qw * k, qh * k);
         ctx.imageSmoothingEnabled = true;
         if (venom) { ctx.fillStyle = 'rgba(140,255,100,.3)'; ctx.beginPath(); ctx.arc(26, 10, 18, 0, Math.PI * 2); ctx.fill(); }
       } else {

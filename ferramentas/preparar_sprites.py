@@ -339,7 +339,18 @@ def preparar_partes(pasta: Path) -> dict | None:
     saida.parent.mkdir(parents=True, exist_ok=True)
     folha.save(saida, optimize=True)
     print(f"  {chave}: partes {', '.join(n for n, _ in itens)} -> {saida.relative_to(RAIZ)}")
-    return {"tipo": "partes", "pixel": True, "img": f"{chave}.png", "partes": {n: list(pos[n]) for n, _ in itens}}
+    # ponto do pescoço de cada cabeça (centro do desenho no quarto de trás e de baixo), em fração
+    pescocos = {}
+    for n, im in itens:
+        if n.startswith("cabeca"):
+            al = np.asarray(im)[:, :, 3] > 0
+            h, w = al.shape
+            sub = al[int(h * .55):, : int(w * .45)]
+            ys, xs = np.where(sub)
+            if len(xs):
+                pescocos[n] = [round(float(xs.mean()) / w, 3), round((float(ys.mean()) + int(h * .55)) / h, 3)]
+    return {"tipo": "partes", "pixel": True, "img": f"{chave}.png", "partes": {n: list(pos[n]) for n, _ in itens},
+            "pescocos": pescocos}
 
 
 def pixelizar(im: Image.Image, largura: int, altura: int, cores: int) -> Image.Image:

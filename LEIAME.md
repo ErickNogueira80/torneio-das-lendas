@@ -132,6 +132,8 @@ Pessoal (família).
   64 px, 8×8 gomos e rabos de 32 px; em `originais/pixellab/`); escolhidas: cabeça 0,2, ataque
   2,3, gomo 3,5, rabo 0,2 (linha,coluna). A cabeça de ataque aparece na bola de fogo e na mordida.
   Peças com até 160 px são usadas como vieram, sem reduzir.
+  A ferramenta mede o ponto do pescoço de cada cabeça (`pescocos` no sprites.json); o jogo põe
+  esse ponto onde chega o corpo, com um gomo extra embaixo para emendar, e o primeiro gomo mais perto.
 - **Inimigos do PixelLab (2026-11-08):** brasa (`andar`, `parado`; 34 px no jogo) e vaga-lume
   (`voar`, uma vespa de fogo; 40 px, sempre virada para o herói). Originais em `originais/`.
 - **Sombra (2026-11-08):** fica no chão ou no galho embaixo do herói, menor e mais clara quanto
