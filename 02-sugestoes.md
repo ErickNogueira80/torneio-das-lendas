@@ -51,6 +51,7 @@ Coisas que o caderno diz de dois jeitos. Não tem certo ou errado; é só escolh
 - **No caderno:** na p. 1 estão circulados Libra, Capricórnio, Câncer e Áries. Na p. 4 as
   constelações desenhadas são Áries, **Sagitário**, Capricórnio e Câncer.
 - **Ideia:** decidir se o quarto jogador é Libra ou Sagitário e acertar a outra página.
+- **Decidido (2026-11-08):** Sagitário. Falta acertar a p. 1, que circula Libra.
 
 ### 1.4 "O humano" ou "a humana"?
 

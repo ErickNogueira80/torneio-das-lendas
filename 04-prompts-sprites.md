@@ -690,6 +690,5 @@ Fraqueza (opcional): algo que dá trabalho para ele
 Frase de efeito (opcional):
 ```
 
-Antes da ficha, ela precisa decidir duas pendências que estão no Leia-me: se o herói de Fogo é
-de Libra (circulado na p. 1) ou de Sagitário (desenhado na p. 4), e se os elementos seguem a
-tabela dela ou a da astrologia comum.
+Antes da ficha, falta decidir uma pendência que está no Leia-me: se os elementos seguem a tabela
+dela ou a da astrologia comum. (O herói de Fogo é de Sagitário: decidido pela Milena em 2026-11-08.)

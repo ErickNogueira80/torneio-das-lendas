@@ -108,7 +108,7 @@ Pessoal (família).
   enquanto some, com fio branco, riscos de vento e um pouco de poeira; substituiu a faixa em arco.
 - **Seleção de herói (2026-11-08):** depois do título vem "Escolha seu herói", com os 4 jogadores
   de `SELECAO_HEROIS` (herois.js): o humano (retrato, "sem constelação · difícil") e os 3 com
-  constelação (Áries/Água, Libra ou Sagitário/Fogo, Capricórnio/Terra) como silhueta do retrato com
+  constelação (Áries/Água, Sagitário/Fogo, Capricórnio/Terra) como silhueta do retrato com
   "?" na cor do elemento e "em breve". Cada cartão mostra os atributos (o atributo forte na cor do
   elemento). Escolher outro herói recarrega com `?heroi=`; depois vem o mapa. `?herois` abre direto
   nessa tela. Para liberar um herói: `disponivel: true` e o retrato em `img/sprites/herois/<id>/`.
@@ -185,7 +185,7 @@ Pessoal (família).
 - **Cenário denso (2026-11-08):** além das camadas da fase, o motor desenha uma segunda fileira de
   árvores distantes e uma de troncos do meio (cópias escurecidas das camadas), tufos, pedras e
   galhos no chão, e um primeiro plano de moitas e cipós em blocos de pixel.
-- **Heróis:** 4 jogadores. Três com constelação (Áries/Água, Libra ou Sagitário/Fogo,
+- **Heróis:** 4 jogadores. Três com constelação (Áries/Água, Sagitário/Fogo,
   Capricórnio/Terra), cada um com +1 no seu atributo forte, e o humano: o "normal", sem
   constelação e sem atributo forte, de jogabilidade mais difícil (na história, é o Câncer
   escondido). Por enquanto o humano usa a água só para teste; na etapa 3 fica sem poder de
@@ -331,8 +331,9 @@ Milena decidir e anote a decisão na frente.
 - [ ] **Elementos diferentes da astrologia comum** (ex.: Áries de Água). Foi de propósito? Se
   sim, explicar no mundo; se não, usar Fogo = Áries, Leão, Sagitário; Terra = Touro, Virgem,
   Capricórnio; Ar = Gêmeos, Libra, Aquário; Água = Câncer, Escorpião, Peixes.
-- [ ] **Herói de Fogo, Libra ou Sagitário:** p. 1 circula Libra; p. 4 desenha a constelação de
-  Sagitário. (Decidido em 2026-11-07: o 4º jogador é o humano, sem constelação.)
+- [x] **Herói de Fogo, Libra ou Sagitário:** p. 1 circula Libra; p. 4 desenha a constelação de
+  Sagitário. Decidido pela Milena em 2026-11-08: **Sagitário**. (Em 2026-11-07: o 4º jogador é o
+  humano, sem constelação.) Falta acertar a p. 1 do caderno, que circula Libra.
 - [ ] **"O humano" ou "a humana"** (p. 5 diz "a humana").
 - [ ] **50 ou 100 anos:** renascem 100 anos depois da morte (p. 2), mas "pela primeira vez em 50
   anos todos nascem juntos" (p. 3). Sugestão: eles "despertam" adultos em vez de "nascer".

@@ -263,7 +263,7 @@ Aries, Sagittarius, Capricorn and Cancer, the Cancer one faded and almost invisi
 bright dots connected by thin lines of light.
 ```
 
-*(Trocar Sagittarius por Libra se ela decidir que o quarto jogador é de Libra.)*
+*(Sagitário confirmado pela Milena em 2026-11-08.)*
 
 ### A lista do portão (p. 12)
 

@@ -34,7 +34,7 @@ window.HEROIS = {
     marca: true, sprite: 'herois/agua',
   },
   fogo: {
-    nome: 'Herói de Fogo', signo: 'Libra ou Sagitário', elemento: 'fogo', disponivel: false,
+    nome: 'Herói de Fogo', signo: 'Sagitário', elemento: 'fogo', disponivel: false,
     descricao: '(a definir pela Milena)',
     attr: { V: 2, F: 3, I: 2, A: 2 }, poder: 'fogo',
     cores: { capa: '#7a1e10', roupa: '#d4471a', cinto: '#ffcf6a', pele: '#e8bf98', cabelo: '#3a1408' },
