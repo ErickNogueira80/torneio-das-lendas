@@ -60,12 +60,12 @@ window.HEROIS = {
    perfura: atravessa inimigos. Contra cada inimigo ou chefe, o dano é multiplicado pela resistência
    dele àquele elemento (ver resist em fases.js; 0 = imune). */
 window.PODERES = {
-  agua: { nome: 'água', custo: 10, recarga: 0.28, velocidade: 640, raio: 10, vida: 1.1, dano: { base: 5, mult: 3, attr: 'I' }, gravidade: 0,
+  agua: { corLuz: '150,210,255', nome: 'água', custo: 10, recarga: 0.28, velocidade: 640, raio: 10, vida: 1.1, dano: { base: 5, mult: 3, attr: 'I' }, gravidade: 0,
     cores: ['#ffffff', '#9fe0ff', '#2f86d6'], rastro: ['#e8f4ff', '#bfe0ff', '#9cc7ef'] },
-  fogo: { nome: 'fogo', custo: 10, recarga: 0.3, velocidade: 600, raio: 11, vida: 1.0, dano: { base: 6, mult: 3, attr: 'F' }, gravidade: 0,
+  fogo: { corLuz: '255,150,50', nome: 'fogo', custo: 10, recarga: 0.3, velocidade: 600, raio: 11, vida: 1.0, dano: { base: 6, mult: 3, attr: 'F' }, gravidade: 0,
     cores: ['#fff3c0', '#ffb02e', '#e2401a'], rastro: ['#ffd36b', '#ff9a2e', '#ff5a1a'] },
-  terra: { nome: 'pedra', custo: 12, recarga: 0.45, velocidade: 480, raio: 14, vida: 1.4, dano: { base: 8, mult: 3, attr: 'V' }, gravidade: 500, salto: -260,
+  terra: { corLuz: '210,170,120', nome: 'pedra', custo: 12, recarga: 0.45, velocidade: 480, raio: 14, vida: 1.4, dano: { base: 8, mult: 3, attr: 'V' }, gravidade: 500, salto: -260,
     cores: ['#c8b08a', '#8a6a44', '#4a3420'], rastro: ['#8a6a44', '#5a4430', '#c8b08a'] },
-  ar: { nome: 'vento', custo: 8, recarga: 0.22, velocidade: 820, raio: 9, vida: 0.7, dano: { base: 4, mult: 3, attr: 'A' }, gravidade: 0, perfura: true,
+  ar: { corLuz: '210,240,255', nome: 'vento', custo: 8, recarga: 0.22, velocidade: 820, raio: 9, vida: 0.7, dano: { base: 4, mult: 3, attr: 'A' }, gravidade: 0, perfura: true,
     cores: ['#ffffff', '#e8f0ff', '#a8c0e8'], rastro: ['#ffffff', '#dfe8f8', '#c8d4e8'] },
 };

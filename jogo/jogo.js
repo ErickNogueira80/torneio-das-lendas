@@ -347,6 +347,14 @@ CHEFES.boitata = (() => {
       for (let i = 0; i < b.segs.length; i++) { const s = b.segs[i]; if (Math.hypot(x - s.x, y - s.y) < segR(i) + r) return { x: s.x, y: s.y, mult: .7 }; }
       return null;
     },
+    // pontos de luz do chefe no escuro: [x, y, raio, 'R,G,B'] em coordenadas do mundo
+    luzes(b) {
+      if (b.dead && b.popped > b.segs.length) return [];
+      const L = [[b.hx, b.hy, 230 + Math.sin(time * 9) * 12, '255,150,50']];
+      const vivos = b.dead ? b.segs.length - b.popped : b.segs.length;
+      for (let i = 2; i < vivos; i += 3) L.push([b.segs[i].x, b.segs[i].y, 120, '255,110,30']);
+      return L;
+    },
     acertoRet(b, rr) {
       if (circleRect(b.hx, b.hy, 32, rr)) return { x: b.hx, y: b.hy, mult: 1.5 };
       for (let i = 0; i < b.segs.length; i++) { const s = b.segs[i]; if (circleRect(s.x, s.y, segR(i), rr)) return { x: s.x, y: s.y, mult: .7 }; }
@@ -771,6 +779,57 @@ function drawWorld() {
   }
 }
 
+// ---------- luz (estilo Lanterna) ----------
+// O mundo fica no escuro e só aparece em volta das fontes de luz: o herói, o fogo, os poderes,
+// os inimigos que brilham e o chefe. A escuridão é uma camada em meia resolução com "furos"
+// suaves; por cima vai um brilho colorido somado. ?semluz desliga.
+const ESCURO = params.has('semluz') ? 0 : (FASE.escuridao ?? 0);
+let luzCv = null, luzCtx = null;
+function luzes() {
+  const L = [], p = player, f = Math.sin(time * 7) * 4 + Math.sin(time * 13) * 2;
+  // [x na tela, y, raio, cor 'R,G,B' ou null, força do brilho colorido]
+  L.push([p.x + p.w / 2 - camX, p.y + p.h / 2, 200 + f, '255,225,180', .14]);
+  L.push([760, 120, 150, null, 0]);   // a lua
+  for (const o of shots) L.push([o.x - camX, o.y, 90, PODER.corLuz || '150,210,255', .5]);
+  for (const b of fireballs) L.push([b.x - camX, b.y, 130, '255,140,40', .55]);
+  for (const e of enemies) if (!e.dead && e.T.luz) L.push([e.x + e.w / 2 - camX, e.y + e.h / 2, e.T.luz + f, e.T.corLuz || '255,150,60', .4]);
+  for (const hz of HAZARDS) for (let x = hz.x + 25; x < hz.x + hz.w; x += 50) L.push([x - camX, GROUND - 10, 95 + f, '255,120,30', .4]);
+  CHECKS.forEach((c, i) => { if (i > 0) L.push([c + 2 - camX, GROUND - 50, i <= checkpoint ? 110 : 60, i <= checkpoint ? '160,220,255' : null, .3]); });
+  if (bossActive && boss && CHEFE.luzes) for (const [x, y, r, cor] of CHEFE.luzes(boss)) L.push([x - camX, y, r, cor, .45]);
+  if (pendant) L.push([pendant.x - camX, pendant.y, 120, '220,230,255', .45]);
+  return L.filter(l => l[0] > -l[2] && l[0] < W + l[2] && l[1] > -l[2] && l[1] < H + l[2]);
+}
+function drawLuz() {
+  if (ESCURO <= 0 || typeof document === 'undefined') return;
+  const k = .5;
+  if (!luzCv) { luzCv = document.createElement('canvas'); luzCv.width = W * k; luzCv.height = H * k; luzCtx = luzCv.getContext('2d'); }
+  const c = luzCtx, L = luzes();
+  c.globalCompositeOperation = 'source-over';
+  c.clearRect(0, 0, luzCv.width, luzCv.height);
+  c.fillStyle = `rgba(6,3,14,${ESCURO})`; c.fillRect(0, 0, luzCv.width, luzCv.height);
+  c.globalCompositeOperation = 'destination-out';
+  for (const [x, y, r] of L) {
+    const g = c.createRadialGradient(x * k, y * k, 0, x * k, y * k, r * k);
+    g.addColorStop(0, 'rgba(0,0,0,1)'); g.addColorStop(.45, 'rgba(0,0,0,.75)'); g.addColorStop(1, 'rgba(0,0,0,0)');
+    c.fillStyle = g; c.fillRect((x - r) * k, (y - r) * k, 2 * r * k, 2 * r * k);
+  }
+  ctx.drawImage(luzCv, 0, 0, W, H);
+  ctx.save(); ctx.globalCompositeOperation = 'lighter';
+  for (const [x, y, r, cor, forca] of L) {
+    if (!cor || !forca) continue;
+    const g = ctx.createRadialGradient(x, y, 0, x, y, r * .8);
+    g.addColorStop(0, `rgba(${cor},${forca * .35})`); g.addColorStop(1, `rgba(${cor},0)`);
+    ctx.fillStyle = g; ctx.fillRect(x - r, y - r, 2 * r, 2 * r);
+  }
+  // bordas de brasa: o chão e as plataformas continuam legíveis no escuro (o buraco é onde não há brilho)
+  const pulso = .75 + Math.sin(time * 2.2) * .25;
+  ctx.fillStyle = `rgba(255,120,45,${.32 * pulso})`;
+  for (const s of SOLIDS) { const x = s.x - camX; if (x < W && x + s.w > 0) ctx.fillRect(x, s.y, s.w, 2); }
+  ctx.fillStyle = `rgba(255,150,70,${.5 * pulso})`;
+  for (const q of PLATS) { const x = q.x - camX; if (x < W && x + q.w > 0) ctx.fillRect(x + 4, q.y, q.w - 8, 2); }
+  ctx.restore();
+}
+
 // t = índice do quadro. Golpes, dano, pulo e morte avançam pelo progresso (0 a 1) e param no
 // último quadro; parado e corrida repetem.
 const QUADROS_ANTIGOS = 2;   // imagens pintadas: espada com 2 quadros
@@ -1083,6 +1142,7 @@ function draw() {
   if (bossActive && boss) CHEFE.desenhar(boss);
   drawPlayer(); drawProjectiles(); drawParticles();
   ctx.restore();
+  drawLuz();
   drawHUD(); drawTouch();
   if (state === 'levelup') drawLevelUp();
   if (state === 'dead') drawDead();

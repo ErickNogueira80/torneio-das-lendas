@@ -3,16 +3,19 @@
    O comportamento de cada chefe fica no motor (CHEFES em jogo.js); aqui ficam só os números. */
 
 /* Tipos de inimigo comuns. mov: 'patrulha' (anda de um lado a outro entre x1 e x2) ou
-   'voo' (flutua em volta do ponto x, y). resist: multiplicador de dano por elemento (0 = imune). */
+   'voo' (flutua em volta do ponto x, y). resist: multiplicador de dano por elemento (0 = imune).
+   luz: raio da luz que o inimigo espalha no escuro; corLuz: cor dela em 'R,G,B'. */
 window.INIMIGOS = {
-  brasa: { nome: 'Brasa', mov: 'patrulha', w: 26, h: 26, dano: 8, xp: 10, sprite: 'inimigos/brasa',
+  brasa: { nome: 'Brasa', mov: 'patrulha', w: 26, h: 26, dano: 8, xp: 10, sprite: 'inimigos/brasa', luz: 90, corLuz: '255,140,50',
     resist: { agua: 1.5, fogo: 0, terra: 1, ar: 1, espada: 1 } },
-  vagalume: { nome: 'Vaga-lume de fogo', mov: 'voo', w: 22, h: 22, dano: 6, xp: 15, sprite: 'inimigos/vagalume',
+  vagalume: { nome: 'Vaga-lume de fogo', mov: 'voo', w: 22, h: 22, dano: 6, xp: 15, sprite: 'inimigos/vagalume', luz: 80, corLuz: '255,200,90',
     resist: { agua: 1.5, fogo: 0, terra: 1, ar: 1.2, espada: 1 } },
 };
 
 window.FASES = {
   boitata: {
+    // escuridão do estilo Lanterna: 0 = sem escuro, 1 = breu (só se vê onde há luz)
+    escuridao: 0.78,
     id: 'boitata',
     nome: 'A floresta do Boitatá',
     imagemTitulo: '../web/locais/03-a-chegada-ao-mundo-espiritual.jpg',

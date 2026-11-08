@@ -87,10 +87,15 @@ Pessoal (família).
   bola de fogo e perdem a espada), `dano` (taking damage, 3-5) e `morrer` (dying, mostrado ao ser
   derrotado). A escolha dos quadros fica em `img/sprites/ajustes.json`; os GIFs originais, em
   `pixellab/`. O boneco tem 62 px de altura no jogo, ampliado sem borrar.
+- **Luz no escuro (estilo Lanterna, 2026-11-08):** cada fase tem `escuridao` (0 a 1; o Boitatá
+  usa 0,78). Só se vê em volta das fontes de luz: o herói, a lua, os poderes (`corLuz` em
+  `PODERES`), os inimigos (`luz` e `corLuz` em `INIMIGOS`), o chão em chamas, os pontos de
+  controle, o pingente e o chefe (função `luzes` no módulo do chefe). O chão e as plataformas têm
+  uma borda de brasa que brilha no escuro, para os pulos continuarem legíveis.
 - **Parâmetros de teste:** `?heroi=agua|fogo|terra` testa outro herói (`?heroi=ar` é o humano
   desperto); `?fase=<chave>`;
   `?boss` começa no chefe; `?demo` joga sozinho; `&ff=600` avança 600 quadros; `&touch` mostra os
-  botões no computador; `?semimagens` ignora as imagens.
+  botões no computador; `?semimagens` ignora as imagens; `?semluz` tira a escuridão.
 - **Elementos contra o Boitatá:** água 1,2× (e apaga as bolas de fogo), pedra e vento 0,8×, fogo
   é absorvido (o herói de fogo precisa da espada nessa fase).
 - **Plano:** etapa 1 (motor separado em dados, imagens com reserva, ferramenta e prompts) feita
