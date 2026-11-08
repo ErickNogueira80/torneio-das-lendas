@@ -449,6 +449,35 @@ Very wide image, aspect ratio 4:1.
 Dicas: anexe o tronco aprovado nos pedidos da raiz e do galho ("same bark, same colors as the
 attached trunk"). Se o galho vier com algo saindo para cima, me mande assim mesmo: eu corto.
 
+## 4.2 Ponto de controle: o Altar da Constelação
+
+Ideia original com o clima de "lugar seguro" dos jogos de ação sombrios (luz dourada calma,
+faíscas subindo), sem copiar nenhum: uma espada antiga cravada numa pedra com uma constelação
+gravada. Duas imagens; o jogo faz a tremulação, as faíscas e a luz. Salvar em
+`img/sprites/objetos/altar/`.
+
+**`apagada.png`** (1:1)
+
+```
+Create an image. An original ancient checkpoint shrine for a dark fantasy 2D side-scrolling game:
+an old straight sword with a worn crossguard plunged vertically into a small round mound of grey
+ash and cracked stone. The stone base has faint carved star symbols connected by thin lines, like
+a constellation, dark and cold. A few dead embers in the ash, no flame, no glow. Side view,
+centered, full object visible, plain solid #00FF00 green background, no shadow, no ground, no
+text. Painterly 2D game art style, dark burned forest mood. Square image, aspect ratio 1:1.
+```
+
+**`acesa.png`** (1:1, com a apagada anexada)
+
+```
+Create an image. The exact same sword shrine as the attached image, same shape, same position and
+same size, but now awakened: a soft calm golden flame wraps around the base of the sword, warm
+golden light rises along the blade, the carved constellation stars on the stone glow bright gold,
+and small golden sparks float upward. Peaceful and sacred feeling, not aggressive fire. Side
+view, centered, plain solid #00FF00 green background, no shadow, no ground, no text. Painterly 2D
+game art style. Square image, aspect ratio 1:1.
+```
+
 ## 5. Ficha dos 3 heróis com constelação (para a Milena)
 
 O humano já está definido (o 4º jogador, sem constelação). Antes das imagens de cada herói dos
