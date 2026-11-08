@@ -334,6 +334,45 @@ glowing deep in the throat. Side view, facing right, plain solid #00FF00 green b
 shadow, no text. Painterly 2D game art style. Square image, aspect ratio 1:1.
 ```
 
+### 2.1 Boitatá no PixelLab (pixel art nativo, mais nítido)
+
+A versão do Gemini, reduzida para pixel art, ficou borrada. No PixelLab as peças já nascem em
+pixel art. Usar a geração de **imagem** (não "Create Character"): são peças paradas, o jogo é que
+mexe a cobra. Fundo **transparente**, vista lateral. Salvar os PNG em `img/sprites/chefes/boitata/`
+com os nomes abaixo (a ferramenta usa como vieram, sem reduzir).
+
+**`cabeca.png`** (64×64)
+
+```
+Head of a giant fire serpent boss (Boitata from Brazilian folklore), side view facing right,
+charred black and dark red scales with glowing orange lava cracks, big burning yellow eye, mouth
+slightly open with sharp fangs, small flames on top of the head, cut at the neck on the left.
+Dark fantasy, 16-bit detailed pixel art, black outline, transparent background.
+```
+
+**`cabeca_ataque.png`** (64×64, usar a cabeça como referência/inpainting se der)
+
+```
+Same fire serpent head, side view facing right, mouth wide open roaring, fangs visible, bright
+fireball glowing in the throat. 16-bit detailed pixel art, black outline, transparent background.
+```
+
+**`gomo.png`** (32×32)
+
+```
+One round body segment of the same fire serpent seen from the side, solid and filled (not a ring),
+charred black and dark red scales with glowing orange lava cracks, small embers on top.
+16-bit detailed pixel art, black outline, transparent background.
+```
+
+**`rabo.png`** (32×32)
+
+```
+Tail tip of the same fire serpent, side view, tapering to a burning point that points LEFT,
+charred black and dark red scales with glowing lava cracks, the tip turning into a small flame.
+16-bit detailed pixel art, black outline, transparent background.
+```
+
 ---
 
 ## 3. Inimigos pequenos

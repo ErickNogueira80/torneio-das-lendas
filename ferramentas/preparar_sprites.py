@@ -321,10 +321,14 @@ def preparar_partes(pasta: Path) -> dict | None:
         nome = arq.stem.lower()
         if arq.suffix.lower() not in EXTS or nome not in PARTES_LADO:
             continue
-        im = cortar(_sem_verde(remover_fundo(Image.open(arq))))
-        lado = PARTES_PIXEL[nome]
-        f = lado / max(im.width, im.height)
-        px = pixelizar(im, max(1, round(im.width * f)), max(1, round(im.height * f)), 40)
+        original = Image.open(arq)
+        im = cortar(_sem_verde(remover_fundo(original)))
+        if max(original.size) <= 160:
+            px = im   # já é pixel art (ex.: PixelLab): usa como veio, sem reduzir de novo
+        else:
+            lado = PARTES_PIXEL[nome]
+            f = lado / max(im.width, im.height)
+            px = pixelizar(im, max(1, round(im.width * f)), max(1, round(im.height * f)), 40)
         if nome == "gomo":
             px = tapar_buracos(px)
         itens.append((nome, px))
