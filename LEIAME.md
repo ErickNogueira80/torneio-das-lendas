@@ -141,6 +141,10 @@ Pessoal (família).
   escapa-se pulando ou ficando longe. Na fúria (< 35%): mais rápido, 5 bolas por rajada e bote
   duplo. Cabeça vale 1,5×, pescoço 0,8×, rolo 0,6×; encostar no rolo queima. Morre virando pó
   da cabeça ao rolo. Sem a imagem `corpo` (seção 2.2 dos prompts), o rolo é uma espiral de gomos.
+  Com o `corpo.jpg` (o fundo veio como um xadrez cinza desenhado; a ferramenta apaga o xadrez
+  ligado à borda), o rolo tem 340 px de largura na tela; a ferramenta mede o toco do pescoço no alto
+  da imagem e o pescoço (gomos que se multiplicam ao esticar) sai dali. As posições da cabeça
+  (descanso, rajada, aviso do bote) são relativas a esse toco.
 - **Inimigos do PixelLab (2026-11-08):** brasa (`andar`, `parado`; 34 px no jogo) e vaga-lume
   (`voar`, uma vespa de fogo; 40 px, sempre virada para o herói). Originais em `originais/`.
 - **Sombra (2026-11-08):** fica no chão ou no galho embaixo do herói, menor e mais clara quanto

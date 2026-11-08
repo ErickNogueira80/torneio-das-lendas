@@ -58,7 +58,7 @@ PERSONAGEM = {
 ALTURA_ESPECIFICA = {"inimigos/vagalume": 34}
 PARTES_LADO = {"cabeca": 256, "cabeca_ataque": 256, "gomo": 160, "rabo": 128, "corpo": 256}   # maior lado (sem pixel)
 # peças do chefe em pixel art: maior lado em px da arte (o jogo amplia; mesmo estilo do resto)
-PARTES_PIXEL = {"cabeca": 46, "cabeca_ataque": 46, "gomo": 26, "rabo": 26, "corpo": 160}
+PARTES_PIXEL = {"cabeca": 46, "cabeca_ataque": 46, "gomo": 26, "rabo": 26, "corpo": 200}
 # Fundos em pixel art: cada pixel da arte vira 2x2 na tela virtual (FUNDO_PIXEL). Alturas na
 # resolução da arte: céu 270 (tela 540), longe 180 (360), perto 210 (420), chão 128 (ladrilho 256).
 FUNDO_PIXEL = 2
@@ -296,6 +296,25 @@ def preparar_personagem(grupo: str, pasta: Path, ajustes: dict) -> dict | None:
     return r
 
 
+def tirar_xadrez(im: Image.Image) -> Image.Image:
+    """Algumas IAs desenham o xadrez da transparência como fundo de verdade. Apaga os quadrados
+    cinza (pouca cor) ligados à borda da imagem, sem tocar no desenho."""
+    a = np.asarray(im.convert("RGBA")).copy()
+    rgb = a[:, :, :3].astype(np.int32)
+    cinza = (rgb.max(axis=2) - rgb.min(axis=2) < 16) & (rgb.mean(axis=2) > 34)
+    fora = np.zeros(cinza.shape, bool)
+    fora[0, :] = cinza[0, :]; fora[-1, :] = cinza[-1, :]; fora[:, 0] = cinza[:, 0]; fora[:, -1] = cinza[:, -1]
+    while True:
+        c = fora.copy()
+        c[1:] |= fora[:-1]; c[:-1] |= fora[1:]; c[:, 1:] |= fora[:, :-1]; c[:, :-1] |= fora[:, 1:]
+        c &= cinza
+        if (c == fora).all():
+            break
+        fora = c
+    a[fora, 3] = 0
+    return Image.fromarray(a, "RGBA")
+
+
 def tapar_buracos(im: Image.Image, cor=(232, 96, 26)) -> Image.Image:
     """Buracos transparentes cercados de desenho (ex.: o miolo do anel do gomo) viram lava."""
     a = np.asarray(im).copy()
@@ -322,7 +341,11 @@ def preparar_partes(pasta: Path) -> dict | None:
         if arq.suffix.lower() not in EXTS or nome not in PARTES_LADO:
             continue
         original = Image.open(arq)
-        im = cortar(_sem_verde(remover_fundo(original)))
+        borda = np.concatenate([np.asarray(original.convert("RGB"))[0], np.asarray(original.convert("RGB"))[:, 0]]).astype(int)
+        if original.mode != "RGBA" and np.median(borda.max(axis=1) - borda.min(axis=1)) < 16:
+            im = cortar(tirar_xadrez(original))          # fundo de xadrez cinza desenhado
+        else:
+            im = cortar(_sem_verde(remover_fundo(original)))
         if max(original.size) <= (260 if nome == "corpo" else 160):
             px = im   # já é pixel art (ex.: PixelLab): usa como veio, sem reduzir de novo
         else:
@@ -349,6 +372,13 @@ def preparar_partes(pasta: Path) -> dict | None:
             ys, xs = np.where(sub)
             if len(xs):
                 pescocos[n] = [round(float(xs.mean()) / w, 3), round((float(ys.mean()) + int(h * .55)) / h, 3)]
+    # corpo enrolado: ponto de onde sai o pescoço (o topo do desenho), em fração da imagem
+    for n, im in itens:
+        if n == "corpo":
+            al = np.asarray(im)[:, :, 3] > 0
+            ys, xs = np.where(al)
+            topo = ys.min(); faixa = xs[ys <= topo + max(2, im.height // 25)]
+            pescocos["corpo"] = [round(float(faixa.mean()) / im.width, 3), round((topo + im.height * .03) / im.height, 3)]
     return {"tipo": "partes", "pixel": True, "img": f"{chave}.png", "partes": {n: list(pos[n]) for n, _ in itens},
             "pescocos": pescocos}
 
