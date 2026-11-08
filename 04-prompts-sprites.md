@@ -565,6 +565,47 @@ background, no shadow, no text. Painterly 2D game art style, burned forest mood.
 aspect ratio 3:4.
 ```
 
+## 4.6 Barras e medalhão do HUD (Gemini)
+
+O Gemini desenha só a moldura; o jogo enche a barra por dentro (com o rastro do dano). A parte de
+dentro vem pintada de magenta lisa (#FF00FF), sobre fundo verde: a ferramenta usa o magenta para
+saber onde vai o enchimento, deixa transparente e corta a moldura em 3 pedaços (pontas e meio, que
+estica), para servir em barras de qualquer largura. Salvar em `img/sprites/hud/`. Gerar a do chefe
+primeiro e anexar nas outras.
+
+**`barra_chefe.png`** (8:1)
+
+```
+Create an image. An ornate horizontal boss health bar frame for a dark fantasy game UI: dark
+blackened iron with fine gold filigree, small flame-shaped ornaments and a sharp pointed tip at
+each end, a small gem socket in the middle of the top edge. The long empty channel inside the frame
+(where the health fills) must be painted plain solid flat magenta #FF00FF, perfectly rectangular,
+with no gradient and no details inside. Straight and perfectly horizontal, front view, centered,
+plain solid #00FF00 green background outside the frame, no text, no numbers, no shadow. Painterly
+2D game UI art. Very wide image, aspect ratio 8:1.
+```
+
+**`barra_heroi.png`** (8:1, com a do chefe anexada)
+
+```
+Create an image. A smaller horizontal health bar frame in the same style as the attached boss bar:
+dark blackened iron with fine gold filigree, small diamond-shaped ornaments at each end, simpler
+and thinner. The empty channel inside the frame must be painted plain solid flat magenta #FF00FF,
+perfectly rectangular, no gradient, no details inside. Perfectly horizontal, front view, centered,
+plain solid #00FF00 green background outside the frame, no text, no numbers, no shadow. Painterly
+2D game UI art. Very wide image, aspect ratio 8:1.
+```
+
+**`medalhao.png`** (1:1, com a do chefe anexada)
+
+```
+Create an image. A round ornate medallion frame in the same style as the attached bar: dark
+blackened iron ring with fine gold filigree and four small gold points like a compass. The empty
+circle in the center must be painted plain solid flat magenta #FF00FF, no details inside. Front
+view, centered, plain solid #00FF00 green background outside, no text, no numbers, no shadow.
+Painterly 2D game UI art. Square image, aspect ratio 1:1.
+```
+
 ## 5. Ficha dos 3 heróis com constelação (para a Milena)
 
 O humano já está definido (o 4º jogador, sem constelação). Antes das imagens de cada herói dos
