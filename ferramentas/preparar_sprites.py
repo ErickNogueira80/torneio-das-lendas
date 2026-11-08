@@ -12,7 +12,8 @@ Estrutura esperada (nomes sem acento, minúsculos):
   img/sprites/fundos/<fase>/<camada>.png            ex.: fundos/boitata/ceu.png, longe.png, perto.png, chao.png
 
 Animações reconhecidas: parado, correr, pular, cair, espada, poder, dano, andar, voar.
-Arquivos com outros nomes (ex.: retrato.png) são ignorados.
+`retrato.png` dos heróis vira `jogo/sprites/herois/<heroi>_retrato.png` (sem fundo, até 512 px de
+altura), para a tela de escolha de herói. Arquivos com outros nomes são ignorados.
 
 Folha com várias poses: `<animacao>_folha.png` (ex.: correr_folha.png) com as poses lado a lado
 (ou em linhas), separadas por fundo livre. A ferramenta recorta cada pose, na ordem de leitura
@@ -196,8 +197,18 @@ def preparar_personagem(grupo: str, pasta: Path, ajustes: dict) -> dict | None:
         ax = ancora_pes(im) - float(aj.get("dx", 0))
         ay = im.height - float(aj.get("dy", 0))
         itens.append(((anim, n), nome, im, ax, ay))
+    retrato = None
+    for arq in pasta.iterdir():
+        if arq.stem.lower() == "retrato" and arq.suffix.lower() in EXTS:
+            im = cortar(remover_fundo(Image.open(arq)))
+            if im.height > 512:
+                im = im.resize((max(1, round(im.width * 512 / im.height)), 512), Image.LANCZOS)
+            retrato = f"{chave}_retrato.png"
+            (DESTINO / retrato).parent.mkdir(parents=True, exist_ok=True)
+            im.save(DESTINO / retrato, optimize=True)
+            print(f"  {chave}: retrato -> jogo/sprites/{retrato}")
     if not itens:
-        return None
+        return {"tipo": "personagem", "retrato": retrato, "quadros": {}} if retrato else None
     folha, pos = empacotar([(nome, im) for _, nome, im, _, _ in itens])
     saida = DESTINO / f"{chave}.png"
     saida.parent.mkdir(parents=True, exist_ok=True)
@@ -207,7 +218,10 @@ def preparar_personagem(grupo: str, pasta: Path, ajustes: dict) -> dict | None:
         x, y, w, h = pos[nome]
         quadros.setdefault(anim, []).append([x, y, w, h, round(ax, 1), round(ay, 1)])
     print(f"  {chave}: {len(itens)} quadros -> {saida.relative_to(RAIZ)} ({saida.stat().st_size // 1024} KB)")
-    return {"tipo": "personagem", "img": f"{chave}.png", "escala": round(altura_jogo / atlas_h, 4), "quadros": quadros}
+    r = {"tipo": "personagem", "img": f"{chave}.png", "escala": round(altura_jogo / atlas_h, 4), "quadros": quadros}
+    if retrato:
+        r["retrato"] = retrato
+    return r
 
 
 def preparar_partes(pasta: Path) -> dict | None:

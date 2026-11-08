@@ -73,7 +73,7 @@ no text, no numbers, no shadows.
 Salve no PC, dentro da pasta do projeto, com estes nomes (minúsculos, sem acento):
 
 ```
-img/sprites/herois/humano/retrato.png      (referência; não entra no jogo)
+img/sprites/herois/humano/retrato.png      (referência das poses e imagem da tela de escolha de herói)
 img/sprites/herois/humano/parado_1.png
 img/sprites/herois/humano/correr_1.png ... correr_4.png
 img/sprites/herois/humano/pular_1.png
@@ -195,7 +195,7 @@ Full body, side view facing right, centered, plain solid #00FF00 green backgroun
 no ground, no text, no frame.
 ```
 
-**`dano_1.png`**
+**`dano_1.png`** (opcional: o jogo já faz o recuo sozinho; é a pose que menos aparece)
 
 ```
 Create an image. Same character as the attached reference image, same outfit, colors and

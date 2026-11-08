@@ -88,7 +88,8 @@ Pessoal (família).
 - **Plano:** etapa 1 (motor separado em dados, imagens com reserva, ferramenta e prompts) feita
   em 2026-11-07. Etapa 2: gerar as imagens do humano, do Boitatá e do fundo; a Milena preencher a
   ficha dos 3 heróis com constelação. Etapa 3: tela de escolha de herói (o humano como modo
-  difícil), poderes e fraquezas por chefe, imagens dos heróis. Depois, as fases novas (uma por monstro do bestiário): cada uma é uma ficha nova
+  difícil), com o retrato de cada herói (`retrato.png`, que a ferramenta já leva para o jogo),
+  poderes e fraquezas por chefe, imagens dos heróis. Depois, as fases novas (uma por monstro do bestiário): cada uma é uma ficha nova
   em `fases.js` e um módulo de chefe novo em `CHEFES`.
 
 ## Como atualizar o portal
