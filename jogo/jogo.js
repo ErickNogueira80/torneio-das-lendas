@@ -293,12 +293,12 @@ CHEFES.boitata = (() => {
     return pts;
   }
   // com a imagem do corpo enrolado: o pescoço sai do toco desenhado no alto dela
-  const CORPO_W = 400, CORPO_AFUNDA = 40;   // a volta de baixo afunda no chão (não flutua)
+  const CORPO_W = 400, CORPO_AFUNDA = 75;   // a volta de baixo afunda no chão (não flutua)
   function topoCorpo(b) {
     const S = sprite(b.cfg.sprite), c = S && S.partes && S.partes.corpo, f = S && S.pescocos && S.pescocos.corpo;
     if (!c || !f || b.dead) return null;
     const k = CORPO_W / c[2], h = c[3] * k;
-    return { x: b.cx - CORPO_W / 2 + f[0] * CORPO_W, y: GROUND + CORPO_AFUNDA - h + f[1] * h + b.subir, r: 26 };
+    return { x: b.cx - CORPO_W / 2 + f[0] * CORPO_W, y: GROUND + CORPO_AFUNDA - h + (f[1] + .12) * h + b.subir, r: 26 };
   }
   // pescoço: curva do alto do rolo até a cabeça
   function pescoco(b) {
@@ -389,6 +389,8 @@ CHEFES.boitata = (() => {
         if (b.state === 'strike') hurtPlayer(D.veneno, b.hx, D.venenoSeg); else hurtPlayer(D.mordida, b.hx);
       }
       if (b.state !== 'enter' && circleRect(b.cx, GROUND - 70, 150, player)) hurtPlayer(D.mordida, b.cx);
+      if ((b.state === 'strikePrep' || b.state === 'strike') && Math.random() < dt * 30)   // veneno pingando das presas
+        particles.push({ x: b.hx + (Math.cos(b.ang) >= 0 ? 1 : -1) * rnd(10, 30), y: b.hy + 14, vx: rnd(-10, 10), vy: rnd(20, 60), life: .6, max: .6, c: Math.random() < .5 ? '#8dff6a' : '#c8ff9a', s: rnd(2, 3), g: 400 });
       if (Math.random() < dt * 22) particles.push({ x: b.hx + rnd(-30, 10), y: b.hy - 26, vx: rnd(-25, 25), vy: rnd(-140, -70), life: .8, max: .8, c: FIRE[(Math.random() * 3) | 0], s: rnd(2, 3.5), g: -30 });
       if (Math.random() < dt * (enraged(b) ? 30 : 18)) {
         const s = b.pts[(Math.random() * b.pts.length) | 0];
@@ -435,22 +437,6 @@ CHEFES.boitata = (() => {
           ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
         }
       };
-      // rolo: imagem própria se houver; senão, espiral de gomos (de baixo para cima)
-      if (corpo && !b.dead) {
-        const [qx, qy, qw, qh] = corpo, w = CORPO_W, k = w / qw;
-        ctx.imageSmoothingEnabled = !S.pixel;
-        const sg = ctx.createRadialGradient(b.cx - camX, GROUND + 6, 10, b.cx - camX, GROUND + 6, w * .62);
-        sg.addColorStop(0, 'rgba(0,0,0,.6)'); sg.addColorStop(1, 'rgba(0,0,0,0)');
-        ctx.fillStyle = sg; ctx.beginPath(); ctx.ellipse(b.cx - camX, GROUND + 6, w * .62, 26, 0, 0, Math.PI * 2); ctx.fill();
-        ctx.drawImage(S.image, qx, qy, qw, qh, Math.round(b.cx - camX - w / 2), Math.round(GROUND + CORPO_AFUNDA - qh * k + b.subir), w, qh * k);
-        ctx.imageSmoothingEnabled = true;
-      } else {
-        for (let i = 0; i < nRolo; i++) {
-          const s = b.pts[i], nx = b.pts[Math.min(i + 1, b.pts.length - 1)];
-          if (i % 3 === 0) flame(s.x - camX, s.y - s.r * .6, s.r * 1.1, s.r * (rage ? 1.7 : 1.25), time * 12 + i * 1.7);
-          gomo(s.x, s.y, s.r, Math.atan2(nx.y - s.y, nx.x - s.x));
-        }
-      }
       // pescoço: tubo contínuo com a faixa de escamas do rolo correndo ao longo dele
       const faixa = P && P.gomo_corpo;
       if (faixa && pp === 0) {
@@ -458,7 +444,7 @@ CHEFES.boitata = (() => {
         let acc = 0;
         // contorno preto, como o do rolo: um traço mais grosso por baixo da textura
         ctx.strokeStyle = '#080305'; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
-        for (let i = 2; i < chain.length - 1; i++) {   // perto do rolo não (lá o pescoço sai de dentro dele)
+        for (let i = 0; i < chain.length - 1; i++) {   // o começo fica escondido atrás do rolo
           const a0 = chain[i], a1 = chain[i + 1];
           ctx.lineWidth = (a0.r || 30) * 2 + 6;
           ctx.beginPath(); ctx.moveTo(Math.round(a0.x - camX), Math.round(a0.y)); ctx.lineTo(Math.round(a1.x - camX), Math.round(a1.y)); ctx.stroke();
@@ -485,6 +471,22 @@ CHEFES.boitata = (() => {
         if (!(P && P.gomo_corpo) && i % 5 === 2) flame(s.x - camX, s.y - s.r * .6, s.r * .8, s.r * (rage ? 1.3 : 1), time * 12 + i * 2.3);
         gomo(s.x, s.y, s.r, Math.atan2(nx.y - s.y, nx.x - s.x));
       }
+      // rolo: imagem própria se houver; senão, espiral de gomos (de baixo para cima)
+      if (corpo && !b.dead) {
+        const [qx, qy, qw, qh] = corpo, w = CORPO_W, k = w / qw;
+        ctx.imageSmoothingEnabled = !S.pixel;
+        const sg = ctx.createRadialGradient(b.cx - camX, GROUND + 6, 10, b.cx - camX, GROUND + 6, w * .62);
+        sg.addColorStop(0, 'rgba(0,0,0,.6)'); sg.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.fillStyle = sg; ctx.beginPath(); ctx.ellipse(b.cx - camX, GROUND + 6, w * .62, 26, 0, 0, Math.PI * 2); ctx.fill();
+        ctx.drawImage(S.image, qx, qy, qw, qh, Math.round(b.cx - camX - w / 2), Math.round(GROUND + CORPO_AFUNDA - qh * k + b.subir), w, qh * k);
+        ctx.imageSmoothingEnabled = true;
+      } else {
+        for (let i = 0; i < nRolo; i++) {
+          const s = b.pts[i], nx = b.pts[Math.min(i + 1, b.pts.length - 1)];
+          if (i % 3 === 0) flame(s.x - camX, s.y - s.r * .6, s.r * 1.1, s.r * (rage ? 1.7 : 1.25), time * 12 + i * 1.7);
+          gomo(s.x, s.y, s.r, Math.atan2(nx.y - s.y, nx.x - s.x));
+        }
+      }
       if (pp > 0) return;
       // cabeça
       ctx.save(); ctx.translate(Math.round(b.hx - camX), Math.round(b.hy));
@@ -498,7 +500,7 @@ CHEFES.boitata = (() => {
         const nomeC = ataque ? 'cabeca_ataque' : 'cabeca', [qx, qy, qw, qh] = P[nomeC];
         const [nx, ny, hc] = (S.pescocos && S.pescocos[nomeC]) || [.45, .5, .5];
         // o crânio fica um pouco mais alto que a grossura do fim do pescoço
-        const rFim = b.neck.length ? b.neck[b.neck.length - 1].r : 24, k = (rFim * 2.3) / (hc * qh);
+        const rFim = b.neck.length ? b.neck[b.neck.length - 1].r : 24, k = (rFim * 1.75) / (hc * qh);
         ctx.imageSmoothingEnabled = !S.pixel;
         const hx0 = -8 - nx * qw * k, hy0 = -ny * qh * k;
         ctx.drawImage(S.image, qx, qy, qw, qh, hx0, hy0, qw * k, qh * k);
@@ -510,7 +512,6 @@ CHEFES.boitata = (() => {
         }
         if (b.flash > 0) { ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = Math.min(1, b.flash * 3) * .6; ctx.drawImage(S.image, qx, qy, qw, qh, hx0, hy0, qw * k, qh * k); ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over'; }
         ctx.imageSmoothingEnabled = true;
-        if (venom) { ctx.fillStyle = 'rgba(140,255,100,.28)'; ctx.beginPath(); ctx.arc(30, 14, 20, 0, Math.PI * 2); ctx.fill(); }
       } else {
         flame(-6, -18, 40, rage ? 62 : 46, time * 10);
         const hg = ctx.createRadialGradient(0, 0, 2, 0, 0, 36);

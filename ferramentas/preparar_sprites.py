@@ -346,7 +346,20 @@ def ajustar_peca(nome: str, im: Image.Image) -> Image.Image:
     a = np.asarray(im).copy()
     h, w = a.shape[:2]
     if nome.startswith("cabeca"):
-        return cortar(im)                              # as cabeças atuais já vêm sem pescoço
+        # as cabeças atuais já vêm sem pescoço; tira as faíscas soltas (o jogo anima faíscas)
+        op = a[:, :, 3] > 0
+        def viz(m):
+            c = m.copy(); c[1:] |= m[:-1]; c[:-1] |= m[1:]; c[:, 1:] |= m[:, :-1]; c[:, :-1] |= m[:, 1:]; return c
+        ys, xs = np.where(op & (a[:, :, :3].max(axis=2) < 110))
+        if len(xs):
+            m = np.zeros_like(op); m[int(np.median(ys)), int(np.median(xs))] = True
+            while True:
+                c = viz(m) & op
+                if (c == m).all():
+                    break
+                m = c
+            a[~m, 3] = 0
+        return cortar(Image.fromarray(a, "RGBA"))
     if nome == "corpo_com_toco":
         al = a[:, :, 3] > 0
         tem = al.any(axis=0)

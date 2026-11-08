@@ -158,6 +158,10 @@ Pessoal (família).
   Acabamento: o rolo afunda 40 px no chão com uma sombra de contato (não flutua), o pescoço tem
   contorno preto como o rolo (menos na saída do rolo), e a cabeça tem chamas em pixel art
   animadas (`chamaPixel`) por cima das desenhadas, com faíscas subindo.
+  Ajuste seguinte: o rolo afunda 75 px; o pescoço é desenhado ANTES do rolo e nasce dentro dele
+  (o começo some atrás da volta de cima, inclusive no bote); a cabeça ficou menor (crânio 1,75× o
+  raio do fim do pescoço); as faíscas soltas do desenho da cabeça saíram (o jogo anima faíscas
+  subindo) e o veneno do bote é um pingar verde das presas.
 - **Inimigos do PixelLab (2026-11-08):** brasa (`andar`, `parado`; 34 px no jogo) e vaga-lume
   (`voar`, uma vespa de fogo; 40 px, sempre virada para o herói). Originais em `originais/`.
 - **Sombra (2026-11-08):** fica no chão ou no galho embaixo do herói, menor e mais clara quanto
