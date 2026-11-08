@@ -60,7 +60,10 @@ PARTES_LADO = {"cabeca": 256, "gomo": 160, "rabo": 128}   # maior lado de cada p
 # Fundos em pixel art: cada pixel da arte vira 2x2 na tela virtual (FUNDO_PIXEL). Alturas na
 # resolução da arte: céu 270 (tela 540), longe 180 (360), perto 210 (420), chão 128 (ladrilho 256).
 FUNDO_PIXEL = 2
-FUNDO_ALTURA = {"ceu": 270, "longe": 180, "perto": 210, "chao": 128}
+FUNDO_ALTURA = {"ceu": 270, "longe": 180, "perto": 210, "chao": 128,
+                # peças das árvores-plataforma (tela = o dobro): tronco que se repete na vertical,
+                # raiz da base e galho horizontal com o topo reto (onde se pisa)
+                "arvore_tronco": 150, "arvore_raiz": 40, "arvore_galho": 14}
 FUNDO_CORES = 32   # cores por camada (paleta limitada, cara de 16 bits)
 
 
@@ -336,7 +339,7 @@ def preparar_fundo(pasta: Path, ajustes: dict) -> dict | None:
         aj = ajustes.get(f"{chave}/{nome}", {})
         if aj.get("corteTopo"):            # ex.: tirar a crosta clara de cima do chão
             im = im.crop((0, round(im.height * float(aj["corteTopo"])), im.width, im.height))
-        transparente = nome in ("longe", "perto")
+        transparente = nome in ("longe", "perto") or nome.startswith("arvore_")
         if transparente:
             borda = np.concatenate([np.asarray(im.convert("RGB"))[0], np.asarray(im.convert("RGB"))[:, 0]])
             fundo_verde = int(np.argmax(np.median(borda, axis=0))) == 1
@@ -351,6 +354,8 @@ def preparar_fundo(pasta: Path, ajustes: dict) -> dict | None:
                 im = Image.fromarray(a, "RGBA")
         else:
             im = im.convert("RGB")
+        if nome.startswith("arvore_"):
+            im = cortar(im)          # peças soltas: corta a sobra transparente em volta
         alvo = FUNDO_ALTURA[nome]
         largura = max(1, round(im.width * alvo / im.height))
         im = pixelizar(im, largura, alvo, int(aj.get("cores", FUNDO_CORES)))

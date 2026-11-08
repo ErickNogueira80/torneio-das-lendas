@@ -188,6 +188,7 @@ let state = 'title';          // title | play | levelup | dead | victory
 let checkpoint = 0, camX = 0, time = 0, playTime = 0, falls = 0, pendingLevels = 0;
 let enemies = [], shots = [], fireballs = [], particles = [], texts = [];
 let boss = null, bossActive = false, bossDefeated = false, pendant = null, banner = 0, victoryT = 0;
+let baus = [];   // baús da fase (abertos continuam abertos até um novo jogo)
 let shake = 0;
 
 function makeEnemies() {
@@ -205,11 +206,13 @@ function newGame() {
   enemies = makeEnemies();
   checkpoint = 0; playTime = 0; falls = 0; pendingLevels = 0;
   bossDefeated = false; pendant = null;
+  baus = (FASE.baus || []).map(b => ({ ...b, aberto: false, t: 0 }));
   if (START_BOSS) {
     checkpoint = CHECKS.length - 1; enemies = [];
     player.lvl = 3; for (const k of ['V', 'F', 'I']) player.attr[k] += 1;
   }
   respawn();
+  if (params.has('x')) { player.x = +params.get('x'); camX = clamp(player.x - W * 0.4, 0, LEVEL_END - W); }   // teste: começar em x
   state = 'play';
 }
 
@@ -624,6 +627,16 @@ function update(dt) {
   if (bossActive && boss) CHEFE.atualizar(boss, dt);
   banner = Math.max(0, banner - dt);
 
+  for (const b of baus) {
+    b.t += dt;
+    if (!b.aberto && overlap(player, { x: b.x - 14, y: b.y - 20, w: 28, h: 20 })) {
+      b.aberto = true; b.t = 0;
+      burst(b.x, b.y - 14, 30, ['#ffe28a', '#f5c542', '#fff6d0'], 220, 1, 120, 3);
+      floatText(b.x - 60, b.y - 40, b.texto || 'Baú!', '#ffe28a');
+      if (b.cura) { player.hp = maxHp(); player.pe = maxPe(); player.poison = 0; }
+      if (b.xp) gainXp(b.xp, b.x, b.y - 10);
+    }
+  }
   if (pendant) {
     pendant.t += dt;
     if (pendant.y < GROUND - 26) { pendant.vy += 600 * dt; pendant.y = Math.min(GROUND - 26, pendant.y + pendant.vy * dt); }
@@ -935,9 +948,17 @@ function piso() {
 // Plataformas vizinhas (vão menor que 130 px) dividem uma árvore: o tronco fica no vão e cada
 // plataforma vira um galho grosso saindo dele. Plataforma sozinha ganha tronco na ponta direita.
 // O topo de cada galho fica exatamente na altura da plataforma (a colisão não muda).
+// Com imagens da fase (arvore_tronco, arvore_raiz, arvore_galho em sprites/fundos/<fase>/), o jogo
+// monta cada árvore com elas: tronco repetido na vertical, raiz na base, galho esticado até a
+// largura da plataforma (espelhado quando vai para a esquerda). Sem imagens, desenha sozinho.
 let arvoresProntas = null;
+function pecasArvore() {
+  const F = FASE.fundo, t = layer(F, 'arvore_tronco'), g = layer(F, 'arvore_galho');
+  return t && g ? { t, g, r: layer(F, 'arvore_raiz') } : null;
+}
 function arvores() {
-  if (arvoresProntas) return arvoresProntas;
+  const pecas = pecasArvore();
+  if (arvoresProntas && (arvoresProntas.comImagem || !pecas)) return arvoresProntas;
   if (typeof document === 'undefined') return null;
   const lista = [...PLATS].sort((a, b) => a.x - b.x), grupos = [];
   for (const pl of lista) {
@@ -946,16 +967,35 @@ function arvores() {
   }
   const B = 2, q = v => Math.round(v / B) * B;
   const COR = { casca: '#2c1c17', sulco: '#1a0f0c', luz: '#4a3129', brilho: '#5e4034', brasa: '#ff7a2e' };
+  const z = fundoPixel() || 1;
   arvoresProntas = grupos.map((g, gi) => {
     const r = mulberry(100 + gi);
     let tx, tw;   // centro e largura do tronco
     if (g.length === 2) { const a = g[0].x + g[0].w, b = g[1].x; tx = (a + b) / 2; tw = clamp(b - a + 40, 64, 104); }
     else { tx = g[0].x + g[0].w + 18; tw = 66; }
+    if (pecas) tw = pecas.t.naturalWidth * z;
     const x0 = Math.floor(Math.min(...g.map(p => p.x), tx - tw) - 40), x1 = Math.ceil(Math.max(...g.map(p => p.x + p.w), tx + tw) + 40);
     const c = document.createElement('canvas'); c.width = x1 - x0; c.height = H;
     const ctx2 = c.getContext('2d'), R2 = (x, y, w, h, cor) => { ctx2.fillStyle = cor; ctx2.fillRect(q(x - x0), q(y), Math.max(B, q(w)), Math.max(B, q(h))); };
     const sobreChao = SOLIDS.some(s => tx >= s.x && tx < s.x + s.w && s.y >= GROUND - 1);
     const pe = sobreChao ? GROUND + 8 : H;
+    if (pecas) {   // ---- montagem com as imagens
+      ctx2.imageSmoothingEnabled = false;
+      const { t, g: gal, r: raiz } = pecas, th = t.naturalHeight * z;
+      let base = pe;
+      if (raiz && sobreChao) { const rw = raiz.naturalWidth * z, rh = raiz.naturalHeight * z; ctx2.drawImage(raiz, Math.round(tx - rw / 2 - x0), Math.round(pe - rh), rw, rh); base = pe - rh + 6; }
+      for (let y = base - th; y > -th; y -= th) ctx2.drawImage(t, Math.round(tx - tw / 2 - x0), Math.round(y), tw, th + 1);
+      if (raiz && sobreChao) { const rw = raiz.naturalWidth * z, rh = raiz.naturalHeight * z; ctx2.drawImage(raiz, Math.round(tx - rw / 2 - x0), Math.round(pe - rh), rw, rh); }
+      const gh = gal.naturalHeight * z;
+      for (const pl of g) {
+        const daDireita = pl.x > tx, ini = daDireita ? tx + tw * .3 : pl.x, fim = daDireita ? pl.x + pl.w : tx - tw * .3, L = fim - ini;
+        ctx2.save();
+        if (daDireita) ctx2.drawImage(gal, Math.round(ini - x0), pl.y, Math.round(L), gh);
+        else { ctx2.translate(Math.round(fim - x0), 0); ctx2.scale(-1, 1); ctx2.drawImage(gal, 0, pl.y, Math.round(L), gh); }
+        ctx2.restore();
+      }
+      return { c, x0 };
+    }
     // tronco: fica um pouco mais fino para cima, bordas tortas, sulcos verticais, rachaduras em brasa
     for (let y = 0; y < pe; y += B) {
       const k = y / pe, w = tw * (.78 + .22 * k) + (r() - .5) * 3;
@@ -1004,6 +1044,7 @@ function arvores() {
     }
     return { c, x0 };
   });
+  arvoresProntas.comImagem = !!pecas;
   return arvoresProntas;
 }
 
@@ -1013,6 +1054,27 @@ function relevo(x) {
   const y = P.topos.get(Math.floor(x / 4) * 4);
   return y === undefined ? 0 : clamp(y - GROUND, -14, 10);
 }
+
+// baú em pixel art (blocos de 2 px): madeira, cintas douradas e fechadura; aberto mostra o ouro
+function drawBaus() {
+  for (const b of baus) {
+    const x = Math.round(b.x - camX - 13), y = Math.round(b.y + relevoDe(b) - 18);
+    if (x < -40 || x > W + 40) continue;
+    const R = (dx, dy, w, h, c) => { ctx.fillStyle = c; ctx.fillRect(x + dx, y + dy, w, h); };
+    if (!b.aberto) {
+      R(0, 6, 26, 12, '#5a3418'); R(0, 0, 26, 8, '#6e4220'); R(2, 2, 22, 2, '#8a5a2c');   // corpo e tampa
+      R(0, 7, 26, 2, '#2a160a');                                                         // fresta
+      R(4, 0, 3, 18, '#c99a2e'); R(19, 0, 3, 18, '#c99a2e');                             // cintas
+      R(11, 6, 4, 5, '#f5d060'); R(12, 8, 2, 2, '#3a2408');                              // fechadura
+      if (Math.sin(b.t * 2.4) > .7) R(22, 1, 2, 2, '#fff6c0');                           // brilho de chamariz
+    } else {
+      R(0, 6, 26, 12, '#5a3418'); R(4, 6, 3, 12, '#c99a2e'); R(19, 6, 3, 12, '#c99a2e');
+      R(2, 4, 22, 4, '#ffd34a'); R(5, 2, 4, 2, '#fff0a0'); R(14, 3, 5, 2, '#fff0a0');      // ouro
+      R(0, -8, 26, 6, '#6e4220'); R(4, -8, 3, 6, '#c99a2e'); R(19, -8, 3, 6, '#c99a2e');   // tampa aberta
+    }
+  }
+}
+const relevoDe = b => (b.y >= GROUND - 1 ? relevo(b.x) : 0);
 
 function drawWorld() {
   const C = FASE.cores, chao = layer(FASE.fundo, 'chao');
@@ -1085,6 +1147,7 @@ function luzes() {
   CHECKS.forEach((c, i) => { if (i > 0) L.push([c + 2 - camX, GROUND - 50, i <= checkpoint ? 110 : 60, i <= checkpoint ? '160,220,255' : null, .3]); });
   if (bossActive && boss && CHEFE.luzes) for (const [x, y, r, cor] of CHEFE.luzes(boss)) L.push([x - camX, y, r, cor, .45]);
   if (pendant) L.push([pendant.x - camX, pendant.y, 120, '220,230,255', .45]);
+  for (const b of baus) L.push([b.x - camX, b.y - 10, b.aberto ? 110 : 70, '255,210,90', b.aberto ? .5 : .3]);
   return L.filter(l => l[0] > -l[2] && l[0] < W + l[2] && l[1] > -l[2] && l[1] < H + l[2]);
 }
 function drawLuz() {
@@ -1447,7 +1510,7 @@ function draw() {
   }
   const sh = shake > 0 ? shake * 14 : 0;
   ctx.save(); ctx.translate(rnd(-sh, sh), rnd(-sh, sh));
-  medir('fundo', drawBackground); medir('mundo', () => { drawWorld(); drawEnemies(); });
+  medir('fundo', drawBackground); medir('mundo', () => { drawWorld(); drawBaus(); drawEnemies(); });
   if (bossActive && boss) medir('chefe', () => CHEFE.desenhar(boss));
   medir('perso', () => { if (!piso()) drawChao(); drawPlayer(); drawProjectiles(); drawParticles(); });
   medir('frente', drawFrente);

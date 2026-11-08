@@ -404,6 +404,51 @@ from the side, the top edge slightly lighter like an ash crust.
 
 ---
 
+## 4.1 Árvores das plataformas (3 peças)
+
+Desde 2026-11-08 não há plataformas soltas: toda plataforma é um galho de uma árvore grande. Como
+cada tela tem galhos em alturas e larguras diferentes, a árvore vem em 3 peças que o jogo monta
+sozinho: o **tronco** (repetido na vertical até a altura que precisar), a **raiz** (a base) e o
+**galho** (esticado até a largura da plataforma e espelhado quando vai para a esquerda). Pode
+gerar no Gemini ou no ChatGPT, em estilo pintado: a ferramenta transforma em pixel art.
+
+Salvar em `img/sprites/fundos/boitata/` com estes nomes:
+
+**`arvore_tronco.png`** (vertical, 1:3)
+
+```
+Create an image. A straight vertical section of a huge old burned tree trunk from a dark fantasy
+forest, charred black-brown bark with deep vertical grooves, a few knots and thin glowing orange
+ember cracks. Only the middle of the trunk: no roots, no branches, no top. The top and bottom
+edges must match so the image can be repeated vertically (seamless vertical tile). Side view,
+straight and centered, plain solid #00FF00 green background on both sides, no shadow, no text.
+Painterly 2D game art style. Tall portrait image, aspect ratio 1:3.
+```
+
+**`arvore_raiz.png`** (horizontal, 2:1)
+
+```
+Create an image. The base of the same huge burned tree trunk with thick roots spreading to both
+sides and gripping the ground, charred black-brown bark, faint glowing ember cracks. The trunk is
+cut straight at the top (it continues upward in the game) and has the same width as the trunk
+section. Side view, centered, plain solid #00FF00 green background, no ground, no shadow, no text.
+Painterly 2D game art style. Wide image, aspect ratio 2:1.
+```
+
+**`arvore_galho.png`** (bem largo, 4:1)
+
+```
+Create an image. One thick horizontal branch of the same burned tree, growing from the left edge
+of the image to the right, where it ends in a broken tip. The TOP of the branch must be flat and
+straight like a walkable ledge, with nothing sticking up above it. A few small dry twigs and
+hanging roots only BELOW the branch. Charred black-brown bark, faint ember cracks. Side view,
+plain solid #00FF00 green background, no leaves, no shadow, no text. Painterly 2D game art style.
+Very wide image, aspect ratio 4:1.
+```
+
+Dicas: anexe o tronco aprovado nos pedidos da raiz e do galho ("same bark, same colors as the
+attached trunk"). Se o galho vier com algo saindo para cima, me mande assim mesmo: eu corto.
+
 ## 5. Ficha dos 3 heróis com constelação (para a Milena)
 
 O humano já está definido (o 4º jogador, sem constelação). Antes das imagens de cada herói dos

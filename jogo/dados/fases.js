@@ -38,8 +38,14 @@ window.FASES = {
     plataformas: [
       { x: 420, y: 362, w: 160 }, { x: 650, y: 292, w: 140 },
       { x: 1200, y: 352, w: 150 }, { x: 1420, y: 282, w: 150 },
+      { x: 1600, y: 185, w: 130 },   // galho alto da árvore do baú: só se alcança pulando do galho de 282
       { x: 2000, y: 362, w: 140 }, { x: 2250, y: 300, w: 160 },
       { x: 2900, y: 362, w: 160 }, { x: 3120, y: 300, w: 140 },
+    ],
+    // baús escondidos: x = centro do baú, y = topo do chão/galho onde ele fica.
+    // xp e cura são o prêmio; texto aparece ao abrir.
+    baus: [
+      { x: 1660, y: 185, xp: 40, cura: true, texto: 'Baú escondido! +40 XP e vida cheia' },
     ],
     perigos: [ // chão em chamas
       { x: 1300, w: 90 }, { x: 2400, w: 100 }, { x: 3000, w: 80 },

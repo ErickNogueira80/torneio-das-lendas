@@ -84,6 +84,13 @@ Pessoal (família).
   grande: o tronco fica no vão e cada plataforma é um galho grosso saindo dele (plataforma
   sozinha ganha tronco na ponta direita). Tronco com casca, nós, oco e rachaduras em brasa,
   galhos secos no alto. Montadas uma vez (função `arvores`); a colisão não mudou.
+  Com as imagens `arvore_tronco`, `arvore_raiz` e `arvore_galho` (prompts na seção 4.1 do
+  `04-prompts-sprites.md`), o jogo monta as árvores com elas; sem imagens, desenha sozinho.
+- **Baús escondidos (2026-11-08):** `baus` na ficha da fase (x, y do chão/galho, xp, cura,
+  texto). Abrem ao encostar. O primeiro fica no galho alto (y 185) de uma árvore própria em
+  x 1600, que só se alcança pulando do galho de 282 da árvore vizinha (conferido em simulação:
+  do galho baixo e do chão não dá). Dá 40 XP e enche a vida. Tem um brilho dourado fraco no
+  escuro, como pista.
 - **Desempenho (2026-11-08):** as camadas de árvores são montadas uma vez, no início da fase, em 2
   faixas largas (fundo com neblina, parallax 0,28; meio, 0,55); por quadro o jogo só copia um
   pedaço de cada. A densidade das camadas não pesa, só o número de faixas. Brilho colorido só nas
@@ -124,7 +131,7 @@ Pessoal (família).
 - **Parâmetros de teste:** `?heroi=agua|fogo|terra` testa outro herói (`?heroi=ar` é o humano
   desperto); `?fase=<chave>`;
   `?boss` começa no chefe; `?demo` joga sozinho; `&ff=600` avança 600 quadros; `&touch` mostra os
-  botões no computador; `?semimagens` ignora as imagens; `?semluz` tira a escuridão. `?fps` mostra os quadros por segundo; `?hd` desenha o mundo na resolução cheia
+  botões no computador; `?semimagens` ignora as imagens; `?semluz` tira a escuridão. `?x=1500` começa a fase nesse ponto; `?fps` mostra os quadros por segundo; `?hd` desenha o mundo na resolução cheia
   (normalmente o mundo é desenhado numa tela interna de 960×540 e ampliado sem borrar, bem mais leve).
 - **Elementos contra o Boitatá:** água 1,2× (e apaga as bolas de fogo), pedra e vento 0,8×, fogo
   é absorvido (o herói de fogo precisa da espada nessa fase).
