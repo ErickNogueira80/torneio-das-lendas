@@ -284,5 +284,13 @@
     "centro": 0.498
    }
   }
+ },
+ "objetos/altar": {
+  "tipo": "objeto",
+  "pixel": 2,
+  "camadas": {
+   "aceso": "objetos/altar/aceso.png",
+   "apagado": "objetos/altar/apagado.png"
+  }
  }
 }

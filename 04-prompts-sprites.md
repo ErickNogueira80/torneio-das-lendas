@@ -478,6 +478,32 @@ view, centered, plain solid #00FF00 green background, no shadow, no ground, no t
 game art style. Square image, aspect ratio 1:1.
 ```
 
+## 4.3 Mapa do mundo espiritual (tela de seleção de local)
+
+Uma imagem só, 16:9, sem nenhum texto (os nomes, marcadores e cadeados são do jogo). Os locais
+seguem a ordem da história, num caminho que sai do canto de baixo à esquerda e termina no Olimpo,
+no alto à direita. A IA não vai acertar as posições exatas; depois eu ajusto os marcadores em
+`jogo/dados/mapa.js` para caírem em cima de cada lugar. Salvar como `img/sprites/mapa/mundo.png`.
+
+```
+Create an image. An original illustrated fantasy world map of a mysterious spirit world, seen from
+above at a slight angle, dark and atmospheric like a night journey, painterly 2D game art. A
+winding dirt path crosses the whole map from the bottom-left corner to the top-right corner and
+connects these places, in this order:
+1. bottom-left: a misty enchanted forest with a glowing swirling portal between giant trees;
+2. a little above it, left side: a burned dead forest at the foot of a mountain, with embers;
+3. bottom, center-left: a dark lake with a small spiky island in the middle;
+4. center: a green pasture with a strange flying saucer hovering above it;
+5. upper center-left: the entrance of a dark cave in the rocks;
+6. top center: a forest clearing with a huge nest on a rock;
+7. center-right: a bright meadow with a rainbow, small ponds and a cauldron of gold coins;
+8. bottom-right: a lonely hill with an old sword stuck in a stone;
+9. right side: ruins of an ancient Greek temple half covered by vines;
+10. top-right corner: a tall mountain above the clouds with golden gates on top (Mount Olympus).
+Moonlight, soft fog between the regions, small glowing lights along the path. No text, no labels,
+no letters, no numbers, no compass, no frame, no characters. Wide image, aspect ratio 16:9.
+```
+
 ## 5. Ficha dos 3 heróis com constelação (para a Milena)
 
 O humano já está definido (o 4º jogador, sem constelação). Antes das imagens de cada herói dos

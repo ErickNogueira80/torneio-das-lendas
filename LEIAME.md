@@ -99,6 +99,17 @@ Pessoal (família).
   x 1600, que só se alcança pulando do galho de 282 da árvore vizinha (conferido em simulação:
   do galho baixo e do chão não dá). Dá 40 XP e enche a vida. Tem um brilho dourado fraco no
   escuro, como pista.
+- **Altar da Constelação (2026-11-08):** os pontos de controle são altares (imagens em
+  `img/sprites/objetos/altar/`, apagado e aceso, recortados com a mesma caixa para não pularem).
+  Ao passar, o altar acende com clarão e faíscas douradas, enche vida e energia e mostra "Altar
+  aceso". Aceso, solta faíscas e ilumina em dourado. O do começo da fase já vem aceso.
+- **Mapa do mundo (2026-11-08):** depois da tela de título vem o mapa (`dados/mapa.js`): 10 locais
+  na ordem dos combates da história (Mula sem cabeça, Boitatá, Nessie, vaca, pesadelo, grifo,
+  Kallikántzaros, Excalibur, Hidra e Olimpo), ligados por uma trilha. Só o Boitatá está liberado;
+  os outros têm cadeado e "Bloqueado · em breve". O cartão mostra a ilustração pintada do local
+  (a do portal), o nome e o chefe. Fase vencida ganha um ✓ (guardado no navegador). Sem a imagem
+  do mapa (`img/sprites/mapa/mundo.png`, prompt na seção 4.3), aparece um fundo escuro. `?mapa`
+  abre direto no mapa; `?play` pula título e mapa.
 - **Desempenho (2026-11-08):** as camadas de árvores são montadas uma vez, no início da fase, em 2
   faixas largas (fundo com neblina, parallax 0,28; meio, 0,55); por quadro o jogo só copia um
   pedaço de cada. A densidade das camadas não pesa, só o número de faixas. Brilho colorido só nas

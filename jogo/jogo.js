@@ -38,7 +38,8 @@ const START_BOSS = params.has('boss') || DEMO;
 const HEROI_ID = HEROIS[params.get('heroi')] ? params.get('heroi') : 'humano';
 const HEROI = HEROIS[HEROI_ID];
 const PODER_ID = HEROI.poder, PODER = PODERES[PODER_ID];
-const FASE = FASES[params.get('fase')] || FASES.boitata;
+const FASE_ID = FASES[params.get('fase')] ? params.get('fase') : 'boitata';
+const FASE = FASES[FASE_ID];
 const GROUND = 460;
 const SOLIDS = FASE.solidos, PLATS = FASE.plataformas, CHECKS = FASE.controles, ARENA = FASE.arena;
 const HAZARDS = FASE.perigos.map(p => ({ x: p.x, y: GROUND - 14, w: p.w, h: 14 }));
@@ -184,8 +185,9 @@ const speed = () => 210 + player.attr.A * 15;
 const xpNeed = () => 20 + (player.lvl - 1) * 15;
 
 // ---------- estado do jogo ----------
-let state = 'title';          // title | play | levelup | dead | victory
+let state = 'title';          // title | mapa | play | levelup | dead | victory
 let checkpoint = 0, camX = 0, time = 0, playTime = 0, falls = 0, pendingLevels = 0;
+const altarAceso = {};   // índice do ponto de controle -> hora em que acendeu (para o clarão)
 let enemies = [], shots = [], fireballs = [], particles = [], texts = [];
 let boss = null, bossActive = false, bossDefeated = false, pendant = null, banner = 0, victoryT = 0;
 let baus = [];   // baús da fase (abertos continuam abertos até um novo jogo)
@@ -535,7 +537,14 @@ function updatePlayer(dt) {
     return;
   }
 
-  for (let i = CHECKS.length - 1; i > checkpoint; i--) if (p.x > CHECKS[i]) { checkpoint = i; floatText(p.x, p.y - 30, 'Ponto de controle', '#9fe7ff'); break; }
+  for (let i = CHECKS.length - 1; i > checkpoint; i--) if (p.x > CHECKS[i]) {
+    checkpoint = i; altarAceso[i] = time;
+    // o altar acende: faíscas douradas, vida e energia cheias
+    burst(CHECKS[i], GROUND - 40, 40, ['#ffe9a8', '#ffd060', '#fff6d8'], 200, 1.2, -40, 3);
+    p.hp = maxHp(); p.pe = maxPe(); p.poison = 0;
+    floatText(CHECKS[i] - 60, GROUND - 110, 'Altar aceso · vida restaurada', '#ffe08a');
+    break;
+  }
   for (const hz of HAZARDS) if (overlap(p, hz)) hurtPlayer(6, hz.x + hz.w / 2);
 
   if (p.poison > 0) {
@@ -680,14 +689,118 @@ function chooseLevel(i) {
 }
 function menuTap(p) {
   if (portrait) return;
-  if (state === 'title') { goFullscreen(); newGame(); }
+  if (state === 'title') { goFullscreen(); abrirMapa(); }
+  else if (state === 'mapa') { tocarMapa(p); }
   else if (state === 'dead') { if (time - deadAt < 0.9) return; respawn(); state = 'play'; }
-  else if (state === 'victory') { state = 'title'; }
+  else if (state === 'victory') { concluir(FASE_ID); abrirMapa(); }
   else if (state === 'levelup') { for (let i = 0; i < 4; i++) if (overlap({ x: p.x, y: p.y, w: 1, h: 1 }, lvCard(i))) chooseLevel(i); }
 }
 function menuKey(code) {
+  if (state === 'mapa') { teclaMapa(code); return; }
   if (state === 'levelup') { const n = { Digit1: 0, Digit2: 1, Digit3: 2, Digit4: 3 }[code]; if (n !== undefined) chooseLevel(n); return; }
   if (['Enter', 'Space', 'KeyJ', 'KeyZ'].includes(code)) menuTap({ x: W / 2, y: H / 2 });
+}
+
+// ---------- mapa do mundo (seleção de local) ----------
+// Os locais vêm de MAPA (dados/mapa.js). Só os que têm fase ficam liberados; os outros mostram
+// um cadeado. Toque num marcador para ver o cartão; "Entrar" abre a fase.
+const LOCAIS = (window.MAPA && MAPA.locais) || [];
+let mapaSel = Math.max(0, LOCAIS.findIndex(l => l.fase === FASE_ID));
+const mapaImgs = {};
+function imgLocal(l) {
+  if (!mapaImgs[l.id] && typeof Image === 'function') { const im = new Image(); im.src = l.img; mapaImgs[l.id] = im; }
+  return mapaImgs[l.id];
+}
+function concluidas() { try { return JSON.parse(localStorage.getItem('tdl_concluidas') || '[]'); } catch (_) { return []; } }
+function concluir(id) { try { const c = concluidas(); if (!c.includes(id)) { c.push(id); localStorage.setItem('tdl_concluidas', JSON.stringify(c)); } } catch (_) { /* sem armazenamento: tudo bem */ } }
+function abrirMapa() { state = 'mapa'; pointers.clear(); if (LOCAIS[mapaSel]) imgLocal(LOCAIS[mapaSel]); }
+const posLocal = l => ({ x: l.x * W, y: l.y * H });
+// o cartão fica do lado oposto ao local escolhido, para não cobrir o marcador
+const CARTAO = { x: 16, y: 62, w: 300, h: 262 }, BOTAO = { x: 0, y: 0, w: 0, h: 38 };
+function posCartao() {
+  const l = LOCAIS[mapaSel];
+  CARTAO.x = l && l.x < .5 ? W - CARTAO.w - 16 : 16;
+  Object.assign(BOTAO, { x: CARTAO.x + 20, y: CARTAO.y + CARTAO.h - 52, w: CARTAO.w - 40 });
+}
+function entrarLocal(l) {
+  if (!l || !l.fase) return;
+  if (l.fase === FASE_ID) newGame();
+  else location.search = '?fase=' + l.fase + '&play';
+}
+function tocarMapa(p) {
+  posCartao();
+  const l = LOCAIS[mapaSel];
+  if (l && l.fase && overlap({ x: p.x, y: p.y, w: 1, h: 1 }, BOTAO)) { entrarLocal(l); return; }
+  let melhor = -1, dist = 46;
+  LOCAIS.forEach((q, i) => { const { x, y } = posLocal(q), d = Math.hypot(p.x - x, p.y - y); if (d < dist) { dist = d; melhor = i; } });
+  if (melhor >= 0) { if (melhor === mapaSel && LOCAIS[melhor].fase) entrarLocal(LOCAIS[melhor]); else { mapaSel = melhor; imgLocal(LOCAIS[melhor]); } }
+}
+function teclaMapa(code) {
+  if (code === 'ArrowRight' || code === 'KeyD' || code === 'ArrowUp') mapaSel = (mapaSel + 1) % LOCAIS.length;
+  else if (code === 'ArrowLeft' || code === 'KeyA' || code === 'ArrowDown') mapaSel = (mapaSel + LOCAIS.length - 1) % LOCAIS.length;
+  else if (['Enter', 'Space', 'KeyJ', 'KeyZ'].includes(code)) entrarLocal(LOCAIS[mapaSel]);
+  if (LOCAIS[mapaSel]) imgLocal(LOCAIS[mapaSel]);
+}
+function drawMapa() {
+  const fundo = layer('mapa', 'mundo');
+  if (fundo) { ctx.imageSmoothingEnabled = false; ctx.drawImage(fundo, 0, 0, W, H); ctx.imageSmoothingEnabled = true; }
+  else {   // mapa de reserva: céu escuro com névoa
+    const g = ctx.createRadialGradient(W * .5, H * .55, 40, W * .5, H * .55, W * .7);
+    g.addColorStop(0, '#2a2238'); g.addColorStop(1, '#0b0910'); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  }
+  ctx.fillStyle = 'rgba(6,4,12,.35)'; ctx.fillRect(0, 0, W, H);
+  // trilha pontilhada entre os locais, na ordem da história
+  const feitos = concluidas();
+  for (let i = 0; i < LOCAIS.length - 1; i++) {
+    const a = posLocal(LOCAIS[i]), b = posLocal(LOCAIS[i + 1]), n = Math.ceil(Math.hypot(b.x - a.x, b.y - a.y) / 12);
+    ctx.fillStyle = LOCAIS[i].fase ? 'rgba(255,214,120,.75)' : 'rgba(200,190,170,.28)';
+    for (let k = 1; k < n; k++) { const t = k / n; ctx.fillRect(Math.round(a.x + (b.x - a.x) * t) - 1, Math.round(a.y + (b.y - a.y) * t) - 1, 3, 3); }
+  }
+  // marcadores
+  LOCAIS.forEach((l, i) => {
+    const { x, y } = posLocal(l), sel = i === mapaSel, livre = !!l.fase, feito = feitos.includes(l.fase);
+    if (livre) {
+      const pulso = 1 + Math.sin(time * 3 + i) * .12, g = ctx.createRadialGradient(x, y, 2, x, y, 34 * pulso);
+      g.addColorStop(0, 'rgba(255,220,130,.9)'); g.addColorStop(1, 'rgba(255,170,60,0)');
+      ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, y, 34 * pulso, 0, Math.PI * 2); ctx.fill();
+    }
+    ctx.fillStyle = livre ? '#ffd76a' : '#3a3442'; ctx.strokeStyle = sel ? '#fff6d8' : livre ? '#8a5a1a' : '#6a6272'; ctx.lineWidth = sel ? 3 : 2;
+    ctx.beginPath(); ctx.arc(x, y, sel ? 13 : 10, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    if (!livre) {   // cadeado
+      ctx.fillStyle = '#9a92a6'; ctx.fillRect(x - 4, y - 1, 8, 6);
+      ctx.strokeStyle = '#9a92a6'; ctx.lineWidth = 1.6; ctx.beginPath(); ctx.arc(x, y - 2, 3, Math.PI, 0); ctx.stroke();
+    } else if (feito) { ctx.strokeStyle = '#2a1a06'; ctx.lineWidth = 2.4; ctx.beginPath(); ctx.moveTo(x - 5, y); ctx.lineTo(x - 1, y + 4); ctx.lineTo(x + 6, y - 4); ctx.stroke(); }
+    if (sel) { ctx.strokeStyle = 'rgba(255,240,200,.8)'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(x, y, 20 + Math.sin(time * 4) * 2, 0, Math.PI * 2); ctx.stroke(); }
+  });
+  // título
+  ctx.textAlign = 'center'; ctx.fillStyle = '#f5d48a'; ctx.font = 'bold 30px Cinzel, serif';
+  ctx.fillText((window.MAPA && MAPA.titulo) || 'Mapa', W / 2, 42);
+  ctx.fillStyle = '#b3a88f'; ctx.font = '14px "Crimson Pro", serif';
+  ctx.fillText(showTouch ? 'Toque num local · toque de novo para entrar' : 'Setas escolhem o local · Enter entra', W / 2, 62);
+  // cartão do local escolhido
+  const l = LOCAIS[mapaSel]; if (!l) return;
+  posCartao();
+  const C = CARTAO; panel(C.x, C.y, C.w, C.h);
+  const im = imgLocal(l), iw = C.w - 24, ih = 132;
+  if (ready(im)) {
+    const k = Math.max(iw / im.naturalWidth, ih / im.naturalHeight), sw = iw / k, sh = ih / k;
+    ctx.save(); if (!l.fase) ctx.filter = 'grayscale(1) brightness(.6)';
+    ctx.drawImage(im, (im.naturalWidth - sw) / 2, (im.naturalHeight - sh) / 2, sw, sh, C.x + 12, C.y + 12, iw, ih); ctx.restore();
+    if (!l.fase) { ctx.fillStyle = 'rgba(10,8,16,.45)'; ctx.fillRect(C.x + 12, C.y + 12, iw, ih); }
+  } else { ctx.fillStyle = '#1a1424'; ctx.fillRect(C.x + 12, C.y + 12, iw, ih); }
+  ctx.textAlign = 'left'; ctx.fillStyle = '#f5d48a'; ctx.font = 'bold 17px Cinzel, serif';
+  ctx.fillText(l.nome, C.x + 14, C.y + 166);
+  ctx.fillStyle = '#ece4d4'; ctx.font = '15px "Crimson Pro", serif';
+  ctx.fillText('Chefe: ' + l.chefe, C.x + 14, C.y + 188);
+  const B = BOTAO;
+  if (l.fase) {
+    ctx.fillStyle = 'rgba(227,183,90,.9)'; roundRect(B.x, B.y, B.w, B.h, 10); ctx.fill();
+    ctx.fillStyle = '#1a1424'; ctx.textAlign = 'center'; ctx.font = 'bold 18px Cinzel, serif';
+    ctx.fillText(feitos.includes(l.fase) ? 'Jogar de novo' : 'Entrar', B.x + B.w / 2, B.y + 25);
+  } else {
+    ctx.fillStyle = '#8a8296'; ctx.textAlign = 'center'; ctx.font = 'italic 16px "Crimson Pro", serif';
+    ctx.fillText('Bloqueado · em breve', B.x + B.w / 2, B.y + 24);
+  }
 }
 
 // ---------- desenho ----------
@@ -1154,7 +1267,20 @@ function drawWorld() {
     ctx.fillStyle = 'rgba(255,90,20,.35)'; ctx.fillRect(x, GROUND - 4, hz.w, 4);
     for (let i = 8; i < hz.w; i += 16) flame(x + i, GROUND, 14, 26 + Math.sin(time * 9 + i) * 6, time * 12 + i);
   }
-  CHECKS.forEach((c, i) => {
+  const altar = sprite('objetos/altar') || SPR['objetos/altar'];
+  const apagado = layer('objetos/altar', 'apagado'), aceso = layer('objetos/altar', 'aceso');
+  if (apagado && aceso) CHECKS.forEach((c, i) => {
+    const x = Math.round(c - camX); if (x < -80 || x > W + 80) return;
+    const lit = i <= checkpoint, im = lit ? aceso : apagado, z = (altar && altar.pixel) || 2;
+    const w = im.naturalWidth * z, h = im.naturalHeight * z, y = Math.round(GROUND + relevo(c) + 6 - h);
+    ctx.imageSmoothingEnabled = false; ctx.drawImage(im, x - Math.round(w / 2), y, w, h); ctx.imageSmoothingEnabled = true;
+    if (lit) {
+      const dt0 = time - (altarAceso[i] ?? -9);
+      if (dt0 < .6) { ctx.globalAlpha = 1 - dt0 / .6; ctx.fillStyle = '#fff3c8'; ctx.beginPath(); ctx.arc(x, y + h * .5, 30 + dt0 * 120, 0, Math.PI * 2); ctx.fill(); ctx.globalAlpha = 1; }
+      if (Math.random() < .25) particles.push({ x: c + rnd(-8, 8), y: y + h * .35 + rnd(-6, 6), vx: rnd(-8, 8), vy: rnd(-50, -25), life: 1.1, max: 1.1, c: Math.random() < .5 ? '#ffd76a' : '#fff1b8', s: 2, g: -10 });
+    }
+  });
+  else CHECKS.forEach((c, i) => {
     if (i === 0) return;
     const x = c - camX; if (x < -20 || x > W + 20) return;
     ctx.fillStyle = '#5b4a3c'; ctx.fillRect(x, GROUND - 46, 4, 46);
@@ -1185,7 +1311,11 @@ function luzes() {
   for (const b of fireballs) L.push([b.x - camX, b.y, 130, '255,140,40', .55]);
   for (const e of enemies) if (!e.dead && e.T.luz) { const anda = e.T.mov === 'patrulha' && e.y + e.h >= GROUND - 2; L.push([e.x + e.w / 2 - camX, e.y + e.h / 2 + (anda ? deslocDesenho(e.x + e.w / 2, true, null, 1).dy : 0), e.T.luz + f, e.T.corLuz || '255,150,60', .4]); }
   for (const hz of HAZARDS) for (let x = hz.x + 25; x < hz.x + hz.w; x += 50) L.push([x - camX, GROUND - 10, 95 + f, '255,120,30', .4]);
-  CHECKS.forEach((c, i) => { if (i > 0) L.push([c + 2 - camX, GROUND - 50, i <= checkpoint ? 110 : 60, i <= checkpoint ? '160,220,255' : null, .3]); });
+  const comAltar = !!layer('objetos/altar', 'aceso');
+  CHECKS.forEach((c, i) => {
+    if (comAltar) L.push([c - camX, GROUND - 40, i <= checkpoint ? 150 + f : 55, i <= checkpoint ? '255,205,110' : null, .5]);
+    else if (i > 0) L.push([c + 2 - camX, GROUND - 50, i <= checkpoint ? 110 : 60, i <= checkpoint ? '160,220,255' : null, .3]);
+  });
   if (bossActive && boss && CHEFE.luzes) for (const [x, y, r, cor] of CHEFE.luzes(boss)) L.push([x - camX, y, r, cor, .45]);
   if (pendant) L.push([pendant.x - camX, pendant.y, 120, '220,230,255', .45]);
   for (const b of baus) L.push([b.x - camX, b.y - 10, b.aberto ? 110 : 70, '255,210,90', b.aberto ? .5 : .3]);
@@ -1541,6 +1671,7 @@ function draw() {
   ctx.save(); ctx.beginPath(); ctx.rect(0, 0, W, H); ctx.clip();
   if (portrait) { drawPortrait(); ctx.restore(); return; }
   if (state === 'title') { drawTitle(); ctx.restore(); return; }
+  if (state === 'mapa') { drawMapa(); ctx.restore(); return; }
   if (!HD) {
     if (!mundoCv) { mundoCv = document.createElement('canvas'); mundoCv.width = W; mundoCv.height = H; mundoCtx = mundoCv.getContext('2d', { alpha: false }); }
     ctx = mundoCtx; ctx.setTransform(1, 0, 0, 1, 0, 0);
@@ -1585,6 +1716,7 @@ function frame(now) {
   } catch (e) { if (window.mostrarErro) window.mostrarErro(e); }
 }
 if (DEMO || params.has('play')) newGame();
+else if (params.has('mapa')) abrirMapa();   // teste: abre direto no mapa
 // teste: ?demo&ff=600 avança 600 quadros antes de desenhar (para capturas de tela)
 for (let i = 0, n = +params.get('ff') || 0; i < n && state === 'play'; i++) { update(1 / 60); jumpPressed = swordPressed = powerPressed = false; }
 requestAnimationFrame(frame);

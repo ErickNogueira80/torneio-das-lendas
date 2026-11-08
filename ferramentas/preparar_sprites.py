@@ -423,6 +423,64 @@ def preparar_fundo(pasta: Path, ajustes: dict) -> dict | None:
     return r
 
 
+OBJETO_ALTURA = {"altar": 46}   # altura dos objetos em px da arte (tela = o dobro)
+MAPA_TAMANHO = (640, 360)        # mapa do mundo em pixel art (cada pixel = 1,5 na tela)
+
+
+def _sem_verde(im: Image.Image) -> Image.Image:
+    a = np.asarray(im).copy()
+    a[:, :, 1] = np.minimum(a[:, :, 1], np.maximum(a[:, :, 0], a[:, :, 2]))
+    return Image.fromarray(a, "RGBA")
+
+
+def preparar_objeto(pasta: Path) -> dict | None:
+    """Objetos com estados (ex.: altar apagado/aceso): mesma caixa para todos os estados, para
+    não pularem ao trocar. Aceita "altar_aceso.png" ou "aceso.png"."""
+    chave = f"objetos/{pasta.name}"
+    estados = {}
+    for arq in sorted(pasta.iterdir()):
+        if arq.suffix.lower() not in EXTS:
+            continue
+        nome = arq.stem.lower().removeprefix(pasta.name.lower() + "_")
+        nome = {"acesa": "aceso", "apagada": "apagado"}.get(nome, nome)
+        estados[nome] = _sem_verde(remover_fundo(Image.open(arq)))
+    if not estados:
+        return None
+    caixas = [np.where(np.asarray(im)[:, :, 3] > 25) for im in estados.values()]
+    x0 = min(c[1].min() for c in caixas); y0 = min(c[0].min() for c in caixas)
+    x1 = max(c[1].max() for c in caixas) + 1; y1 = max(c[0].max() for c in caixas) + 1
+    alvo = OBJETO_ALTURA.get(pasta.name, 36)
+    larg = max(1, round((x1 - x0) * alvo / (y1 - y0)))
+    camadas = {}
+    for nome, im in estados.items():
+        im = pixelizar(im.crop((x0, y0, x1, y1)), larg, alvo, 40)
+        saida = DESTINO / chave / f"{nome}.png"
+        saida.parent.mkdir(parents=True, exist_ok=True)
+        im.save(saida, optimize=True)
+        camadas[nome] = f"{chave}/{nome}.png"
+        print(f"  {chave}/{nome}: {im.width}x{im.height} pixel")
+    return {"tipo": "objeto", "pixel": FUNDO_PIXEL, "camadas": camadas}
+
+
+def preparar_mapa(pasta: Path) -> dict | None:
+    """Mapa do mundo: corta em 16:9 e transforma em pixel art."""
+    arqs = [a for a in sorted(pasta.iterdir()) if a.suffix.lower() in EXTS and a.stem.lower() == "mundo"]
+    if not arqs:
+        return None
+    im = Image.open(arqs[0]).convert("RGB")
+    w, h = im.size
+    if w / h > 16 / 9:
+        nw = round(h * 16 / 9); im = im.crop(((w - nw) // 2, 0, (w - nw) // 2 + nw, h))
+    else:
+        nh = round(w * 9 / 16); im = im.crop((0, (h - nh) // 2, w, (h - nh) // 2 + nh))
+    im = pixelizar(im, *MAPA_TAMANHO, 48)
+    saida = DESTINO / "mapa" / "mundo.png"
+    saida.parent.mkdir(parents=True, exist_ok=True)
+    im.save(saida, optimize=True)
+    print(f"  mapa/mundo: {im.width}x{im.height} pixel ({saida.stat().st_size // 1024} KB)")
+    return {"tipo": "fundo", "camadas": {"mundo": "mapa/mundo.png"}}
+
+
 def main():
     if not ORIGEM.exists():
         print(f"Nada a fazer: crie {ORIGEM.relative_to(RAIZ)} com as imagens.")
@@ -443,6 +501,14 @@ def main():
         r = preparar_fundo(pasta, ajustes)
         if r:
             saida[f"fundos/{pasta.name}"] = r
+    for pasta in sorted((ORIGEM / "objetos").glob("*/")):
+        r = preparar_objeto(pasta)
+        if r:
+            saida[f"objetos/{pasta.name}"] = r
+    if (ORIGEM / "mapa").is_dir():
+        r = preparar_mapa(ORIGEM / "mapa")
+        if r:
+            saida["mapa"] = r
     DESTINO.mkdir(parents=True, exist_ok=True)
     (DESTINO / "sprites.json").write_text(json.dumps(saida, ensure_ascii=False, indent=1), encoding="utf-8")
     print(f"sprites.json: {len(saida)} itens ({', '.join(saida) or 'nenhum'})")
