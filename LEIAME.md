@@ -103,6 +103,9 @@ Pessoal (família).
   `img/sprites/objetos/altar/`, apagado e aceso, recortados com a mesma caixa para não pularem).
   Ao passar, o altar acende com clarão e faíscas douradas, enche vida e energia e mostra "Altar
   aceso". Aceso, solta faíscas e ilumina em dourado. O do começo da fase já vem aceso.
+  Altura: 27 px da arte (54 na tela), um pouco mais baixo que o herói (62).
+- **Golpe de espada (2026-11-08):** onda de ar em meia-lua (função `drawGolpe`) que abre e afina
+  enquanto some, com fio branco, riscos de vento e um pouco de poeira; substituiu a faixa em arco.
 - **Mapa do mundo (2026-11-08):** depois da tela de título vem o mapa (`dados/mapa.js`): 10 locais
   na ordem dos combates da história (Mula sem cabeça, Boitatá, Nessie, vaca, pesadelo, grifo,
   Kallikántzaros, Excalibur, Hidra e Olimpo), ligados por uma trilha. Só o Boitatá está liberado;

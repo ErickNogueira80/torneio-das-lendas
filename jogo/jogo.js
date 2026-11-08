@@ -557,7 +557,7 @@ function updatePlayer(dt) {
 
   // espada
   p.swordCd -= dt; p.swordT -= dt;
-  if (swordPressed && p.swordCd <= 0) { p.swordT = 0.18; p.swordCd = 0.34; p.hitSet.clear(); }
+  if (swordPressed && p.swordCd <= 0) { p.swordT = 0.18; p.swordCd = 0.34; p.hitSet.clear(); burst(p.x + p.w / 2 + p.face * 34, p.y + 24, 5, ['#eef6ff', '#c4d8ee'], 110, .25, 0, 2); }
   if (p.swordT > 0) {
     const r = { x: p.face > 0 ? p.x + p.w - 4 : p.x - 50, y: p.y - 8, w: 54, h: p.h + 12 };
     for (const e of enemies) if (!p.hitSet.has(e) && overlap(r, e)) { p.hitSet.add(e); damageEnemy(e, swordDmg(), 'espada'); }
@@ -1365,6 +1365,27 @@ function playerAnim(S) {
   return { a: 'parado', t: time * (S && S.pixel ? 5 : 2) };
 }
 
+// golpe de espada: onda de ar em meia-lua que abre e afina enquanto some, com riscos de vento
+function drawGolpe(cx, cy, f, k) {
+  const a = 1 - k, R = 24 + k * 26, esp = 14 * a + 3, abre = 1.05 + k * .25;
+  ctx.save(); ctx.translate(Math.round(cx + f * (10 + k * 10)), Math.round(cy)); ctx.scale(f, 1);
+  // meia-lua: arco de fora menos o de dentro (centro recuado = mais grossa no meio)
+  ctx.beginPath();
+  ctx.arc(0, 0, R, -abre, abre);
+  ctx.arc(-esp, 0, R - esp * .35, abre * .92, -abre * .92, true);
+  ctx.closePath();
+  const g = ctx.createLinearGradient(R - esp * 1.6, 0, R, 0);
+  g.addColorStop(0, `rgba(170,215,255,${.15 * a})`); g.addColorStop(.7, `rgba(225,242,255,${.7 * a})`); g.addColorStop(1, `rgba(255,255,255,${.95 * a})`);
+  ctx.fillStyle = g; ctx.fill();
+  // fio branco na borda de fora
+  ctx.strokeStyle = `rgba(255,255,255,${.9 * a})`; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.arc(0, 0, R, -abre * .85, abre * .85); ctx.stroke();
+  // riscos de vento à frente
+  ctx.fillStyle = `rgba(220,238,255,${.6 * a})`;
+  for (const [dy, l, d] of [[-14, 16, 6], [2, 22, 0], [16, 12, 10]]) ctx.fillRect(Math.round(R + 4 + d + k * 26), dy, Math.round(l * (1 - k * .5)), 2);
+  ctx.restore();
+}
+
 function drawPlayer() {
   const p = player;
   if (p.inv > 0 && Math.floor(p.inv * 12) % 2 === 0 && state === 'play') return;
@@ -1393,11 +1414,7 @@ function drawPlayer() {
     ctx.fillStyle = 'rgba(0,0,0,.35)'; ctx.beginPath(); ctx.ellipse(x + p.w / 2, y + p.h + 1, 15, 3, 0, 0, Math.PI * 2); ctx.fill();
     drawFrame(S, a, t, x + p.w / 2, y + p.h + 1 + bob, f, esc * ex * (1 + sq * .12), esc * ey * (1 - sq * .14), rot);
   } else drawPlayerShape(x, y, f);
-  if (p.swordT > 0) {
-    const k = 1 - p.swordT / 0.18;
-    ctx.strokeStyle = `rgba(255,236,180,${1 - k})`; ctx.lineWidth = 6;
-    ctx.beginPath(); ctx.arc(x + p.w / 2 + f * 10, y + 22, 40, f > 0 ? -1.3 + k * .4 : Math.PI + 1.3 - k * .4, f > 0 ? 1.0 + k * .4 : Math.PI - 1.0 - k * .4, f < 0); ctx.stroke();
-  }
+  if (p.swordT > 0) drawGolpe(x + p.w / 2, y + 24, f, 1 - p.swordT / 0.18);
   if (p.poison > 0) { ctx.fillStyle = 'rgba(120,255,90,.18)'; ctx.fillRect(x - 4, y - 4, p.w + 8, p.h + 8); }
 }
 
