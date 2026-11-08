@@ -116,6 +116,17 @@ Pessoal (família).
   `ferramentas/apagar_textos.py` (o original fica em `img/sprites/mapa/original_com_textos.jpg`)
   e os marcadores foram posicionados em cima de cada lugar desenhado. `?mapa`
   abre direto no mapa; `?play` pula título e mapa.
+- **HUD estilizado (2026-11-08):** barras com moldura escura e fio dourado, ponteiras em losango,
+  brilho, marcas a cada 10% e o rastro claro do dano (a parte perdida some devagar). Painel do
+  herói com cantos dourados e medalhão do nível. A barra do chefe fica embaixo, no centro (entre
+  os botões de toque), com o nome entre filetes e pontas em chama, que ficam vermelhas na fúria.
+- **Sombra (2026-11-08):** fica no chão ou no galho embaixo do herói, menor e mais clara quanto
+  mais alto ele pula.
+- **Mapa (2026-11-08):** a região escolhida fica iluminada e o resto escurece; o cartão de uma
+  fase pronta mostra a cena montada com as camadas da própria fase (no Boitatá, a floresta
+  queimada) em vez da ilustração do portal.
+- **Baú com arte (2026-11-08):** `img/sprites/objetos/bau/bau_fechado.jpg` (15 px da arte). Falta
+  o `bau_aberto`; até lá, o baú aberto é o fechado com o brilho do tesouro e faíscas.
 - **Desempenho (2026-11-08):** as camadas de árvores são montadas uma vez, no início da fase, em 2
   faixas largas (fundo com neblina, parallax 0,28; meio, 0,55); por quadro o jogo só copia um
   pedaço de cada. A densidade das camadas não pesa, só o número de faixas. Brilho colorido só nas

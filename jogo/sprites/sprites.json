@@ -293,6 +293,13 @@
    "apagado": "objetos/altar/apagado.png"
   }
  },
+ "objetos/bau": {
+  "tipo": "objeto",
+  "pixel": 2,
+  "camadas": {
+   "fechado": "objetos/bau/fechado.png"
+  }
+ },
  "mapa": {
   "tipo": "fundo",
   "camadas": {

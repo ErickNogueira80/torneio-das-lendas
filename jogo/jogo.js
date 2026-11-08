@@ -741,6 +741,40 @@ function teclaMapa(code) {
   else if (['Enter', 'Space', 'KeyJ', 'KeyZ'].includes(code)) entrarLocal(LOCAIS[mapaSel]);
   if (LOCAIS[mapaSel]) imgLocal(LOCAIS[mapaSel]);
 }
+let mapaLuzCv = null;
+function drawLuzMapa() {
+  if (typeof document === 'undefined') return;
+  const l = LOCAIS[mapaSel]; if (!l) return;
+  if (!mapaLuzCv) { mapaLuzCv = document.createElement('canvas'); mapaLuzCv.width = W / 2; mapaLuzCv.height = H / 2; }
+  const g = mapaLuzCv.getContext('2d'), { x, y } = posLocal(l), r = 105 + Math.sin(time * 2) * 6;
+  g.globalCompositeOperation = 'source-over'; g.clearRect(0, 0, W, H);
+  g.fillStyle = 'rgba(4,3,10,.62)'; g.fillRect(0, 0, W / 2, H / 2);
+  g.globalCompositeOperation = 'destination-out';
+  const rg = g.createRadialGradient(x / 2, y / 2, 0, x / 2, y / 2, r);
+  rg.addColorStop(0, 'rgba(0,0,0,1)'); rg.addColorStop(.55, 'rgba(0,0,0,.85)'); rg.addColorStop(1, 'rgba(0,0,0,0)');
+  g.fillStyle = rg; g.fillRect(0, 0, W / 2, H / 2);
+  ctx.drawImage(mapaLuzCv, 0, 0, W, H);
+  ctx.save(); ctx.globalCompositeOperation = 'lighter';   // brilho quente sobre a região
+  const cor = l.fase ? '255,210,120' : '170,160,200', bg = ctx.createRadialGradient(x, y, 0, x, y, r * 1.3);
+  bg.addColorStop(0, `rgba(${cor},.22)`); bg.addColorStop(1, `rgba(${cor},0)`);
+  ctx.fillStyle = bg; ctx.fillRect(x - r * 1.4, y - r * 1.4, r * 2.8, r * 2.8); ctx.restore();
+}
+// cartão de uma fase pronta: monta a cena com as camadas da própria fase (céu, árvores)
+function cenaFase(id, x, y, w, h) {
+  const F = FASES[id] && FASES[id].fundo, ceu = F && layer(F, 'ceu'), longe = F && layer(F, 'longe'), perto = F && layer(F, 'perto');
+  if (!ceu || !longe || !perto) return false;
+  ctx.save(); ctx.beginPath(); ctx.rect(x, y, w, h); ctx.clip(); ctx.imageSmoothingEnabled = false;
+  const k = Math.max(w / ceu.naturalWidth, h / ceu.naturalHeight);
+  ctx.drawImage(ceu, x + (w - ceu.naturalWidth * k) / 2, y, ceu.naturalWidth * k, ceu.naturalHeight * k);
+  for (const [im, alt, base, dx] of [[longe, h * .62, h * .96, 0], [perto, h * .9, h + 6, -40]]) {
+    const iw = im.naturalWidth * alt / im.naturalHeight;
+    for (let xx = x + dx; xx < x + w; xx += iw) ctx.drawImage(im, Math.round(xx), Math.round(y + base - alt), Math.ceil(iw) + 1, Math.round(alt));
+  }
+  const g = ctx.createLinearGradient(0, y, 0, y + h); g.addColorStop(0, 'rgba(10,6,16,0)'); g.addColorStop(1, 'rgba(10,6,16,.45)');
+  ctx.fillStyle = g; ctx.fillRect(x, y, w, h);
+  ctx.restore();
+  return true;
+}
 function drawMapa() {
   const fundo = layer('mapa', 'mundo');
   if (fundo) { ctx.imageSmoothingEnabled = false; ctx.drawImage(fundo, 0, 0, W, H); ctx.imageSmoothingEnabled = true; }
@@ -748,7 +782,8 @@ function drawMapa() {
     const g = ctx.createRadialGradient(W * .5, H * .55, 40, W * .5, H * .55, W * .7);
     g.addColorStop(0, '#2a2238'); g.addColorStop(1, '#0b0910'); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
   }
-  ctx.fillStyle = 'rgba(6,4,12,.35)'; ctx.fillRect(0, 0, W, H);
+  // a região escolhida fica iluminada; o resto do mapa escurece
+  drawLuzMapa();
   // trilha pontilhada entre os locais (só sem a imagem do mapa, que já tem o caminho desenhado)
   const feitos = concluidas();
   if (!fundo) for (let i = 0; i < LOCAIS.length - 1; i++) {
@@ -785,7 +820,8 @@ function drawMapa() {
   posCartao();
   const C = CARTAO; panel(C.x, C.y, C.w, C.h);
   const im = imgLocal(l), iw = C.w - 24, ih = 132;
-  if (ready(im)) {
+  if (l.fase && cenaFase(l.fase, C.x + 12, C.y + 12, iw, ih)) { /* cena montada com a arte da fase */ }
+  else if (ready(im)) {
     const k = Math.max(iw / im.naturalWidth, ih / im.naturalHeight), sw = iw / k, sh = ih / k;
     ctx.save(); if (!l.fase) ctx.filter = 'grayscale(1) brightness(.6)';
     ctx.drawImage(im, (im.naturalWidth - sw) / 2, (im.naturalHeight - sh) / 2, sw, sh, C.x + 12, C.y + 12, iw, ih); ctx.restore();
@@ -1213,6 +1249,20 @@ function drawBaus() {
     const x = Math.round(b.x - camX - 13), y = Math.round(b.y + relevoDe(b) - 18);
     if (x < -40 || x > W + 40) continue;
     const R = (dx, dy, w, h, c) => { ctx.fillStyle = c; ctx.fillRect(x + dx, y + dy, w, h); };
+    const imF = layer('objetos/bau', 'fechado'), imA = layer('objetos/bau', 'aberto');
+    if (imF) {   // arte da IA (fechado; aberto se existir, senão o fechado com o brilho do tesouro)
+      const im = b.aberto && imA ? imA : imF, z = 2, w = im.naturalWidth * z, h = im.naturalHeight * z;
+      const bx = Math.round(b.x - camX - w / 2), by = Math.round(b.y + relevoDe(b) + 2 - h);
+      if (b.aberto && !imA) {
+        const g = ctx.createRadialGradient(bx + w / 2, by + 4, 2, bx + w / 2, by + 4, 40);
+        g.addColorStop(0, 'rgba(255,230,140,.85)'); g.addColorStop(1, 'rgba(255,200,80,0)');
+        ctx.fillStyle = g; ctx.fillRect(bx - 30, by - 36, w + 60, 70);
+      }
+      ctx.imageSmoothingEnabled = false; ctx.drawImage(im, bx, by, w, h); ctx.imageSmoothingEnabled = true;
+      if (!b.aberto && Math.sin(b.t * 2.4) > .7) { ctx.fillStyle = '#fff6c0'; ctx.fillRect(bx + w - 6, by + 2, 2, 2); }
+      if (b.aberto && Math.random() < .2) particles.push({ x: b.x + rnd(-8, 8), y: b.y - h * .6, vx: rnd(-10, 10), vy: rnd(-50, -25), life: .9, max: .9, c: '#ffe08a', s: 2, g: -10 });
+      continue;
+    }
     if (!b.aberto) {
       R(0, 6, 26, 12, '#5a3418'); R(0, 0, 26, 8, '#6e4220'); R(2, 2, 22, 2, '#8a5a2c');   // corpo e tampa
       R(0, 7, 26, 2, '#2a160a');                                                         // fresta
@@ -1386,6 +1436,22 @@ function drawGolpe(cx, cy, f, k) {
   ctx.restore();
 }
 
+// sombra fica no chão (ou no galho) embaixo do herói, menor e mais clara quanto mais alto ele está
+function chaoAbaixo(cx, pe) {
+  let y = null, plat = null;
+  for (const pl of PLATS) if (cx >= pl.x && cx <= pl.x + pl.w && pl.y >= pe - 1 && (y === null || pl.y < y)) { y = pl.y; plat = pl; }
+  for (const s of SOLIDS) if (cx >= s.x && cx <= s.x + s.w && s.y >= pe - 1 && (y === null || s.y < y)) { y = s.y; plat = null; }
+  return y === null ? null : { y, plat };
+}
+function drawSombra(p) {
+  const cx = p.x + p.w / 2, pe = p.y + p.h, c = chaoAbaixo(cx, pe);
+  if (!c) return;
+  const alt = c.y - pe, k = clamp(1 - alt / 220, .25, 1);
+  const off = deslocDesenho(cx, true, c.plat, c.plat ? 0 : (p.plano ?? 1)).dy;
+  ctx.fillStyle = `rgba(0,0,0,${.38 * k})`;
+  ctx.beginPath(); ctx.ellipse(Math.round(cx - camX), Math.round(c.y + off + 1), 15 * k, 3 * k, 0, 0, Math.PI * 2); ctx.fill();
+}
+
 function drawPlayer() {
   const p = player;
   if (p.inv > 0 && Math.floor(p.inv * 12) % 2 === 0 && state === 'play') return;
@@ -1411,7 +1477,7 @@ function drawPlayer() {
       else if (a === 'dano') { rot = -.24; }
       else if (a === 'parado') { ey = 1 + Math.sin(time * 3) * .012; }
     }
-    ctx.fillStyle = 'rgba(0,0,0,.35)'; ctx.beginPath(); ctx.ellipse(x + p.w / 2, y + p.h + 1, 15, 3, 0, 0, Math.PI * 2); ctx.fill();
+    drawSombra(p);
     drawFrame(S, a, t, x + p.w / 2, y + p.h + 1 + bob, f, esc * ex * (1 + sq * .12), esc * ey * (1 - sq * .14), rot);
   } else drawPlayerShape(x, y, f);
   if (p.swordT > 0) drawGolpe(x + p.w / 2, y + 24, f, 1 - p.swordT / 0.18);
@@ -1531,28 +1597,80 @@ function bar(x, y, w, h, frac, color, back = 'rgba(0,0,0,.55)') {
   if (frac > 0) { ctx.fillStyle = color; roundRect(x, y, Math.max(h, w * clamp(frac, 0, 1)), h, h / 2); ctx.fill(); }
 }
 
+// ---------- barras estilizadas ----------
+// Moldura escura com fio dourado, ponteiras em losango, brilho em cima, marcas a cada 10% e o
+// "rastro" claro do dano (a parte perdida some devagar, como nos jogos de ação sombrios).
+const rastro = { hp: 1, boss: 1, hpT: 0, bossT: 0 };
+function seguirRastro(chave, frac, dt) {
+  if (frac > rastro[chave]) { rastro[chave] = frac; rastro[chave + 'T'] = 0; return; }
+  rastro[chave + 'T'] += dt;
+  if (rastro[chave + 'T'] > .45) rastro[chave] = Math.max(frac, rastro[chave] - dt * .5);
+}
+function losango(x, y, r, cor, borda) {
+  ctx.beginPath(); ctx.moveTo(x, y - r); ctx.lineTo(x + r, y); ctx.lineTo(x, y + r); ctx.lineTo(x - r, y); ctx.closePath();
+  ctx.fillStyle = cor; ctx.fill(); if (borda) { ctx.strokeStyle = borda; ctx.lineWidth = 1; ctx.stroke(); }
+}
+function barraOrnada(x, y, w, h, frac, lag, c1, c2, marcas = true) {
+  frac = clamp(frac, 0, 1); lag = clamp(Math.max(lag, frac), 0, 1);
+  ctx.fillStyle = '#0c070b'; ctx.fillRect(x - 3, y - 3, w + 6, h + 6);                     // moldura
+  ctx.strokeStyle = '#8a6a32'; ctx.lineWidth = 1; ctx.strokeRect(x - 2.5, y - 2.5, w + 5, h + 5);
+  ctx.fillStyle = '#1c1218'; ctx.fillRect(x, y, w, h);                                     // fundo
+  if (lag > frac) { ctx.fillStyle = 'rgba(245,228,190,.85)'; ctx.fillRect(x + w * frac, y, w * (lag - frac), h); }
+  if (frac > 0) {
+    const g = ctx.createLinearGradient(0, y, 0, y + h); g.addColorStop(0, c1); g.addColorStop(1, c2);
+    ctx.fillStyle = g; ctx.fillRect(x, y, Math.max(1, w * frac), h);
+    ctx.fillStyle = 'rgba(255,255,255,.22)'; ctx.fillRect(x, y, Math.max(1, w * frac), Math.max(1, h * .3));   // brilho
+  }
+  if (marcas) { ctx.fillStyle = 'rgba(0,0,0,.35)'; for (let i = 1; i < 10; i++) ctx.fillRect(Math.round(x + w * i / 10), y, 1, h); }
+  losango(x - 4, y + h / 2, h / 2 + 3, '#c9a24e', '#3a2a14');                              // ponteiras
+  losango(x + w + 4, y + h / 2, h / 2 + 3, '#c9a24e', '#3a2a14');
+}
 function drawHUD() {
-  const p = player;
-  ctx.fillStyle = 'rgba(14,10,20,.6)'; roundRect(12, 10, 270, 74, 12); ctx.fill();
-  ctx.fillStyle = '#e3b75a'; ctx.beginPath(); ctx.arc(46, 46, 24, 0, Math.PI * 2); ctx.fill();
+  const p = player, dtH = 1 / 60;
+  seguirRastro('hp', p.hp / maxHp(), dtH);
+  // painel com cantos dourados
+  ctx.fillStyle = 'rgba(10,6,14,.72)'; ctx.fillRect(12, 10, 286, 76);
+  ctx.strokeStyle = 'rgba(201,162,78,.55)'; ctx.lineWidth = 1; ctx.strokeRect(12.5, 10.5, 285, 75);
+  for (const [cx, cy] of [[12, 10], [298, 10], [12, 86], [298, 86]]) losango(cx, cy, 4, '#c9a24e');
+  // medalhão do nível
+  const mg = ctx.createRadialGradient(42, 40, 4, 46, 46, 25); mg.addColorStop(0, '#f6d98a'); mg.addColorStop(1, '#a67a2c');
+  ctx.fillStyle = mg; ctx.beginPath(); ctx.arc(46, 46, 24, 0, Math.PI * 2); ctx.fill();
+  ctx.strokeStyle = '#3a2a14'; ctx.lineWidth = 2; ctx.stroke();
+  ctx.strokeStyle = 'rgba(255,240,200,.6)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(46, 46, 19, 0, Math.PI * 2); ctx.stroke();
   ctx.fillStyle = '#1a1424'; ctx.textAlign = 'center';
-  ctx.font = '11px "Crimson Pro", serif'; ctx.fillText('NÍVEL', 46, 38);
-  ctx.font = 'bold 22px Cinzel, serif'; ctx.fillText(p.lvl, 46, 60);
-  bar(80, 18, 190, 14, p.hp / maxHp(), p.poison > 0 ? '#7ad35a' : '#e2574c');
-  bar(80, 38, 190, 12, p.pe / maxPe(), PODER.cores[2]);
-  bar(80, 58, 190, 6, p.xp / xpNeed(), '#e3b75a');
-  ctx.textAlign = 'left'; ctx.font = 'bold 12px "Crimson Pro", serif'; ctx.fillStyle = '#fff';
-  ctx.fillText('Vida ' + Math.ceil(Math.max(0, p.hp)) + '/' + maxHp(), 86, 29);
-  ctx.fillText('Energia ' + Math.floor(p.pe) + '/' + maxPe(), 86, 48);
+  ctx.font = '10px "Crimson Pro", serif'; ctx.fillText('NÍVEL', 46, 38);
+  ctx.font = 'bold 21px Cinzel, serif'; ctx.fillText(p.lvl, 46, 60);
+  const vene = p.poison > 0;
+  barraOrnada(92, 20, 190, 12, p.hp / maxHp(), rastro.hp, vene ? '#a8f07a' : '#f0605a', vene ? '#3f8a2a' : '#8e1c22');
+  barraOrnada(92, 42, 190, 9, p.pe / maxPe(), 0, PODER.cores[1], PODER.cores[2]);
+  barraOrnada(92, 60, 190, 4, p.xp / xpNeed(), 0, '#ffe39a', '#b8862e', false);
+  ctx.textAlign = 'left'; ctx.font = 'bold 11px "Crimson Pro", serif'; ctx.fillStyle = '#fff';
+  ctx.fillText('Vida ' + Math.ceil(Math.max(0, p.hp)) + '/' + maxHp(), 98, 30);
+  ctx.fillText('Energia ' + Math.floor(p.pe) + '/' + maxPe(), 98, 50);
   ctx.fillStyle = '#b3a88f'; ctx.font = '12px "Crimson Pro", serif';
-  ctx.fillText(`${HEROI.nome} · V${p.attr.V} F${p.attr.F} I${p.attr.I} A${p.attr.A}`, 82, 78);
+  ctx.fillText(`${HEROI.nome} · V${p.attr.V} F${p.attr.F} I${p.attr.I} A${p.attr.A}`, 90, 80);
 
   if (bossActive && boss && !boss.dead) {
-    ctx.textAlign = 'center'; ctx.fillStyle = '#ffcf8a'; ctx.font = 'bold 20px Cinzel, serif';
-    ctx.fillText(CHEFE_CFG.nome, W / 2, 30);
-    bar(W / 2 - 200, 38, 400, 14, boss.fire / boss.max, CHEFE.enraged && CHEFE.enraged(boss) ? '#ff3a1a' : '#ff8a2e');
-    ctx.fillStyle = '#ece4d4'; ctx.font = '12px "Crimson Pro", serif'; ctx.fillText(CHEFE_CFG.rotuloVida, W / 2, 49);
-  }
+    const frac = boss.fire / boss.max, bw = 380, bx = W / 2 - bw / 2, by = H - 34, furia = CHEFE.enraged && CHEFE.enraged(boss);
+    seguirRastro('boss', frac, dtH);
+    // nome com filetes dos lados
+    ctx.textAlign = 'center'; ctx.fillStyle = '#ffd9a0'; ctx.font = 'bold 19px Cinzel, serif';
+    // embaixo, no centro (entre os botões de toque), como nos jogos de ação sombrios
+    const ny = by - 10;
+    ctx.fillText(CHEFE_CFG.nome, W / 2, ny);
+    const tw = ctx.measureText(CHEFE_CFG.nome).width / 2 + 14;
+    ctx.fillStyle = 'rgba(201,162,78,.8)'; ctx.fillRect(W / 2 - tw - 70, ny - 6, 70, 1); ctx.fillRect(W / 2 + tw, ny - 6, 70, 1);
+    losango(W / 2 - tw - 72, ny - 5.5, 3, '#c9a24e'); losango(W / 2 + tw + 72, ny - 5.5, 3, '#c9a24e');
+    // pontas em chama nas extremidades (ornamento)
+    for (const lado of [-1, 1]) {
+      const ex = lado < 0 ? bx - 10 : bx + bw + 10;
+      ctx.fillStyle = '#c9a24e';
+      ctx.beginPath(); ctx.moveTo(ex, by + 7); ctx.lineTo(ex + lado * 22, by - 6); ctx.lineTo(ex + lado * 14, by + 7); ctx.lineTo(ex + lado * 22, by + 20); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = furia ? '#ff3a1a' : '#ff8a2e'; ctx.beginPath(); ctx.arc(ex + lado * 6, by + 7, 3, 0, Math.PI * 2); ctx.fill();
+    }
+    barraOrnada(bx, by, bw, 14, frac, rastro.boss, furia ? '#ff6a3a' : '#ffb04a', furia ? '#8a1206' : '#b33a0e');
+    ctx.fillStyle = '#ece4d4'; ctx.font = '10px "Crimson Pro", serif'; ctx.fillText(CHEFE_CFG.rotuloVida, W / 2, by + 11);
+  } else rastro.boss = 1;
   if (banner > 0) {
     const a = clamp(Math.min(banner, 3.6 - banner) * 2, 0, 1);
     ctx.globalAlpha = a;
