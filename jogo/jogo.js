@@ -912,6 +912,17 @@ function drawMapa() {
   const C = CARTAO; panel(C.x, C.y, C.w, C.h);
   const im = imgLocal(l), iw = C.w - 24, ih = 132;
   if (l.fase && cenaFase(l.fase, C.x + 12, C.y + 12, iw, ih)) { /* cena montada com a arte da fase */ }
+  else if (!l.fase) {   // bloqueado: não mostra a ilustração (não entrega a história), só névoa e "?"
+    const ng = ctx.createRadialGradient(C.x + 12 + iw / 2, C.y + 12 + ih / 2, 6, C.x + 12 + iw / 2, C.y + 12 + ih / 2, iw * .6);
+    ng.addColorStop(0, '#2c2438'); ng.addColorStop(1, '#0e0a14');
+    ctx.fillStyle = ng; ctx.fillRect(C.x + 12, C.y + 12, iw, ih);
+    for (let i = 0; i < 18; i++) {   // névoa que passa devagar
+      const nx = C.x + 12 + ((i * 53 + time * 8 * (1 + i % 3)) % (iw + 60)) - 30, ny = C.y + 20 + (i * 37) % (ih - 16);
+      ctx.fillStyle = 'rgba(180,170,200,.05)'; ctx.beginPath(); ctx.ellipse(nx, ny, 40, 9, 0, 0, Math.PI * 2); ctx.fill();
+    }
+    ctx.textAlign = 'center'; ctx.fillStyle = 'rgba(227,183,90,.75)'; ctx.font = 'bold 64px Cinzel, serif';
+    ctx.fillText('?', C.x + 12 + iw / 2, C.y + 12 + ih / 2 + 22);
+  }
   else if (ready(im)) {
     const k = Math.max(iw / im.naturalWidth, ih / im.naturalHeight), sw = iw / k, sh = ih / k;
     ctx.save(); if (!l.fase) ctx.filter = 'grayscale(1) brightness(.6)';

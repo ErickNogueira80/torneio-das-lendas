@@ -116,7 +116,9 @@ Pessoal (família).
   na ordem dos combates da história (Mula sem cabeça, Boitatá, Nessie, vaca, pesadelo, grifo,
   Kallikántzaros, Excalibur, Hidra e Olimpo), ligados por uma trilha. Só o Boitatá está liberado;
   os outros têm cadeado e "Bloqueado · em breve". O cartão mostra a ilustração pintada do local
-  (a do portal) e o nome (sem o chefe, desde 2026-11-08). Fase vencida ganha um ✓ (guardado no navegador). Sem a imagem
+  (a do portal) e o nome (sem o chefe, desde 2026-11-08). Locais bloqueados não mostram a
+  ilustração (ela entregava a história, ex.: o OVNI do pasto): só névoa e "?" até a fase existir.
+  A imagem do mapa ainda mostra o disco voador no pasto (fica assim por enquanto, decisão do Erick). Fase vencida ganha um ✓ (guardado no navegador). Sem a imagem
   do mapa (`img/sprites/mapa/mundo.png`, prompt na seção 4.3), aparece um fundo escuro.
   A imagem do mapa veio com nomes em inglês escritos pela IA; foram apagados com
   `ferramentas/apagar_textos.py` (o original fica em `img/sprites/mapa/original_com_textos.jpg`)
