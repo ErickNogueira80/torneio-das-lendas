@@ -1,0 +1,448 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Torneio das Lendas · RPG da Milena</title>
+<meta name="description" content="O RPG de mesa que a Milena está criando: o mundo, a aventura, o bestiário, o caderno original e as ideias para continuar.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Crimson+Pro:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
+<style>
+:root{
+  --bg:#14111c; --bg2:#1d1828; --card:#241e31; --line:#3a3150;
+  --text:#ece4d4; --muted:#b3a88f; --gold:#e3b75a; --gold2:#f5d48a;
+  --violet:#b48cff; --red:#ff8a7a; --radius:14px;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--text);font:18px/1.6 "Crimson Pro",Georgia,serif;
+  background-image:radial-gradient(ellipse at top,#2a2140 0%,transparent 60%);background-attachment:fixed}
+a{color:var(--gold2)}
+img{max-width:100%;display:block}
+h1,h2,h3,.cinzel{font-family:Cinzel,serif;letter-spacing:.02em}
+h1{color:var(--gold2)} h2{color:var(--gold);margin:0 0 .4em} h3{margin:.2em 0 .3em;color:var(--gold2)}
+.wrap{max-width:1180px;margin:0 auto;padding:0 16px}
+
+/* topo */
+header.top{position:sticky;top:0;z-index:20;background:rgba(20,17,28,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.top .wrap{display:flex;align-items:center;gap:16px;min-height:60px;flex-wrap:wrap}
+.brand{font-family:Cinzel,serif;font-weight:700;color:var(--gold2);text-decoration:none;font-size:20px;white-space:nowrap}
+nav.tabs{display:flex;gap:4px;flex-wrap:wrap;margin-left:auto}
+nav.tabs a{color:var(--muted);text-decoration:none;padding:6px 12px;border-radius:999px;font-size:16px}
+nav.tabs a:hover{color:var(--text);background:var(--card)}
+nav.tabs a.on{color:#1a1424;background:var(--gold);font-weight:600}
+@media (max-width:760px){
+  nav.tabs{margin-left:0;overflow-x:auto;flex-wrap:nowrap;width:100%;padding-bottom:8px}
+  nav.tabs a{white-space:nowrap}
+}
+
+section.view{display:none;padding:32px 0 64px}
+section.view.on{display:block}
+.lead{font-size:21px;color:var(--muted);max-width:780px}
+
+/* início */
+.hero{position:relative;border-radius:var(--radius);overflow:hidden;border:1px solid var(--line)}
+.hero img{width:100%;aspect-ratio:16/8;object-fit:cover}
+.hero .over{position:absolute;inset:auto 0 0 0;padding:28px;background:linear-gradient(transparent,rgba(10,8,16,.92))}
+.hero h1{margin:0;font-size:clamp(30px,5vw,56px);text-shadow:0 2px 12px #000}
+.hero p{margin:.2em 0 0;font-size:20px;color:var(--text)}
+.quote{border-left:3px solid var(--gold);padding:8px 18px;margin:24px 0;background:var(--bg2);border-radius:0 var(--radius) var(--radius) 0;font-style:italic}
+.quote small{display:block;font-style:normal;color:var(--muted);margin-top:6px}
+.grid{display:grid;gap:18px}
+.g3{grid-template-columns:repeat(auto-fill,minmax(260px,1fr))}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
+.card .pad{padding:16px 18px}
+a.card{text-decoration:none;color:inherit;transition:transform .15s,border-color .15s}
+a.card:hover{transform:translateY(-3px);border-color:var(--gold)}
+.card img{width:100%;aspect-ratio:16/9;object-fit:cover}
+.card p{margin:.3em 0 0;color:var(--muted)}
+.pill{display:inline-block;font-size:14px;padding:2px 10px;border-radius:999px;background:var(--bg2);border:1px solid var(--line);color:var(--muted);margin:2px 4px 2px 0}
+.pill.gold{color:#1a1424;background:var(--gold);border-color:var(--gold)}
+.note{color:var(--muted);font-size:16px}
+
+/* aventura */
+.scene{display:grid;grid-template-columns:1.25fr 1fr;gap:22px;align-items:center;margin:0 0 34px}
+.scene:nth-child(even) .img{order:2}
+.scene .img{border-radius:var(--radius);overflow:hidden;border:1px solid var(--line);cursor:zoom-in}
+.scene .img img{width:100%;aspect-ratio:16/9;object-fit:cover}
+.scene .num{font-family:Cinzel,serif;color:var(--gold);font-size:15px}
+.scene blockquote{margin:10px 0;font-style:italic;color:var(--text)}
+@media (max-width:760px){.scene{grid-template-columns:1fr}.scene:nth-child(even) .img{order:0}}
+
+/* bestiário */
+.beast{display:grid;grid-template-columns:420px 1fr;gap:0;margin:0 0 26px}
+.beast .img{background:#0e0b14;cursor:zoom-in;min-height:240px;display:flex;align-items:center;justify-content:center}
+.beast .img img{width:100%;height:100%;object-fit:cover}
+.beast .noimg{color:var(--muted);font-family:Cinzel,serif;text-align:center;padding:24px}
+.beast .noimg span{display:block;font-size:54px;opacity:.5}
+.beast .pad{padding:20px 22px}
+.stats{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
+.stat{background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding:6px 10px;text-align:center;min-width:64px}
+.stat b{display:block;font-family:Cinzel,serif;color:var(--gold2);font-size:22px;line-height:1.1}
+.stat small{color:var(--muted);font-size:13px}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.cols ul{margin:.2em 0;padding-left:20px}
+.lbl{font-family:Cinzel,serif;font-size:14px;color:var(--gold);letter-spacing:.06em}
+@media (max-width:900px){.beast{grid-template-columns:1fr}.beast .img{max-height:360px}}
+@media (max-width:520px){.cols{grid-template-columns:1fr}}
+
+/* signos */
+table{border-collapse:collapse;width:100%;margin:12px 0;font-size:17px}
+th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+th{background:var(--bg2);font-family:Cinzel,serif;color:var(--gold);font-weight:500}
+.tablewrap{overflow-x:auto}
+
+/* caderno */
+.thumbs{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+.thumbs figure{margin:0;cursor:zoom-in;background:var(--card);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.thumbs img{width:100%;aspect-ratio:3/4;object-fit:cover}
+.thumbs figcaption{font-size:14px;color:var(--muted);padding:6px 8px}
+
+/* markdown */
+.md{background:var(--bg2);border:1px solid var(--line);border-radius:var(--radius);padding:8px 26px 26px;max-width:900px}
+.md h1{font-size:30px}.md h2{font-size:24px;margin-top:1.6em;border-bottom:1px solid var(--line);padding-bottom:6px}
+.md h3{font-size:20px;margin-top:1.3em}
+.md hr{border:0;border-top:1px dashed var(--line);margin:28px 0}
+.md code{background:#0e0b14;padding:1px 6px;border-radius:6px;font-size:.88em}
+.md pre{background:#0e0b14;padding:14px;border-radius:10px;overflow-x:auto;white-space:pre-wrap}
+.md blockquote{border-left:3px solid var(--violet);margin:12px 0;padding:4px 16px;color:var(--muted)}
+.md del{color:var(--red);opacity:.8}
+.md em{color:var(--muted)}
+@media (max-width:520px){.md{padding:4px 14px 18px}}
+
+/* lightbox */
+#lb{position:fixed;inset:0;background:rgba(5,4,8,.94);display:none;align-items:center;justify-content:center;z-index:50;padding:16px;cursor:zoom-out}
+#lb.on{display:flex}
+#lb img{max-height:88vh;max-width:96vw;border-radius:8px;box-shadow:0 10px 40px #000}
+#lb p{position:absolute;bottom:10px;left:0;right:0;text-align:center;color:var(--muted);margin:0}
+#lb button{position:absolute;top:50%;transform:translateY(-50%);background:rgba(36,30,49,.8);color:var(--text);border:1px solid var(--line);border-radius:999px;width:46px;height:46px;font-size:22px;cursor:pointer}
+#lb .prev{left:12px} #lb .next{right:12px}
+footer{border-top:1px solid var(--line);padding:22px 0;color:var(--muted);font-size:15px;text-align:center}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="#inicio">✦ Torneio das Lendas</a>
+    <nav class="tabs" id="tabs">
+      <a href="#inicio">Início</a>
+      <a href="#aventura">Aventura</a>
+      <a href="#bestiario">Bestiário</a>
+      <a href="#signos">Signos</a>
+      <a href="#caderno">Caderno original</a>
+      <a href="#transcricao">Transcrição</a>
+      <a href="#sugestoes">Sugestões</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+
+<!-- INÍCIO -->
+<section class="view" id="v-inicio">
+  <div class="hero">
+    <img src="web/locais/13-o-retorno-ao-olimpo.jpg" alt="Os quatro heróis diante dos portões dourados do Olimpo">
+    <div class="over">
+      <h1>Torneio das Lendas</h1>
+      <p>Um RPG de mesa criado pela Milena · Parte 1: a jornada até o Olimpo</p>
+    </div>
+  </div>
+
+  <div class="quote">
+    Nesse mundo cada casa do zodíaco é tratada como um deus, cada uma tem sua própria religião e
+    crença. Sempre que elas morrem, elas renascem de seu respectivo elemento depois de 100 anos de
+    sua morte. [...] Sempre que todas vivem juntas ao mesmo tempo, o Torneio das Lendas começa.
+    [...] Os próprios deuses gregos preparam o torneio. O campeão ganha reconhecimento e um lugar
+    no Olimpo até sua próxima morte.
+    <small>Do caderno, página 2</small>
+  </div>
+
+  <p class="lead">Três jogadores acordam com a constelação do seu signo brilhando no braço e uma
+  voz na cabeça: <em>"protejam o humano e encontrem Câncer"</em>. Para passar pelos portões do
+  Olimpo, eles precisam completar uma lista mágica, enfrentando criaturas de lendas do mundo
+  inteiro. Até hoje, nenhum representante dos signos ganhou o torneio.</p>
+
+  <h2 style="margin-top:34px">Explore</h2>
+  <div class="grid g3">
+    <a class="card" href="#aventura"><img src="web/locais/05-o-lago-e-a-ilha.jpg" alt=""><div class="pad"><h3>A aventura</h3><p>As 13 cenas da jornada, do despertar até o Olimpo.</p></div></a>
+    <a class="card" href="#bestiario"><img src="web/bestiario/hidra.jpg" alt=""><div class="pad"><h3>Bestiário</h3><p>As 10 criaturas: história, ataques, status e como derrotar.</p></div></a>
+    <a class="card" href="#signos"><img src="web/locais/01-o-despertar.jpg" alt=""><div class="pad"><h3>Signos e elementos</h3><p>Fogo, Terra, Ar e Água, e as constelações dos jogadores.</p></div></a>
+    <a class="card" href="#caderno"><img src="fotos-originais/WhatsApp%20Image%202026-11-07%20at%2020.12.24%20(1).jpeg" alt="" style="object-position:top"><div class="pad"><h3>Caderno original</h3><p>As 36 páginas escritas à mão, do jeito que nasceram.</p></div></a>
+    <a class="card" href="#transcricao"><img src="fotos-originais/WhatsApp%20Image%202026-11-07%20at%2020.12.21%20(1).jpeg" alt="" style="object-position:top"><div class="pad"><h3>Transcrição</h3><p>O caderno inteiro digitado, página por página.</p></div></a>
+    <a class="card" href="#sugestoes"><img src="web/locais/11-a-espada-na-pedra.jpg" alt=""><div class="pad"><h3>Sugestões</h3><p>Ideias para fechar furos, completar regras e continuar a história.</p></div></a>
+  </div>
+
+  <h2 style="margin-top:34px">Como está o projeto</h2>
+  <p><span class="pill gold">Parte 1 escrita</span><span class="pill">Parte 2: o torneio (a escrever)</span><span class="pill">13 locais ilustrados</span><span class="pill">5 de 10 criaturas ilustradas</span></p>
+  <p class="note">Ainda faltam: as fichas do Grifo, do Kallikántzaros e da Hidra, a cena do museu, a luta do pesadelo e as regras de dano.</p>
+</section>
+
+<!-- AVENTURA -->
+<section class="view" id="v-aventura">
+  <h1>A aventura</h1>
+  <p class="lead">A parte 1, cena por cena, com as palavras do caderno. Clique numa imagem para ampliar.</p>
+  <div id="scenes" style="margin-top:28px"></div>
+</section>
+
+<!-- BESTIÁRIO -->
+<section class="view" id="v-bestiario">
+  <h1>Bestiário</h1>
+  <p class="lead">As criaturas na ordem dos combates. Status: <b>V</b> Vigor · <b>P</b> Presença · <b>A</b> Agilidade · <b>F</b> Força · <b>I</b> Intelecto.</p>
+  <div id="beasts" style="margin-top:28px"></div>
+</section>
+
+<!-- SIGNOS -->
+<section class="view" id="v-signos">
+  <h1>Signos e elementos</h1>
+  <p class="lead">Como o caderno divide os signos (página 1). No mundo da Milena, os elementos não seguem a astrologia comum.</p>
+  <div class="tablewrap"><table>
+    <tr><th>Elemento</th><th>Signos</th><th>Como são</th></tr>
+    <tr><td>🔥 Fogo</td><td>Escorpião, <b>Libra</b>, Sagitário</td><td>São orgulhosos, adoram uma briga principalmente quando ganham, não são dos mais inteligentes, pensam depois que agem.</td></tr>
+    <tr><td>🌿 Terra</td><td>Touro, <s>Leão</s>, <b>Capricórnio</b></td><td>Adoram a natureza e odeiam quando alguém fala mal dela, na maioria são calmos e veganos.</td></tr>
+    <tr><td>🌪️ Ar</td><td>Gêmeos, Virgem, <b>Câncer</b></td><td>Costumam ser inteligentes e bem alegres, adoram uma piada e não gostam muito de lutar, apenas quando é necessário.</td></tr>
+    <tr><td>🌊 Água</td><td><b>Áries</b>, Peixes, Aquário</td><td>São sérios, não costumam arrumar encrenca mas também têm pavio curto; se algo dá errado, eles perdem o controle. São os mais inteligentes de todos os elementos.</td></tr>
+  </table></div>
+  <p class="note">Em negrito, os signos circulados no caderno. O Leão está riscado e ainda não tem elemento.</p>
+
+  <h2 style="margin-top:30px">As constelações dos jogadores</h2>
+  <p>Quando cada jogador levanta a manga diante do espelho, vê a constelação do seu signo no braço. Menos o jogador de Câncer: a dele <b>não aparece</b>.</p>
+  <div class="grid g3">
+    <figure class="card" style="margin:0;cursor:zoom-in" data-lb="fotos-originais/WhatsApp%20Image%202026-11-07%20at%2020.12.23%20(3).jpeg" data-cap="Página 4: Áries, Sagitário, Capricórnio e Câncer (não aparece)"><img src="fotos-originais/WhatsApp%20Image%202026-11-07%20at%2020.12.23%20(3).jpeg" alt="Constelações desenhadas no caderno" style="aspect-ratio:3/4"><div class="pad"><p>Página 4 do caderno</p></div></figure>
+    <figure class="card" style="margin:0;cursor:zoom-in" data-lb="web/locais/01-o-despertar.jpg" data-cap="O despertar"><img src="web/locais/01-o-despertar.jpg" alt="Jogador vendo a constelação no braço"><div class="pad"><p>O despertar diante do espelho</p></div></figure>
+  </div>
+
+  <h2 style="margin-top:30px">Criação de personagem</h2>
+  <div class="tablewrap"><table>
+    <tr><th>Obrigatório</th><th>Opcional</th></tr>
+    <tr><td>Nome, idade aproximada, poder, aparência. De 3 a 4 ataques diferentes, com pelo menos 1 do seu elemento.</td><td>Como usar os itens e poderes; quais serão os poderes e os itens; backstory (não será relevante).</td></tr>
+  </table></div>
+  <p class="note">Cada jogador pode ter no máximo 2 itens, e um deles <b>deve</b> ser de ataque (página 34).</p>
+</section>
+
+<!-- CADERNO -->
+<section class="view" id="v-caderno">
+  <h1>Caderno original</h1>
+  <p class="lead">As 36 páginas fotografadas, na ordem em que foram escritas. Clique para ampliar e use as setas para virar as páginas.</p>
+  <div class="thumbs" id="thumbs" style="margin-top:24px"></div>
+</section>
+
+<!-- TRANSCRIÇÃO -->
+<section class="view" id="v-transcricao">
+  <h1>Transcrição</h1>
+  <p class="lead">O caderno digitado na íntegra, com a escrita original. Riscado = o que a Milena riscou; [?] = leitura incerta.</p>
+  <div class="md" id="md-transcricao"><p class="note">Carregando…</p></div>
+</section>
+
+<!-- SUGESTÕES -->
+<section class="view" id="v-sugestoes">
+  <h1>Sugestões</h1>
+  <p class="lead">Ideias para olhar juntos. A história é da Milena: tudo aqui é opcional.</p>
+  <div class="md" id="md-sugestoes"><p class="note">Carregando…</p></div>
+</section>
+
+</main>
+
+<footer>
+  Torneio das Lendas · criado pela Milena · ilustrações geradas com IA a partir das descrições do caderno
+</footer>
+
+<div id="lb" role="dialog" aria-label="Imagem ampliada">
+  <button class="prev" aria-label="Anterior">‹</button>
+  <img alt="">
+  <button class="next" aria-label="Próxima">›</button>
+  <p></p>
+</div>
+
+<script>
+const L = 'web/locais/', B = 'web/bestiario/';
+
+const SCENES = [
+  {img:'01-o-despertar', t:'O despertar', p:'p. 3',
+   q:'Quando você olha para o lado, ainda segurando a carta, você se vê no espelho inconscientemente, levanta a manga de sua camisa e vê ela, a constelação de seu signo (menos o player de câncer).'},
+  {img:'02-o-museu-de-antiguidade', t:'O Museu de Antiguidades', p:'p. 5',
+   q:'Enquanto isso, Câncer se pergunta porque ele levantou a manga. Ele ouve "VÁ, O MUSEU DE ANTIGUIDADES O AGUARDA", você não sabe o que foi isso ou quem disse, mas sentiu a importância.'},
+  {img:'03-a-chegada-ao-mundo-espiritual', t:'A chegada ao mundo espiritual', p:'p. 5',
+   q:'Assim que todos entram no mundo espiritual, todos se encontram e sentem uma energia estranha vindo dos três com signos. Até que reparam na humana.',
+   n:'Primeiro combate: a Mula sem cabeça.'},
+  {img:'04-a-montanha-e-os-portoes-do-santuario-do-olimpo', t:'A montanha e os portões do Olimpo', p:'p. 10 e 11',
+   q:'A montanha para o caminho do monte Olimpo é enorme, eles devem escalá-la e chegar aos portões. [...] O portão diz: "O destino aguarda os quatro grandes [...] Mas a lista não está totalmente completa, vocês não passarão."',
+   n:'Aqui aparecem o Boitatá e o Robin Hood, trabalhando juntos. Depois, o portão entrega a lista.'},
+  {img:'05-o-lago-e-a-ilha', t:'O lago e a "ilha"', p:'p. 13',
+   q:'Eles se deparam com uma placa que dizia "A morte nem sempre é o caminho". [...] A tal "ilha" começa a mexer e tremer, logo espinhos gigantes saem dela e a ilha começa a subir. Vocês caem na água.',
+   n:'Combate contra a Nessie: virar amigo ou lutar muda a batalha final.'},
+  {img:'06-a-cabana-do-barqueiro', t:'A cabana do barqueiro', p:'p. 15',
+   q:'Logo no final do lago eles veem uma cabana e uma pessoa encapuzada fala com vocês, ele diz: "Vocês a enganaram uma vez e agora, a maldição cai sobre vocês e apenas o maior de 53 pode se livrar dela".'},
+  {img:'07-o-campo-do-arco-iris', t:'O campo do arco-íris', p:'p. 15 e 16',
+   q:'Do lado esquerdo deles eles veem alguns pequenos corpos d\'água e próximo deles tem alguns unicórnios comendo o pasto. [...] Um enorme, gigante e cheio caldeirão com moedas de ouro.',
+   n:'Em cima do caldeirão dorme o Kallikántzaros, o Leprechaun.'},
+  {img:'08-o-pasto-da-vaca-e-o-ovni', t:'O pasto da vaca e o OVNI', p:'p. 17',
+   q:'Quando a vaca finalmente parece cansada, uma luz verde começa a pairar sobre ela [...] Quem estava levando ela era um OVNI. Sim. Aliens. EVENTO MUITO ALEATÓRIO.'},
+  {img:'09-a-caverna-a-noite', t:'A caverna à noite', p:'p. 18',
+   q:'Os dias no mundo espiritual são muito mais longos do que na terra e finalmente está escurecendo. Vocês resolvem procurar uma caverna para se abrigarem e se aquecerem durante a noite.',
+   n:'Durante o sono, o pesadelo ataca.'},
+  {img:'10-a-clareira-do-grifo', t:'A clareira do grifo', p:'p. 19',
+   q:'Após uma longa caminhada vocês chegam em uma área cercada por árvores [...] No chão vocês veem um grifo, ele parece ter 3,5 metros de altura. O que vocês fazem?',
+   n:'Aqui o Leprechaun mostra que não é confiável.'},
+  {img:'11-a-espada-na-pedra', t:'A espada na pedra', p:'p. 21',
+   q:'Vocês encontram uma espécie de pedestal de pedra com uma espada cravada nela. [...] "Até os certos estão errados, quando eles mais precisarem e a morte aparecer, o nosso herói irá perecer".'},
+  {img:'12-o-templo-da-hidra', t:'O templo da Hidra', p:'p. 20',
+   q:'Vocês chegam em uma espécie de templo gigante. Quando vocês entram nele, vocês a veem... Gigante, 7 cabeças, "infinitas" vidas. Vocês devem derrotar ela.'},
+  {img:'13-o-retorno-ao-olimpo', t:'O retorno ao Olimpo', p:'p. 20',
+   q:'O humano desperta a entidade de câncer oficialmente e fica muito forte. "Os quatro grandes retornaram, o torneio pode e deve começar!"',
+   n:'CONTINUA…'}
+];
+
+const BEASTS = [
+  {nome:'Mula sem cabeça', img:'mula-sem-cabeca', comb:'1º combate', st:[2,1,3,2,2],
+   d:'Como o próprio nome diz, é uma mula que por conta de uma maldição teve a cabeça arrancada e substituída por uma espécie de bola de fogo mágica que é quase impossível de ser apagada. Hoje em dia ela protege os campos e fazendas de bandidos e ladrões que tentam roubar ou matar os animais dos fazendeiros.',
+   at:['Bola de fogo','Coice','Investida','"Tapa" de casco'], pe:['Intimidação','Furtividade'],
+   m:'Apagando totalmente o fogo de sua cabeça ou "danificando" o coração dela.'},
+  {nome:'Robin Hood', comb:'2º e 3º combate', st:[2,1,3,1,3],
+   d:'Um homem que não se sabe onde vive. Um arqueiro famoso que usa muito a cor verde. Segundo as lendas, ele vive na floresta e rouba dos ricos para dar aos pobres e necessitados, porém quando rouba de um rico desgraçado, ele o mata e dá todo o seu dinheiro para os mais necessitados.',
+   at:['Flechada','Flechada tripla','Facada'], pe:['Acrobacia','Pontaria'],
+   m:'Arrancando a cabeça ou fazendo ele chegar a 0 PS.'},
+  {nome:'Boitatá', comb:'2º e 3º combate', st:[1,1,3,2,3],
+   d:'Uma cobra de fogo flamejante que mora na parte mais densa da floresta. Ela começou a ser desse jeito após um grande incêndio florestal que tomou sua vida. A floresta aprisionou sua alma em um corpo incendiado e a tornou guardiã da mesma, desde então ela protege a região de lenhadores.',
+   at:['Bola de fogo gigante','Mordida venenosa','Mordida comum'], pe:['Agilidade'],
+   m:'Apagando completamente seu fogo ou arrancando suas presas.'},
+  {nome:'Nessie', comb:'4º combate', st:[3,1,1,3,2],
+   d:'Nessie é o famoso monstro do lago Ness. Segundo as várias lendas desse lago um monstro vindo das profundezas do inferno protege todos os seres vivos do lago. Ninguém nunca viu ele (até agora), ninguém sabe a real aparência dele, apenas sabem que é um monstro gigante que nunca se fez presente diante de ninguém.',
+   at:['Jato d\'água','Onda matadora','Tufão merengue','Redemoinho'], pe:['Furtividade ×3'],
+   m:'Fazendo amizade com ele ou matando ele (de alguma forma). O final muda conforme a escolha.'},
+  {nome:'Ageláda (Vaca)', comb:'5º combate', st:[5,0,1,4,0],
+   d:'Na Índia as vacas são consideradas deusas/entidades sagradas. Para eles a vaca representa a vida, a fertilidade, a generosidade e a pureza. Ela também é associada à bondade e à maternidade, já que ela é capaz de fornecer leite e outros recursos para os seres humanos.',
+   at:['Gás mortal','Terremoto'], pe:['Nenhuma'],
+   m:'Pelo cansaço ou fazendo ela chegar a 0 PS.'},
+  {nome:'Freddy Kruger', comb:'6º combate', st:[2,0,3,1,4],
+   d:'Freddy Kruger é um assassino movido por vinganças, crueldade e prazer em causar sofrimento. Ele transforma os sonhos das pessoas nos maiores pesadelos delas onde ele é capaz de controlar praticamente tudo e suas vítimas ficam extremamente vulneráveis.',
+   at:['Pesadelo','Arranhão','Caldeirão','Dardo envenenado'], pe:['Pontaria','Furtividade ×2'],
+   m:'Tomando controle de seu sonho ou forçando sair dele o tempo todo.',
+   obs:'Personagem de filme; a sugestão para o material final é trocar por uma criatura original (ver Sugestões).'},
+  {nome:'Grifo', img:'grifo', comb:'7º combate', st:[2,1,3,2,2],
+   d:'No chão vocês veem um grifo, ele parece ter 3,5 metros de altura. Na batalha do grifo eles também têm a opção de fazer amizade com ele, mas será mais difícil.',
+   at:['Furacão','Investida ×3','Ruído sonoro ×2','Ataque de penas ×2'], pe:['Acrobacia','Enganação','Intimidação'],
+   m:'Tentando muito fazer amizade ou arrancando uma de suas patas.',
+   obs:'Ataques e perícias vêm da ficha da Aetós (águia), que virou o Grifo. A ficha própria ainda está em branco.'},
+  {nome:'Kallikántzaros (Leprechaun)', img:'kallikantzaros', comb:'8º combate · "aliado"', st:[2,1,3,1,3],
+   d:'Um ser pequeno, usando vestimentas verdes e com detalhes de trevos. Em sua cabeça havia uma cartola da mesma cor e com um pingente relativamente grande de um trevo dourado. Ele está dormindo em cima do pote. "AH, que maravilha! os três grandes vieram para o torneio imagino."',
+   at:['Ataque de moeda','Vômito arco-íris','Martelada brutal'], pe:['Furtividade','Reflexo','Enganação ×2'],
+   m:'Chegando a 0 PS.', obs:'Ele não gosta do humano e esconde uma dog tag no chapéu. Ficha própria ainda em branco.'},
+  {nome:'Excalibur', img:'excalibur', comb:'9º combate · batalha psicológica', st:[0,0,0,4,6],
+   d:'Uma espécie de pedestal de pedra com uma espada cravada nele. Segundo a lenda, apenas os dignos de verdade podem levantar a espada. Quem pegá-la poderá ficar com ela até o torneio.',
+   at:['Visão da alma','Toque amaldiçoado','Alta sorte'], pe:['Enganação','Intuição','Tática'],
+   m:'Achando o digno de tentar empunhá-la.'},
+  {nome:'Hidra', img:'hidra', comb:'10º combate · batalha final', st:[3,3,0,5,4],
+   d:'Gigante, 7 cabeças, "infinitas" vidas. Não tem como fazer amizade com ela: matar ela é obrigatório.',
+   at:['Mordida','Bola de fogo','Arranhão','Pisada esmagadora','Terremoto'], pe:['Intimidação','Sobrevivência','Iniciativa'],
+   m:'Perfurando todos os seus sete corações ou acertando 3 vezes o coração principal.',
+   obs:'Se a Nessie virou amiga, ela ajuda nessa batalha.'}
+];
+
+const FOTOS = ['20.12.25','20.12.24 (1)','20.12.24','20.12.23 (3)','20.12.23 (2)','20.12.23 (1)','20.12.23',
+  '20.12.22 (1)','20.12.22','20.12.21 (1)','20.12.21','20.12.20 (1)','20.12.20','20.12.19 (2)','20.12.19 (1)',
+  '20.12.19','20.12.18 (2)','20.12.18 (1)','20.12.18','20.12.17','20.12.16 (1)','20.12.16','20.11.32 (1)',
+  '20.11.32','20.11.31 (3)','20.11.31 (2)','20.11.31 (1)','20.11.31','20.11.30 (3)','20.11.30 (2)',
+  '20.11.30 (1)','20.11.30','20.11.29 (2)','20.11.29 (1)','20.11.29','20.11.28'];
+const TITULOS = ['Signos e elementos','O mundo','O chamado','As constelações','As marcas e o museu',
+  'Combates (1)','Combates (2)','Combates (3)','Premonição','Mula, montanha e portão','Boitatá, Robin Hood e a lista',
+  'A lista','O lago','Amigos de Nessie','O barqueiro e o arco-íris','O Leprechaun','A vaca','A noite e o pesadelo',
+  'O grifo e a traição','A Hidra e o fim','A espada na pedra','Bestiário: Mula','Bestiário: Robin Hood',
+  'Bestiário: Boitatá','Bestiário: Nessie','Bestiário: Vaca','Bestiário: Freddy','Bestiário: Grifo',
+  'Bestiário: Leprechaun','Bestiário: Hidra','Notas do mestre (1)','Notas do mestre (2)','Notas (3) e status',
+  'Criação de personagem','Como matar cada monstro','Como matar (cont.)'];
+
+const esc = s => s.replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const fotoUrl = f => 'fotos-originais/' + encodeURIComponent('WhatsApp Image 2026-11-07 at ' + f + '.jpeg');
+
+document.getElementById('scenes').innerHTML = SCENES.map((s,i) => `
+  <div class="scene">
+    <div class="img" data-lb="${L+s.img}.jpg" data-cap="${esc(s.t)}"><img loading="lazy" src="${L+s.img}.jpg" alt="${esc(s.t)}"></div>
+    <div>
+      <div class="num">CENA ${String(i+1).padStart(2,'0')} · ${s.p}</div>
+      <h2>${esc(s.t)}</h2>
+      <blockquote>“${esc(s.q)}”</blockquote>
+      ${s.n ? `<p class="note">${esc(s.n)}</p>` : ''}
+    </div>
+  </div>`).join('');
+
+const LET = ['V','P','A','F','I'], NOMES = ['Vigor','Presença','Agilidade','Força','Intelecto'];
+document.getElementById('beasts').innerHTML = BEASTS.map(b => `
+  <article class="card beast">
+    <div class="img" ${b.img ? `data-lb="${B+b.img}.jpg" data-cap="${esc(b.nome)}"` : ''}>
+      ${b.img ? `<img loading="lazy" src="${B+b.img}.jpg" alt="${esc(b.nome)}">`
+              : `<div class="noimg"><span>✦</span>imagem em breve</div>`}
+    </div>
+    <div class="pad">
+      <span class="pill gold">${esc(b.comb)}</span>
+      <h2 style="margin-top:6px">${esc(b.nome)}</h2>
+      <p>${esc(b.d)}</p>
+      <div class="stats">${b.st.map((v,i)=>`<div class="stat" title="${NOMES[i]}"><b>${v}</b><small>${NOMES[i]}</small></div>`).join('')}</div>
+      <div class="cols">
+        <div><div class="lbl">ATAQUES</div><ul>${b.at.map(a=>`<li>${esc(a)}</li>`).join('')}</ul></div>
+        <div><div class="lbl">PERÍCIAS</div><ul>${b.pe.map(a=>`<li>${esc(a)}</li>`).join('')}</ul></div>
+      </div>
+      <p><span class="lbl">COMO DERROTAR</span><br>${esc(b.m)}</p>
+      ${b.obs ? `<p class="note">${esc(b.obs)}</p>` : ''}
+    </div>
+  </article>`).join('');
+
+document.getElementById('thumbs').innerHTML = FOTOS.map((f,i) => `
+  <figure data-lb="${fotoUrl(f)}" data-cap="Página ${i+1} · ${esc(TITULOS[i])}" data-group="caderno">
+    <img loading="lazy" src="${fotoUrl(f)}" alt="Página ${i+1}">
+    <figcaption>${i+1}. ${esc(TITULOS[i])}</figcaption>
+  </figure>`).join('');
+
+/* markdown sob demanda */
+const loaded = {};
+async function loadMd(id, file){
+  if (loaded[id]) return; loaded[id] = true;
+  const box = document.getElementById(id);
+  try{
+    const r = await fetch(file, {cache:'no-cache'});
+    if(!r.ok) throw new Error(r.status);
+    box.innerHTML = marked.parse(await r.text());
+  }catch(e){ box.innerHTML = `<p class="note">Não consegui carregar o arquivo. <a href="${file}">Abrir direto</a>.</p>`; loaded[id]=false; }
+}
+
+/* abas */
+const VIEWS = ['inicio','aventura','bestiario','signos','caderno','transcricao','sugestoes'];
+function show(){
+  const h = (location.hash || '#inicio').slice(1);
+  const v = VIEWS.includes(h) ? h : 'inicio';
+  document.querySelectorAll('section.view').forEach(s => s.classList.toggle('on', s.id === 'v-'+v));
+  document.querySelectorAll('#tabs a').forEach(a => a.classList.toggle('on', a.getAttribute('href') === '#'+v));
+  if (v==='transcricao') loadMd('md-transcricao','01-transcricao-integral.md');
+  if (v==='sugestoes') loadMd('md-sugestoes','02-sugestoes.md');
+  window.scrollTo({top:0});
+}
+addEventListener('hashchange', show); show();
+
+/* lightbox */
+const lb = document.getElementById('lb'), lbImg = lb.querySelector('img'), lbCap = lb.querySelector('p');
+let group = [], idx = 0;
+function open(el){
+  const sec = el.closest('section');
+  group = [...sec.querySelectorAll('[data-lb]')];
+  idx = group.indexOf(el); render(); lb.classList.add('on');
+}
+function render(){ const el = group[idx]; lbImg.src = el.dataset.lb; lbCap.textContent = el.dataset.cap || ''; }
+function step(d){ idx = (idx + d + group.length) % group.length; render(); }
+document.addEventListener('click', e => {
+  const el = e.target.closest('[data-lb]');
+  if (el && !lb.contains(el)) { open(el); return; }
+  if (e.target.closest('#lb .prev')) { step(-1); return; }
+  if (e.target.closest('#lb .next')) { step(1); return; }
+  if (lb.classList.contains('on') && !e.target.closest('#lb button')) lb.classList.remove('on');
+});
+addEventListener('keydown', e => {
+  if (!lb.classList.contains('on')) return;
+  if (e.key==='Escape') lb.classList.remove('on');
+  if (e.key==='ArrowLeft') step(-1);
+  if (e.key==='ArrowRight') step(1);
+});
+</script>
+</body>
+</html>

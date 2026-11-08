@@ -1,0 +1,155 @@
+# RPG da Milena
+
+## O que é
+
+RPG de mesa escrito pela Milena num caderno. Ainda não está pronto: a
+parte 1 (a jornada até o Torneio das Lendas) está escrita; a parte 2 (o torneio) ainda não.
+
+Resumo da história: no mundo do RPG, cada casa do zodíaco é uma divindade que renasce de tempos
+em tempos. Quando todas vivem ao mesmo tempo, os deuses gregos fazem o Torneio das Lendas. Três
+jogadores despertam com a constelação do signo no braço e precisam proteger um humano e
+encontrar o Câncer, enfrentando criaturas de lendas (Mula sem cabeça, Boitatá, Robin Hood,
+Nessie, Leprechaun, Grifo, Excalibur, Hidra) para completar a lista do portão do Olimpo. A
+virada: o humano era o Câncer.
+
+## Área
+
+Pessoal (família).
+
+## Onde está
+
+- Pasta: `D:\Erick\Jogos\milena-rpg`
+- Repositório: https://github.com/ErickNogueira80/torneio-das-lendas (público).
+- Portal (GitHub Pages): https://ericknogueira80.github.io/torneio-das-lendas/ — `index.html` na
+  raiz; lê os `.md` direto (por isso o `.nojekyll`).
+- Fotos originais: `C:\Users\erick\Downloads\milena_rpg_001` (36 fotos do WhatsApp de
+  07/11/2026), copiadas para `fotos-originais/` como backup.
+
+## Arquivos
+
+| Arquivo | O que tem |
+|---|---|
+| `fotos-originais/` | Backup das 36 fotos do caderno |
+| `01-transcricao-integral.md` | Transcrição fiel, página por página, com a grafia dela |
+| `02-sugestoes.md` | Furos de continuidade, regras que faltam, correções de texto, ideias para a parte 2 e plano do material |
+| `03-prompts-imagens.md` | Prompts para gerar imagens dos 13 locais, das 10 criaturas do bestiário e de 2 extras em outra IA, com um bloco de estilo comum |
+| `img/local`, `img/bestiario` | Imagens geradas em tamanho original (fora do git, só no PC) |
+| `web/` | Versões menores das imagens, usadas pelo portal |
+| `ferramentas/otimizar_imagens.py` | Gera `web/` a partir de `img/` (rodar depois de adicionar imagens) |
+| `index.html` | O portal: início, aventura, bestiário, signos, caderno, transcrição e sugestões |
+
+## Como atualizar o portal
+
+1. Salvar as imagens novas em `img/local` ou `img/bestiario`.
+2. Rodar `python ferramentas/otimizar_imagens.py`.
+3. Se for criatura nova com imagem, colocar `img: '<nome-do-arquivo-sem-.jpg>'` no item dela em
+   `BEASTS` dentro do `index.html` (e ajustar a contagem "x de 10 criaturas ilustradas").
+4. `git add -A && git commit && git push`. O GitHub Pages atualiza em 1 ou 2 minutos.
+
+## Ordem das fotos
+
+A ordem das páginas é a do nome dos arquivos, de trás para a frente: começa em `20.12.25` e
+termina em `20.11.28`. Quando há vários arquivos no mesmo segundo, o de maior número vem
+primeiro: `(3)`, `(2)`, `(1)` e, por último, o sem número. A ordem foi conferida pela
+continuidade do texto.
+
+## Decisões
+
+- 2026-11-07: a transcrição mantém a grafia original. As correções ficam só em
+  `02-sugestoes.md`, para a Milena decidir o que aceita.
+- 2026-11-07: as sugestões são opcionais. A história e as escolhas são dela.
+- 2026-11-07: portal público no GitHub Pages, a pedido do Erick, com o nome do jogo ("Torneio das
+  Lendas") no repositório. Nos arquivos públicos aparece só o primeiro nome dela, sem idade.
+- 2026-11-07: imagens originais (cerca de 2,5 MB cada) ficam fora do git; o portal usa cópias de
+  até 1600 px em `web/`.
+
+## Pontos de referência (revisão de 2026-11-07)
+
+Resumo da `02-sugestoes.md`, que tem os detalhes e as ideias de cada item. Marque `[x]` quando a
+Milena decidir e anote a decisão na frente.
+
+### O que está bom e vale manter
+
+- A virada do Câncer: o "humano" protegido a aventura inteira é o próprio Câncer (plantada desde
+  a p. 3: sem marca no braço, "protejam o humano e encontrem Câncer", o Leprechaun dizendo "é um
+  humano", "o humano desperta a entidade de Câncer").
+- A mistura de lendas (folclore brasileiro, britânico, irlandês e grego) amarrada pelo torneio
+  dos deuses gregos.
+- Os nomes gregos dos monstros: Ageláda (vaca), Aetós (águia), Kallikántzaros (duende grego).
+- Escolhas que mudam o jogo: ficar amigo da Nessie facilita a Hidra; matar dificulta. O grifo
+  também pode virar amigo. A placa "A morte nem sempre é o caminho" avisa isso.
+- Notas do mestre prevendo o que os jogadores vão tentar (p. 31 a 33).
+- Humor: a vaca com asas de pombo abduzida por um OVNI e o "Tufão merengue".
+
+### Decisões pendentes da Milena (furos de continuidade)
+
+- [ ] **Leão sumiu:** foi riscado da Terra e não está em nenhum elemento (ficam 11 signos).
+  Colocar num elemento ou virar mistério da parte 2.
+- [ ] **Elementos diferentes da astrologia comum** (ex.: Áries de Água). Foi de propósito? Se
+  sim, explicar no mundo; se não, usar Fogo = Áries, Leão, Sagitário; Terra = Touro, Virgem,
+  Capricórnio; Ar = Gêmeos, Libra, Aquário; Água = Câncer, Escorpião, Peixes.
+- [ ] **Quarto jogador:** p. 1 circula Libra; p. 4 desenha a constelação de Sagitário.
+- [ ] **"O humano" ou "a humana"** (p. 5 diz "a humana").
+- [ ] **50 ou 100 anos:** renascem 100 anos depois da morte (p. 2), mas "pela primeira vez em 50
+  anos todos nascem juntos" (p. 3). Sugestão: eles "despertam" adultos em vez de "nascer".
+- [ ] **Pingente ou dog tag:** os três primeiros monstros deixam pingentes; da Nessie em diante,
+  dog tags. Unificar o nome ou explicar a diferença.
+- [ ] **Quem é "a" que eles enganaram** (frase do barqueiro). Se for a Morte, amarra com a placa
+  do lago e a frase da Excalibur.
+- [ ] **Museu de Antiguidades sem continuação** (p. 5). Sugestão: cena curta em que o Câncer
+  toca um objeto com o símbolo do caranguejo e é puxado para o mundo espiritual.
+- [ ] **Resposta do enigma "o maior de 53"** (só para o mestre).
+- [ ] **O que as letras da lista formam** (uma letra por dog tag). Sugestão: a senha do portão
+  ou o nome verdadeiro do Câncer.
+- [ ] **Por que os "haters" têm razão** (p. 2). Sugestão: cada torneio desequilibra os elementos
+  e causa desastres; vira o vilão da parte 2.
+
+### Regras que faltam
+
+- [ ] **Como fazer um teste** com os atributos V, P, A, F, I (Vigor, Presença, Agilidade,
+  Força, Intelecto) e as perícias. Sugestão: rolar um d20 por ponto do atributo e ficar com o
+  maior; atributo 0 = dois d20, fica com o menor; perícia treinada +5; dificuldade 10 (normal)
+  ou 15 (difícil).
+- [ ] **O que é PS e quanto cada um tem.** Sugestão: PS = 10 + 5 × Vigor.
+- [ ] **Coluna "Tentativa | Dano"** das fichas (p. 22 a 27) está vazia: qual atributo/perícia
+  rola para acertar e qual dado de dano.
+- [ ] **Maldição do barqueiro (p. 9):** do jeito que está, tirar 16 tira e dá ponto de azar ao
+  mesmo tempo. Sugestão: 15+ perde 1 ponto, menos de 10 ganha 1, de 10 a 14 nada. Falta
+  dizer quando rola e o que o azar faz na prática.
+- [ ] **Escalada da montanha (p. 10):** falta a altura e quanto se sobe por acerto. Sugestão: o
+  jogador escolhe o dado (d6 sobe 1 m, d12 sobe 2 m, d20 sobe 3 m), errou cai 1 m, montanha de
+  10 m.
+- [ ] **Bônus de elemento** (opcional): Fogo +1 Força, Terra +1 Vigor, Ar +1 Agilidade, Água +1
+  Intelecto.
+- [ ] **Hidra:** "Vida x7", "infinitas vidas" e "7 corações ou 3 vezes o principal" precisam
+  virar uma regra só. Sugestão: cabeças com PS próprios, cortar uma faz nascer duas a não ser
+  que queimem o pescoço; coração principal aparece no fim; Nessie amiga chega no meio da luta.
+- [ ] **Excalibur (batalha psicológica):** sugestão de visão/medo + teste de Presença ou
+  Intelecto para cada um que tentar tirar a espada.
+
+### Arrumação do texto
+
+- [ ] Colocar a cena da Excalibur (p. 21) no lugar dela: depois do grifo/Leprechaun, antes da
+  Hidra.
+- [ ] Atualizar a ficha do Aetós (águia) para Grifo e usar as fichas do bestiário como versão
+  final dos ataques (Boitatá, Freddy e Mula mudaram entre as listas e as fichas).
+- [ ] Separar caixas de **"Leia em voz alta"** (com "vocês") das **notas do mestre** (com
+  "eles").
+- [ ] Correções de grafia só na versão passada a limpo (tabela na seção 3.2 das sugestões).
+- [ ] Se for publicar ou compartilhar: trocar o Freddy Krueger (personagem de filme, com dono)
+  por uma criatura própria. Sugestão: Fobétor, deus grego dos pesadelos. As outras lendas são de
+  domínio público.
+
+### O que falta escrever
+
+- [ ] Fichas do Grifo, do Kallikántzaros (Leprechaun) e da Hidra (p. 28 a 30 em branco).
+- [ ] Cena do museu.
+- [ ] A luta contra o Freddy (p. 18 tem só o teste inicial).
+- [ ] Parte 2: o Torneio das Lendas. Ideias: os outros oito signos como rivais, semideuses como
+  azarões, o mistério do Leão, os haters sabotando, a profecia da Excalibur e a volta da Nessie.
+
+### Material final
+
+- [ ] Montar o "livro do mestre" passado a limpo, com estes capítulos: mundo, signos e elementos,
+  criação de personagem, regras, aventura cena a cena, bestiário, notas do mestre e extras para
+  imprimir (fichas em branco, lista com letras, cartas das constelações).
