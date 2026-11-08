@@ -132,8 +132,8 @@ Pessoal (família).
 - **Mapa (2026-11-08):** a região escolhida fica iluminada e o resto escurece; o cartão de uma
   fase pronta mostra a cena montada com as camadas da própria fase (no Boitatá, a floresta
   queimada) em vez da ilustração do portal.
-- **Baú com arte (2026-11-08):** `img/sprites/objetos/bau/bau_fechado.jpg` (15 px da arte). Falta
-  o `bau_aberto`; até lá, o baú aberto é o fechado com o brilho do tesouro e faíscas.
+- **Baú com arte (2026-11-08):** `img/sprites/objetos/bau/` (`bau_fechado`, `bau_aberto`), 24 px
+  da arte, recortados com a mesma caixa.
 - **Desempenho (2026-11-08):** as camadas de árvores são montadas uma vez, no início da fase, em 2
   faixas largas (fundo com neblina, parallax 0,28; meio, 0,55); por quadro o jogo só copia um
   pedaço de cada. A densidade das camadas não pesa, só o número de faixas. Brilho colorido só nas

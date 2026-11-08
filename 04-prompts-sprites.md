@@ -284,43 +284,54 @@ certa, peça "mesma imagem, mas com a capa azul-marinho" em vez de começar do z
 
 ---
 
-## 2. Boitatá em 3 partes
+## 2. Boitatá em 3 partes (Gemini)
 
-O jogo monta a cobra: uma cabeça, vários gomos iguais e a ponta do rabo. As chamas que dançam por
-cima são do próprio jogo, então as partes podem ter só brasas e rachaduras brilhando. Gere a
-cabeça primeiro e anexe-a nos pedidos do gomo e do rabo, para as cores baterem.
+O jogo monta a cobra: uma cabeça, vários gomos iguais (que diminuem até o rabo) e a ponta do rabo,
+seguindo a cabeça como um trem. As chamas que dançam por cima e a luz são do próprio jogo, então
+as peças podem ter só brasas e rachaduras brilhando. Peças paradas: Gemini, e a ferramenta
+pixeliza. Gerar a cabeça primeiro e anexar nos pedidos do gomo e do rabo, para as cores baterem.
+Salvar em `img/sprites/chefes/boitata/`.
 
-**`chefes/boitata/cabeca.png`**
-
-```
-Create an image. Part of a giant serpent made of living fire from Brazilian folklore (the
-Boitatá): charred black-red ember skin with glowing orange cracks, small flickering flames, eyes
-like bright burning coals. Isolated 2D game asset, painterly fantasy RPG style, side view, plain
-solid #00FF00 green background, no shadow, no text, no frame.
-Only the HEAD of the serpent, facing right, mouth slightly open showing sharp fangs, no neck
-or a very short neck.
-```
-
-**`chefes/boitata/gomo.png`**
+**`cabeca.png`** (1:1)
 
 ```
-Create an image. Part of a giant serpent made of living fire from Brazilian folklore (the
-Boitatá): charred black-red ember skin with glowing orange cracks, small flickering flames, eyes
-like bright burning coals. Isolated 2D game asset, painterly fantasy RPG style, side view, plain
-solid #00FF00 green background, no shadow, no text, no frame.
-Only ONE round BODY SEGMENT of the serpent, roughly circular, like a thick slice of the body
-seen from the side, no head, no tail. Same colors as the attached head.
+Create an image. The HEAD of the Boitatá, a giant serpent made of living fire from Brazilian
+folklore, for a dark fantasy 2D side-scrolling game boss. Side view, facing right. Charred
+black-red scaly skin cracked with glowing orange and yellow lava lines, two huge bright burning
+eyes like hot coals, mouth slightly open showing sharp ember fangs and a glowing throat, small
+flames along the top of the head. Only the head, cut cleanly at the neck on the left side. Plain
+solid #00FF00 green background, no shadow, no text, no frame. Painterly 2D game art style. Square
+image, aspect ratio 1:1.
 ```
 
-**`chefes/boitata/rabo.png`**
+**`gomo.png`** (1:1, com a cabeça anexada)
 
 ```
-Create an image. Part of a giant serpent made of living fire from Brazilian folklore (the
-Boitatá): charred black-red ember skin with glowing orange cracks, small flickering flames, eyes
-like bright burning coals. Isolated 2D game asset, painterly fantasy RPG style, side view, plain
-solid #00FF00 green background, no shadow, no text, no frame.
-Only the TAIL TIP of the serpent, tapering to a point, pointing left. Same colors as the
-attached head.
+Create an image. One single round body segment of the same fire serpent as the attached head, like
+a thick slice of its body seen from the side: almost circular, charred black-red scales with
+glowing orange lava cracks, same colors as the attached head, small embers on top. No head, no
+tail, no other segments. Centered, plain solid #00FF00 green background, no shadow, no text.
+Painterly 2D game art style. Square image, aspect ratio 1:1.
+```
+
+**`rabo.png`** (1:1, com a cabeça anexada)
+
+```
+Create an image. The tail tip of the same fire serpent as the attached head: a short piece of body
+that tapers to a burning point, pointing LEFT, charred black-red scales with glowing lava cracks,
+the very tip turning into a small flame. Same colors as the attached head. Side view, centered,
+plain solid #00FF00 green background, no shadow, no text. Painterly 2D game art style. Square
+image, aspect ratio 1:1.
+```
+
+**Opcional, `cabeca_ataque.png`** (com a cabeça anexada): a mesma cabeça com a boca bem aberta,
+para a mordida e a bola de fogo.
+
+```
+Create an image. The exact same serpent head as the attached image, same size, same angle and same
+colors, but with the mouth WIDE open in an attack roar, fangs fully visible and a bright fireball
+glowing deep in the throat. Side view, facing right, plain solid #00FF00 green background, no
+shadow, no text. Painterly 2D game art style. Square image, aspect ratio 1:1.
 ```
 
 ---

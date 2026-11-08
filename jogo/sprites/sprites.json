@@ -297,6 +297,7 @@
   "tipo": "objeto",
   "pixel": 2,
   "camadas": {
+   "aberto": "objetos/bau/aberto.png",
    "fechado": "objetos/bau/fechado.png"
   }
  },
