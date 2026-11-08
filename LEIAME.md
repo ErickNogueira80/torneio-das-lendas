@@ -127,12 +127,11 @@ Pessoal (família).
   dano. Sem essas imagens, volta o HUD desenhado pelo código.
 - **Placa do chefe (2026-11-08):** `img/sprites/objetos/placa/placa_boss.jpg` (35 px da arte),
   antes da arena, com um brilho de brasa fraco no escuro.
-- **Boitatá com arte (2026-11-08):** peças do Gemini em `img/sprites/chefes/boitata/`, pixelizadas
-  (cabeça 46 px, gomo 26 px da arte). O arquivo que veio como `boitata_rabo` era uma cabeça de boca
-  fechada: virou a `cabeca` normal, e a `boitata_cabeca` (boca aberta) virou a `cabeca_ataque`,
-  usada na bola de fogo e na mordida. O gomo é um anel: o miolo transparente é preenchido de lava
-  e ele é alargado no sentido do corpo para os gomos se sobreporem. Não há rabo: a cobra afina com
-  os gomos (originais em `originais/`).
+- **Boitatá com arte (2026-11-08):** peças do PixelLab (pixel art nativo; a versão do Gemini
+  ficou borrada e foi para `originais/`). O PixelLab devolveu grades de variações (4×4 cabeças de
+  64 px, 8×8 gomos e rabos de 32 px; em `originais/pixellab/`); escolhidas: cabeça 0,2, ataque
+  2,3, gomo 3,5, rabo 0,2 (linha,coluna). A cabeça de ataque aparece na bola de fogo e na mordida.
+  Peças com até 160 px são usadas como vieram, sem reduzir.
 - **Inimigos do PixelLab (2026-11-08):** brasa (`andar`, `parado`; 34 px no jogo) e vaga-lume
   (`voar`, uma vespa de fogo; 40 px, sempre virada para o herói). Originais em `originais/`.
 - **Sombra (2026-11-08):** fica no chão ou no galho embaixo do herói, menor e mais clara quanto
