@@ -76,6 +76,10 @@ Pessoal (família).
   no canto inferior esquerdo durante a fase, como no estilo Lanterna; treme e pisca em vermelho
   quando o herói leva dano e fica transparente quando o herói passa por trás. `?semretrato`
   esconde.
+- **Piso irregular (2026-11-08):** o chão principal da fase é montado uma vez numa imagem pronta,
+  com topo ondulado em degraus de pixel, montinhos, beiradas quebradas nos buracos, crosta, tufos,
+  pedras e brasas. A física continua reta (`GROUND`); o desenho do herói acompanha o relevo
+  (função `relevo`), e a borda de brasa no escuro segue o contorno.
 - **Desempenho (2026-11-08):** as camadas de árvores são montadas uma vez, no início da fase, em 2
   faixas largas (fundo com neblina, parallax 0,28; meio, 0,55); por quadro o jogo só copia um
   pedaço de cada. A densidade das camadas não pesa, só o número de faixas. Brilho colorido só nas

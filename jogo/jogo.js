@@ -873,10 +873,81 @@ function drawBackground() {
 }
 
 let groundPattern = null;
+// ---------- piso irregular (montado uma vez) ----------
+// O chão da fase inteira vira uma imagem pronta: topo ondulado em degraus de pixel, beiradas
+// quebradas nos buracos, crosta clara, tufos, pedras e galhos. A física continua reta (GROUND);
+// o desenho sobe e desce uns pixels em volta dela. Por quadro, o jogo só copia o pedaço visível.
+const PISO_TOPO = GROUND - 26;
+let pisoPronto = null;
+function piso() {
+  if (pisoPronto) return pisoPronto;
+  const chao = layer(FASE.fundo, 'chao');
+  if (!chao || typeof document === 'undefined') return null;
+  const larg = Math.ceil(Math.max(LEVEL_END, ARENA.x1)) + 8, alt = H - PISO_TOPO, B = 2, z = fundoPixel() || 1;
+  const c = document.createElement('canvas'); c.width = larg; c.height = alt;
+  const g = c.getContext('2d'); g.imageSmoothingEnabled = false;
+  const r = mulberry(11), topos = new Map();   // x (de 4 em 4 px) -> y do topo, em coordenadas da tela
+  const base = GROUND - PISO_TOPO;
+  const pat = g.createPattern(chao, 'repeat');
+  for (const s of SOLIDS) {
+    if (s.y < GROUND - 1) continue;   // só o chão principal (blocos altos ficam como estão)
+    const ys = [];
+    let deriva = 0;
+    // montinhos e pedras salientes espalhados
+    const montes = []; for (let x = s.x + 30; x < s.x + s.w - 30; x += 60 + r() * 160) montes.push([x, 14 + r() * 40, 5 + r() * 9]);
+    for (let x = s.x; x <= s.x + s.w; x += 4) {
+      deriva = clamp(deriva + (r() - .5) * 2.4, -4, 4);
+      let y = Math.sin(x * .017) * 4.5 + Math.sin(x * .061 + 1.3) * 2.2 + deriva;
+      for (const [mx, mw, mh] of montes) { const d = Math.abs(x - mx); if (d < mw) y -= mh * (1 - (d / mw) ** 2); }
+      const borda = Math.min(x - s.x, s.x + s.w - x);              // beirada quebrada no buraco
+      if (borda < 14) y += (14 - borda) * (14 - borda) / 14;
+      ys.push(Math.round(y / B) * B);
+    }
+    g.save(); g.beginPath(); g.moveTo(s.x, alt);
+    ys.forEach((y, i) => { const x = s.x + i * 4; g.lineTo(x, base + y); g.lineTo(x + 4, base + y); });
+    g.lineTo(s.x + s.w, alt); g.closePath(); g.clip();
+    g.translate(0, base); g.scale(z, z); g.fillStyle = pat; g.fillRect(s.x / z, -20, s.w / z + 4, alt / z + 20);
+    g.restore();
+    ys.forEach((y, i) => {
+      const x = s.x + i * 4, yy = base + y;
+      topos.set(x, PISO_TOPO + yy);
+      const dy = i > 0 ? ys[i] - ys[i - 1] : 0;   // degrau: lateral do degrau também ganha crosta
+      g.fillStyle = i % 7 === 3 ? '#7a5644' : '#5a4036'; g.fillRect(x, yy, 4, 2);       // crosta clara
+      g.fillStyle = '#3a2a26'; g.fillRect(x, yy + 2, 4, 2);                              // crosta escura
+      if (dy) { g.fillStyle = '#4a352d'; g.fillRect(x, Math.min(yy, yy - dy), 2, Math.abs(dy) + 2); }
+      g.fillStyle = 'rgba(10,5,8,.6)'; g.fillRect(x, yy + 4, 4, 3);                       // sombra embaixo
+      if (r() < .12) { g.fillStyle = '#2a1c1a'; g.fillRect(x + (r() * 3 | 0), yy + 7 + (r() * 14 | 0), 2, 2 + (r() * 3 | 0)); }   // pedrinhas na terra
+      if (r() < .05) { g.fillStyle = 'rgba(255,120,40,.8)'; g.fillRect(x + 1, yy + 6 + (r() * 10 | 0), 2, 2); }   // brasa
+    });
+    // tufos, pedras e galhos em cima da crosta
+    g.fillStyle = '#140a10';
+    for (let x = s.x + 10; x < s.x + s.w - 10; x += 14 + r() * 34) {
+      const yy = base + ys[Math.round((x - s.x) / 4)] || base, t = r();
+      if (t < .16) { g.fillRect(x, yy - 4, 10, 4); g.fillRect(x + 2, yy - 6, 6, 2); }
+      else if (t < .26) { g.fillRect(x, yy - 2, 22, 2); g.fillRect(x + 14, yy - 6, 2, 4); }
+      else { const n = 2 + (r() * 5 | 0), h = 4 + r() * 9; for (let i = 0; i < n; i++) g.fillRect(Math.round(x + i * 3), Math.round(yy - h + ((i * 7) % 5)), 2, Math.round(h - ((i * 7) % 5))); }
+    }
+  }
+  return (pisoPronto = { c, topos });
+}
+
+// quanto o desenho do piso sobe (-) ou desce (+) em relação à linha da física, no ponto x
+function relevo(x) {
+  const P = pisoPronto; if (!P) return 0;
+  const y = P.topos.get(Math.floor(x / 4) * 4);
+  return y === undefined ? 0 : clamp(y - GROUND, -14, 10);
+}
+
 function drawWorld() {
   const C = FASE.cores, chao = layer(FASE.fundo, 'chao');
   if (chao && !groundPattern) groundPattern = ctx.createPattern(chao, 'repeat');
+  const P = piso();
+  if (P) {
+    const sx = clamp(Math.round(camX), 0, P.c.width - W);
+    ctx.drawImage(P.c, sx, 0, W, P.c.height, sx - camX, PISO_TOPO, W, P.c.height);
+  }
   for (const s of SOLIDS) {
+    if (P && s.y >= GROUND - 1) continue;
     const x = s.x - camX; if (x > W || x + s.w < 0) continue;
     if (groundPattern) {
       const z = fundoPixel() || 1;   // o ladrilho em pixel art é guardado pequeno e ampliado aqui
@@ -963,7 +1034,9 @@ function drawLuz() {
   // bordas de brasa: o chão e as plataformas continuam legíveis no escuro (o buraco é onde não há brilho)
   const pulso = .75 + Math.sin(time * 2.2) * .25;
   ctx.fillStyle = `rgba(255,120,45,${.32 * pulso})`;
-  for (const s of SOLIDS) { const x = s.x - camX; if (x < W && x + s.w > 0) ctx.fillRect(x, s.y, s.w, 2); }
+  const P = piso();
+  if (P) for (let x = Math.floor(camX / 4) * 4; x < camX + W; x += 4) { const y = P.topos.get(x); if (y !== undefined) ctx.fillRect(x - camX, y, 4, 2); }
+  for (const s of SOLIDS) { if (P && s.y >= GROUND - 1) continue; const x = s.x - camX; if (x < W && x + s.w > 0) ctx.fillRect(x, s.y, s.w, 2); }
   ctx.fillStyle = `rgba(255,150,70,${.5 * pulso})`;
   for (const q of PLATS) { const x = q.x - camX; if (x < W && x + q.w > 0) ctx.fillRect(x + 4, q.y, q.w - 8, 2); }
   ctx.restore();
@@ -988,7 +1061,9 @@ function playerAnim(S) {
 function drawPlayer() {
   const p = player;
   if (p.inv > 0 && Math.floor(p.inv * 12) % 2 === 0 && state === 'play') return;
-  const x = Math.round(p.x - camX), y = Math.round(p.y), f = p.face;
+  // no chão, o desenho acompanha o relevo do piso (a física continua reta)
+  const noPiso = p.onGround && !p.onPlat ? relevo(p.x + p.w / 2) : 0;
+  const x = Math.round(p.x - camX), y = Math.round(p.y + noPiso), f = p.face;
   const S = sprite(HEROI.sprite);
   if (S) {
     const { a, t } = playerAnim(S);
@@ -1296,7 +1371,7 @@ function draw() {
   ctx.save(); ctx.translate(rnd(-sh, sh), rnd(-sh, sh));
   medir('fundo', drawBackground); medir('mundo', () => { drawWorld(); drawEnemies(); });
   if (bossActive && boss) medir('chefe', () => CHEFE.desenhar(boss));
-  medir('perso', () => { drawChao(); drawPlayer(); drawProjectiles(); drawParticles(); });
+  medir('perso', () => { if (!piso()) drawChao(); drawPlayer(); drawProjectiles(); drawParticles(); });
   medir('frente', drawFrente);
   ctx.restore();
   medir('luz', drawLuz);
