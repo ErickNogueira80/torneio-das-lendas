@@ -292,5 +292,11 @@
    "aceso": "objetos/altar/aceso.png",
    "apagado": "objetos/altar/apagado.png"
   }
+ },
+ "mapa": {
+  "tipo": "fundo",
+  "camadas": {
+   "mundo": "mapa/mundo.png"
+  }
  }
 }

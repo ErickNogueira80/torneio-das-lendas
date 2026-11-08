@@ -749,9 +749,9 @@ function drawMapa() {
     g.addColorStop(0, '#2a2238'); g.addColorStop(1, '#0b0910'); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
   }
   ctx.fillStyle = 'rgba(6,4,12,.35)'; ctx.fillRect(0, 0, W, H);
-  // trilha pontilhada entre os locais, na ordem da história
+  // trilha pontilhada entre os locais (só sem a imagem do mapa, que já tem o caminho desenhado)
   const feitos = concluidas();
-  for (let i = 0; i < LOCAIS.length - 1; i++) {
+  if (!fundo) for (let i = 0; i < LOCAIS.length - 1; i++) {
     const a = posLocal(LOCAIS[i]), b = posLocal(LOCAIS[i + 1]), n = Math.ceil(Math.hypot(b.x - a.x, b.y - a.y) / 12);
     ctx.fillStyle = LOCAIS[i].fase ? 'rgba(255,214,120,.75)' : 'rgba(200,190,170,.28)';
     for (let k = 1; k < n; k++) { const t = k / n; ctx.fillRect(Math.round(a.x + (b.x - a.x) * t) - 1, Math.round(a.y + (b.y - a.y) * t) - 1, 3, 3); }
@@ -773,10 +773,13 @@ function drawMapa() {
     if (sel) { ctx.strokeStyle = 'rgba(255,240,200,.8)'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(x, y, 20 + Math.sin(time * 4) * 2, 0, Math.PI * 2); ctx.stroke(); }
   });
   // título
-  ctx.textAlign = 'center'; ctx.fillStyle = '#f5d48a'; ctx.font = 'bold 30px Cinzel, serif';
-  ctx.fillText((window.MAPA && MAPA.titulo) || 'Mapa', W / 2, 42);
-  ctx.fillStyle = '#b3a88f'; ctx.font = '14px "Crimson Pro", serif';
-  ctx.fillText(showTouch ? 'Toque num local · toque de novo para entrar' : 'Setas escolhem o local · Enter entra', W / 2, 62);
+  // título embaixo (em cima ficam o grifo e o Olimpo)
+  const tg = ctx.createLinearGradient(0, H - 70, 0, H); tg.addColorStop(0, 'rgba(6,4,12,0)'); tg.addColorStop(1, 'rgba(6,4,12,.8)');
+  ctx.fillStyle = tg; ctx.fillRect(0, H - 70, W, 70);
+  ctx.textAlign = 'center'; ctx.fillStyle = '#f5d48a'; ctx.font = 'bold 26px Cinzel, serif';
+  ctx.fillText((window.MAPA && MAPA.titulo) || 'Mapa', W / 2, H - 28);
+  ctx.fillStyle = '#b3a88f'; ctx.font = '13px "Crimson Pro", serif';
+  ctx.fillText(showTouch ? 'Toque num local · toque de novo para entrar' : 'Setas escolhem o local · Enter entra', W / 2, H - 10);
   // cartão do local escolhido
   const l = LOCAIS[mapaSel]; if (!l) return;
   posCartao();

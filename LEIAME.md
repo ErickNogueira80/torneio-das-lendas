@@ -108,7 +108,10 @@ Pessoal (família).
   Kallikántzaros, Excalibur, Hidra e Olimpo), ligados por uma trilha. Só o Boitatá está liberado;
   os outros têm cadeado e "Bloqueado · em breve". O cartão mostra a ilustração pintada do local
   (a do portal), o nome e o chefe. Fase vencida ganha um ✓ (guardado no navegador). Sem a imagem
-  do mapa (`img/sprites/mapa/mundo.png`, prompt na seção 4.3), aparece um fundo escuro. `?mapa`
+  do mapa (`img/sprites/mapa/mundo.png`, prompt na seção 4.3), aparece um fundo escuro.
+  A imagem do mapa veio com nomes em inglês escritos pela IA; foram apagados com
+  `ferramentas/apagar_textos.py` (o original fica em `img/sprites/mapa/original_com_textos.jpg`)
+  e os marcadores foram posicionados em cima de cada lugar desenhado. `?mapa`
   abre direto no mapa; `?play` pula título e mapa.
 - **Desempenho (2026-11-08):** as camadas de árvores são montadas uma vez, no início da fase, em 2
   faixas largas (fundo com neblina, parallax 0,28; meio, 0,55); por quadro o jogo só copia um
