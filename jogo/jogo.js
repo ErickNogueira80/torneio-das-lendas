@@ -748,6 +748,14 @@ function drawFrente() {
     }
   }
 }
+let retratoV = null;
+function retratoVermelho(im) {
+  if (retratoV) return retratoV;
+  const c = document.createElement('canvas'); c.width = im.naturalWidth; c.height = im.naturalHeight;
+  const g = c.getContext('2d'); g.drawImage(im, 0, 0);
+  g.globalCompositeOperation = 'source-atop'; g.fillStyle = '#ff2a1a'; g.fillRect(0, 0, c.width, c.height);
+  return (retratoV = c);
+}
 // retrato do herói no canto da tela (como nos jogos de ação com retrato grande)
 function drawRetrato() {
   const s = SPR[HEROI.sprite], im = s && s.retratoImg;
@@ -760,9 +768,9 @@ function drawRetrato() {
   ctx.globalAlpha = atras ? .3 : .93;
   ctx.drawImage(im, -6 + tremor, H - h + 8 + resp, w, h);
   ctx.restore();
-  if (p.inv > 0.7) {   // leva dano: o retrato pisca em vermelho
-    ctx.save(); ctx.globalAlpha = .25 * (p.inv - .7) / .5; ctx.fillStyle = '#ff2a1a';
-    ctx.fillRect(-6 + tremor, H - h + 8 + resp, w, h); ctx.restore();
+  if (p.inv > 0.7 && state === 'play') {   // leva dano: o retrato pisca em vermelho (só onde há desenho)
+    ctx.save(); ctx.globalAlpha = .55 * (p.inv - .7) / .5;
+    ctx.drawImage(retratoVermelho(im), -6 + tremor, H - h + 8 + resp, w, h); ctx.restore();
   }
 }
 // posição da lua na tela: a do céu desenhado (FASE.luaNoCeu, em fração da imagem) ou a padrão
@@ -1237,11 +1245,13 @@ function draw() {
 // ---------- laço principal ----------
 let last = performance.now();
 function frame(now) {
-  const dt = clamp((now - last) / 1000, 0, 1 / 30); last = now;
-  if (state === 'play' && !portrait) update(dt); else time += dt;
-  jumpPressed = swordPressed = powerPressed = downPressed = false;
-  draw();
-  requestAnimationFrame(frame);
+  requestAnimationFrame(frame);   // agenda antes: um erro num quadro não congela o jogo
+  try {
+    const dt = clamp((now - last) / 1000, 0, 1 / 30); last = now;
+    if (state === 'play' && !portrait) update(dt); else time += dt;
+    jumpPressed = swordPressed = powerPressed = downPressed = false;
+    draw();
+  } catch (e) { if (window.mostrarErro) window.mostrarErro(e); }
 }
 if (DEMO || params.has('play')) newGame();
 // teste: ?demo&ff=600 avança 600 quadros antes de desenhar (para capturas de tela)
