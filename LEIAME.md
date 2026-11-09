@@ -232,11 +232,39 @@ Pessoal (família).
 - **Elementos contra o Boitatá:** água 1,2× (e apaga as bolas de fogo), pedra e vento 0,8×, fogo
   é absorvido (o herói de fogo precisa da espada nessa fase).
 - **Plano:** etapa 1 (motor separado em dados, imagens com reserva, ferramenta e prompts) feita
-  em 2026-11-07. Etapa 2: gerar as imagens do humano, do Boitatá e do fundo; a Milena preencher a
-  ficha dos 3 heróis com constelação. Etapa 3: tela de escolha de herói (o humano como modo
-  difícil), com o retrato de cada herói (`retrato.png`, que a ferramenta já leva para o jogo),
-  poderes e fraquezas por chefe, imagens dos heróis. Depois, as fases novas (uma por monstro do bestiário): cada uma é uma ficha nova
-  em `fases.js` e um módulo de chefe novo em `CHEFES`.
+  em 2026-11-07. Etapas 2 e 3 em boa parte feitas em 2026-11-08 (ver "Estado atual").
+
+### Estado atual (2026-11-08) e próximos passos
+
+Para retomar numa sessão nova, comece por aqui.
+
+**Pronto e publicado:**
+- Fluxo: título → seleção de herói (só o humano liberado) → mapa do mundo (só o Boitatá
+  liberado; bestiário no botão) → fase do Boitatá → vitória volta ao mapa.
+- Fase do Boitatá completa em pixel art: herói do PixelLab (7 animações), brasa e vespa do
+  PixelLab, fundos pixelizados, piso irregular, árvores-plataforma com raiz 2,5D, baú escondido,
+  altares como pontos de controle, placa com pergaminho, escuridão com luz (estilo Lanterna),
+  retrato no canto, HUD com molduras do Gemini, Boitatá enrolado (rolo do Gemini, cabeças do
+  PixelLab, pescoço que estica no bote).
+- Bestiário com ??? até o encontro e contador de derrotados; locais bloqueados sem spoiler.
+
+**Para testar rápido:** `?boss` (luta), `?play&x=3380` (placa), `?play&x=1300` (baú), `?herois`,
+`?mapa`, `?bestiario`, `?fps`, `?perf`, `?semluz`, `?semretrato`.
+
+**Fluxo de arte:** imagem nova em `img/sprites/...` (originais fora do git) → `python -I
+ferramentas/preparar_sprites.py` → conferir com o Edge sem janela num servidor local
+(`python -I -m http.server 8765`) → trocar o `?v=` em `jogo/index.html` → commit e push.
+Prompts em `04-prompts-sprites.md`. Peças paradas: Gemini (a ferramenta pixeliza). Animações e
+personagens: PixelLab (vista Sidescroller, direção East).
+
+**Próximos passos possíveis:**
+- Heróis de Áries (Água), Sagitário (Fogo) e Capricórnio (Terra): a Milena preenche a ficha
+  (seção 5 dos prompts); falta decidir se os elementos seguem a tabela dela ou a da astrologia.
+- O humano sem poder de elemento (modo difícil) e ganhando o vento ao despertar o Câncer.
+- Próxima fase: Mula sem cabeça (ficha em `fases.js`, módulo novo em `CHEFES`, arte no Gemini e no
+  PixelLab, texto da placa, ativar em `mapa.js`).
+- Pendências pequenas: tirar o disco voador do pasto na imagem do mapa (adiado); cabeça do Boitatá
+  um pouco mais escura que o corpo (dá para igualar na ferramenta).
 
 ## Futuro: Godot e lojas (estudo de 2026-11-08, nada decidido)
 
