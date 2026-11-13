@@ -317,10 +317,24 @@ CHEFES.boitata = (() => {
       b.rastro.push({ x: r.x, y: r.y + PASSO });   // o rabo continua lá embaixo
     }
   }
-  // rota: lista de pontos que a cabeça percorre com velocidade vel
-  function rota(b, pts, vel) { b.rota = pts; b.ri = 0; b.vel = vel; }
+  // rota: lista de pontos que a cabeça percorre. A velocidade não pula: parte de `ini` (ou da
+  // velocidade atual) e acelera até `vel` (acel = rapidez da mudança); com `freia` ela desacelera
+  // nos últimos `freia` px; com `topo` ela perde velocidade ao subir (como algo jogado para cima).
+  function rota(b, pts, vel, o = {}) {
+    b.rota = pts; b.ri = 0; b.vel = vel; b.acel = o.acel || 6; b.freia = o.freia || 0; b.topo = o.topo || 0;
+    if (o.ini !== undefined) b.vcur = o.ini;
+    b.suf = new Array(pts.length).fill(0);   // distância de cada ponto até o fim da rota
+    for (let i = pts.length - 2; i >= 0; i--) b.suf[i] = b.suf[i + 1] + Math.hypot(pts[i + 1].x - pts[i].x, pts[i + 1].y - pts[i].y);
+  }
   function seguir(b, dt) {   // devolve true quando chega ao fim da rota
-    let passo = b.vel * dt;
+    let alvoV = b.vel;
+    if (b.ri < b.rota.length) {
+      const p = b.rota[b.ri], resta = Math.hypot(p.x - b.hx, p.y - b.hy) + b.suf[b.ri];
+      if (b.freia) alvoV *= clamp(Math.sqrt(resta / b.freia), .22, 1);
+      if (b.topo) alvoV *= .62 + .38 * clamp((b.hy - b.topo) / (GROUND - b.topo), 0, 1);
+    }
+    b.vcur += (alvoV - b.vcur) * (1 - Math.exp(-b.acel * dt));
+    let passo = b.vcur * dt;
     while (b.ri < b.rota.length) {
       const alvo = b.rota[b.ri], d = Math.hypot(alvo.x - b.hx, alvo.y - b.hy);
       if (d <= passo) { andar(b, alvo.x, alvo.y); passo -= d; b.ri++; }
@@ -331,9 +345,20 @@ CHEFES.boitata = (() => {
   // gomos do corpo (a cada 2 pontos do rastro), da cabeça para o rabo; o balanço mexe só a parte da frente
   function gomos(b) {
     const out = [], R = b.rastro, s0 = Math.hypot(R[0].x - b.hx, R[0].y - b.hy);
-    const pega = (x, y, s) => { const w = Math.max(0, 1 - s / 320); out.push({ x: x + b.ox * w, y: y + b.oy * w, r: raio(s), s }); };
+    const pega = (x, y, s) => {   // o balanço some aos poucos ao longo de 420 px (sem "joelho")
+      const u = clamp(s / 420, 0, 1), w = 1 - u * u * (3 - 2 * u);
+      out.push({ x: x + b.ox * w, y: y + b.oy * w, r: raio(s), s });
+    };
     pega(b.hx, b.hy, 0);
     for (let i = 0; i < R.length; i += 2) pega(R[i].x, R[i].y, s0 + i * PASSO);
+    // alisa as quinas do caminho (o corpo faz curvas, não dobras); a cabeça e o rabo ficam no lugar
+    for (let passada = 0; passada < 8; passada++) {
+      let ax = out[0].x, ay = out[0].y;
+      for (let i = 1; i < out.length - 1; i++) {
+        const g = out[i], nx = (ax + 2 * g.x + out[i + 1].x) / 4, ny = (ay + 2 * g.y + out[i + 1].y) / 4;
+        ax = g.x; ay = g.y; g.x = nx; g.y = ny;
+      }
+    }
     return out;
   }
   // onde a rota fura o chão dentro da arena (para as rachaduras de aviso)
@@ -362,7 +387,7 @@ CHEFES.boitata = (() => {
       for (let i = 1; i <= 40; i++) { const t = i / 40; pts.push({ x: xs + (xe - xs) * t, y: GROUND + 40 - (GROUND + 40 - topo) * 4 * t * (1 - t) }); }
       pts.push({ x: xe + dir * 50, y: GROUND + 130 }, { x: xe + dir * 90, y: FUNDO });
       enterrar(b, xs, -dir); b.dir = dir;
-      rota(b, pts, 720 * sp); b.depois = 'ataque'; b.avisos = [xs];
+      rota(b, pts, 760 * sp, { ini: 380 * sp, acel: 5, topo }); b.depois = 'ataque'; b.avisos = [xs];
     } else if (tipo === 'rastejo') {
       const dir = pcx < MEIO ? -1 : 1;   // vem do lado oposto ao jogador: dá tempo de ver
       const xa = dir > 0 ? ARENA.x0 - 140 : ARENA.x1 + 140, xb = dir > 0 ? ARENA.x1 + 140 : ARENA.x0 - 140;
@@ -373,21 +398,28 @@ CHEFES.boitata = (() => {
       }
       pts.push({ x: xb + dir * 40, y: FUNDO });
       enterrar(b, xa, dir); b.dir = dir;
-      rota(b, pts, 470 * sp); b.depois = 'ataque'; b.avisos = furos(pts);
+      rota(b, pts, 470 * sp, { ini: 470 * sp }); b.depois = 'ataque'; b.avisos = furos(pts);
       b.avisoT += .35;   // o rastejo pede mais tempo para escolher onde ficar
     } else {   // ergue: sai do lado longe do jogador
       const dir = pcx < MEIO ? -1 : 1, x = dir < 0 ? ARENA.x1 - 170 : ARENA.x0 + 170;
       const pts = [{ x, y: GROUND + 40 }, { x, y: GROUND - 110 }];
-      for (let i = 1; i <= 8; i++) { const t = i / 8; pts.push({ x: x + dir * 95 * Math.sin(t * Math.PI / 2), y: GROUND - 110 - 110 * Math.sin(t * Math.PI / 2) }); }
+      for (let i = 1; i <= 10; i++) { const t = i / 10; pts.push({ x: x + dir * 110 * (1 - Math.cos(t * Math.PI / 2)), y: GROUND - 110 - 110 * Math.sin(t * Math.PI / 2) }); }   // sobe e curva para a frente
       enterrar(b, x, dir); b.dir = dir;
-      rota(b, pts, 560 * sp); b.depois = 'subir'; b.avisos = [x];
+      rota(b, pts, 620 * sp, { ini: 420 * sp, freia: 220 }); b.depois = 'subir'; b.avisos = [x];
       b.botes = furia ? 2 : 1;
     }
   }
   // mergulha e anda debaixo da terra até o corpo todo sumir
   function mergulhar(b, sp) {
     const d = b.dir;
-    rota(b, [{ x: b.hx + d * 60, y: Math.max(b.hy, GROUND + 90) }, { x: b.hx + d * 120, y: FUNDO }, { x: b.hx + d * 5000, y: FUNDO }], 1150 * sp);
+    const pts = [];
+    if (b.hy < GROUND + 60) {   // ainda fora da terra: mergulha numa curva para a frente e para baixo
+      const x0 = b.hx, y0 = b.hy, cx = x0 + d * 150, cy = y0 - 30, x1 = x0 + d * 200, y1 = GROUND + 110;
+      for (let i = 1; i <= 14; i++) { const t = i / 14, u = 1 - t; pts.push({ x: u * u * x0 + 2 * u * t * cx + t * t * x1, y: u * u * y0 + 2 * u * t * cy + t * t * y1 }); }
+    }
+    const xf = pts.length ? pts[pts.length - 1].x : b.hx;
+    pts.push({ x: xf + d * 90, y: FUNDO }, { x: xf + d * 5000, y: FUNDO });
+    rota(b, pts, 1150 * sp, { acel: 3.5 });
     b.state = 'mergulho'; b.st = 0;
   }
 
@@ -396,7 +428,7 @@ CHEFES.boitata = (() => {
     criar(cfg) {
       const b = { cfg, hx: 0, hy: FUNDO, ox: 0, oy: 0, rastro: [], corpo: [], fire: cfg.vida, max: cfg.vida,
         state: 'enter', st: 0, passo: -1, tipo: '', flash: 0, dead: false, deadT: 0, popped: 0, chamas: [], avisos: [],
-        dir: -1, lado: -1, ang: Math.PI, rota: [], ri: 0, vel: 0, volley: 0, botes: 0, boteD: 0, recuado: 0, avisoT: 1, depois: '' };
+        dir: -1, lado: -1, esc: -1, vcur: 0, ang: Math.PI, rota: [], ri: 0, vel: 0, volley: 0, botes: 0, boteD: 0, recuado: 0, avisoT: 1, depois: '' };
       enterrar(b, ARENA.x1 + 300, -1); b.corpo = gomos(b);
       return b;
     },
@@ -456,19 +488,24 @@ CHEFES.boitata = (() => {
         ox = -b.dir * 45 + Math.sin(time * 55) * 4; oy = -25;
         if (b.st > (furia ? .5 : .8)) {
           const tx = clamp(pcx, ARENA.x0 + 30, ARENA.x1 - 30), ty = GROUND - 24;
-          b.boteD = Math.hypot(tx - b.hx, ty - b.hy); b.recuado = 0;
-          rota(b, [{ x: tx, y: ty }], 1400 * sp); b.state = 'bote'; b.st = 0;
+          // o bote é uma curva: a cabeça avança para a frente e desce (continua a curva do pescoço)
+          const x0 = b.hx, y0 = b.hy, cx = x0 + (tx - x0) * .55, cy = y0 - 35, pts = [];
+          for (let i = 1; i <= 16; i++) { const t = i / 16, u = 1 - t; pts.push({ x: u * u * x0 + 2 * u * t * cx + t * t * tx, y: u * u * y0 + 2 * u * t * cy + t * t * ty }); }
+          b.boteD = 0; for (let i = 0, a = { x: x0, y: y0 }; i < pts.length; a = pts[i++]) b.boteD += Math.hypot(pts[i].x - a.x, pts[i].y - a.y);
+          b.recuado = 0;
+          rota(b, pts, 1450 * sp, { ini: 150, acel: 11 }); b.state = 'bote'; b.st = 0;
         }
       } else if (b.state === 'bote') {
         if (seguir(b, dt)) {
-          b.state = 'cravada'; b.st = 0; shake = .25;
+          b.state = 'cravada'; b.st = 0; shake = .25; b.vcur = 0;
           burst(b.hx, GROUND - 4, 16, ['#6b5446', '#3d2f27'], 220, .6, 500, 4);
         }
       } else if (b.state === 'cravada') {   // presa no chão: a hora de bater
         ox = Math.sin(time * 30) * 2;
         if (b.st > (furia ? .9 : 1.4)) { b.state = 'recua'; b.st = 0; }
       } else if (b.state === 'recua') {
-        const d = Math.min(700 * sp * dt, b.boteD - b.recuado);
+        // recua devagar no começo, mais rápido no meio e devagar de novo no fim
+        const prog = b.recuado / Math.max(1, b.boteD), d = Math.min(Math.max(1, 820 * sp * Math.sin(Math.PI * clamp(prog, .06, .94)) * dt), b.boteD - b.recuado);
         recuar(b, d); b.recuado += d;
         if (b.recuado >= b.boteD - .5) {
           if (--b.botes > 0) { b.state = 'cospe'; b.st = 1.2; b.volley = 1; }
@@ -483,9 +520,14 @@ CHEFES.boitata = (() => {
       b.ox += (ox - b.ox) * kb; b.oy += (oy - b.oy) * kb;
 
       b.corpo = gomos(b);
-      const C = b.corpo, cab = C[0], atras = C[2] || C[1];
-      b.ang = Math.atan2(cab.y - atras.y, cab.x - atras.x);
+      const C = b.corpo, cab = C[0], atras = C[3] || C[C.length - 1];
+      // a cabeça gira aos poucos e, ao trocar de lado, vira (encolhe e abre) em vez de espelhar de uma vez
+      let da = Math.atan2(cab.y - atras.y, cab.x - atras.x) - b.ang;
+      while (da > Math.PI) da -= Math.PI * 2;
+      while (da < -Math.PI) da += Math.PI * 2;
+      b.ang += da * (1 - Math.exp(-(b.state === 'bote' ? 22 : 10) * dt));
       if (Math.abs(Math.cos(b.ang)) > .35) b.lado = Math.cos(b.ang) > 0 ? 1 : -1;
+      b.esc += (b.lado - b.esc) * (1 - Math.exp(-12 * dt));
       b.morteX = cab.x;
 
       // contato: cabeça (mordida; veneno no bote), corpo em brasa e chão em chamas
@@ -624,7 +666,7 @@ CHEFES.boitata = (() => {
       if (pp === 0 && cab.y - 40 < GROUND) {
         ctx.save(); ctx.translate(Math.round(cab.x - camX), Math.round(cab.y));
         const right = b.lado > 0;
-        ctx.scale(right ? 1 : -1, 1);
+        ctx.scale(Math.abs(b.esc) < .08 ? (b.esc < 0 ? -.08 : .08) : b.esc, 1);
         let a = right ? b.ang : Math.PI - b.ang;
         while (a > Math.PI) a -= Math.PI * 2;
         while (a < -Math.PI) a += Math.PI * 2;

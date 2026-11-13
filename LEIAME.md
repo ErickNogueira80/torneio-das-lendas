@@ -165,6 +165,12 @@ Pessoal (família).
     animado. A imagem do rolo (`corpo`) não é mais usada (fica no sprites.json). A versão
     enrolada está no histórico do git (commit `3557936` e anteriores).
   - Teste: `?play&boss&x=3600&ff=900` mostra um salto; `?chefevida=10` deixa o chefe quase morto.
+  - Fluidez (2026-11-13, o Erick achou a movimentação dura): a velocidade não pula (acelera e
+    freia: sai devagar da terra, perde força no alto do salto, freia ao chegar no alto quando se
+    ergue, recua devagar-rápido-devagar); o bote e o mergulho são curvas, não retas; o corpo é
+    alisado (sem quinas); a cabeça gira aos poucos e, ao trocar de lado, vira em vez de espelhar.
+  - Para voltar ao Boitatá enrolado: `git revert` dos commits do Boitatá de 2026-11-13 (a versão
+    enrolada é o commit `3557936`).
 - **Inimigos do PixelLab (2026-11-08):** brasa (`andar`, `parado`; 34 px no jogo) e vaga-lume
   (`voar`, uma vespa de fogo; 40 px, sempre virada para o herói). Originais em `originais/`.
 - **Pergaminho da placa (2026-11-08):** perto da placa antes da arena abre um pergaminho com o
