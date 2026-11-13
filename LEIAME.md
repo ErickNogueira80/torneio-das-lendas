@@ -142,34 +142,29 @@ Pessoal (família).
   Peças com até 160 px são usadas como vieram, sem reduzir.
   A ferramenta mede o ponto do pescoço de cada cabeça (`pescocos` no sprites.json); o jogo põe
   esse ponto onde chega o corpo, com um gomo extra embaixo para emendar, e o primeiro gomo mais perto.
-- **Boitatá enrolado (2026-11-08, a pedido do Erick):** não voa mais. O corpo fica enrolado no lado
-  direito da arena (1/3 da tela); pescoço e cabeça saem do alto. Padrão: espera, rajada de bolas de
-  fogo, espera, bote. O bote é avisado (a cabeça se encolhe e treme), vai rente ao chão até onde o
-  herói estava (alcance 660 px), fica cravado 0,45 s (chance de golpear a cabeça, crítico) e volta;
-  escapa-se pulando ou ficando longe. Na fúria (< 35%): mais rápido, 5 bolas por rajada e bote
-  duplo. Cabeça vale 1,5×, pescoço 0,8×, rolo 0,6×; encostar no rolo queima. Morre virando pó
-  da cabeça ao rolo. Sem a imagem `corpo` (seção 2.2 dos prompts), o rolo é uma espiral de gomos.
-  Com o `corpo.jpg` (o fundo veio como um xadrez cinza desenhado; a ferramenta apaga o xadrez
-  ligado à borda), o rolo tem 340 px de largura na tela; a ferramenta mede o toco do pescoço no alto
-  da imagem e o pescoço (gomos que se multiplicam ao esticar) sai dali. As posições da cabeça
-  (descanso, rajada, aviso do bote) são relativas a esse toco.
-  Ajuste de 2026-11-08 (Erick): a ferramenta corta o pescoço desenhado das cabeças (o que fica atrás
-  de 29% da largura e embaixo da mandíbula) e apaga o toco do alto do rolo. O pescoço é um tubo
-  contínuo feito com uma faixa de escamas recortada do próprio rolo (`gomo_corpo`), da mesma
-  espessura do anel. O rolo tem 400 px e sai pela borda direita da tela (parece não ter fim), e o
-  pescoço ficou mais comprido.
-  Versão 3 (2026-11-08, arquivos do Erick): `cabeca.png`/`cabeca_ataque.png` vieram do PixelLab já
-  sem pescoço (64 px) e `corpo.png` é o rolo novo do Gemini sem a cabeça, em fundo azul-escuro. A
-  ferramenta tira o fundo azulado e o halo das faíscas (ficando só o corpo) e escala a cabeça pela
-  altura do crânio (`pescocos`: x, y e altura do crânio) para casar com a grossura do pescoço. As
-  versões anteriores estão em `originais/` (prefixo `v2_`).
-  Acabamento: o rolo afunda 40 px no chão com uma sombra de contato (não flutua), o pescoço tem
-  contorno preto como o rolo (menos na saída do rolo), e a cabeça tem chamas em pixel art
-  animadas (`chamaPixel`) por cima das desenhadas, com faíscas subindo.
-  Ajuste seguinte: o rolo afunda 75 px; o pescoço é desenhado ANTES do rolo e nasce dentro dele
-  (o começo some atrás da volta de cima, inclusive no bote); a cabeça ficou menor (crânio 1,75× o
-  raio do fim do pescoço); as faíscas soltas do desenho da cabeça saíram (o jogo anima faíscas
-  subindo) e o veneno do bote é um pingar verde das presas.
+- **Boitatá, a cobra imensa debaixo da terra (2026-11-13, a pedido do Erick):** substitui o
+  Boitatá enrolado (parado no canto, só a cabeça se mexia; o Erick achou a luta sem graça). Agora o
+  corpo tem 3.000 px (mais de três telas) e segue o rastro da cabeça, como uma cobra de verdade:
+  por onde a cabeça passa, o corpo passa depois. O que está debaixo da terra não aparece; onde o
+  corpo fura o chão há um montinho de terra. Todo ataque é avisado: a terra racha e brilha onde ela
+  vai sair (0,95 s; 0,6 s na fúria). Sequência: ergue, salto, rastejo, salto, ergue, rastejo.
+  - **Ergue:** sai do lado longe do herói, fica alta balançando, cospe 2 rajadas de bolas de fogo,
+    encolhe e treme (aviso) e dá o bote até onde o herói está. A cabeça fica **cravada no chão**
+    1,4 s (0,9 s na fúria): é a hora de bater (dano 2× na cabeça). Depois recua pelo mesmo caminho
+    e mergulha.
+  - **Salto:** sai embaixo do herói, passa num arco alto por cima da arena e mergulha 640 px
+    adiante. Fica chão em chamas 3 s onde ela saiu e onde entrou.
+  - **Rastejo:** vem do lado oposto ao herói e atravessa a arena em ondas (arcos com vãos onde ela
+    está debaixo da terra). As rachaduras mostram onde cada onda fura o chão; o lugar seguro é
+    embaixo de um arco ou no meio de um vão.
+  - Cabeça 1,5× (2× cravada), corpo 0,6×; encostar no corpo queima (`dano.corpo`), chão em chamas
+    também (`dano.chama`). Fúria (< 35%): tudo 30% mais rápido, 3 rajadas de 5 bolas, bote duplo,
+    ondas mais curtas e salto mais alto. Morre virando pó da cabeça para o rabo.
+  - Arte: a mesma de antes. O corpo é um tubo com a faixa de escamas `gomo_corpo` (mais grosso
+    perto da cabeça e afinando até o rabo); a cabeça usa `cabeca`/`cabeca_ataque` com o fogo
+    animado. A imagem do rolo (`corpo`) não é mais usada (fica no sprites.json). A versão
+    enrolada está no histórico do git (commit `3557936` e anteriores).
+  - Teste: `?play&boss&x=3600&ff=900` mostra um salto; `?chefevida=10` deixa o chefe quase morto.
 - **Inimigos do PixelLab (2026-11-08):** brasa (`andar`, `parado`; 34 px no jogo) e vaga-lume
   (`voar`, uma vespa de fogo; 40 px, sempre virada para o herói). Originais em `originais/`.
 - **Pergaminho da placa (2026-11-08):** perto da placa antes da arena abre um pergaminho com o
@@ -244,11 +239,11 @@ Para retomar numa sessão nova, comece por aqui.
 - Fase do Boitatá completa em pixel art: herói do PixelLab (7 animações), brasa e vespa do
   PixelLab, fundos pixelizados, piso irregular, árvores-plataforma com raiz 2,5D, baú escondido,
   altares como pontos de controle, placa com pergaminho, escuridão com luz (estilo Lanterna),
-  retrato no canto, HUD com molduras do Gemini, Boitatá enrolado (rolo do Gemini, cabeças do
-  PixelLab, pescoço que estica no bote).
+  retrato no canto, HUD com molduras do Gemini, Boitatá como cobra imensa que entra e sai da
+  terra (ergue e dá o bote, salta em arco, rasteja em ondas; desde 2026-11-13).
 - Bestiário com ??? até o encontro e contador de derrotados; locais bloqueados sem spoiler.
 
-**Para testar rápido:** `?boss` (luta), `?play&x=3380` (placa), `?play&x=1300` (baú), `?herois`,
+**Para testar rápido:** `?boss` (luta), `?chefevida=10` (chefe quase morto), `?play&x=3380` (placa), `?play&x=1300` (baú), `?herois`,
 `?mapa`, `?bestiario`, `?fps`, `?perf`, `?semluz`, `?semretrato`.
 
 **Fluxo de arte:** imagem nova em `img/sprites/...` (originais fora do git) → `python -I

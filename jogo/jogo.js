@@ -5,6 +5,7 @@
    Parâmetros de teste na URL:
      ?heroi=<chave>  escolhe o herói (ex.: fogo)      ?fase=<chave>  escolhe a fase
      ?boss           começa perto do chefe             ?demo          joga sozinho
+     ?chefevida=N    chefe começa com N de vida
      &ff=600         avança 600 quadros                &touch         mostra os botões de toque
      ?semimagens     ignora as imagens (só desenho de reserva) */
 'use strict';
@@ -269,194 +270,338 @@ const resistOf = (resist, kind) => (resist && resist[kind] !== undefined ? resis
 const CHEFES = {};
 
 CHEFES.boitata = (() => {
-  // Boitatá enrolado: o corpo fica parado no lado direito da arena (1/3 da tela), enrolado em si
-  // mesmo; o pescoço sai do alto do rolo. Ataques: rajadas de bolas de fogo e bote de longa
-  // distância rente ao chão (aviso: a cabeça se encolhe e treme). Não voa.
+  // Boitatá: cobra de fogo imensa que vive debaixo da terra. O corpo é mais comprido que a tela e
+  // segue o rastro da cabeça, como uma cobra de verdade: por onde a cabeça passa, o corpo passa
+  // depois. A parte que está debaixo da terra não aparece. Ataques (sempre com aviso: a terra racha
+  // e brilha onde ela vai sair):
+  //  - salto: sai embaixo do jogador, passa num arco por cima da arena e mergulha do outro lado
+  //    (fica chão em chamas onde ela entrou e saiu);
+  //  - rastejo: atravessa a arena em ondas, entrando e saindo do chão; para escapar, fique embaixo
+  //    de um arco ou no vão onde ela está debaixo da terra;
+  //  - ergue: sai alta do chão, cospe rajadas de bolas de fogo e dá o bote; a cabeça fica cravada
+  //    no chão por um tempo (hora de bater: dano dobrado).
   const enraged = b => b.fire < b.max * 0.35;
-  const PATTERN = ['idle', 'aimfire', 'idle', 'strikePrep', 'idle', 'aimfire', 'strikePrep'];
-  const ALCANCE = 660;                 // até onde vai o bote, a partir do centro do rolo
-  function next(b) {
-    b.step = (b.step + 1) % PATTERN.length;
-    b.state = PATTERN[b.step]; b.st = 0; b.volley = 0;
-    if (b.state === 'strikePrep') b.botes = enraged(b) ? 2 : 1;
+  const COMP = 3000;            // comprimento do corpo (mais de três telas)
+  const PASSO = 8;              // espaçamento dos pontos do rastro
+  const FUNDO = GROUND + 240;   // profundidade em que ela anda debaixo da terra
+  const PADRAO = ['ergue', 'salto', 'rastejo', 'salto', 'ergue', 'rastejo'];
+  const MEIO = (ARENA.x0 + ARENA.x1) / 2;
+  // grossura ao longo do corpo (s = distância a partir da cabeça)
+  const raio = s => s < 260 ? 32 + s / 260 * 14 : Math.max(14, 46 - Math.max(0, s - 900) / (COMP - 900) * 32);
+  const acima = g => g.y - g.r < GROUND;   // gomo (ao menos em parte) acima da terra
+
+  // põe a cobra inteira debaixo da terra, com a cabeça embaixo de x e o corpo estendido para trás
+  function enterrar(b, x, dir) {
+    b.hx = x; b.hy = FUNDO; b.rastro = [];
+    for (let i = 0; i <= COMP / PASSO + 2; i++) b.rastro.push({ x: x - dir * i * PASSO, y: FUNDO + i * .5 });
   }
-  // pontos do rolo (espiral de 3 voltas, de baixo para cima) em coordenadas do mundo
-  function rolo(b) {
-    const pts = [], n = 30, sobe = b.subir;
-    for (let i = 0; i < n; i++) {
-      const t = i / (n - 1), a = i * 0.62;
-      const R = 150 - t * 85, r = 36 - t * 12;
-      const x = b.cx + Math.cos(a) * R * (1 + Math.sin(time * 1.4) * .015);
-      const y = GROUND - 24 - t * 150 + Math.sin(a) * R * .22 + sobe;
-      pts.push({ x, y, r, frente: Math.sin(a) > 0 });
+  // a cabeça vai até (x, y); o rastro ganha um ponto a cada PASSO e perde o fim do rabo
+  function andar(b, x, y) {
+    let h = b.rastro[0], d = Math.hypot(x - h.x, y - h.y);
+    while (d >= PASSO) {
+      const k = PASSO / d;
+      h = { x: h.x + (x - h.x) * k, y: h.y + (y - h.y) * k };
+      b.rastro.unshift(h); d -= PASSO;
     }
-    return pts;
+    b.hx = x; b.hy = y;
+    const max = Math.ceil(COMP / PASSO) + 3;
+    if (b.rastro.length > max) b.rastro.length = max;
   }
-  // com a imagem do corpo enrolado: o pescoço sai do toco desenhado no alto dela
-  const CORPO_W = 400, CORPO_AFUNDA = 75;   // a volta de baixo afunda no chão (não flutua)
-  function topoCorpo(b) {
-    const S = sprite(b.cfg.sprite), c = S && S.partes && S.partes.corpo, f = S && S.pescocos && S.pescocos.corpo;
-    if (!c || !f || b.dead) return null;
-    const k = CORPO_W / c[2], h = c[3] * k;
-    return { x: b.cx - CORPO_W / 2 + f[0] * CORPO_W, y: GROUND + CORPO_AFUNDA - h + (f[1] + .12) * h + b.subir, r: 26 };
-  }
-  // pescoço: curva do alto do rolo até a cabeça
-  function pescoco(b) {
-    const top = b.topo, pts = [];
-    const n = clamp(Math.ceil(Math.hypot(b.hx - top.x, b.hy - top.y) * 1.3 / 14), 10, 60);   // estica sem abrir buraco
-    const cx = (top.x + b.hx) / 2 + 20, cy = Math.min(top.y, b.hy) - 40;
-    for (let i = 1; i <= n; i++) {
-      const t = i / (n + 1), u = 1 - t;
-      pts.push({ x: u * u * top.x + 2 * u * t * cx + t * t * b.hx, y: u * u * top.y + 2 * u * t * cy + t * t * b.hy, r: 31 - t * 8 });
+  // a cabeça volta pelo próprio rastro (o corpo desliza de volta para dentro da terra)
+  function recuar(b, dist) {
+    while (dist > 0 && b.rastro.length > 3) {
+      const a = b.rastro[0], d = Math.hypot(b.hx - a.x, b.hy - a.y);
+      if (d > dist) { const k = dist / d; b.hx += (a.x - b.hx) * k; b.hy += (a.y - b.hy) * k; return; }
+      dist -= d; b.hx = a.x; b.hy = a.y; b.rastro.shift();
+      const r = b.rastro[b.rastro.length - 1];
+      b.rastro.push({ x: r.x, y: r.y + PASSO });   // o rabo continua lá embaixo
     }
-    return pts;
   }
+  // rota: lista de pontos que a cabeça percorre com velocidade vel
+  function rota(b, pts, vel) { b.rota = pts; b.ri = 0; b.vel = vel; }
+  function seguir(b, dt) {   // devolve true quando chega ao fim da rota
+    let passo = b.vel * dt;
+    while (b.ri < b.rota.length) {
+      const alvo = b.rota[b.ri], d = Math.hypot(alvo.x - b.hx, alvo.y - b.hy);
+      if (d <= passo) { andar(b, alvo.x, alvo.y); passo -= d; b.ri++; }
+      else { andar(b, b.hx + (alvo.x - b.hx) * passo / d, b.hy + (alvo.y - b.hy) * passo / d); return false; }
+    }
+    return true;
+  }
+  // gomos do corpo (a cada 2 pontos do rastro), da cabeça para o rabo; o balanço mexe só a parte da frente
+  function gomos(b) {
+    const out = [], R = b.rastro, s0 = Math.hypot(R[0].x - b.hx, R[0].y - b.hy);
+    const pega = (x, y, s) => { const w = Math.max(0, 1 - s / 320); out.push({ x: x + b.ox * w, y: y + b.oy * w, r: raio(s), s }); };
+    pega(b.hx, b.hy, 0);
+    for (let i = 0; i < R.length; i += 2) pega(R[i].x, R[i].y, s0 + i * PASSO);
+    return out;
+  }
+  // onde a rota fura o chão dentro da arena (para as rachaduras de aviso)
+  function furos(pts) {
+    const xs = [];
+    for (let i = 1; i < pts.length; i++) {
+      const a = pts[i - 1], c = pts[i];
+      if ((a.y < GROUND) !== (c.y < GROUND)) {
+        const x = a.x + (c.x - a.x) * (GROUND - a.y) / (c.y - a.y);
+        if (x > ARENA.x0 + 10 && x < ARENA.x1 - 10) xs.push(x);
+      }
+    }
+    return xs;
+  }
+
+  // escolhe o próximo ataque e arma o aviso
+  function proxima(b) {
+    b.passo = (b.passo + 1) % PADRAO.length;
+    const tipo = PADRAO[b.passo], furia = enraged(b), sp = furia ? 1.3 : 1;
+    const pcx = player.x + player.w / 2;
+    b.tipo = tipo; b.state = 'aviso'; b.st = 0; b.ox = b.oy = 0;
+    b.avisoT = furia ? .6 : .95;
+    if (tipo === 'salto') {
+      const xs = clamp(pcx, ARENA.x0 + 60, ARENA.x1 - 60), dir = pcx < MEIO ? 1 : -1, xe = xs + dir * 640;
+      const topo = GROUND - (furia ? 350 : 320), pts = [{ x: xs, y: GROUND + 40 }];
+      for (let i = 1; i <= 40; i++) { const t = i / 40; pts.push({ x: xs + (xe - xs) * t, y: GROUND + 40 - (GROUND + 40 - topo) * 4 * t * (1 - t) }); }
+      pts.push({ x: xe + dir * 50, y: GROUND + 130 }, { x: xe + dir * 90, y: FUNDO });
+      enterrar(b, xs, -dir); b.dir = dir;
+      rota(b, pts, 720 * sp); b.depois = 'ataque'; b.avisos = [xs];
+    } else if (tipo === 'rastejo') {
+      const dir = pcx < MEIO ? -1 : 1;   // vem do lado oposto ao jogador: dá tempo de ver
+      const xa = dir > 0 ? ARENA.x0 - 140 : ARENA.x1 + 140, xb = dir > 0 ? ARENA.x1 + 140 : ARENA.x0 - 140;
+      const lambda = furia ? 380 : 460, fase = rnd(0, Math.PI * 2), pts = [];
+      for (let x = xa; dir > 0 ? x <= xb : x >= xb; x += dir * 12) {
+        const u = Math.abs(x - xa);
+        pts.push({ x, y: GROUND - 30 - 130 * Math.sin(fase + Math.PI * 2 * u / lambda) });
+      }
+      pts.push({ x: xb + dir * 40, y: FUNDO });
+      enterrar(b, xa, dir); b.dir = dir;
+      rota(b, pts, 470 * sp); b.depois = 'ataque'; b.avisos = furos(pts);
+      b.avisoT += .35;   // o rastejo pede mais tempo para escolher onde ficar
+    } else {   // ergue: sai do lado longe do jogador
+      const dir = pcx < MEIO ? -1 : 1, x = dir < 0 ? ARENA.x1 - 170 : ARENA.x0 + 170;
+      const pts = [{ x, y: GROUND + 40 }, { x, y: GROUND - 110 }];
+      for (let i = 1; i <= 8; i++) { const t = i / 8; pts.push({ x: x + dir * 95 * Math.sin(t * Math.PI / 2), y: GROUND - 110 - 110 * Math.sin(t * Math.PI / 2) }); }
+      enterrar(b, x, dir); b.dir = dir;
+      rota(b, pts, 560 * sp); b.depois = 'subir'; b.avisos = [x];
+      b.botes = furia ? 2 : 1;
+    }
+  }
+  // mergulha e anda debaixo da terra até o corpo todo sumir
+  function mergulhar(b, sp) {
+    const d = b.dir;
+    rota(b, [{ x: b.hx + d * 60, y: Math.max(b.hy, GROUND + 90) }, { x: b.hx + d * 120, y: FUNDO }, { x: b.hx + d * 5000, y: FUNDO }], 1150 * sp);
+    b.state = 'mergulho'; b.st = 0;
+  }
+
   return {
     enraged,
     criar(cfg) {
-      const cx = ARENA.x1 - 150;   // o rolo sai pela borda direita: parece não ter fim
-      const b = { cfg, cx, subir: 320, hx: cx - 40, hy: GROUND - 300, rx: cx - 40, ry: GROUND - 300,
-        fire: cfg.vida, max: cfg.vida, state: 'enter', st: 0, step: -1, flash: 0, volley: 0, botes: 0,
-        ang: Math.PI, dead: false, deadT: 0, popped: 0, tx: 0, ty: 0, ox: 0, oy: 0, pts: [], neck: [], topo: { x: cx, y: GROUND - 200 } };
-      b.pts = rolo(b); b.topo = b.pts[b.pts.length - 1]; b.neck = pescoco(b);
+      const b = { cfg, hx: 0, hy: FUNDO, ox: 0, oy: 0, rastro: [], corpo: [], fire: cfg.vida, max: cfg.vida,
+        state: 'enter', st: 0, passo: -1, tipo: '', flash: 0, dead: false, deadT: 0, popped: 0, chamas: [], avisos: [],
+        dir: -1, lado: -1, ang: Math.PI, rota: [], ri: 0, vel: 0, volley: 0, botes: 0, boteD: 0, recuado: 0, avisoT: 1, depois: '' };
+      enterrar(b, ARENA.x1 + 300, -1); b.corpo = gomos(b);
       return b;
     },
     atualizar(b, dt) {
       b.st += dt; b.flash = Math.max(0, b.flash - dt);
-      const sp = enraged(b) ? 1.35 : 1, D = b.cfg.dano;
+      const furia = enraged(b), sp = furia ? 1.3 : 1, D = b.cfg.dano;
       const pcx = player.x + player.w / 2, pcy = player.y + player.h / 2;
-      // posições relativas ao toco do pescoço (alto do rolo)
-      const T = b.topo || { x: b.cx, y: GROUND - 200 };
-      const restX = T.x - 230 + Math.sin(time * 1.3) * 30, restY = T.y - 110 + Math.sin(time * 2.1) * 14;
+      for (const c of b.chamas) c.t -= dt;
+      b.chamas = b.chamas.filter(c => c.t > 0);
 
-      if (b.dead) {
+      if (b.dead) {   // vira pó prateado da cabeça para o rabo (só o que está acima da terra)
         b.deadT += dt;
-        const todos = [...b.neck].reverse().concat([...b.pts].reverse());
-        const want = Math.floor(b.deadT / 0.06);
-        while (b.popped < Math.min(want, todos.length + 1)) {
-          const p = b.popped === 0 ? { x: b.hx, y: b.hy } : todos[b.popped - 1];
-          burst(p.x, p.y, 16, SILVER, 240, 1, 120, 4.5);
+        const vis = b.corpo.filter(acima), want = Math.floor(b.deadT / 0.035);
+        while (b.popped < Math.min(want, vis.length + 1)) {
+          const p = vis[Math.min(b.popped, vis.length - 1)];
+          if (p && b.popped % 2 === 0) burst(p.x, p.y, 14, SILVER, 240, 1, 120, 4.5);
           b.popped++; shake = .1;
         }
-        if (b.popped > todos.length && !pendant) pendant = { x: b.cx - 60, y: GROUND - 120, vy: -200, t: 0 };
+        if (b.popped > vis.length && !pendant) pendant = { x: clamp(b.morteX, ARENA.x0 + 120, ARENA.x1 - 120), y: GROUND - 120, vy: -200, t: 0 };
         return;
       }
 
-      let tx = restX, ty = restY, follow = 5;
+      const yAntes = b.hy;
+      let ox = 0, oy = 0;   // balanço desejado da cabeça
       if (b.state === 'enter') {
-        b.subir = Math.max(0, 320 * (1 - b.st / 1.8)); shake = Math.max(shake, .05);
-        if (b.st > 2.2) next(b);
-      } else if (b.state === 'idle') {
-        if (b.st > (enraged(b) ? 1.0 : 1.6)) next(b);
-      } else if (b.state === 'aimfire') {
-        tx = T.x - 200; ty = T.y - 170; follow = 4;
-        const first = .7, gap = enraged(b) ? .55 : .8, volleys = enraged(b) ? 3 : 2;
+        shake = Math.max(shake, .06);
+        if (Math.random() < dt * 40) burst(rnd(ARENA.x0, ARENA.x1), GROUND - 2, 2, ['#6b5446', '#3d2f27'], 120, .5, 400, 3);
+        if (b.st > 1.6) proxima(b);
+      } else if (b.state === 'aviso') {
+        shake = Math.max(shake, .035);
+        for (const x of b.avisos) if (Math.random() < dt * 30) {
+          const fogo = Math.random() < .4;
+          particles.push({ x: x + rnd(-40, 40), y: GROUND - 2, vx: rnd(-40, 40), vy: rnd(-260, -120), life: .6, max: .6, c: fogo ? FIRE[(Math.random() * 3) | 0] : '#5a4034', s: rnd(2, 4), g: fogo ? -40 : 600 });
+        }
+        if (b.st > b.avisoT) { b.state = b.depois; b.st = 0; if (b.tipo === 'salto') b.chamas.push({ x: b.avisos[0], t: 3 }); }
+      } else if (b.state === 'ataque') {   // salto e rastejo: percorre a rota
+        if (seguir(b, dt)) mergulhar(b, sp);
+        if (b.tipo === 'salto' && yAntes < GROUND && b.hy >= GROUND && b.hx > ARENA.x0 && b.hx < ARENA.x1) {
+          b.chamas.push({ x: b.hx, t: 3 }); shake = .2; burst(b.hx, GROUND - 4, 18, ['#6b5446', '#3d2f27', ...FIRE], 260, .7, 500, 4);
+        }
+      } else if (b.state === 'subir') {
+        if (seguir(b, dt)) { b.state = 'cospe'; b.st = 0; b.volley = 0; }
+      } else if (b.state === 'cospe') {
+        ox = Math.sin(b.st * 1.8) * 30; oy = Math.sin(b.st * 2.7) * 16;
+        const first = .6, gap = furia ? .55 : .8, volleys = furia ? 3 : 2;
         if (b.volley < volleys && b.st > first + b.volley * gap) {
-          const n = enraged(b) ? 5 : 3, base = Math.atan2(pcy - b.hy, pcx - b.hx);
+          const n = furia ? 5 : 3, hx = b.hx + b.ox, hy = b.hy + b.oy, base = Math.atan2(pcy - hy, pcx - hx);
           for (let i = 0; i < n; i++) {
             const a = base + (i - (n - 1) / 2) * 0.2, s = 380 * sp;
-            fireballs.push({ x: b.hx - 20, y: b.hy + 10, vx: Math.cos(a) * s, vy: Math.sin(a) * s, r: 18, life: 4, dano: D.bolaDeFogo });
+            fireballs.push({ x: hx + b.dir * 30, y: hy + 10, vx: Math.cos(a) * s, vy: Math.sin(a) * s, r: 18, life: 4, dano: D.bolaDeFogo });
           }
-          burst(b.hx - 20, b.hy + 10, 14, FIRE, 200, .5);
+          burst(hx + b.dir * 30, hy + 10, 14, FIRE, 200, .5);
           b.volley++;
         }
-        if (b.st > first + volleys * gap + .5) next(b);
-      } else if (b.state === 'strikePrep') {
-        // encolhe e treme: aviso do bote
-        tx = T.x - 90 + Math.sin(time * 55) * 4; ty = T.y - 60; follow = 8;
-        if (b.st > (enraged(b) ? .55 : .85)) {
-          b.state = 'strike'; b.st = 0; b.ox = b.hx; b.oy = b.hy;
-          b.tx = Math.max(pcx, b.cx - ALCANCE); b.ty = GROUND - 30;
+        if (b.st > first + volleys * gap + .4) { b.state = 'prep'; b.st = 0; }
+      } else if (b.state === 'prep') {   // encolhe e treme: aviso do bote
+        ox = -b.dir * 45 + Math.sin(time * 55) * 4; oy = -25;
+        if (b.st > (furia ? .5 : .8)) {
+          const tx = clamp(pcx, ARENA.x0 + 30, ARENA.x1 - 30), ty = GROUND - 24;
+          b.boteD = Math.hypot(tx - b.hx, ty - b.hy); b.recuado = 0;
+          rota(b, [{ x: tx, y: ty }], 1400 * sp); b.state = 'bote'; b.st = 0;
         }
-      } else if (b.state === 'strike') {
-        // vai (0,22 s), fica cravado (0,45 s: chance de golpear), volta (0,45 s)
-        follow = 0;
-        const ida = .22 / sp, fica = .45, volta = .45;
-        if (b.st < ida) { const k = b.st / ida, e = 1 - (1 - k) * (1 - k); b.hx = b.ox + (b.tx - b.ox) * e; b.hy = b.oy + (b.ty - b.oy) * e; }
-        else if (b.st < ida + fica) { if (b.st - dt < ida) { shake = .15; burst(b.tx, GROUND, 12, ['#6b5446', '#3d2f27'], 180, .5, 200, 3); } }
-        else if (b.st < ida + fica + volta) { const k = (b.st - ida - fica) / volta; b.hx = b.tx + (restX - b.tx) * k; b.hy = b.ty + (restY - b.ty) * k; }
-        else if (--b.botes > 0) { b.state = 'strikePrep'; b.st = .3; }
-        else next(b);
+      } else if (b.state === 'bote') {
+        if (seguir(b, dt)) {
+          b.state = 'cravada'; b.st = 0; shake = .25;
+          burst(b.hx, GROUND - 4, 16, ['#6b5446', '#3d2f27'], 220, .6, 500, 4);
+        }
+      } else if (b.state === 'cravada') {   // presa no chão: a hora de bater
+        ox = Math.sin(time * 30) * 2;
+        if (b.st > (furia ? .9 : 1.4)) { b.state = 'recua'; b.st = 0; }
+      } else if (b.state === 'recua') {
+        const d = Math.min(700 * sp * dt, b.boteD - b.recuado);
+        recuar(b, d); b.recuado += d;
+        if (b.recuado >= b.boteD - .5) {
+          if (--b.botes > 0) { b.state = 'cospe'; b.st = 1.2; b.volley = 1; }
+          else mergulhar(b, sp);
+        }
+      } else if (b.state === 'mergulho') {
+        seguir(b, dt);
+        if (b.st > .3 && !b.corpo.some(acima)) proxima(b);
       }
-      if (follow > 0) { const k = 1 - Math.exp(-follow * dt); b.hx += (tx - b.hx) * k; b.hy += (ty - b.hy) * k; }
+      // balanço suave (sem pulo quando muda de estado; no bote volta ao eixo rápido)
+      const kb = 1 - Math.exp(-(b.state === 'bote' ? 20 : 6) * dt);
+      b.ox += (ox - b.ox) * kb; b.oy += (oy - b.oy) * kb;
 
-      b.pts = rolo(b); b.topo = topoCorpo(b) || b.pts[b.pts.length - 1]; b.neck = pescoco(b);
-      const ult = b.neck[b.neck.length - 1] || b.topo;
-      b.ang = Math.atan2(b.hy - ult.y, b.hx - ult.x);
+      b.corpo = gomos(b);
+      const C = b.corpo, cab = C[0], atras = C[2] || C[1];
+      b.ang = Math.atan2(cab.y - atras.y, cab.x - atras.x);
+      if (Math.abs(Math.cos(b.ang)) > .35) b.lado = Math.cos(b.ang) > 0 ? 1 : -1;
+      b.morteX = cab.x;
 
-      // contato: cabeça (mordida ou veneno no bote) e o rolo em brasa
-      if (circleRect(b.hx, b.hy, 28, player)) {
-        if (b.state === 'strike') hurtPlayer(D.veneno, b.hx, D.venenoSeg); else hurtPlayer(D.mordida, b.hx);
+      // contato: cabeça (mordida; veneno no bote), corpo em brasa e chão em chamas
+      if (acima(cab) && circleRect(cab.x, cab.y, 30, player)) {
+        if (b.state === 'bote') hurtPlayer(D.veneno, cab.x, D.venenoSeg); else hurtPlayer(D.mordida, cab.x);
       }
-      if (b.state !== 'enter' && circleRect(b.cx, GROUND - 70, 150, player)) hurtPlayer(D.mordida, b.cx);
-      if ((b.state === 'strikePrep' || b.state === 'strike') && Math.random() < dt * 30)   // veneno pingando das presas
-        particles.push({ x: b.hx + (Math.cos(b.ang) >= 0 ? 1 : -1) * rnd(10, 30), y: b.hy + 14, vx: rnd(-10, 10), vy: rnd(20, 60), life: .6, max: .6, c: Math.random() < .5 ? '#8dff6a' : '#c8ff9a', s: rnd(2, 3), g: 400 });
-      if (Math.random() < dt * 22) particles.push({ x: b.hx + rnd(-30, 10), y: b.hy - 26, vx: rnd(-25, 25), vy: rnd(-140, -70), life: .8, max: .8, c: FIRE[(Math.random() * 3) | 0], s: rnd(2, 3.5), g: -30 });
-      if (Math.random() < dt * (enraged(b) ? 30 : 18)) {
-        const s = b.pts[(Math.random() * b.pts.length) | 0];
-        particles.push({ x: s.x + rnd(-10, 10), y: s.y - 14, vx: rnd(-20, 20), vy: rnd(-90, -40), life: .7, max: .7, c: FIRE[(Math.random() * 3) | 0], s: rnd(2, 4), g: -40 });
+      for (let i = 2; i < C.length; i += 2) {
+        const g = C[i];
+        if (g.y - g.r > GROUND) continue;
+        if (circleRect(g.x, g.y, g.r * .85, player)) { hurtPlayer(D.corpo, g.x); break; }
+      }
+      if (player.onGround) for (const c of b.chamas) if (Math.abs(pcx - c.x) < 34) { hurtPlayer(D.chama, c.x); break; }
+
+      // efeitos: veneno nas presas, fogo na cabeça, brasas no corpo, terra onde ela fura o chão
+      if (acima(cab)) {
+        if ((b.state === 'prep' || b.state === 'bote' || b.state === 'cravada') && Math.random() < dt * 30)
+          particles.push({ x: cab.x + b.lado * rnd(10, 30), y: cab.y + 14, vx: rnd(-10, 10), vy: rnd(20, 60), life: .6, max: .6, c: Math.random() < .5 ? '#8dff6a' : '#c8ff9a', s: rnd(2, 3), g: 400 });
+        if (Math.random() < dt * 22) particles.push({ x: cab.x + rnd(-30, 10), y: cab.y - 30, vx: rnd(-25, 25), vy: rnd(-140, -70), life: .8, max: .8, c: FIRE[(Math.random() * 3) | 0], s: rnd(2, 3.5), g: -30 });
+      }
+      const vis = C.filter(acima);
+      if (vis.length && Math.random() < dt * (furia ? 45 : 28) * Math.min(1, vis.length / 20)) {
+        const s = vis[(Math.random() * vis.length) | 0];
+        particles.push({ x: s.x + rnd(-10, 10), y: s.y - s.r * .7, vx: rnd(-20, 20), vy: rnd(-90, -40), life: .7, max: .7, c: FIRE[(Math.random() * 3) | 0], s: rnd(2, 4), g: -40 });
+      }
+      if (b.vel > 0 && ['ataque', 'subir', 'bote', 'recua', 'mergulho'].includes(b.state)) {
+        for (let i = 1; i < C.length; i++) {
+          const a = C[i - 1], c = C[i];
+          if ((a.y < GROUND) !== (c.y < GROUND) && Math.random() < dt * 25) {
+            const x = a.x + (c.x - a.x) * (GROUND - a.y) / (c.y - a.y);
+            particles.push({ x: x + rnd(-a.r, a.r), y: GROUND - 4, vx: rnd(-90, 90), vy: rnd(-280, -120), life: .6, max: .6, c: Math.random() < .3 ? FIRE[1] : (Math.random() < .5 ? '#6b5446' : '#3d2f27'), s: rnd(2, 4), g: 700 });
+          }
+        }
       }
     },
     acertoCirculo(b, x, y, r) {
-      if (Math.hypot(x - b.hx, y - b.hy) < 36 + r) return { x: b.hx, y: b.hy, mult: 1.5 };
-      for (const s of b.neck) if (Math.hypot(x - s.x, y - s.y) < s.r + r) return { x: s.x, y: s.y, mult: .8 };
-      if (Math.hypot(x - b.cx, y - (GROUND - 110)) < 180 + r) return { x, y, mult: .6 };
+      const cab = b.corpo[0];
+      if (acima(cab) && Math.hypot(x - cab.x, y - cab.y) < 36 + r) return { x: cab.x, y: cab.y, mult: b.state === 'cravada' ? 2 : 1.5 };
+      for (let i = 2; i < b.corpo.length; i += 2) { const s = b.corpo[i]; if (acima(s) && y < GROUND && Math.hypot(x - s.x, y - s.y) < s.r + r) return { x: s.x, y: s.y, mult: .6 }; }
       return null;
     },
     acertoRet(b, rr) {
-      if (circleRect(b.hx, b.hy, 34, rr)) return { x: b.hx, y: b.hy, mult: 1.5 };
-      for (const s of b.neck) if (circleRect(s.x, s.y, s.r, rr)) return { x: s.x, y: s.y, mult: .8 };
-      if (circleRect(b.cx, GROUND - 110, 180, rr)) return { x: rr.x + rr.w / 2, y: rr.y + rr.h / 2, mult: .6 };
+      const cab = b.corpo[0];
+      if (acima(cab) && circleRect(cab.x, cab.y, 36, rr)) return { x: cab.x, y: cab.y, mult: b.state === 'cravada' ? 2 : 1.5 };
+      for (let i = 2; i < b.corpo.length; i += 2) { const s = b.corpo[i]; if (acima(s) && circleRect(s.x, s.y, s.r, rr)) return { x: s.x, y: Math.min(s.y, GROUND - 10), mult: .6 }; }
       return null;
     },
     luzes(b) {
-      const total = b.pts.length + b.neck.length;
-      if (b.dead && b.popped > total) return [];
-      const L = [[b.hx, b.hy, 230 + Math.sin(time * 9) * 12, '255,150,50'], [b.cx, GROUND - 110, 260 + Math.sin(time * 5) * 10, '255,110,30']];
+      const L = b.chamas.map(c => [c.x, GROUND - 20, 120 + Math.sin(time * 11 + c.x) * 10, '255,120,40']);
+      if (b.dead) return b.popped > 3 ? L : L.concat([[b.corpo[0].x, b.corpo[0].y, 230, '255,150,50']]);
+      for (const x of (b.state === 'aviso' ? b.avisos : [])) L.push([x, GROUND, 110 + Math.sin(time * 14) * 30, '255,110,30']);
+      const C = b.corpo;
+      if (acima(C[0])) L.push([C[0].x, C[0].y, 230 + Math.sin(time * 9) * 12, '255,150,50']);
+      let ult = -1e9;
+      for (const g of C) if (acima(g) && g.s - ult > 280) { L.push([g.x, Math.min(g.y, GROUND - 20), 170 + Math.sin(time * 5 + g.s) * 10, '255,110,30']); ult = g.s; }
       return L;
     },
     desenhar(b) {
-      const rage = enraged(b), S = sprite(b.cfg.sprite), P = S && S.partes;
-      const corpo = P && P.corpo;
-      // na morte vira pó: primeiro a cabeça, depois o pescoço (da ponta para trás), depois o rolo (de cima para baixo)
-      const pp = b.dead ? b.popped : 0;
-      const nNeck = b.neck.length - clamp(pp - 1, 0, b.neck.length);
-      const nRolo = b.pts.length - clamp(pp - 1 - b.neck.length, 0, b.pts.length);
-      // um gomo (sprite do PixelLab ou desenho de reserva)
-      const gomo = (x, y, r, ang) => {
-        x = Math.round(x - camX); y = Math.round(y);
-        const pg = P && (P.gomo_corpo || P.gomo);
-        if (pg) {
-          const [qx, qy, qw, qh] = pg, k = (r * 2.1) / qh, larg = Math.max(qw * k, r * 2.1);
-          ctx.save(); ctx.translate(x, y); ctx.rotate(ang); if (Math.cos(ang) < 0) ctx.scale(1, -1);
-          ctx.imageSmoothingEnabled = !S.pixel; ctx.drawImage(S.image, qx, qy, qw, qh, -larg / 2, -qh * k / 2, larg, qh * k);
-          ctx.imageSmoothingEnabled = true; ctx.restore();
-        } else {
-          const g = ctx.createRadialGradient(x, y, 1, x, y, r);
-          g.addColorStop(0, '#ffb347'); g.addColorStop(.35, '#d4471a'); g.addColorStop(.8, '#4a1408'); g.addColorStop(1, '#1e0804');
-          ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
+      const rage = enraged(b), S = sprite(b.cfg.sprite), P = S && S.partes, C = b.corpo;
+      // aviso: a terra racha e brilha onde ela vai sair
+      if (b.state === 'aviso') {
+        const pulso = .45 + .55 * Math.abs(Math.sin(time * 12)), cresce = Math.min(1, b.st / b.avisoT);
+        for (const x0 of b.avisos) {
+          const x = Math.round(x0 - camX);
+          ctx.globalAlpha = pulso;
+          ctx.strokeStyle = '#ff8a2a'; ctx.lineWidth = 3; ctx.lineJoin = 'miter';
+          ctx.beginPath();
+          const meia = 18 + 40 * cresce;
+          ctx.moveTo(x - meia, GROUND + 2);
+          for (let i = 1; i <= 6; i++) ctx.lineTo(x - meia + i * meia / 3, GROUND + (i % 2 ? -4 : 5));
+          ctx.stroke();
+          ctx.globalCompositeOperation = 'lighter';
+          const g = ctx.createRadialGradient(x, GROUND, 2, x, GROUND, 60 + 30 * cresce);
+          g.addColorStop(0, 'rgba(255,140,40,.55)'); g.addColorStop(1, 'rgba(255,60,10,0)');
+          ctx.fillStyle = g; ctx.fillRect(x - 100, GROUND - 100, 200, 120);
+          ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1;
         }
-      };
-      // pescoço: tubo contínuo com a faixa de escamas do rolo correndo ao longo dele
+      }
+      // chão em chamas
+      for (const c of b.chamas) {
+        const a = Math.min(1, c.t * 1.5);
+        ctx.globalAlpha = a;
+        for (let j = 0; j < 4; j++) chamaPixel(Math.round(c.x - camX - 27 + j * 18), GROUND + 2, 14, 18 + Math.sin(time * 10 + j * 2 + c.x) * 7, time * 11 + j);
+        ctx.globalAlpha = 1;
+      }
+      if (b.dead && b.popped > C.filter(acima).length) return;
+
+      // só o que está acima da terra aparece
+      ctx.save(); ctx.beginPath(); ctx.rect(-50, -400, W + 100, GROUND + 3 + 400); ctx.clip();
+      const pp = b.dead ? b.popped : 0;
+      let fim = C.length - 1;
+      while (fim > 1 && C[fim].y - C[fim].r > GROUND + 4 && C[fim - 1].y - C[fim - 1].r > GROUND + 4) fim--;
+      // na morte some a partir da cabeça
+      let ini = 0;
+      if (pp > 0) { let n = 0; while (ini < fim && n < pp) { if (acima(C[ini])) n++; ini++; } }
       const faixa = P && P.gomo_corpo;
-      if (faixa && pp === 0) {
-        const [qx, qy, qw, qh] = faixa, chain = [b.topo, ...b.neck, { x: b.hx, y: b.hy, r: b.neck.length ? b.neck[b.neck.length - 1].r : 26 }];
-        let acc = 0;
-        // contorno preto, como o do rolo: um traço mais grosso por baixo da textura
+      if (faixa) {
+        const [qx, qy, qw, qh] = faixa;
+        // contorno preto por baixo da textura
         ctx.strokeStyle = '#080305'; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
-        for (let i = 0; i < chain.length - 1; i++) {   // o começo fica escondido atrás do rolo
-          const a0 = chain[i], a1 = chain[i + 1];
-          ctx.lineWidth = (a0.r || 30) * 2 + 6;
+        for (let i = fim - 1; i >= ini; i--) {
+          const a0 = C[i], a1 = C[i + 1];
+          if (a0.y - a0.r > GROUND + 4 && a1.y - a1.r > GROUND + 4) continue;
+          ctx.lineWidth = a0.r * 2 + 6;
           ctx.beginPath(); ctx.moveTo(Math.round(a0.x - camX), Math.round(a0.y)); ctx.lineTo(Math.round(a1.x - camX), Math.round(a1.y)); ctx.stroke();
         }
         ctx.lineCap = 'butt';
+        // faixa de escamas presa ao corpo (a contagem começa na cabeça: a textura anda junto)
+        const acc = [0];
+        for (let i = 0; i < fim; i++) { const d = Math.hypot(C[i + 1].x - C[i].x, C[i + 1].y - C[i].y); acc.push(acc[i] + Math.max(1, d * qh / (C[i].r * 2))); }
         ctx.imageSmoothingEnabled = !S.pixel;
-        for (let i = 0; i < chain.length - 1; i++) {
-          const a0 = chain[i], a1 = chain[i + 1], d = Math.hypot(a1.x - a0.x, a1.y - a0.y), r = (a0.r || 30);
-          const k = qh / (r * 2), sw = Math.max(1, d * k);
-          let sx = acc % qw; acc += sw;
+        for (let i = fim - 1; i >= ini; i--) {
+          const a0 = C[i], a1 = C[i + 1];
+          if (a0.y - a0.r > GROUND + 4 && a1.y - a1.r > GROUND + 4) continue;
+          const d = Math.hypot(a1.x - a0.x, a1.y - a0.y), r = a0.r, k = qh / (r * 2), sw = acc[i + 1] - acc[i];
+          let sx = acc[i] % qw, feito = 0;
           ctx.save(); ctx.translate(Math.round(a0.x - camX), Math.round(a0.y)); ctx.rotate(Math.atan2(a1.y - a0.y, a1.x - a0.x));
-          let feito = 0;
           while (feito < sw - .01) {   // a fatia pode dar a volta no fim da faixa
             const pedaco = Math.min(sw - feito, qw - sx);
             ctx.drawImage(S.image, qx + sx, qy, pedaco, qh, feito / k - .5, -r, pedaco / k + 1.5, r * 2);
@@ -465,62 +610,61 @@ CHEFES.boitata = (() => {
           ctx.restore();
         }
         ctx.imageSmoothingEnabled = true;
-      }
-      if (!(faixa && pp === 0)) for (let i = 0; i < nNeck; i++) {
-        const s = b.neck[i], nx = i + 1 < b.neck.length ? b.neck[i + 1] : { x: b.hx, y: b.hy };
-        if (!(P && P.gomo_corpo) && i % 5 === 2) flame(s.x - camX, s.y - s.r * .6, s.r * .8, s.r * (rage ? 1.3 : 1), time * 12 + i * 2.3);
-        gomo(s.x, s.y, s.r, Math.atan2(nx.y - s.y, nx.x - s.x));
-      }
-      // rolo: imagem própria se houver; senão, espiral de gomos (de baixo para cima)
-      if (corpo && !b.dead) {
-        const [qx, qy, qw, qh] = corpo, w = CORPO_W, k = w / qw;
-        ctx.imageSmoothingEnabled = !S.pixel;
-        const sg = ctx.createRadialGradient(b.cx - camX, GROUND + 6, 10, b.cx - camX, GROUND + 6, w * .62);
-        sg.addColorStop(0, 'rgba(0,0,0,.6)'); sg.addColorStop(1, 'rgba(0,0,0,0)');
-        ctx.fillStyle = sg; ctx.beginPath(); ctx.ellipse(b.cx - camX, GROUND + 6, w * .62, 26, 0, 0, Math.PI * 2); ctx.fill();
-        ctx.drawImage(S.image, qx, qy, qw, qh, Math.round(b.cx - camX - w / 2), Math.round(GROUND + CORPO_AFUNDA - qh * k + b.subir), w, qh * k);
-        ctx.imageSmoothingEnabled = true;
       } else {
-        for (let i = 0; i < nRolo; i++) {
-          const s = b.pts[i], nx = b.pts[Math.min(i + 1, b.pts.length - 1)];
-          if (i % 3 === 0) flame(s.x - camX, s.y - s.r * .6, s.r * 1.1, s.r * (rage ? 1.7 : 1.25), time * 12 + i * 1.7);
-          gomo(s.x, s.y, s.r, Math.atan2(nx.y - s.y, nx.x - s.x));
+        for (let i = fim; i >= Math.max(ini, 1); i--) {
+          const s = C[i]; if (!acima(s)) continue;
+          const x = Math.round(s.x - camX), y = Math.round(s.y), g = ctx.createRadialGradient(x, y, 1, x, y, s.r);
+          g.addColorStop(0, '#ffb347'); g.addColorStop(.35, '#d4471a'); g.addColorStop(.8, '#4a1408'); g.addColorStop(1, '#1e0804');
+          ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, y, s.r, 0, Math.PI * 2); ctx.fill();
+          if (i % 6 === 0) flame(x, y - s.r * .6, s.r * .9, s.r * (rage ? 1.5 : 1.15), time * 12 + i * 1.7);
         }
       }
-      if (pp > 0) return;
       // cabeça
-      ctx.save(); ctx.translate(Math.round(b.hx - camX), Math.round(b.hy));
-      const right = Math.cos(b.ang) >= 0;
-      ctx.scale(right ? 1 : -1, 1);
-      const a = right ? b.ang : Math.PI - b.ang;
-      ctx.rotate(clamp(a > Math.PI ? a - Math.PI * 2 : a, -.9, .9));
-      const venom = b.state === 'strikePrep' || b.state === 'strike';
-      if (P && P.cabeca) {
-        const ataque = P.cabeca_ataque && (b.state === 'aimfire' || venom);
-        const nomeC = ataque ? 'cabeca_ataque' : 'cabeca', [qx, qy, qw, qh] = P[nomeC];
-        const [nx, ny, hc] = (S.pescocos && S.pescocos[nomeC]) || [.45, .5, .5];
-        // o crânio fica um pouco mais alto que a grossura do fim do pescoço
-        const rFim = b.neck.length ? b.neck[b.neck.length - 1].r : 24, k = (rFim * 1.75) / (hc * qh);
-        ctx.imageSmoothingEnabled = !S.pixel;
-        const hx0 = -8 - nx * qw * k, hy0 = -ny * qh * k;
-        ctx.drawImage(S.image, qx, qy, qw, qh, hx0, hy0, qw * k, qh * k);
-        // fogo vivo na cabeça: línguas de chama que dançam por cima das chamas desenhadas
-        const topoC = -hc / 2 * qh * k, larg = qw * k;
-        for (let j = 0; j < 6; j++) {
-          const fx = hx0 + larg * (.1 + j * .09), alt = (rage ? 30 : 22) + Math.sin(time * 9 + j * 1.9) * 8 + Math.sin(time * 23 + j) * 3;
-          chamaPixel(fx, topoC + 3, 13, alt, time * 11 + j * 1.7);
+      const cab = C[0];
+      if (pp === 0 && cab.y - 40 < GROUND) {
+        ctx.save(); ctx.translate(Math.round(cab.x - camX), Math.round(cab.y));
+        const right = b.lado > 0;
+        ctx.scale(right ? 1 : -1, 1);
+        let a = right ? b.ang : Math.PI - b.ang;
+        while (a > Math.PI) a -= Math.PI * 2;
+        while (a < -Math.PI) a += Math.PI * 2;
+        ctx.rotate(clamp(a, -.9, .9));
+        const bravo = ['cospe', 'prep', 'bote', 'cravada'].includes(b.state);
+        if (P && P.cabeca) {
+          const nomeC = bravo && P.cabeca_ataque ? 'cabeca_ataque' : 'cabeca', [qx, qy, qw, qh] = P[nomeC];
+          const [nx, ny, hc] = (S.pescocos && S.pescocos[nomeC]) || [.45, .5, .5];
+          const k = (cab.r * 1.75) / (hc * qh);
+          ctx.imageSmoothingEnabled = !S.pixel;
+          const hx0 = -8 - nx * qw * k, hy0 = -ny * qh * k;
+          ctx.drawImage(S.image, qx, qy, qw, qh, hx0, hy0, qw * k, qh * k);
+          // fogo vivo na cabeça
+          const topoC = -hc / 2 * qh * k, larg = qw * k;
+          for (let j = 0; j < 6; j++) {
+            const fx = hx0 + larg * (.1 + j * .09), alt = (rage ? 34 : 26) + Math.sin(time * 9 + j * 1.9) * 8 + Math.sin(time * 23 + j) * 3;
+            chamaPixel(fx, topoC + 3, 15, alt, time * 11 + j * 1.7);
+          }
+          if (b.flash > 0) { ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = Math.min(1, b.flash * 3) * .6; ctx.drawImage(S.image, qx, qy, qw, qh, hx0, hy0, qw * k, qh * k); ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over'; }
+          ctx.imageSmoothingEnabled = true;
+        } else {
+          flame(-6, -22, 48, rage ? 74 : 56, time * 10);
+          const hg = ctx.createRadialGradient(0, 0, 2, 0, 0, 44);
+          hg.addColorStop(0, '#ffb347'); hg.addColorStop(.4, '#c9401a'); hg.addColorStop(1, '#2a0a04');
+          ctx.fillStyle = hg; ctx.beginPath(); ctx.ellipse(6, 0, 46, 31, 0, 0, Math.PI * 2); ctx.fill();
+          ctx.fillStyle = '#fff7d0'; ctx.beginPath(); ctx.arc(18, -10, 5, 0, Math.PI * 2); ctx.fill();
+          if (b.flash > 0) { ctx.fillStyle = 'rgba(200,235,255,.7)'; ctx.beginPath(); ctx.ellipse(6, 0, 48, 33, 0, 0, Math.PI * 2); ctx.fill(); }
         }
-        if (b.flash > 0) { ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = Math.min(1, b.flash * 3) * .6; ctx.drawImage(S.image, qx, qy, qw, qh, hx0, hy0, qw * k, qh * k); ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over'; }
-        ctx.imageSmoothingEnabled = true;
-      } else {
-        flame(-6, -18, 40, rage ? 62 : 46, time * 10);
-        const hg = ctx.createRadialGradient(0, 0, 2, 0, 0, 36);
-        hg.addColorStop(0, '#ffb347'); hg.addColorStop(.4, '#c9401a'); hg.addColorStop(1, '#2a0a04');
-        ctx.fillStyle = hg; ctx.beginPath(); ctx.ellipse(4, 0, 38, 26, 0, 0, Math.PI * 2); ctx.fill();
-        ctx.fillStyle = '#fff7d0'; ctx.beginPath(); ctx.arc(14, -8, 4, 0, Math.PI * 2); ctx.fill();
-        if (b.flash > 0) { ctx.fillStyle = 'rgba(200,235,255,.7)'; ctx.beginPath(); ctx.ellipse(4, 0, 40, 28, 0, 0, Math.PI * 2); ctx.fill(); }
+        ctx.restore();
       }
-      ctx.restore();
+      ctx.restore();   // fim do recorte do chão
+      // montinhos de terra onde o corpo fura o chão
+      for (let i = Math.max(ini, 1); i <= fim; i++) {
+        const a = C[i - 1], c = C[i];
+        if ((a.y < GROUND) === (c.y < GROUND)) continue;
+        const x = Math.round(a.x + (c.x - a.x) * (GROUND - a.y) / (c.y - a.y) - camX), w = a.r * 1.5;
+        ctx.fillStyle = '#1e140f'; ctx.beginPath(); ctx.ellipse(x, GROUND + 3, w, 9, 0, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = '#5a4034'; ctx.fillRect(x - w * .7, GROUND - 4, w * 1.4, 3);
+        ctx.fillStyle = '#3d2f27'; ctx.fillRect(x - w * .9, GROUND - 1, w * 1.8, 3);
+      }
     },
   };
 })();
@@ -530,6 +674,7 @@ function startBoss() {
   encontrar(FASE_ID);
   bossActive = true;
   boss = CHEFE.criar(CHEFE_CFG);
+  if (params.has('chefevida')) boss.fire = +params.get('chefevida');   // teste: chefe com pouca vida
   banner = 3.6;
   enemies = enemies.filter(e => e.x < ARENA.x0 - 100);
 }
@@ -567,7 +712,7 @@ function demoInput(dt) {
     const goal = pendant ? pendant.x : boss.hx, gap = pendant ? 5 : 160;
     fake.right = goal > pc + gap; fake.left = goal < pc - gap;
     if (demoT % 0.35 < dt) powerPressed = true;
-    if (boss && (boss.state === 'lunge' || boss.state === 'lungePrep') && Math.abs(boss.hx - pc) < 200) jumpPressed = true;
+    if (boss && (boss.state === 'bote' || boss.state === 'prep') && Math.abs(boss.hx - pc) < 200) jumpPressed = true;
   }
   if (demoT % 1.6 < dt) jumpPressed = true;
   return fake;

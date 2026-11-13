@@ -77,8 +77,8 @@ window.FASES = {
       sprite: 'chefes/boitata',
       resist: { agua: 1.2, fogo: 0, terra: 0.8, ar: 0.8, espada: 1 }, // fogo: ele absorve e recupera
       frase: ['"A floresta aprisionou sua alma em um corpo incendiado', 'e a tornou guardiã da mesma."'],
-      dica: 'Apague o fogo com a água · cuidado com o bote: pule ou fique longe!',
-      dano: { mordida: 9, veneno: 8, venenoSeg: 3, bolaDeFogo: 12 },
+      dica: 'Onde a terra racha, ela sai: saia de cima! · Bata na cabeça quando ela ficar cravada no chão',
+      dano: { mordida: 9, veneno: 8, venenoSeg: 3, bolaDeFogo: 12, corpo: 8, chama: 5 },
     },
     vitoria: {
       citacao: '"Após a morte, novamente eles viram pó prateado e um pingente com o Boitatá aparece no chão."',
