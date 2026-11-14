@@ -761,6 +761,17 @@ def main():
         if r:
             saida["mapa"] = r
     DESTINO.mkdir(parents=True, exist_ok=True)
+    # "ver": marca do conteúdo das imagens de cada item. O jogo põe no endereço (?v=), então o
+    # navegador baixa a imagem nova quando ela muda (sem isso ele mistura a imagem velha do cache
+    # com as medidas novas)
+    import hashlib
+    for v in saida.values():
+        arqs = [v.get("img"), v.get("retrato")] + [pc.get("img") for pc in (v.get("pecas") or {}).values()] + list((v.get("camadas") or {}).values())
+        h = hashlib.md5()
+        for a in arqs:
+            if a and (DESTINO / a).exists():
+                h.update((DESTINO / a).read_bytes())
+        v["ver"] = h.hexdigest()[:8]
     (DESTINO / "sprites.json").write_text(json.dumps(saida, ensure_ascii=False, indent=1), encoding="utf-8")
     print(f"sprites.json: {len(saida)} itens ({', '.join(saida) or 'nenhum'})")
 

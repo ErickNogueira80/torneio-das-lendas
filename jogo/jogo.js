@@ -5,7 +5,7 @@
    Parâmetros de teste na URL:
      ?heroi=<chave>  escolhe o herói (ex.: fogo)      ?fase=<chave>  escolhe a fase
      ?boss           começa perto do chefe             ?demo          joga sozinho
-     ?chefevida=N    chefe começa com N de vida
+     ?chefevida=N    chefe começa com N de vida       ?play&sala     começa na sala secreta
      &ff=600         avança 600 quadros                &touch         mostra os botões de toque
      ?semimagens     ignora as imagens (só desenho de reserva) */
 'use strict';
@@ -78,11 +78,11 @@ async function loadSprites() {
     if (!r.ok) return;
     const data = await r.json();
     for (const [k, v] of Object.entries(data)) {
-      const s = { ...v };
-      if (v.img) { s.image = new Image(); s.image.src = 'sprites/' + v.img; }
-      if (v.retrato) { s.retratoImg = new Image(); s.retratoImg.src = 'sprites/' + v.retrato; }
-      if (v.pecas) for (const pc of Object.values(v.pecas)) { pc.image = new Image(); pc.image.src = 'sprites/' + pc.img; }
-      if (v.camadas) { s.imgs = {}; for (const [c, p] of Object.entries(v.camadas)) { const im = new Image(); im.src = 'sprites/' + p; s.imgs[c] = im; } }
+      const s = { ...v }, q = v.ver ? '?v=' + v.ver : '';   // versão da imagem: o cache não mistura velha com nova
+      if (v.img) { s.image = new Image(); s.image.src = 'sprites/' + v.img + q; }
+      if (v.retrato) { s.retratoImg = new Image(); s.retratoImg.src = 'sprites/' + v.retrato + q; }
+      if (v.pecas) for (const pc of Object.values(v.pecas)) { pc.image = new Image(); pc.image.src = 'sprites/' + pc.img + q; }
+      if (v.camadas) { s.imgs = {}; for (const [c, p] of Object.entries(v.camadas)) { const im = new Image(); im.src = 'sprites/' + p + q; s.imgs[c] = im; } }
       SPR[k] = s;
     }
   } catch (_) { /* sem imagens: usa os desenhos de reserva */ }
@@ -226,6 +226,10 @@ function newGame() {
     player.lvl = 3; for (const k of ['V', 'F', 'I']) player.attr[k] += 1;
   }
   respawn();
+  if (params.has('sala') && SALA) {   // teste: começa dentro da sala secreta
+    Object.assign(player, { x: SALA.mola - 160, y: SALA.chao - player.h, inv: 0 });
+    camX = SALA.x0; camY = SALA.fundo - H;
+  }
   if (params.has('x')) { player.x = +params.get('x'); camX = clamp(player.x - W * 0.4, 0, LEVEL_END - W); }   // teste: começar em x
   state = 'play';
 }

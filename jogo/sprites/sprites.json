@@ -262,7 +262,8 @@
     ]
    ]
   },
-  "retrato": "herois/humano_retrato.png"
+  "retrato": "herois/humano_retrato.png",
+  "ver": "f8925853"
  },
  "inimigos/brasa": {
   "tipo": "personagem",
@@ -402,7 +403,8 @@
      28.0
     ]
    ]
-  }
+  },
+  "ver": "c1cca42e"
  },
  "inimigos/vagalume": {
   "tipo": "personagem",
@@ -468,7 +470,8 @@
      44.0
     ]
    ]
-  }
+  },
+  "ver": "1d683c3e"
  },
  "chefes/boitata": {
   "tipo": "partes",
@@ -519,7 +522,8 @@
     0.299,
     -1.076
    ]
-  }
+  },
+  "ver": "f6e2d5a8"
  },
  "fundos/boitata": {
   "tipo": "fundo",
@@ -540,7 +544,8 @@
    "arvore_raiz": {
     "centro": 0.498
    }
-  }
+  },
+  "ver": "7025f296"
  },
  "objetos/altar": {
   "tipo": "objeto",
@@ -548,7 +553,8 @@
   "camadas": {
    "aceso": "objetos/altar/aceso.png",
    "apagado": "objetos/altar/apagado.png"
-  }
+  },
+  "ver": "61610c4b"
  },
  "objetos/bau": {
   "tipo": "objeto",
@@ -556,14 +562,16 @@
   "camadas": {
    "aberto": "objetos/bau/aberto.png",
    "fechado": "objetos/bau/fechado.png"
-  }
+  },
+  "ver": "617dc6ce"
  },
  "objetos/placa": {
   "tipo": "objeto",
   "pixel": 2,
   "camadas": {
    "boss": "objetos/placa/boss.png"
-  }
+  },
+  "ver": "d717fdfe"
  },
  "hud": {
   "tipo": "hud",
@@ -599,12 +607,14 @@
     "w": 1090,
     "h": 520
    }
-  }
+  },
+  "ver": "79d1f534"
  },
  "mapa": {
   "tipo": "fundo",
   "camadas": {
    "mundo": "mapa/mundo.png"
-  }
+  },
+  "ver": "ad8618f1"
  }
 }

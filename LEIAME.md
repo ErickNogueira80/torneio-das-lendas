@@ -273,8 +273,13 @@ Para retomar numa sessão nova, comece por aqui.
   terra (ergue e dá o bote, salta em arco, rasteja em ondas; desde 2026-11-13).
 - Bestiário com ??? até o encontro e contador de derrotados; locais bloqueados sem spoiler.
 
-**Para testar rápido:** `?boss` (luta), `?chefevida=10` (chefe quase morto), `?play&x=8580` (placa), `?play&x=1300` (baú), `?herois`,
+**Para testar rápido:** `?play&sala` (começa na sala secreta), `?boss` (luta), `?chefevida=10` (chefe quase morto), `?play&x=8580` (placa), `?play&x=1300` (baú), `?herois`,
 `?mapa`, `?bestiario`, `?fps`, `?perf`, `?semluz`, `?semretrato`.
+
+**Cache das imagens (2026-11-14):** a ferramenta grava em cada item do `sprites.json` uma marca
+do conteúdo (`ver`) e o jogo pede as imagens com `?v=<marca>`. Antes disso, o celular guardava a
+imagem velha e misturava com as medidas novas (o Boitatá v4 apareceu com a arte antiga esticada).
+Basta rodar a ferramenta: não precisa trocar nada à mão para as imagens.
 
 **Fluxo de arte:** imagem nova em `img/sprites/...` (originais fora do git) → `python -I
 ferramentas/preparar_sprites.py` → conferir com o Edge sem janela num servidor local
