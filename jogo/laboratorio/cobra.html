@@ -1,0 +1,323 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Laboratório da cobra</title>
+<style>
+  :root { --fundo: #0e0a10; --painel: #1a1420; --texto: #efe6d8; --fraco: #a99a8a; --ouro: #f0c674; --borda: #3a2c3a; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--fundo); color: var(--texto); font: 15px/1.4 system-ui, sans-serif; }
+  main { max-width: 1000px; margin: 0 auto; padding: 12px 16px 32px; }
+  h1 { font-size: 20px; margin: 4px 0 2px; color: var(--ouro); }
+  p { margin: 4px 0 10px; color: var(--fraco); }
+  canvas { width: 100%; height: auto; display: block; background: #120c14; border: 1px solid var(--borda); border-radius: 8px; touch-action: none; }
+  .barra { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0; }
+  button { background: var(--painel); color: var(--texto); border: 1px solid var(--borda); border-radius: 8px; padding: 8px 14px; font: inherit; cursor: pointer; }
+  button.ativo { background: #4a2f18; border-color: var(--ouro); color: var(--ouro); }
+  .ajustes { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 6px 18px; background: var(--painel); border: 1px solid var(--borda); border-radius: 8px; padding: 10px 14px; }
+  label { display: flex; flex-direction: column; font-size: 13px; color: var(--fraco); }
+  label b { color: var(--texto); font-weight: 600; }
+  input[type=range] { width: 100%; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Laboratório da cobra</h1>
+  <p>Teste do movimento do Boitatá (sem ataques de verdade). <b>A</b>: rolo desenhado, com pescoço e rabo em corrente.
+    <b>B</b>: a cobra inteira em corrente. Mexa o dedo ou o mouse sobre a tela: a cabeça segue. O boneco é o herói, para dar a escala.</p>
+  <canvas id="tela" width="960" height="540"></canvas>
+  <div class="barra">
+    <button id="bA" class="ativo">A · rolo desenhado</button>
+    <button id="bB">B · corpo todo</button>
+    <button id="bBote">Bote no herói</button>
+    <button id="bRabada">Rabada</button>
+    <button id="bSeguir" class="ativo">Cabeça segue o dedo</button>
+    <button id="bOsso">Mostrar esqueleto</button>
+  </div>
+  <div class="ajustes">
+    <label><span>Rapidez da cabeça (f): <b id="vf"></b></span><input id="f" type="range" min="0.3" max="6" step="0.1" value="2.2"></label>
+    <label><span>Amortecimento (z): <b id="vz"></b> · menor = balança mais</span><input id="z" type="range" min="0.05" max="1.5" step="0.05" value="0.55"></label>
+    <label><span>Resposta (r): <b id="vr"></b> · negativo = prepara antes</span><input id="r" type="range" min="-2" max="3" step="0.1" value="1.2"></label>
+    <label><span>Ondulação do pescoço: <b id="vo"></b></span><input id="o" type="range" min="0" max="24" step="1" value="8"></label>
+    <label><span>Dobra máxima por gomo: <b id="vd"></b>°</span><input id="d" type="range" min="6" max="40" step="1" value="16"></label>
+  </div>
+</main>
+<script>
+'use strict';
+// ---------- tela e entrada ----------
+const cv = document.getElementById('tela'), ctx = cv.getContext('2d');
+const W = 960, H = 540, CHAO = 460, SP = 12;   // SP = distância fixa entre os gomos
+let modo = 'A', seguir = true, osso = false, mouse = { x: 300, y: 200, ativo: false };
+const $ = id => document.getElementById(id);
+const P = { f: 2.2, z: .55, r: 1.2, o: 8, d: 16 };
+for (const k of Object.keys(P)) { const el = $(k); const at = () => { P[k] = +el.value; $('v' + k).textContent = el.value; }; el.oninput = at; at(); }
+function posicao(e) { const r = cv.getBoundingClientRect(); return { x: (e.clientX - r.left) * W / r.width, y: (e.clientY - r.top) * H / r.height }; }
+cv.addEventListener('pointermove', e => { Object.assign(mouse, posicao(e), { ativo: true }); });
+cv.addEventListener('pointerdown', e => { Object.assign(mouse, posicao(e), { ativo: true }); });
+cv.addEventListener('pointerleave', () => { mouse.ativo = false; });
+const marca = (id, on) => $(id).classList.toggle('ativo', on);
+$('bA').onclick = () => { modo = 'A'; marca('bA', true); marca('bB', false); montar(); };
+$('bB').onclick = () => { modo = 'B'; marca('bA', false); marca('bB', true); montar(); };
+$('bSeguir').onclick = () => { seguir = !seguir; marca('bSeguir', seguir); };
+$('bOsso').onclick = () => { osso = !osso; marca('bOsso', osso); };
+$('bBote').onclick = () => { if (!acao) { acao = 'bote'; tAcao = 0; } };
+$('bRabada').onclick = () => { if (!rabada) { rabada = true; tRabo = 0; } };
+
+// ---------- arte (a mesma do jogo) ----------
+let IMG = null, PT = null, PESC = null, HEROI = null;
+fetch('../sprites/sprites.json', { cache: 'no-cache' }).then(r => r.json()).then(d => {
+  const b = d['chefes/boitata']; PT = b.partes; PESC = b.pescocos;
+  IMG = new Image(); IMG.src = '../sprites/' + b.img + (b.ver ? '?v=' + b.ver : '');
+  const h = d['herois/humano'];
+  if (h && h.img) { HEROI = { s: h, im: new Image() }; HEROI.im.src = '../sprites/' + h.img + (h.ver ? '?v=' + h.ver : ''); }
+});
+const pronta = im => im && im.complete && im.naturalWidth > 0;
+
+// ---------- matemática ----------
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const ease = t => t * t * (3 - 2 * t);
+// "Dinâmica de 2ª ordem" (t3ssel8r): segue um alvo com rapidez f, amortecimento z e resposta r
+class Seguidor {
+  constructor(x, y) { this.px = x; this.py = y; this.x = x; this.y = y; this.vx = 0; this.vy = 0; }
+  passo(dt, tx, ty) {
+    const f = P.f, z = P.z, r = P.r, k1 = z / (Math.PI * f), k2 = 1 / ((2 * Math.PI * f) ** 2), k3 = r * z / (2 * Math.PI * f);
+    const dx = (tx - this.px) / dt, dy = (ty - this.py) / dt; this.px = tx; this.py = ty;
+    const k2s = Math.max(k2, dt * dt / 2 + dt * k1 / 2, dt * k1);   // estável com qualquer dt
+    this.x += dt * this.vx; this.y += dt * this.vy;
+    this.vx += dt * (tx + k3 * dx - this.x - k1 * this.vx) / k2s;
+    this.vy += dt * (ty + k3 * dy - this.y - k1 * this.vy) / k2s;
+  }
+}
+// FABRIK: corrente de pontos com distância fixa; base presa, ponta tenta alcançar o alvo.
+// pts[0] = ponta (cabeça ou fim do rabo), pts[n] = base. dirBase = direção em que a corrente sai da base.
+function fabrik(pts, alvo, base, dirBase, raio = () => 24, iter = 8) {
+  const n = pts.length - 1;
+  for (let it = 0; it < iter; it++) {
+    pts[0].x = alvo.x; pts[0].y = alvo.y;
+    for (let i = 1; i <= n; i++) { const a = pts[i - 1], b = pts[i], d = Math.hypot(b.x - a.x, b.y - a.y) || 1; b.x = a.x + (b.x - a.x) / d * SP; b.y = a.y + (b.y - a.y) / d * SP; }
+    pts[n].x = base.x; pts[n].y = base.y;
+    // da base para a ponta, com limite de dobra entre gomos (a corrente não dobra como papel)
+    let ang = Math.atan2(dirBase.y, dirBase.x);
+    for (let i = n - 1; i >= 0; i--) {
+      const b = pts[i + 1], a = pts[i];
+      let q = Math.atan2(a.y - b.y, a.x - b.x), dq = q - ang;
+      while (dq > Math.PI) dq -= 2 * Math.PI; while (dq < -Math.PI) dq += 2 * Math.PI;
+      const maxDobra = P.d * Math.PI / 180 * clamp(24 / raio(i), .3, 1.2);   // gomo grosso dobra menos (não belisca)
+      q = ang + clamp(dq, -maxDobra, maxDobra); ang = q;
+      a.x = b.x + Math.cos(q) * SP; a.y = b.y + Math.sin(q) * SP;
+    }
+  }
+}
+function corrente(n, x, y, dx, dy) { return Array.from({ length: n + 1 }, (_, i) => ({ x: x + dx * (n - i) * SP, y: y + dy * (n - i) * SP })); }
+
+// ---------- a cobra ----------
+const Z = 2, CAB_K = 3;
+let cobra = null, acao = null, tAcao = 0, rabada = false, tRabo = 0, t = 0;
+const heroi = { x: 250 };
+function geoRolo() {   // versão A: imagem do rolo no lado direito
+  const c = PT ? PT.corpo : [0, 0, 173, 94], w = c[2] * Z, h = c[3] * Z, x0 = 770 - w / 2, y0 = CHAO + 6 - h;
+  return { c, w, h, x0, y0, nx: x0 + .191 * w, ny: y0 + 3, rx: x0 + .017 * w + 6, ry: y0 + .723 * h };
+}
+// versão B: caminho do rolo em espiral (do alto, onde sai o pescoço, até embaixo, onde sai o rabo)
+function caminhoRolo() {
+  const pts = [], cx = 790, voltas = 2.3, N = 900;
+  for (let i = 0; i <= N; i++) {
+    const u = i / N, th = -Math.PI / 2 - u * voltas * 2 * Math.PI, R = 70 + 95 * u;
+    pts.push({ x: cx + Math.cos(th) * R, y: CHAO - 40 - (1 - u) * 120 + Math.sin(th) * R * .26, z: Math.sin(th) });
+  }
+  const acc = [0];
+  for (let i = 1; i < pts.length; i++) acc.push(acc[i - 1] + Math.hypot(pts[i].x - pts[i - 1].x, pts[i].y - pts[i - 1].y));
+  return { pts, acc, len: acc[acc.length - 1] };
+}
+function noCaminho(C, s) {   // ponto do caminho no comprimento s
+  let lo = 0, hi = C.acc.length - 1; s = clamp(s, 0, C.len);
+  while (hi - lo > 1) { const m = (lo + hi) >> 1; if (C.acc[m] < s) lo = m; else hi = m; }
+  const k = (s - C.acc[lo]) / ((C.acc[hi] - C.acc[lo]) || 1), a = C.pts[lo], b = C.pts[hi];
+  return { x: a.x + (b.x - a.x) * k, y: a.y + (b.y - a.y) * k, z: a.z + (b.z - a.z) * k, dx: b.x - a.x, dy: b.y - a.y };
+}
+function montar() {
+  acao = null; rabada = false;
+  const n0 = 24, nr = 20;
+  if (modo === 'A') {
+    const G = geoRolo();
+    cobra = { pesc: corrente(n0, G.nx, G.ny, .47, -.88), rabo: corrente(nr, G.rx, G.ry, -1, 0), extra: 0, cab: new Seguidor(G.x0 + 20, G.y0 - 60), raboAlvo: new Seguidor(G.rx - 230, CHAO - 10) };
+  } else {
+    const C = caminhoRolo(), a = noCaminho(C, 0), b = noCaminho(C, C.len);
+    cobra = { C, pesc: corrente(n0, a.x, a.y, .3, -.95), rabo: corrente(nr, b.x, b.y, -1, 0), extra: 0, cab: new Seguidor(a.x - 120, a.y - 120), raboAlvo: new Seguidor(b.x - 230, CHAO - 10) };
+  }
+}
+montar();
+
+function atualizar(dt) {
+  t += dt;
+  const c = cobra;
+  // base do pescoço e do rabo
+  let base, dirBase, baseR, dirR;
+  if (modo === 'A') {
+    const G = geoRolo(); base = { x: G.nx, y: G.ny }; dirBase = { x: .47, y: -.88 }; baseR = { x: G.rx, y: G.ry }; dirR = { x: -1, y: .1 };
+  } else {
+    const s0 = c.extra * SP, a = noCaminho(c.C, s0), b = noCaminho(c.C, c.C.len);
+    base = a; dirBase = { x: -a.dx, y: -a.dy }; const d = Math.hypot(dirBase.x, dirBase.y) || 1; dirBase.x /= d; dirBase.y /= d;
+    baseR = b; dirR = { x: b.dx, y: b.dy }; const e = Math.hypot(dirR.x, dirR.y) || 1; dirR.x /= e; dirR.y /= e;
+  }
+  // alvo da cabeça: o dedo/mouse, um balanço sozinho ou o bote
+  let alvo = { x: base.x - 150 + Math.sin(t * 1.1) * 30, y: base.y - 150 + Math.sin(t * 1.7) * 14 };
+  if (seguir && mouse.ativo) alvo = { x: mouse.x, y: Math.min(mouse.y, CHAO - 30) };
+  let extraAlvo = 0;
+  if (acao === 'bote') {
+    tAcao += dt;
+    const hx = heroi.x + 60, prep = .7, ida = .25, fica = 1, volta = .7;
+    if (tAcao < prep) alvo = { x: base.x - 40 + Math.sin(t * 50) * 4, y: base.y - 210 };          // encolhe e treme
+    else if (tAcao < prep + ida + fica) alvo = { x: hx, y: CHAO - 20 };                                // vai e crava
+    else if (tAcao > prep + ida + fica + volta) acao = null;
+    const dist = Math.hypot(hx - base.x, CHAO - base.y);
+    if (tAcao > prep && tAcao < prep + ida + fica) extraAlvo = clamp(Math.ceil(dist * 1.15 / SP) - 24, 0, 45);   // o corpo desenrola (só o que falta)
+  }
+  // o pescoço ganha/perde gomos aos poucos (no B eles saem do rolo e o rolo encolhe)
+  if (c.extra < extraAlvo) c.extra = Math.min(extraAlvo, c.extra + dt * 70);
+  else c.extra = Math.max(extraAlvo, c.extra - dt * 40);
+  const nAlvo = 24 + Math.round(c.extra);
+  while (c.pesc.length - 1 < nAlvo) { const b = c.pesc[c.pesc.length - 1]; c.pesc.push({ x: b.x, y: b.y }); }
+  while (c.pesc.length - 1 > nAlvo) c.pesc.pop();
+  // cabeça: segue o alvo com a dinâmica de 2ª ordem (o bote é mais rápido)
+  const fGuard = P.f; if (acao === 'bote' && tAcao > .7) P.f = Math.max(P.f, 5);
+  c.cab.passo(dt, alvo.x, alvo.y); P.f = fGuard;
+  c.cab.y = Math.min(c.cab.y, CHAO - 14);
+  fabrik(c.pesc, { x: c.cab.x, y: c.cab.y }, base, dirBase, i => raioPesc(i, c.pesc.length - 1));
+  // ondulação: uma onda que corre pelo pescoço (zero nas pontas)
+  const n = c.pesc.length - 1;
+  for (let i = 1; i < n; i++) {
+    const a = c.pesc[i - 1], b = c.pesc[i + 1], dx = b.x - a.x, dy = b.y - a.y, d = Math.hypot(dx, dy) || 1;
+    const amp = P.o * Math.sin(Math.PI * i / n) * Math.sin(t * 3 - i * .35);
+    c.pesc[i].x += -dy / d * amp * .15; c.pesc[i].y += dx / d * amp * .15;
+  }
+  // rabo: deitado e balançando; na rabada levanta, treme e bate no chão
+  let ra = { x: baseR.x - 240 + Math.sin(t * 1.3) * 12, y: CHAO - 12 };
+  if (rabada) {
+    tRabo += dt;
+    if (tRabo < .5) ra = { x: baseR.x - 120 + Math.sin(t * 45) * 5, y: CHAO - 250 };
+    else if (tRabo < 1) ra = { x: baseR.x - 300, y: CHAO - 4 };
+    else rabada = false;
+  }
+  const fg = P.f; if (rabada && tRabo > .5) P.f = 6;
+  c.raboAlvo.passo(dt, ra.x, ra.y); P.f = fg;
+  fabrik(c.rabo, { x: c.raboAlvo.x, y: Math.min(c.raboAlvo.y, CHAO - 6) }, baseR, dirR, raioRabo);
+  for (let i = 0; i < c.rabo.length; i++) { const r = raioRabo(i); c.rabo[i].y = Math.min(c.rabo[i].y, CHAO + 2 - r); }
+}
+// grossura ao longo do corpo
+function rFimCab() { const pc = PESC && PESC.cabeca, q = PT && PT.cabeca; return pc && q ? pc[2] * q[3] * CAB_K / 2 * 1.08 : 26; }
+const raioPesc = (i, n) => { const r0 = modo === 'A' ? 55 : 44, u = i / n; return rFimCab() + (r0 - rFimCab()) * ease(Math.min(1, u * 1.6)); };
+const raioRabo = i => 4 + 22 * (1 - i / (cobra.rabo.length - 1));
+
+// ---------- desenho ----------
+// fatia da faixa de escamas entre dois pontos (contorno separado, para cobrir as emendas)
+function contorno(lista, ponta = 'round') {
+  ctx.strokeStyle = '#080305'; ctx.lineCap = ponta;
+  for (const g of lista) {
+    const e = g.ext || 0, d = Math.hypot(g.b.x - g.a.x, g.b.y - g.a.y) || 1, ux = (g.b.x - g.a.x) / d, uy = (g.b.y - g.a.y) / d;
+    ctx.lineWidth = g.r * 2 + 6; ctx.beginPath(); ctx.moveTo(g.a.x - ux * e, g.a.y - uy * e); ctx.lineTo(g.b.x + ux * e, g.b.y + uy * e); ctx.stroke();
+  }
+}
+function textura(lista, sombra = 0) {
+  const fx = PT && PT.gomo_corpo; if (!fx || !pronta(IMG)) return;
+  const [qx, qy, qw, qh] = fx;
+  ctx.imageSmoothingEnabled = false;
+  for (const g of lista) {
+    const sh = qh * (g.fh || 1), d = Math.hypot(g.b.x - g.a.x, g.b.y - g.a.y), k = sh / (g.r * 2), sw = Math.max(1, d * k);
+    let sx = g.s % qw, feito = 0;
+    ctx.save(); ctx.translate(g.a.x, g.a.y); ctx.rotate(Math.atan2(g.b.y - g.a.y, g.b.x - g.a.x)); if (g.vira) ctx.scale(1, -1);
+    const e = g.ext || 0;   // pedaço esticado para os dois lados: cobre as viradas fechadas do rolo
+    if (e) { sx = ((sx - e * k) % qw + qw) % qw; }
+    const total = sw + 2 * e * k, x0 = -e;
+    while (feito < total - .01) { const p = Math.min(total - feito, qw - sx); ctx.drawImage(IMG, qx + sx, qy, p, sh, x0 + feito / k - .5, -g.r, p / k + 1.5, g.r * 2); feito += p; sx = (sx + p) % qw; }
+    if (sombra) { ctx.fillStyle = `rgba(6,2,4,${sombra})`; ctx.fillRect(-.5 - e, -g.r, d + 1.5 + 2 * e, g.r * 2); }
+    ctx.restore();
+  }
+}
+// lista de fatias de uma corrente (da ponta para a base), com a posição na faixa contada da cabeça
+// vira: true/false fixo, ou 'flanco' = de lado (costas em cima, um fio de barriga embaixo, sempre para cima)
+function fatias(pts, raio, vira, s0 = 0) {
+  const out = []; let s = s0;
+  for (let i = 0; i < pts.length - 1; i++) {
+    const a = pts[i], b = pts[i + 1], r = raio(i), fl = vira === 'flanco', fh = fl ? .72 : 1;
+    out.push({ a, b, r, s, fh, vira: fl ? b.x - a.x < 0 : vira }); s += Math.hypot(b.x - a.x, b.y - a.y) * 82 * fh / (r * 2);
+  }
+  return out;
+}
+function desenharCabeca(c) {
+  if (!PT || !PT.cabeca || !pronta(IMG)) return;
+  const nome = acao === 'bote' ? 'cabeca_ataque' : 'cabeca', q = PT[nome], pc = PESC[nome], k = CAB_K;
+  const p0 = c.pesc[0], p1 = c.pesc[2];
+  // a cabeça gira para o pescoço do desenho seguir o último gomo (sem quebra na emenda)
+  let a = Math.PI - Math.atan2(p0.y - p1.y, p0.x - p1.x);
+  while (a > Math.PI) a -= 2 * Math.PI; while (a < -Math.PI) a += 2 * Math.PI;
+  const rot = clamp(a - pc[3], -1.3, 1.1);
+  ctx.save(); ctx.translate(p0.x, p0.y); ctx.scale(-1, 1); ctx.rotate(rot); ctx.imageSmoothingEnabled = false;
+  ctx.drawImage(IMG, q[0], q[1], q[2], q[3], -pc[0] * q[2] * k, -pc[1] * q[3] * k, q[2] * k, q[3] * k);
+  ctx.restore();
+}
+function desenharHeroi() {
+  const x = heroi.x, y = CHAO;
+  if (HEROI && pronta(HEROI.im) && HEROI.s.quadros) {
+    const anim = HEROI.s.quadros.parado || Object.values(HEROI.s.quadros)[0], q = anim[Math.floor(t * 5) % anim.length];
+    const z = HEROI.s.escala || 1, w = q[2] * z, h = q[3] * z;
+    ctx.imageSmoothingEnabled = false; ctx.drawImage(HEROI.im, q[0], q[1], q[2], q[3], x - q[4] * z, y - q[5] * z + 2, w, h);
+  } else { ctx.fillStyle = '#2e5c8a'; ctx.fillRect(x - 14, y - 44, 28, 44); }
+}
+function desenhar() {
+  const g = ctx.createLinearGradient(0, 0, 0, H); g.addColorStop(0, '#1a0f22'); g.addColorStop(.7, '#4a1f1f'); g.addColorStop(1, '#2a120c');
+  ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = '#1b120e'; ctx.fillRect(0, CHAO, W, H - CHAO); ctx.fillStyle = '#5a4034'; ctx.fillRect(0, CHAO, W, 3);
+  desenharHeroi();
+  const c = cobra, n = c.pesc.length - 1;
+  const pesc = fatias(c.pesc, i => raioPesc(i, n), false), rabo = fatias(c.rabo.slice().reverse(), i => raioRabo(c.rabo.length - 2 - i), 'flanco');
+  if (modo === 'A') {
+    const G = geoRolo();
+    contorno(rabo); textura(rabo);
+    contorno(pesc);
+    if (pronta(IMG) && PT) { ctx.imageSmoothingEnabled = false; ctx.drawImage(IMG, G.c[0], G.c[1], G.c[2], G.c[3], G.x0, G.y0, G.w, G.h); }
+    textura(pesc);
+  } else {
+    // corpo enrolado: gomos presos no caminho em espiral; os de trás (z < 0) mais escuros e antes
+    const C = c.C, s0 = c.extra * SP, nR = Math.floor((C.len - s0) / SP), pts = [];
+    for (let i = 0; i <= nR; i++) pts.push(noCaminho(C, s0 + i * SP));
+    pts.push(noCaminho(C, C.len));
+    const sPesc = pesc.length ? pesc[pesc.length - 1].s : 0, tras = [], frente = [];
+    let s = sPesc;
+    for (let i = 0; i < pts.length - 1; i++) {
+      const a = pts[i], b = pts[i + 1], gm = { a, b, r: 44, s, fh: .55, vira: b.x - a.x < 0, ext: 9 };   // no rolo só as costas (a barriga fica embaixo, escondida)
+      s += Math.hypot(b.x - a.x, b.y - a.y) * 82 * .55 / 88;
+      ((a.z + b.z) / 2 < 0 ? tras : frente).push(gm);
+    }
+    contorno(tras, 'butt'); textura(tras, .35);
+    contorno(rabo); textura(rabo);
+    contorno(frente, 'butt'); contorno(pesc); textura(frente); textura(pesc);
+  }
+  desenharCabeca(c);
+  if (osso) {
+    ctx.fillStyle = '#7fe0ff';
+    for (const p of [...c.pesc, ...c.rabo]) ctx.fillRect(p.x - 2, p.y - 2, 4, 4);
+    ctx.strokeStyle = '#ff5'; ctx.strokeRect(c.cab.px - 6, c.cab.py - 6, 12, 12);
+  }
+  ctx.fillStyle = 'rgba(240,198,116,.85)'; ctx.font = '14px system-ui';
+  ctx.fillText(modo === 'A' ? 'A · rolo desenhado + pescoço e rabo em corrente' : 'B · a cobra inteira em corrente (o rolo encolhe no bote)', 14, 24);
+}
+
+// testes pela URL: ?modo=B, ?osso, ?bote, ?rabada, ?ff=120 (avança quadros antes de mostrar)
+const QS = new URLSearchParams(location.search);
+if (QS.get('modo') === 'B') { modo = 'B'; marca('bA', false); marca('bB', true); montar(); }
+if (QS.has('osso')) { osso = true; marca('bOsso', true); }
+if (QS.has('bote')) { acao = 'bote'; tAcao = 0; }
+if (QS.has('rabada')) { rabada = true; tRabo = 0; }
+if (QS.has('mx')) Object.assign(mouse, { x: +QS.get('mx'), y: +QS.get('my'), ativo: true });
+for (let i = 0, n = +QS.get('ff') || 0; i < n; i++) atualizar(1 / 60);
+let antes = performance.now();
+function quadro(agora) {
+  const dt = Math.min(.05, (agora - antes) / 1000); antes = agora;
+  atualizar(dt); desenhar(); requestAnimationFrame(quadro);
+}
+requestAnimationFrame(quadro);
+</script>
+</body>
+</html>

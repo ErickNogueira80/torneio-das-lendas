@@ -123,6 +123,15 @@ Pessoal (família).
   mais. A **Lança** (prêmio do Mímico) é uma estocada fina de 96 px (a espada pega 54), +2 de dano,
   recarga 0,42 s. Aparece nas costas do herói e na estocada (desenhada pelo jogo); o nome vai no
   HUD. Pendente: o herói do PixelLab segura a espada nas animações (a lança aparece por cima).
+- **Laboratório da cobra (2026-11-14, em discussão):** `jogo/laboratorio/cobra.html` (link:
+  https://ericknogueira80.github.io/torneio-das-lendas/jogo/laboratorio/cobra.html). Página de teste,
+  fora do jogo, para escolher a técnica de movimento do Boitatá: **A** = rolo desenhado + pescoço e
+  rabo em corrente; **B** = a cobra inteira em corrente (o rolo é um caminho em espiral; no bote os
+  gomos saem do rolo e ele encolhe). Técnicas: corrente com distância fixa e limite de dobra (a
+  parte grossa dobra menos), FABRIK (base presa, ponta vai ao alvo), onda que corre pelo pescoço e
+  "dinâmica de 2ª ordem" (t3ssel8r) na cabeça e na ponta do rabo, com controles na página (rapidez,
+  amortecimento, resposta, ondulação, dobra). Testes pela URL: `?modo=B`, `?osso`, `?bote`,
+  `?rabada`, `?ff=N`. Nada disso está no jogo ainda.
 - **Bolas de fogo e chamas do PixelLab (2026-11-14):** as bolas de fogo do chefe usam a animação de
   9 quadros `objetos/bola_fogo` (viradas para onde voam) e as chamas da cabeça do Boitatá e da ponta
   do rabo usam `objetos/chama` (9 quadros). As grades de 16 variações ficaram em `originais/`.
