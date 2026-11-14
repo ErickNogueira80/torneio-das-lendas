@@ -104,6 +104,20 @@ Pessoal (família).
   Ao passar, o altar acende com clarão e faíscas douradas, enche vida e energia e mostra "Altar
   aceso". Aceso, solta faíscas e ilumina em dourado. O do começo da fase já vem aceso.
   Altura: 27 px da arte (54 na tela), um pouco mais baixo que o herói (62).
+- **Tamanho da fase e altares (decisões do Erick, 2026-11-14):** a fase do Boitatá tem **10 telas**
+  (9.600 px: 9 de exploração + a arena do chefe, de 8.640 a 9.600), para testar a duração.
+  **Padrão para todas as fases: 3 altares** (o do começo, um no meio e um antes do chefe; aqui em
+  80, 4.250 e 8.300). A parte nova (depois de 3.300) segue o mesmo jeito da antiga: 8 buracos de
+  100 a 140 px, árvores-plataforma, 9 trechos de chão em chamas e 17 inimigos (brasas e vaga-lumes
+  um pouco mais fortes no fim).
+- **Sala secreta (teste do Erick, 2026-11-14):** embaixo de um dos buracos há uma caverna com um
+  baú (70 XP e vida cheia). Nada indica isso lá em cima: o buraco é igual aos outros. A posição
+  fica em `sala` na ficha da fase e **não deve ser contada ao Erick nem à Milena** (o teste é a
+  surpresa de achar). Quem cai nesse buraco desce para a sala (a câmera desce junto; é a única
+  câmera vertical do jogo), e sai pulando no **cogumelo-mola**: quem cai nele quica (é a dica),
+  e pular em cima dá um pulo enorme pelo buraco (1.700 de impulso, sem o pulo curto de soltar o
+  botão). Sem apertar direção, cai de volta no cogumelo e para. Conferido em simulação quadro a
+  quadro. A sala é uma tela de largura; colisão própria (`SOLIDS_COL`), só para o herói e os tiros.
 - **Golpe de espada (2026-11-08):** onda de ar em meia-lua (função `drawGolpe`) que abre e afina
   enquanto some, com fio branco, riscos de vento e um pouco de poeira; substituiu a faixa em arco.
 - **Seleção de herói (2026-11-08):** depois do título vem "Escolha seu herói", com os 4 jogadores
@@ -164,7 +178,7 @@ Pessoal (família).
     perto da cabeça e afinando até o rabo); a cabeça usa `cabeca`/`cabeca_ataque` com o fogo
     animado. A imagem do rolo (`corpo`) não é mais usada (fica no sprites.json). A versão
     enrolada está no histórico do git (commit `3557936` e anteriores).
-  - Teste: `?play&boss&x=3600&ff=900` mostra um salto; `?chefevida=10` deixa o chefe quase morto.
+  - Teste: `?play&boss&x=8800&ff=900` mostra um salto; `?chefevida=10` deixa o chefe quase morto.
   - Fluidez (2026-11-13, o Erick achou a movimentação dura): a velocidade não pula (acelera e
     freia: sai devagar da terra, perde força no alto do salto, freia ao chegar no alto quando se
     ergue, recua devagar-rápido-devagar); o bote e o mergulho são curvas, não retas; o corpo é
@@ -249,7 +263,7 @@ Para retomar numa sessão nova, comece por aqui.
   terra (ergue e dá o bote, salta em arco, rasteja em ondas; desde 2026-11-13).
 - Bestiário com ??? até o encontro e contador de derrotados; locais bloqueados sem spoiler.
 
-**Para testar rápido:** `?boss` (luta), `?chefevida=10` (chefe quase morto), `?play&x=3380` (placa), `?play&x=1300` (baú), `?herois`,
+**Para testar rápido:** `?boss` (luta), `?chefevida=10` (chefe quase morto), `?play&x=8580` (placa), `?play&x=1300` (baú), `?herois`,
 `?mapa`, `?bestiario`, `?fps`, `?perf`, `?semluz`, `?semretrato`.
 
 **Fluxo de arte:** imagem nova em `img/sprites/...` (originais fora do git) → `python -I

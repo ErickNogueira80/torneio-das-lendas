@@ -45,6 +45,16 @@ const GROUND = 460;
 const SOLIDS = FASE.solidos, PLATS = FASE.plataformas, CHECKS = FASE.controles, ARENA = FASE.arena;
 const HAZARDS = FASE.perigos.map(p => ({ x: p.x, y: GROUND - 14, w: p.w, h: 14 }));
 const LEVEL_END = FASE.fim;
+// sala secreta embaixo de um buraco (opcional na ficha da fase): piso, paredes e o teto é o próprio
+// chão da fase (que vai até GROUND + 140). Só a colisão do herói e dos tiros enxerga a sala.
+const SALA = FASE.sala ? { ...FASE.sala, topo: GROUND + 140, fundo: FASE.sala.chao + 60, aperto: 0 } : null;
+const SOLIDS_COL = SALA ? SOLIDS.concat([
+  { x: SALA.x0, y: SALA.chao, w: SALA.x1 - SALA.x0, h: 60 },
+  { x: SALA.x0 - 60, y: GROUND, w: 60, h: SALA.fundo - GROUND },
+  { x: SALA.x1, y: GROUND, w: 60, h: SALA.fundo - GROUND },
+]) : SOLIDS;
+const naSala = p => !!SALA && p.x + p.w > SALA.x0 && p.x < SALA.x1 && p.y > GROUND - 4;
+const MOLA_V = 1700;   // pulo do cogumelo-mola: sobe do piso da sala até bem acima do chão
 const CHEFE_CFG = FASE.chefe;
 
 // ---------- utilidades ----------
@@ -188,7 +198,7 @@ const xpNeed = () => 20 + (player.lvl - 1) * 15;
 
 // ---------- estado do jogo ----------
 let state = 'title';          // title | mapa | play | levelup | dead | victory
-let checkpoint = 0, camX = 0, time = 0, playTime = 0, falls = 0, pendingLevels = 0;
+let checkpoint = 0, camX = 0, camY = 0, time = 0, playTime = 0, falls = 0, pendingLevels = 0;
 const altarAceso = {};   // índice do ponto de controle -> hora em que acendeu (para o clarão)
 let enemies = [], shots = [], fireballs = [], particles = [], texts = [];
 let boss = null, bossActive = false, bossDefeated = false, pendant = null, banner = 0, victoryT = 0;
@@ -225,7 +235,7 @@ function respawn() {
   player.hp = maxHp(); player.pe = maxPe();
   shots = []; fireballs = [];
   if (bossActive && !bossDefeated) { bossActive = false; boss = null; }
-  camX = clamp(player.x - W * 0.4, 0, LEVEL_END - W);
+  camX = clamp(player.x - W * 0.4, 0, LEVEL_END - W); camY = 0;
 }
 
 // ---------- efeitos ----------
@@ -775,21 +785,31 @@ function updatePlayer(dt) {
 
   p.coyote = p.onGround ? 0.1 : p.coyote - dt;
   p.jumpBuf = jumpPressed ? 0.12 : p.jumpBuf - dt;
-  if (p.jumpBuf > 0 && p.coyote > 0) { p.vy = -JUMP_V; p.jumpBuf = 0; p.coyote = 0; burst(p.x + 14, p.y + p.h, 6, ['#6b5446', '#3d2f27'], 90, .35, 200, 3); }
-  p.vy += GRAV * dt * (!jumpHeld && p.vy < 0 ? 1.4 : 1);
+  if (p.jumpBuf > 0 && p.coyote > 0) {
+    if (p.naMola) {   // cogumelo-mola: pulo enorme (sem o pulo curto de soltar o botão)
+      p.vy = -MOLA_V; p.molaT = 1.2; SALA.aperto = 1; shake = .12;
+      burst(SALA.mola, SALA.chao - 20, 24, ['#7ff5e4', '#3fb7a8', '#e8fffb'], 260, .8, 200, 3);
+    } else { p.vy = -JUMP_V; burst(p.x + 14, p.y + p.h, 6, ['#6b5446', '#3d2f27'], 90, .35, 200, 3); }
+    p.jumpBuf = 0; p.coyote = 0;
+  }
+  p.molaT = Math.max(0, (p.molaT || 0) - dt);
+  p.vy += GRAV * dt * (!jumpHeld && p.vy < 0 && !p.molaT ? 1.4 : 1);
   p.vy = Math.min(p.vy, 1000);
 
   p.x += p.vx * dt;
-  for (const s of SOLIDS) if (overlap(p, s)) { if (p.vx > 0) p.x = s.x - p.w; else if (p.vx < 0) p.x = s.x + s.w; p.vx = 0; }
+  for (const s of SOLIDS_COL) if (overlap(p, s)) { if (p.vx > 0) p.x = s.x - p.w; else if (p.vx < 0) p.x = s.x + s.w; p.vx = 0; }
   const minX = bossActive ? ARENA.x0 : 0, maxX = bossActive ? ARENA.x1 - p.w : LEVEL_END - p.w;
   p.x = clamp(p.x, minX, maxX);
   const prevBottom = p.y + p.h, wasGround = p.onGround, fallV = p.vy;
   p.y += p.vy * dt;
   p.onGround = false;
-  for (const s of SOLIDS) if (overlap(p, s)) {
+  for (const s of SOLIDS_COL) if (overlap(p, s)) {
     if (p.vy > 0) { p.y = s.y - p.h; p.onGround = true; } else if (p.vy < 0) p.y = s.y + s.h;
     p.vy = 0;
   }
+  // em cima do cogumelo-mola: cair nele dá um quique (é a dica de que ele é uma mola)
+  p.naMola = !!SALA && p.onGround && Math.abs(p.y + p.h - SALA.chao) < 2 && Math.abs(p.x + p.w / 2 - SALA.mola) < 30;
+  if (p.naMola && !wasGround && fallV > 300) { p.vy = -fallV * .45; p.onGround = false; p.naMola = false; SALA.aperto = .7; }
   // ▼ (ou seta para baixo) em cima de uma plataforma: desce por ela
   if (downPressed && p.onPlat && wasGround) { p.dropT = 0.22; p.onPlat = false; }
   p.dropT = Math.max(0, (p.dropT || 0) - dt);
@@ -804,7 +824,7 @@ function updatePlayer(dt) {
   p.landT = Math.max(0, p.landT - dt);
   p.anim += Math.abs(p.vx) * dt * 0.05;
 
-  if (p.y > H + 80) {
+  if (p.y > (naSala(p) ? SALA.fundo + 80 : H + 80)) {
     falls++;
     const hp = p.hp - 15;
     floatText(CHECKS[checkpoint], GROUND - 80, 'Cuidado com os buracos!', '#ffb3a8');
@@ -897,7 +917,7 @@ function update(dt) {
       const hit = CHEFE.acertoCirculo(boss, o.x, o.y, 0);
       if (hit) { o.hit.add('boss'); damageBoss(hit, powerDmg(), PODER_ID); if (!PODER.perfura) o.life = 0; }
     }
-    if (o.life > 0) for (const s of SOLIDS) if (circleRect(o.x, o.y, o.r, s)) {
+    if (o.life > 0) for (const s of SOLIDS_COL) if (circleRect(o.x, o.y, o.r, s)) {
       if (PODER.gravidade && o.vy > 0 && o.y < s.y + 4) { o.y = s.y - o.r; o.vy = (PODER.salto || -200) * .7; continue; } // pedra quica
       o.life = 0; burst(o.x, o.y, 6, PODER.rastro, 100, .3);
     }
@@ -944,8 +964,15 @@ function update(dt) {
   texts = texts.filter(t => t.life > 0);
   shake = Math.max(0, shake - dt);
 
-  const want = bossActive ? ARENA.x0 : clamp(player.x + player.w / 2 - W * 0.4, 0, LEVEL_END - W);
+  const dentro = naSala(player) && player.y > GROUND + 40;
+  let want = bossActive ? ARENA.x0 : clamp(player.x + player.w / 2 - W * 0.4, 0, LEVEL_END - W);
+  if (dentro) want = clamp(want, SALA.x0, SALA.x1 - W);   // na sala a câmera não mostra a terra dos lados
   camX += (want - camX) * Math.min(1, dt * (bossActive ? 3 : 8));
+  // câmera vertical: só desce quando o herói entra pelo buraco da sala
+  const wantY = naSala(player) ? clamp(player.y + player.h / 2 - H * .55, 0, SALA.fundo - H) : 0;
+  camY += (wantY - camY) * Math.min(1, dt * 7);
+  if (camY < .5 && wantY === 0) camY = 0;
+  if (SALA) SALA.aperto = Math.max(0, SALA.aperto - dt * 3.5);
 }
 
 // ---------- menus ----------
@@ -1409,9 +1436,9 @@ function tom(img, cor, forca) {
 }
 // tufos, pedras e galhos no chão e troncos escuros passando na frente do herói (primeiro plano)
 const TUFOS = [], FRENTE = [];
-{ const r = mulberry(7); for (let x = 0; x < 6000; x += 18 + r() * 40) TUFOS.push({ x, n: 2 + (r() * 5 | 0), h: 4 + r() * 9, pedra: r() < .18, galho: r() < .1 });
-  for (let x = 0; x < 9000; x += 120 + r() * 260) FRENTE.push({ tipo: 'moita', x, bolas: Array.from({ length: 3 + (r() * 3 | 0) }, () => [r() * 90 - 45, 26 + r() * 30]) });
-  for (let x = 200; x < 9000; x += 260 + r() * 520) FRENTE.push({ tipo: 'cipo', x, fios: Array.from({ length: 1 + (r() * 3 | 0) }, () => [r() * 40, 40 + r() * 120]) }); }
+{ const r = mulberry(7); for (let x = 0; x < 10000; x += 18 + r() * 40) TUFOS.push({ x, n: 2 + (r() * 5 | 0), h: 4 + r() * 9, pedra: r() < .18, galho: r() < .1 });
+  for (let x = 0; x < 14000; x += 120 + r() * 260) FRENTE.push({ tipo: 'moita', x, bolas: Array.from({ length: 3 + (r() * 3 | 0) }, () => [r() * 90 - 45, 26 + r() * 30]) });
+  for (let x = 200; x < 14000; x += 260 + r() * 520) FRENTE.push({ tipo: 'cipo', x, fios: Array.from({ length: 1 + (r() * 3 | 0) }, () => [r() * 40, 40 + r() * 120]) }); }
 function drawChao() {
   ctx.fillStyle = '#140a10';
   for (const t of TUFOS) {
@@ -1721,6 +1748,7 @@ function arvores() {
 // quanto o desenho do piso sobe (-) ou desce (+) em relação à linha da física, no ponto x
 function deslocDesenho(cx, noChao, plat, plano) {
   if (plat && plat.y !== undefined) return { dy: perfilGalho.get(Math.floor(cx / 4) * 4 + '|' + plat.y) || 0, esc: 1 };
+  if (camY > 0 && naSala(player)) return { dy: 0, esc: 1 };   // na sala secreta o piso é reto
   const fr = caminhoFrente(cx) * plano, k = fr / FRENTE_MAX;
   const rel = noChao ? relevo(cx) * (1 - k) : 0;
   return { dy: fr + rel, esc: 1 + .08 * k };
@@ -1764,7 +1792,7 @@ function drawBaus() {
     }
   }
 }
-const relevoDe = b => (b.y >= GROUND - 1 ? relevo(b.x) : 0);
+const relevoDe = b => (Math.abs(b.y - GROUND) < 2 ? relevo(b.x) : 0);
 
 function drawWorld() {
   const C = FASE.cores, chao = layer(FASE.fundo, 'chao');
@@ -1842,6 +1870,80 @@ function drawWorld() {
   }
 }
 
+// ---------- sala secreta ----------
+// Caverna embaixo de um buraco: só aparece quando a câmera desce. Enfeites montados uma vez.
+let salaDecoPronta = null;
+function salaDeco() {
+  if (salaDecoPronta) return salaDecoPronta;
+  const r = mulberry(23), D = { teto: [], parede: [], pedras: [], cogumelos: [], raizes: [] };
+  for (let x = SALA.x0; x < SALA.x1; x += 10 + r() * 26) D.teto.push({ x, w: 8 + r() * 14, h: 6 + r() * (r() < .25 ? 46 : 18) });
+  for (let y = SALA.topo; y < SALA.chao; y += 12 + r() * 20) D.parede.push({ y, e: 6 + r() * 26, d: 6 + r() * 26 });
+  for (let x = SALA.x0 + 20; x < SALA.x1 - 20; x += 40 + r() * 90) D.pedras.push({ x, w: 10 + r() * 24, h: 4 + r() * 10 });
+  for (let i = 0; i < 7; i++) D.cogumelos.push({ x: SALA.x0 + 60 + r() * (SALA.x1 - SALA.x0 - 120), y: SALA.chao, s: 1 + (r() * 2 | 0) });
+  for (let i = 0; i < 9; i++) D.raizes.push({ x: SALA.x0 + 30 + r() * (SALA.x1 - SALA.x0 - 60), len: 30 + r() * 90, ph: r() * 6 });
+  return (salaDecoPronta = D);
+}
+function drawSala() {
+  if (!SALA) return;
+  const B = 2, q = v => Math.round(v / B) * B, D = salaDeco();
+  const x0 = Math.round(SALA.x0 - camX), x1 = Math.round(SALA.x1 - camX), topo = SALA.topo, chao = SALA.chao;
+  // terra maciça embaixo do piso da fase, em toda a largura da tela
+  const alt = SALA.fundo + 120 - H, z = fundoPixel() || 1;
+  if (groundPattern) {
+    ctx.save(); ctx.translate(-Math.round(camX), 0); ctx.scale(z, z); ctx.imageSmoothingEnabled = false;
+    ctx.fillStyle = groundPattern; ctx.fillRect(Math.floor(camX / z) - 2, H / z, W / z + 4, alt / z); ctx.restore();
+    ctx.fillStyle = 'rgba(10,5,8,.62)'; ctx.fillRect(0, H, W, alt);
+  } else { ctx.fillStyle = '#1b120e'; ctx.fillRect(0, H, W, alt); }
+  // o poço que desce do buraco até o teto da sala
+  for (const s of SOLIDS) for (const t of SOLIDS) if (t.x > s.x && t.x - (s.x + s.w) < 300 && t.x - (s.x + s.w) > 0 && s.x + s.w > SALA.x0 && t.x < SALA.x1) {
+    ctx.fillStyle = '#0e080b'; ctx.fillRect(Math.round(s.x + s.w - camX), H, t.x - (s.x + s.w), topo - H + 2);
+  }
+  // o vão da caverna
+  const g = ctx.createLinearGradient(0, topo, 0, chao);
+  g.addColorStop(0, '#0d070a'); g.addColorStop(1, '#1e1216');
+  ctx.fillStyle = g; ctx.fillRect(x0, topo, x1 - x0, chao - topo);
+  // paredes irregulares, estalactites e raízes
+  ctx.fillStyle = '#120a0c';
+  for (const w of D.parede) { ctx.fillRect(x0, q(w.y), q(w.e), 14); ctx.fillRect(x1 - q(w.d), q(w.y), q(w.d), 14); }
+  for (const t of D.teto) {
+    const x = Math.round(t.x - camX);
+    for (let y = 0; y < t.h; y += B) { const w = q(t.w * (1 - y / t.h)); if (w > 0) ctx.fillRect(x - w / 2, topo + y, w, B); }
+  }
+  ctx.fillStyle = '#2a1a14';
+  for (const rz of D.raizes) {
+    const x = Math.round(rz.x - camX);
+    for (let y = 0; y < rz.len; y += B) ctx.fillRect(x + q(Math.sin(y * .06 + rz.ph) * 4), topo + y, B, B);
+  }
+  // piso da sala: crosta, pedras e cogumelinhos que brilham
+  ctx.fillStyle = '#5a4036'; ctx.fillRect(x0, chao, x1 - x0, 2);
+  ctx.fillStyle = '#3a2a26'; ctx.fillRect(x0, chao + 2, x1 - x0, 2);
+  ctx.fillStyle = '#140a0d';
+  for (const p of D.pedras) { const x = Math.round(p.x - camX); ctx.fillRect(x, chao - q(p.h), q(p.w), q(p.h)); ctx.fillRect(x + 2, chao - q(p.h) - 2, q(p.w) - 4, 2); }
+  for (const c of D.cogumelos) {
+    const x = Math.round(c.x - camX), k = c.s * B, brilho = .7 + .3 * Math.sin(time * 2 + c.x);
+    ctx.fillStyle = '#cfc2a0'; ctx.fillRect(x - k / 2, chao - 3 * k, k, 3 * k);
+    ctx.globalAlpha = brilho; ctx.fillStyle = '#5fe0cf'; ctx.fillRect(x - 2 * k, chao - 4 * k, 4 * k, k); ctx.fillRect(x - k, chao - 5 * k, 2 * k, k);
+    ctx.globalAlpha = 1;
+  }
+  drawMola();
+}
+// cogumelo-mola: chapéu largo que afunda quando pisam e estica no pulo
+function drawMola() {
+  const B = 2, q = v => Math.round(v / B) * B, a = SALA.aperto, x = Math.round(SALA.mola - camX), chao = SALA.chao;
+  const pisado = naSala(player) && player.naMola ? .35 : 0, sq = Math.max(a * (a > .5 ? -.4 : 1), pisado);   // estica no pulo, afunda pisado
+  const hp = q(16 * (1 - sq * .6)), lc = q(56 * (1 + sq * .25)), hc = q(14 * (1 - sq * .3));
+  ctx.fillStyle = '#cfc2a0'; ctx.fillRect(x - 6, chao - hp, 12, hp);                 // pé
+  ctx.fillStyle = '#9d8f72'; ctx.fillRect(x + 2, chao - hp, 4, hp);
+  const topoC = chao - hp - hc;
+  for (let y = 0; y < hc; y += B) {                                                  // chapéu em meia-lua
+    const w = q(lc * Math.sqrt(1 - ((hc - y) / hc) ** 2 * .85));
+    ctx.fillStyle = y < B * 2 ? '#7ff5e4' : '#3fb7a8'; ctx.fillRect(x - w / 2, topoC + y, w, B);
+  }
+  ctx.fillStyle = '#1f6f66'; ctx.fillRect(x - lc / 2, chao - hp - 2, lc, 2);         // borda de baixo
+  ctx.fillStyle = '#e8fffb';                                                          // pintas
+  for (const [dx, dy] of [[-16, 4], [-2, 2], [12, 6], [20, 3]]) if (dy < hc - 2) ctx.fillRect(x + q(dx * (1 + sq * .25)), topoC + dy, 4, 2);
+}
+
 // ---------- luz (estilo Lanterna) ----------
 // O mundo fica no escuro e só aparece em volta das fontes de luz: o herói, o fogo, os poderes,
 // os inimigos que brilham e o chefe. A escuridão é uma camada em meia resolução com "furos"
@@ -1866,6 +1968,11 @@ function luzes() {
   if (pendant) L.push([pendant.x - camX, pendant.y, 120, '220,230,255', .45]);
   if (SPR['objetos/placa']) L.push([ARENA.x0 + 40 - camX, GROUND - 40, 80 + f, '255,130,50', .35]);
   for (const b of baus) L.push([b.x - camX, b.y - 10, b.aberto ? 110 : 70, '255,210,90', b.aberto ? .5 : .3]);
+  if (SALA && camY > 0) {   // sala secreta: o cogumelo e os cogumelinhos brilham
+    L.push([SALA.mola - camX, SALA.chao - 26, 180 + f, '110,240,220', .5]);
+    for (const c of salaDeco().cogumelos) L.push([c.x - camX, c.y - 6, 75 + f, '110,240,220', .3]);
+  }
+  for (const l of L) l[1] -= camY;   // a câmera vertical sobe tudo (até a lua, desenhada com o fundo)
   return L.filter(l => l[0] > -l[2] && l[0] < W + l[2] && l[1] > -l[2] && l[1] < H + l[2]);
 }
 function drawLuz() {
@@ -1934,7 +2041,7 @@ function drawGolpe(cx, cy, f, k) {
 function chaoAbaixo(cx, pe) {
   let y = null, plat = null;
   for (const pl of PLATS) if (cx >= pl.x && cx <= pl.x + pl.w && pl.y >= pe - 1 && (y === null || pl.y < y)) { y = pl.y; plat = pl; }
-  for (const s of SOLIDS) if (cx >= s.x && cx <= s.x + s.w && s.y >= pe - 1 && (y === null || s.y < y)) { y = s.y; plat = null; }
+  for (const s of SOLIDS_COL) if (cx >= s.x && cx <= s.x + s.w && s.y >= pe - 1 && (y === null || s.y < y)) { y = s.y; plat = null; }
   return y === null ? null : { y, plat };
 }
 function drawSombra(p) {
@@ -2409,8 +2516,8 @@ function draw() {
     ctx = mundoCtx; ctx.setTransform(1, 0, 0, 1, 0, 0);
   }
   const sh = shake > 0 ? shake * 14 : 0;
-  ctx.save(); ctx.translate(rnd(-sh, sh), rnd(-sh, sh));
-  medir('fundo', drawBackground); medir('mundo', () => { drawWorld(); drawBaus(); drawEnemies(); });
+  ctx.save(); ctx.translate(rnd(-sh, sh), rnd(-sh, sh) - Math.round(camY));
+  medir('fundo', () => { drawBackground(); if (camY > 0) drawSala(); }); medir('mundo', () => { drawWorld(); drawBaus(); drawEnemies(); });
   if (bossActive && boss) medir('chefe', () => CHEFE.desenhar(boss));
   medir('perso', () => { if (!piso()) drawChao(); drawPlayer(); drawProjectiles(); drawParticles(); });
   medir('frente', drawFrente);
