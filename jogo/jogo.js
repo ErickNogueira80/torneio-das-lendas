@@ -283,8 +283,8 @@ const resistOf = (resist, kind) => (resist && resist[kind] !== undefined ? resis
 // Os acertos devolvem { x, y, mult } da parte atingida (mult > 1 = ponto fraco) ou null.
 const CHEFES = {};
 
-CHEFES.boitata = (() => {
-  // Boitatá: cobra de fogo imensa que vive debaixo da terra. O corpo é mais comprido que a tela e
+CHEFES.boitata_terra = (() => {
+  // Versão 4 do Boitatá (2026-11-13), guardada para outra fase: cobra de fogo imensa que vive debaixo da terra. O corpo é mais comprido que a tela e
   // segue o rastro da cabeça, como uma cobra de verdade: por onde a cabeça passa, o corpo passa
   // depois. A parte que está debaixo da terra não aparece. Ataques (sempre com aviso: a terra racha
   // e brilha onde ela vai sair):
@@ -745,6 +745,338 @@ CHEFES.boitata = (() => {
         ctx.fillStyle = '#5a4034'; ctx.fillRect(x - w * .7, GROUND - 4, w * 1.4, 3);
         ctx.fillStyle = '#3d2f27'; ctx.fillRect(x - w * .9, GROUND - 1, w * 1.8, 3);
       }
+    },
+  };
+})();
+CHEFES.boitata = (() => {
+  // Boitatá enrolado (versão 5, 2026-11-14, pedido do Erick): o rolo fica parado no lado direito da
+  // arena, como na imagem da cobra inteira (arte v4 recortada: `corpo` sem o pescoço e sem o rabo).
+  // O pescoço é um tubo com a faixa de escamas que sai do alto do rolo e estica até a cabeça; o rabo
+  // é outro tubo que sai da frente do rolo. Ataques: rajadas de bolas de fogo, bote com o pescoço
+  // esticando (a cabeça fica cravada no chão: hora de bater) e rabada em quem chega perto do rolo.
+  const enraged = b => b.fire < b.max * 0.35;
+  const Z = 2;                 // escala da arte do rolo (2 px de tela por px da arte)
+  const AFUNDA = 6;            // o rolo afunda um pouco no chão (não flutua)
+  const CAB_K = 3;             // escala da cabeça
+  const PASSO = 12;            // espaçamento dos gomos do pescoço e do rabo
+  const RABO = 250;            // comprimento do rabo
+  const PADRAO = ['idle', 'cospe', 'idle', 'prep', 'idle', 'cospe', 'prep'];
+  const ease = t => t * t * (3 - 2 * t);
+
+  // rolo e pontos de onde saem o pescoço e o rabo (fração da imagem do rolo, na ficha do chefe)
+  function geo(b) {
+    const S = sprite(b.cfg.sprite), c = S && S.partes && S.partes.corpo;
+    const qw = c ? c[2] : 173, qh = c ? c[3] : 94, w = qw * Z, h = qh * Z;
+    const A = b.cfg.ancoras || { pescoco: [.191, 0, .153], rabo: [.017, .723] };
+    const x0 = b.cx - w / 2, y0 = GROUND + AFUNDA - h + b.subir;
+    return { S, c, w, h, x0, y0, nx: x0 + A.pescoco[0] * w, ny: y0 + A.pescoco[1] * h + 3, r0: A.pescoco[2] * w * 1.04,
+      rx: x0 + A.rabo[0] * w + 6, ry: y0 + A.rabo[1] * h };
+  }
+  // cabeça (versão 4: busto; pescocos = [x, y do corte, grossura, ângulo do pescoço]). Virada para a
+  // esquerda: no desenho ela é espelhada. rot > 0 abaixa o focinho.
+  function cab(b) {
+    const S = sprite(b.cfg.sprite), P = S && S.partes;
+    if (!P || !P.cabeca) return null;
+    const bravo = ['cospe', 'prep', 'bote', 'cravada'].includes(b.state);
+    const nome = bravo && P.cabeca_ataque ? 'cabeca_ataque' : 'cabeca', q = P[nome];
+    const pc = (S.pescocos && S.pescocos[nome]) || [.15, 1, .42, -1];
+    const k = CAB_K;
+    return { S, nome, q, k, ax: -pc[0] * q[2] * k, ay: -pc[1] * q[3] * k, angP: pc.length > 3 ? pc[3] : -1, rFim: pc[2] * q[3] * k / 2 };
+  }
+  const mundo = (lx, ly, rot) => { const c = Math.cos(rot), s = Math.sin(rot); return { x: -(lx * c - ly * s), y: lx * s + ly * c }; };
+  // centro do crânio em relação ao corte do pescoço, e a direção do pescoço (do corte para o corpo)
+  function cranio(b, rot) {
+    const z = cab(b);
+    if (!z) return { dx: -50, dy: -20, r: 40 };
+    const v = mundo(z.ax + z.q[2] * z.k * .62, z.ay + z.q[3] * z.k * .38, rot);
+    return { dx: v.x, dy: v.y, r: z.q[3] * z.k * .36 };
+  }
+  function direcaoPescoco(b, rot) {
+    const z = cab(b), a = z ? z.angP : -1;
+    return mundo(-Math.cos(a), -Math.sin(a), rot);
+  }
+  // pescoço: curva (Bézier) do alto do rolo até o corte da cabeça; chega na cabeça na direção do
+  // pescoço do desenho (a emenda não quebra). Gomos da cabeça para o rolo.
+  function pescoco(b, G) {
+    const z = cab(b), rFim = z ? z.rFim * 1.08 : 26;
+    const P0 = { x: G.nx, y: G.ny }, P3 = { x: b.hx, y: b.hy };
+    const dist = Math.hypot(P3.x - P0.x, P3.y - P0.y);
+    const t0 = { x: .47, y: -.88 }, v = direcaoPescoco(b, b.rot);
+    const P1 = { x: P0.x + t0.x * dist * .45, y: P0.y + t0.y * dist * .45 };
+    const P2 = { x: P3.x + v.x * Math.max(60, dist * .4), y: P3.y + v.y * Math.max(60, dist * .4) };
+    const n = clamp(Math.ceil(dist * 1.35 / PASSO), 8, 90), out = [];
+    for (let i = 0; i <= n; i++) {
+      const t = 1 - i / n, u = 1 - t;   // i = 0 na cabeça
+      const x = u * u * u * P0.x + 3 * u * u * t * P1.x + 3 * u * t * t * P2.x + t * t * t * P3.x;
+      const y = u * u * u * P0.y + 3 * u * u * t * P1.y + 3 * u * t * t * P2.y + t * t * t * P3.y;
+      out.push({ x, y, r: rFim + (G.r0 - rFim) * ease(i / n) });
+    }
+    return out;
+  }
+  // rabo: corrente de gomos saindo da frente do rolo; a0 = direção no começo, curva = quanto vira
+  // por gomo, estica = comprimento relativo
+  function rabo(b, G) {
+    const n = Math.ceil(RABO * b.rEst / PASSO), out = [];
+    let x = G.rx, y = G.ry, a = b.rA0;
+    for (let i = 0; i <= n; i++) {
+      const r = 4 + 20 * (1 - i / n);
+      out.push({ x, y: Math.min(y, GROUND + 2 - r), r });
+      x += Math.cos(a) * PASSO; y += Math.sin(a) * PASSO; a += b.rCurva;
+    }
+    return out;
+  }
+  // tubo com a faixa de escamas (contorno preto por baixo); vira = barriga do outro lado
+  function tubo(C, S, vira, ate = C.length - 1, de = 0, parte = 'tudo') {
+    const faixa = S && S.partes && S.partes.gomo_corpo;
+    if (!faixa) {
+      for (let i = ate; i >= de; i--) {
+        const s = C[i], x = Math.round(s.x - camX), y = Math.round(s.y), g = ctx.createRadialGradient(x, y, 1, x, y, s.r);
+        g.addColorStop(0, '#ffb347'); g.addColorStop(.4, '#c9401a'); g.addColorStop(1, '#2a0a04');
+        ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, y, s.r, 0, Math.PI * 2); ctx.fill();
+      }
+      return;
+    }
+    const [qx, qy, qw, qh] = faixa;
+    if (parte !== 'textura') {
+      ctx.strokeStyle = '#080305'; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+      for (let i = ate - 1; i >= de; i--) {
+        const a0 = C[i], a1 = C[i + 1];
+        ctx.lineWidth = a0.r * 2 + 6;
+        ctx.beginPath(); ctx.moveTo(Math.round(a0.x - camX), Math.round(a0.y)); ctx.lineTo(Math.round(a1.x - camX), Math.round(a1.y)); ctx.stroke();
+      }
+      ctx.lineCap = 'butt';
+      if (parte === 'contorno') return;
+    }
+    const acc = [0];
+    for (let i = 0; i < ate; i++) acc.push(acc[i] + Math.max(1, Math.hypot(C[i + 1].x - C[i].x, C[i + 1].y - C[i].y) * qh / (C[i].r * 2)));
+    ctx.imageSmoothingEnabled = false;
+    for (let i = ate - 1; i >= de; i--) {
+      const a0 = C[i], a1 = C[i + 1], r = a0.r, k = qh / (r * 2), sw = acc[i + 1] - acc[i];
+      let sx = acc[i] % qw, feito = 0;
+      ctx.save(); ctx.translate(Math.round(a0.x - camX), Math.round(a0.y)); ctx.rotate(Math.atan2(a1.y - a0.y, a1.x - a0.x));
+      if (vira) ctx.scale(1, -1);
+      while (feito < sw - .01) {
+        const pedaco = Math.min(sw - feito, qw - sx);
+        ctx.drawImage(S.image, qx + sx, qy, pedaco, qh, feito / k - .5, -r, pedaco / k + 1.5, r * 2);
+        feito += pedaco; sx = (sx + pedaco) % qw;
+      }
+      ctx.restore();
+    }
+    ctx.imageSmoothingEnabled = true;
+  }
+  // posições da cabeça (o corte do pescoço) em cada pose, relativas ao rolo
+  const pose = (G, nome) => ({
+    descanso: { x: G.x0 + 30, y: G.y0 - 45 },
+    cospe: { x: G.x0 + 60, y: G.y0 - 62 },
+    prep: { x: G.x0 + 95, y: G.y0 - 78 },
+  })[nome];
+  function proximo(b) {
+    b.passo = (b.passo + 1) % PADRAO.length;
+    b.state = PADRAO[b.passo]; b.st = 0; b.volley = 0;
+    if (b.state === 'prep') b.botes = enraged(b) ? 2 : 1;
+  }
+
+  return {
+    enraged,
+    criar(cfg) {
+      const cx = ARENA.x1 - 190;
+      const b = { cfg, cx, subir: 260, hx: 0, hy: 0, vx: 0, vy: 0, rot: 0, fire: cfg.vida, max: cfg.vida,
+        state: 'enter', st: 0, passo: -1, flash: 0, volley: 0, botes: 0, dead: false, deadT: 0,
+        rA0: Math.PI - .25, rCurva: .06, rEst: 1, rCd: 0, bote: null, neck: [], tail: [], cc: { x: 0, y: 0, r: 40 }, lado: -1 };
+      const G = geo(b), P = pose(G, 'descanso'); b.hx = P.x; b.hy = P.y;
+      b.neck = pescoco(b, G); b.tail = rabo(b, G);
+      return b;
+    },
+    atualizar(b, dt) {
+      b.st += dt; b.flash = Math.max(0, b.flash - dt); b.rCd = Math.max(0, b.rCd - dt);
+      const furia = enraged(b), sp = furia ? 1.3 : 1, D = b.cfg.dano;
+      const pcx = player.x + player.w / 2, pcy = player.y + player.h / 2;
+      const G = geo(b);
+      if (b.dead) {
+        b.deadT += dt;
+        const n = Math.floor(b.deadT / .04);
+        if (n > (b.ultPo || 0)) {   // pó prateado: cabeça, pescoço (da cabeça para o rolo), rabo e rolo
+          b.ultPo = n;
+          const lista = [b.cc, ...b.neck, ...b.tail.slice().reverse()];
+          const p = lista[Math.min(n, lista.length - 1)];
+          if (n < lista.length) { burst(p.x, p.y, 12, SILVER, 220, 1, 120, 4); shake = .08; }
+          else if (n < lista.length + 14) { burst(G.x0 + Math.random() * G.w, G.y0 + Math.random() * G.h, 16, SILVER, 240, 1, 120, 4.5); shake = .1; }
+        }
+        if (b.deadT > (b.neck.length + b.tail.length + 16) * .04 && !pendant) pendant = { x: G.x0 - 40, y: GROUND - 120, vy: -200, t: 0 };
+        return;
+      }
+
+      let alvo = null, rotAlvo = .1, mola = 7;
+      const T = b.state;
+      if (T === 'enter') {
+        b.subir = Math.max(0, 260 * (1 - ease(Math.min(1, b.st / 1.8)))); shake = Math.max(shake, .05);
+        alvo = pose(G, 'descanso');
+        if (b.st > 2.2) proximo(b);
+      } else if (T === 'idle') {
+        const P = pose(G, 'descanso');
+        alvo = { x: P.x + Math.sin(time * 1.1) * 26, y: P.y + Math.sin(time * 1.7) * 12 };
+        rotAlvo = .1 + Math.sin(time * 1.3) * .08;
+        // chegou perto do rolo: rabada
+        if (pcx > G.x0 - 230 && b.rCd <= 0) { b.state = 'rabada'; b.st = 0; }
+        else if (b.st > (furia ? 1.0 : 1.6)) proximo(b);
+      } else if (T === 'cospe') {
+        const P = pose(G, 'cospe');
+        alvo = { x: P.x + Math.sin(b.st * 2) * 10, y: P.y };
+        const c = b.cc, mira = Math.atan2(pcy - c.y, c.x - pcx);   // > 0: herói abaixo
+        rotAlvo = clamp(mira, -.3, .75);
+        const first = .6, gap = furia ? .55 : .8, volleys = furia ? 3 : 2;
+        if (b.volley < volleys && b.st > first + b.volley * gap) {
+          const n = furia ? 5 : 3, bx = c.x - c.r * .9, by = c.y + c.r * .35, base = Math.atan2(pcy - by, pcx - bx);
+          for (let i = 0; i < n; i++) {
+            const a = base + (i - (n - 1) / 2) * .2, s = 380 * sp;
+            fireballs.push({ x: bx, y: by, vx: Math.cos(a) * s, vy: Math.sin(a) * s, r: 18, life: 4, dano: D.bolaDeFogo });
+          }
+          burst(bx, by, 14, FIRE, 200, .5);
+          b.volley++;
+        }
+        if (b.st > first + volleys * gap + .4) proximo(b);
+      } else if (T === 'prep') {   // encolhe para trás e treme: aviso do bote
+        const P = pose(G, 'prep');
+        alvo = { x: P.x + Math.sin(time * 55) * 4, y: P.y }; rotAlvo = -.25; mola = 9;
+        if (b.st > (furia ? .5 : .8)) {
+          const rB = .55, c = cranio(b, rB);
+          const tx = clamp(pcx, Math.max(ARENA.x0 + 40, G.x0 - 640), G.x0 - 60) - c.dx, ty = GROUND - c.r * .55 - c.dy;
+          b.bote = { x0: b.hx, y0: b.hy, cx: b.hx + (tx - b.hx) * .45, cy: Math.min(b.hy, ty) - 70, x1: tx, y1: ty };
+          b.state = 'bote'; b.st = 0;
+        }
+      } else if (T === 'bote' || T === 'cravada' || T === 'recua') {
+        const B = b.bote, ida = .26 / sp, fica = furia ? .85 : 1.2, volta = .6;
+        let u;
+        if (T === 'bote') { u = Math.min(1, b.st / ida); u = u * u; rotAlvo = .55; mola = 0; if (b.st >= ida) { b.state = 'cravada'; b.st = 0; shake = .25; burst(b.cc.x, GROUND - 4, 18, ['#6b5446', '#3d2f27'], 240, .6, 500, 4); } }
+        else if (T === 'cravada') { u = 1; rotAlvo = .6; if (b.st >= fica) { b.state = 'recua'; b.st = 0; } }
+        else { u = 1 - ease(Math.min(1, b.st / volta)); rotAlvo = .4 * u; if (b.st >= volta) { if (--b.botes > 0) { b.state = 'prep'; b.st = .3; } else proximo(b); } }
+        const w = 1 - u;
+        b.hx = w * w * B.x0 + 2 * w * u * B.cx + u * u * B.x1 + (T === 'cravada' ? Math.sin(time * 40) * 2 : 0);
+        b.hy = w * w * B.y0 + 2 * w * u * B.cy + u * u * B.y1;
+        b.vx = b.vy = 0;
+      } else if (T === 'rabada') {
+        const P = pose(G, 'descanso');
+        alvo = { x: P.x + 20, y: P.y - 20 }; rotAlvo = .3;   // a cabeça olha para o herói
+        const prep = furia ? .35 : .5, golpe = .16, fica = .35, volta = .5;
+        if (b.st >= prep + golpe + fica + volta) { b.rCd = furia ? 1.2 : 2; b.state = 'idle'; b.st = 0; }
+      }
+      // cabeça segue o alvo com uma mola (balança e assenta, sem tranco)
+      if (alvo && mola > 0) {
+        const w = mola, z = .8;
+        b.vx += (w * w * (alvo.x - b.hx) - 2 * z * w * b.vx) * dt; b.vy += (w * w * (alvo.y - b.hy) - 2 * z * w * b.vy) * dt;
+        b.hx += b.vx * dt; b.hy += b.vy * dt;
+      }
+      b.rot += (rotAlvo - b.rot) * (1 - Math.exp(-(T === 'bote' ? 20 : 8) * dt));
+
+      // rabo: parado curvado no chão; na rabada levanta, treme e bate no chão
+      {
+        const furiaR = furia ? .35 : .5, golpe = .16, fica = .35, volta = .5;
+        let a0 = Math.PI - .25 + Math.sin(time * 1.4) * .05, cv = .06 + Math.sin(time * 1.1) * .012, est = 1;
+        if (T === 'rabada') {
+          const t = b.st, cima = { a: Math.PI + .95, c: -.02, e: 1.05 }, chao = { a: Math.PI - .32, c: -.012, e: 1.3 };
+          const mix = (A, B, k) => { a0 = A.a + (B.a - A.a) * k; cv = A.c + (B.c - A.c) * k; est = A.e + (B.e - A.e) * k; };
+          const repouso = { a: a0, c: cv, e: 1 };
+          if (t < furiaR) { mix(repouso, cima, ease(t / furiaR)); a0 += Math.sin(time * 45) * .04; }
+          else if (t < furiaR + golpe) { const k = (t - furiaR) / golpe; mix(cima, chao, k * k); }
+          else if (t < furiaR + golpe + fica) {
+            mix(chao, chao, 1);
+            if (!b.bateu) { b.bateu = true; shake = .3; const p = b.tail[b.tail.length - 1]; burst(p.x, GROUND - 4, 22, ['#6b5446', '#3d2f27', ...FIRE], 280, .7, 500, 4); }
+          } else mix(chao, repouso, ease(Math.min(1, (t - furiaR - golpe - fica) / volta)));
+          if (t < furiaR + golpe) b.bateu = false;
+          // acerta só enquanto desce e logo depois de bater
+          if (t > furiaR && t < furiaR + golpe + .08)
+            for (const s of b.tail) if (circleRect(s.x, s.y, s.r + 4, player)) { hurtPlayer(D.rabada, s.x + 40); break; }
+        }
+        b.rA0 = a0; b.rCurva = cv; b.rEst = est;
+      }
+
+      b.neck = pescoco(b, G); b.tail = rabo(b, G);
+      const c = cranio(b, b.rot); b.cc = { x: b.hx + c.dx, y: b.hy + c.dy, r: c.r };
+
+      // contato: cabeça (mordida; veneno no bote), pescoço e rolo em brasa
+      if (T !== 'enter') {
+        if (circleRect(b.cc.x, b.cc.y, b.cc.r * .8, player)) { if (T === 'bote') hurtPlayer(D.veneno, b.cc.x, D.venenoSeg); else hurtPlayer(D.mordida, b.cc.x); }
+        for (let i = 3; i < b.neck.length; i += 3) { const s = b.neck[i]; if (circleRect(s.x, s.y, s.r * .8, player)) { hurtPlayer(D.corpo, s.x); break; } }
+        if (circleRect(G.x0 + G.w * .55, GROUND - G.h * .4, G.h * .55, player)) hurtPlayer(D.corpo, G.x0 + G.w * .55);
+      }
+      // efeitos: veneno nas presas, fogo na cabeça, brasas no corpo
+      if ((T === 'prep' || T === 'bote' || T === 'cravada') && Math.random() < dt * 30)
+        particles.push({ x: b.cc.x - b.cc.r * rnd(.6, 1), y: b.cc.y + b.cc.r * .5, vx: rnd(-10, 10), vy: rnd(20, 60), life: .6, max: .6, c: Math.random() < .5 ? '#8dff6a' : '#c8ff9a', s: rnd(2, 3), g: 400 });
+      if (Math.random() < dt * 22) particles.push({ x: b.cc.x + rnd(-30, 30), y: b.cc.y - b.cc.r, vx: rnd(-25, 25), vy: rnd(-140, -70), life: .8, max: .8, c: FIRE[(Math.random() * 3) | 0], s: rnd(2, 3.5), g: -30 });
+      if (Math.random() < dt * (furia ? 40 : 24)) {
+        const em = Math.random() < .5 && b.neck.length ? b.neck[(Math.random() * b.neck.length) | 0] : { x: G.x0 + Math.random() * G.w, y: G.y0 + G.h * (.2 + Math.random() * .3), r: 10 };
+        particles.push({ x: em.x + rnd(-10, 10), y: em.y - em.r * .6, vx: rnd(-20, 20), vy: rnd(-90, -40), life: .7, max: .7, c: FIRE[(Math.random() * 3) | 0], s: rnd(2, 4), g: -40 });
+      }
+    },
+    acertoCirculo(b, x, y, r) {
+      const c = b.cc, G = geo(b);
+      if (Math.hypot(x - c.x, y - c.y) < c.r + r) return { x: c.x, y: c.y, mult: b.state === 'cravada' ? 2 : 1.5 };
+      for (let i = 2; i < b.neck.length; i += 2) { const s = b.neck[i]; if (Math.hypot(x - s.x, y - s.y) < s.r + r) return { x: s.x, y: s.y, mult: .8 }; }
+      for (const s of b.tail) if (Math.hypot(x - s.x, y - s.y) < s.r + r) return { x: s.x, y: s.y, mult: .6 };
+      if (x > G.x0 && x < G.x0 + G.w && y > G.y0 + 10) return { x, y, mult: .6 };
+      return null;
+    },
+    acertoRet(b, rr) {
+      const c = b.cc, G = geo(b);
+      if (circleRect(c.x, c.y, c.r, rr)) return { x: c.x, y: Math.min(c.y, GROUND - 10), mult: b.state === 'cravada' ? 2 : 1.5 };
+      for (let i = 2; i < b.neck.length; i += 2) { const s = b.neck[i]; if (circleRect(s.x, s.y, s.r, rr)) return { x: s.x, y: s.y, mult: .8 }; }
+      for (const s of b.tail) if (circleRect(s.x, s.y, s.r, rr)) return { x: s.x, y: s.y, mult: .6 };
+      if (overlap(rr, { x: G.x0 + 10, y: G.y0 + 10, w: G.w - 20, h: G.h - 10 })) return { x: rr.x + rr.w / 2, y: rr.y + rr.h / 2, mult: .6 };
+      return null;
+    },
+    luzes(b) {
+      const G = geo(b);
+      if (b.dead && b.deadT > 2) return [];
+      return [[b.cc.x, b.cc.y, 240 + Math.sin(time * 9) * 12, '255,150,50'], [G.x0 + G.w * .55, G.y0 + G.h * .5, 250 + Math.sin(time * 5) * 10, '255,110,30'],
+        ...(b.neck.length > 8 ? [[b.neck[b.neck.length >> 1].x, b.neck[b.neck.length >> 1].y, 170, '255,110,30']] : [])];
+    },
+    desenhar(b) {
+      const rage = enraged(b), G = geo(b), S = G.S, C = b.neck;
+      const morto = b.dead ? Math.floor(b.deadT / .04) : 0;
+      const somePesc = Math.max(0, morto - 1), someRabo = Math.max(0, morto - 1 - C.length);
+      const somaRolo = b.dead ? clamp((b.deadT - (C.length + b.tail.length) * .04) / .6, 0, 1) : 0;
+      ctx.save(); ctx.beginPath(); ctx.rect(-50, -400, W + 100, GROUND + 4 + 400); ctx.clip();
+      // sombra no chão
+      const sg = ctx.createRadialGradient(b.cx - camX, GROUND + 6, 10, b.cx - camX, GROUND + 6, G.w * .62);
+      sg.addColorStop(0, `rgba(0,0,0,${.55 * (1 - somaRolo)})`); sg.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = sg; ctx.beginPath(); ctx.ellipse(b.cx - camX, GROUND + 6, G.w * .62, 24, 0, 0, Math.PI * 2); ctx.fill();
+      // rabo (atrás do rolo), pescoço (sai de dentro do rolo, desenhado antes dele) e o rolo
+      if (someRabo < b.tail.length) tubo(b.tail, S, true, b.tail.length - 1 - someRabo);
+      // contorno do pescoço, depois o rolo (cobre a ponta redonda do contorno que entra nele) e por
+      // fim a textura do pescoço por cima
+      if (somePesc < C.length - 1) tubo(C, S, false, C.length - 1, somePesc, 'contorno');
+      if (G.c && somaRolo < 1) {
+        const [qx, qy, qw, qh] = G.c;
+        ctx.globalAlpha = 1 - somaRolo; ctx.imageSmoothingEnabled = false;
+        ctx.drawImage(S.image, qx, qy, qw, qh, Math.round(G.x0 - camX), Math.round(G.y0), G.w, G.h);
+        if (b.flash > 0) { ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = Math.min(1, b.flash * 3) * .35; ctx.drawImage(S.image, qx, qy, qw, qh, Math.round(G.x0 - camX), Math.round(G.y0), G.w, G.h); ctx.globalCompositeOperation = 'source-over'; }
+        ctx.globalAlpha = 1; ctx.imageSmoothingEnabled = true;
+      } else if (!G.c) {
+        ctx.fillStyle = '#2a0e08'; ctx.beginPath(); ctx.ellipse(b.cx - camX, GROUND - 70, G.w / 2, 80, 0, 0, Math.PI * 2); ctx.fill();
+      }
+      // o pescoço sai do corte no alto do rolo e passa na frente dele, como na arte
+      if (somePesc < C.length - 1) tubo(C, S, false, C.length - 1, somePesc, 'textura');
+      // cabeça
+      const z = cab(b);
+      if (!b.dead || morto < 1) {
+        if (z) {
+          const [qx, qy, qw, qh] = z.q, k = z.k;
+          ctx.save(); ctx.translate(Math.round(b.hx - camX), Math.round(b.hy)); ctx.scale(-1, 1); ctx.rotate(b.rot);
+          ctx.imageSmoothingEnabled = false;
+          ctx.drawImage(S.image, qx, qy, qw, qh, z.ax, z.ay, qw * k, qh * k);
+          const topoC = z.ay + qh * k * .1;
+          for (let j = 0; j < 5; j++) {
+            const alt = (rage ? 30 : 22) + Math.sin(time * 9 + j * 1.9) * 7 + Math.sin(time * 23 + j) * 3;
+            chamaPixel(z.ax + qw * k * (.3 + j * .11), topoC + 3, 13, alt, time * 11 + j * 1.7);
+          }
+          if (b.flash > 0) { ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = Math.min(1, b.flash * 3) * .6; ctx.drawImage(S.image, qx, qy, qw, qh, z.ax, z.ay, qw * k, qh * k); ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over'; }
+          ctx.imageSmoothingEnabled = true; ctx.restore();
+        } else {
+          const c = b.cc; flame(c.x - camX, c.y - 20, 48, rage ? 74 : 56, time * 10);
+          ctx.fillStyle = '#c9401a'; ctx.beginPath(); ctx.ellipse(c.x - camX, c.y, c.r, c.r * .7, 0, 0, Math.PI * 2); ctx.fill();
+        }
+      }
+      ctx.restore();
     },
   };
 })();

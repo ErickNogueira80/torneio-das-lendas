@@ -160,7 +160,22 @@ Pessoal (família).
   Peças com até 160 px são usadas como vieram, sem reduzir.
   A ferramenta mede o ponto do pescoço de cada cabeça (`pescocos` no sprites.json); o jogo põe
   esse ponto onde chega o corpo, com um gomo extra embaixo para emendar, e o primeiro gomo mais perto.
-- **Boitatá, a cobra imensa debaixo da terra (2026-11-13, a pedido do Erick):** substitui o
+- **Boitatá enrolado, versão 5 (2026-11-14, pedido do Erick; é o que está em uso):** fica como na
+  imagem da cobra inteira do PixelLab: o rolo parado no lado direito da arena, o pescoço subindo em
+  S e a cabeça no alto. A imagem do rolo (`corpo.png`) é a cobra inteira recortada (sem o pescoço
+  acima da linha 150 e sem o rabo, à esquerda da coluna 71; original em `originais/v4_cobra_inteira`).
+  O pescoço é um tubo com a faixa de escamas, numa curva do corte no alto do rolo até a cabeça, que
+  chega na direção do pescoço do desenho da cabeça (a emenda não quebra). O rabo é outro tubo que
+  sai da frente do rolo. De onde saem o pescoço e o rabo fica em `ancoras` na ficha do chefe.
+  Ataques: rajadas de bolas de fogo (a cabeça mira no herói), bote com o pescoço esticando até onde
+  o herói está (aviso: encolhe e treme; a cabeça fica cravada 1,2 s, dano 2×) e **rabada** quando o
+  herói chega a menos de 230 px do rolo (o rabo levanta tremendo e bate no chão; pule; 2 s de
+  espera entre rabadas). A cabeça segue as poses com uma mola (balança e assenta). Fúria: mais
+  rápido, 3 rajadas de 5 bolas, bote duplo, rabada mais rápida. Morre virando pó da cabeça para o
+  rabo e o rolo some por último.
+- **Boitatá debaixo da terra (versão 4), guardado como `CHEFES.boitata_terra`:** para usar em outra
+  fase ou voltar, basta `tipo: 'boitata_terra'` na ficha do chefe. Descrição abaixo.
+- **(versão 4) Boitatá, a cobra imensa debaixo da terra (2026-11-13, a pedido do Erick):** substitui o
   Boitatá enrolado (parado no canto, só a cabeça se mexia; o Erick achou a luta sem graça). Agora o
   corpo tem 3.000 px (mais de três telas) e segue o rastro da cabeça, como uma cobra de verdade:
   por onde a cabeça passa, o corpo passa depois. O que está debaixo da terra não aparece; onde o
@@ -273,8 +288,8 @@ Para retomar numa sessão nova, comece por aqui.
 - Fase do Boitatá completa em pixel art: herói do PixelLab (7 animações), brasa e vespa do
   PixelLab, fundos pixelizados, piso irregular, árvores-plataforma com raiz 2,5D, baú escondido,
   altares como pontos de controle, placa com pergaminho, escuridão com luz (estilo Lanterna),
-  retrato no canto, HUD com molduras do Gemini, Boitatá como cobra imensa que entra e sai da
-  terra (ergue e dá o bote, salta em arco, rasteja em ondas; desde 2026-11-13).
+  retrato no canto, HUD com molduras do Gemini, Boitatá enrolado (v5, 2026-11-14; a versão que entra e sai da
+  terra ficou guardada como `boitata_terra`).
 - Bestiário com ??? até o encontro e contador de derrotados; locais bloqueados sem spoiler.
 
 **Para testar rápido:** `?play&sala` (começa na sala secreta), `?boss` (luta), `?chefevida=10` (chefe quase morto), `?play&x=8580` (placa), `?play&x=1300` (baú), `?herois`,

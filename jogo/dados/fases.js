@@ -70,10 +70,10 @@ window.FASES = {
     // indica isso lá em cima. Quem cai nesse buraco desce para a sala (a câmera acompanha) e sai
     // pulando no cogumelo-mola. x0..x1 = largura da sala (uma tela); chao = y do piso da sala.
     sala: { x0: 5090, x1: 6050, chao: 1020, mola: 5570 },
-    perigos: [ // chão em chamas
-      { x: 1300, w: 90 }, { x: 2400, w: 100 }, { x: 3000, w: 80 },
-      { x: 3600, w: 90 }, { x: 4420, w: 100 }, { x: 5200, w: 90 },
-      { x: 6300, w: 100 }, { x: 7000, w: 80 }, { x: 7820, w: 100 },
+    perigos: [ // chão em chamas (longe dos troncos e raízes das árvores, dos buracos e dos altares)
+      { x: 1080, w: 90 }, { x: 2400, w: 100 }, { x: 2760, w: 80 },
+      { x: 3400, w: 90 }, { x: 4080, w: 90 }, { x: 5300, w: 90 },
+      { x: 6300, w: 100 }, { x: 6740, w: 80 }, { x: 7500, w: 100 },
     ],
     // 3 altares por fase (padrão para todas as fases, decisão do Erick, 2026-11-14): o do começo,
     // um no meio e um antes do chefe. O herói volta ao último altar aceso.
@@ -101,15 +101,17 @@ window.FASES = {
     arena: { x0: 8640, x1: 9600 },
     gatilhoChefe: 8780,
     chefe: {
-      tipo: 'boitata',
+      tipo: 'boitata',   // enrolado (versão 5); 'boitata_terra' = a cobra que entra e sai da terra
       nome: 'BOITATÁ',
       vida: 150,
       rotuloVida: 'fogo',
       sprite: 'chefes/boitata',
+      // de onde saem o pescoço [x, y, raio] e o rabo [x, y] na imagem do rolo (fração da imagem)
+      ancoras: { pescoco: [.191, 0, .153], rabo: [.017, .723] },
       resist: { agua: 1.2, fogo: 0, terra: 0.8, ar: 0.8, espada: 1 }, // fogo: ele absorve e recupera
       frase: ['"A floresta aprisionou sua alma em um corpo incendiado', 'e a tornou guardiã da mesma."'],
-      dica: 'Onde a terra racha, ela sai: saia de cima! · Bata na cabeça quando ela ficar cravada no chão',
-      dano: { mordida: 9, veneno: 8, venenoSeg: 3, bolaDeFogo: 12, corpo: 8, chama: 5 },
+      dica: 'Apague o fogo com a água · perto do rolo vem a rabada: pule! · Bata na cabeça cravada no chão',
+      dano: { mordida: 9, veneno: 8, venenoSeg: 3, bolaDeFogo: 12, corpo: 8, chama: 5, rabada: 10 },
     },
     vitoria: {
       citacao: '"Após a morte, novamente eles viram pó prateado e um pingente com o Boitatá aparece no chão."',
