@@ -137,7 +137,8 @@ Pessoal (família).
   trechos; cada trecho ganha gomos conforme o tamanho na pose) e desenrola quando a pose pede mais
   comprimento. "Tocar sequência" passa por todas as poses; "Copiar poses" gera o texto (JSON com
   poses e ajustes) para mandar ao Claude, que usa no jogo. Testes pela URL: `?modo=B`,
-  `?pose=bote`, `?tocar`, `?semeditar`, `?op=5&or=3`, `?ff=N`. Nada disso está no jogo ainda.
+  `?pose=bote`, `?tocar`, `?semeditar`, `?op=5&or=3`, `?ff=N`. Desde a versão 6 do Boitatá
+  (2026-11-14), a versão C e as poses estão no jogo (ver "Boitatá versão 6").
   **Rodada 3 (2026-11-14, pedidos do Erick):** a **B (corpo todo) é a preferida** e abre primeiro.
   Rolo com 3 voltas e mais gordo embaixo (controles de voltas, tamanho e grossura); até 5 ossos no
   pescoço e 3 no rabo (numerados; poses guardadas em `op`/`or`, as antigas são convertidas);
@@ -221,7 +222,30 @@ Pessoal (família).
   Peças com até 160 px são usadas como vieram, sem reduzir.
   A ferramenta mede o ponto do pescoço de cada cabeça (`pescocos` no sprites.json); o jogo põe
   esse ponto onde chega o corpo, com um gomo extra embaixo para emendar, e o primeiro gomo mais perto.
-- **Boitatá enrolado, versão 5 (2026-11-14, pedido do Erick; é o que está em uso):** fica como na
+- **Boitatá versão 6, o esqueleto do laboratório (2026-11-14, pedido do Erick; é o que está em
+  uso):** o laboratório (versão C) foi levado para o jogo. O rolo é a arte em 2 camadas (o pescoço
+  sai de dentro da volta de cima), e o pescoço e o rabo são correntes de gomos (FABRIK com ossos)
+  puxadas para as **poses do Erick**. As poses ficam em `chefe.esqueleto` na ficha da fase
+  (`dados/fases.js`): é o texto de "Copiar poses" do laboratório sem o campo `versao`. Para trocar
+  as poses, é só colar o texto novo ali. Cópia do texto em
+  `jogo/laboratorio/poses/erick-2026-11-14b.json` (as 6 poses, 3 ossos no pescoço e 3 no rabo,
+  pescoço de 42 gomos e rabo de 34). Rolo no lugar do laboratório: centro a 760 px do começo da
+  arena (`ARENA.x0`), ou seja, as posições do laboratório valem iguais no jogo.
+  Pose de cada momento: entrada e descanso → `descanso`; bolas de fogo → `cospe`; aviso do bote →
+  `prepara` (treme); bote, cabeça cravada (1,2 s, dano 2×) → `bote`, com a cabeça deslocada até
+  onde o herói está (os ossos perto da cabeça vão junto, um pouco); rabada (herói a menos de 230 px
+  do rolo) → `rabada_cima` e depois `rabada_chao`, e a ponta bate no chão.
+  **Jeito do movimento:** no descanso e no cospe-fogo vale o jeito que o Erick escolheu no
+  laboratório (rapidez 0,3, amortecimento 0,05, resposta -1,2: lento e balançante). No prepara, no
+  bote, na rabada e por 0,8 s depois deles, um jeito rápido e firme (f 2,8, z 0,55, r 0,6), senão
+  o bote ficaria lento demais e a volta dele balançaria para fora da tela.
+  Para a cobra não sair da tela: a pose que passa do topo desce inteira, com a cabeça e os ossos
+  juntos e a forma igual (a cabeça para em 95 px do topo, os ossos em 40). Há uma parede invisível
+  para o balanço (topo e laterais da arena). O pescoço sai do rolo quando a pose pede mais
+  comprimento e volta para dentro quando pede menos (mínimo de 14 gomos), senão a sobra estufa.
+  Teste de jeito sem mexer no código: `&jeito=f,z,r` (ex.: `?play&boss&x=8800&jeito=1.2,0.35,0`).
+  A versão 5 ficou guardada como `CHEFES.boitata_v5` (`tipo: 'boitata_v5'`, usa `ancoras`).
+- **Boitatá enrolado, versão 5 (2026-11-14, guardado como `boitata_v5`):** fica como na
   imagem da cobra inteira do PixelLab: o rolo parado no lado direito da arena, o pescoço subindo em
   S e a cabeça no alto. A imagem do rolo (`corpo.png`) é a cobra inteira recortada (sem o pescoço
   acima da linha 150 e sem o rabo, à esquerda da coluna 71; original em `originais/v4_cobra_inteira`).

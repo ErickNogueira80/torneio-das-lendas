@@ -769,7 +769,8 @@ CHEFES.boitata_terra = (() => {
     },
   };
 })();
-CHEFES.boitata = (() => {
+// versão 5 (rolo antigo + pescoço em curva fixa), guardada para voltar: tipo 'boitata_v5' na fase
+CHEFES.boitata_v5 = (() => {
   // Boitatá enrolado (versão 5, 2026-11-14, pedido do Erick): o rolo fica parado no lado direito da
   // arena, como na imagem da cobra inteira (arte v4 recortada: `corpo` sem o pescoço e sem o rabo).
   // O pescoço é um tubo com a faixa de escamas que sai do alto do rolo e estica até a cabeça; o rabo
@@ -1099,6 +1100,439 @@ CHEFES.boitata = (() => {
           const c = b.cc; flame(c.x - camX, c.y - 20, 48, rage ? 74 : 56, time * 10);
           ctx.fillStyle = '#c9401a'; ctx.beginPath(); ctx.ellipse(c.x - camX, c.y, c.r, c.r * .7, 0, 0, Math.PI * 2); ctx.fill();
         }
+      }
+      ctx.restore();
+    },
+  };
+})();
+CHEFES.boitata = (() => {
+  // Boitatá versão 6 (2026-11-14): o esqueleto do laboratório (jogo/laboratorio/cobra.html, versão C)
+  // dentro do jogo. O rolo é a arte em 2 camadas (rolo_tras inteira; rolo_frente = a borda da frente
+  // do anel de cima: o pescoço sai de dentro dele). Pescoço e rabo são correntes de gomos com
+  // distância fixa (FABRIK com limite de dobra), puxadas pela cabeça, pela ponta do rabo e pelos
+  // ossos de cada pose. As poses são as do Erick (fases.js → chefe.esqueleto = o texto de "Copiar
+  // poses" do laboratório). Cada alça segue a pose com a dinâmica de 2ª ordem (f, z, r): o jeito do
+  // Erick no descanso e no cospe-fogo; um jeito rápido e firme no bote, na rabada e na volta deles.
+  const enraged = b => b.fire < b.max * 0.35;
+  const SP = 12, CAB_K = 3, ZC = 2;   // distância entre gomos; escala da cabeça; escala do rolo
+  // pontos na arte do rolo (px da imagem recortada, 230×149) e a grossura do corpo ali
+  const ROLO_C = { pescoco: [114, 37], rabo: [24, 127], rPesc: 22, rRabo: 15 };
+  const COR_COSTAS = '#2b201e', COR_BARRIGA = '#e6cf9f', BARRIGA_DESDE = .54;   // por baixo das escamas
+  const JEITO_ATAQUE = { f: 2.8, z: .55, r: .6 };
+  const TOPO_CAB = 95;   // a cabeça (o corte do pescoço) não sobe acima disto: chamas e HUD à vista
+  const PADRAO = ['idle', 'cospe', 'idle', 'prep', 'idle', 'cospe', 'prep'];
+  const MAX_P = 5, MAX_R = 3;
+  const ease = x => x * x * (3 - 2 * x);
+  // poses do laboratório (padrão), usadas se a fase não trouxer o esqueleto
+  const POSES_PADRAO = {
+    descanso: { cab: [-150, -150], op: [[-60, -175], [5, -110]], rabo: [-240, 30], or: [[-120, 30]] },
+    cospe: { cab: [-130, -195], op: [[-40, -215], [15, -130]], rabo: [-240, 30], or: [[-120, 30]] },
+    prepara: { cab: [-40, -215], op: [[30, -205], [40, -115]], rabo: [-230, 30], or: [[-115, 30]] },
+    bote: { cab: [-420, 125], op: [[-230, -60], [-60, -125]], rabo: [-240, 30], or: [[-120, 30]] },
+    rabada_cima: { cab: [-150, -150], op: [[-60, -175], [5, -110]], rabo: [-110, -210], or: [[-70, -110]] },
+    rabada_chao: { cab: [-150, -150], op: [[-60, -175], [5, -110]], rabo: [-310, 40], or: [[-160, 20]] },
+  };
+  const vazio = n => Array(n).fill(null);
+  function esqueleto(cfg) {
+    const E = cfg.esqueleto || {}, A = { ...(E.ajustes || {}) }, C = E.corpo || {}, poses = {};
+    for (const k of Object.keys(POSES_PADRAO)) {
+      const p = (E.poses && E.poses[k]) || POSES_PADRAO[k];
+      poses[k] = { cab: p.cab, rabo: p.rabo, op: [...(p.op || []), ...vazio(MAX_P)].slice(0, MAX_P), or: [...(p.or || []), ...vazio(MAX_R)].slice(0, MAX_R) };
+    }
+    // teste: &jeito=f,z,r troca o jeito do descanso e do cospe-fogo (ex.: &jeito=1.2,0.35,0)
+    const tj = (params.get('jeito') || '').split(',').map(Number);
+    if (tj.length === 3 && tj.every(Number.isFinite) && tj[0] > 0) A.f = tj[0], A.z = tj[1], A.r = tj[2];
+    return { poses, nP: E.ossos ? E.ossos.pescoco : 2, nR: E.ossos ? E.ossos.rabo : 1, pn: C.pescoco || 26, rn: C.rabo || 22,
+      jeito: { f: A.f ?? 2.2, z: A.z ?? .55, r: A.r ?? 1.2 }, ond: A.ondulacao ?? 8, dobra: A.dobra ?? 16 };
+  }
+
+  // ---------- dinâmica de 2ª ordem (t3ssel8r): segue o alvo com rapidez f, amortecimento z, resposta r ----------
+  function seguidor(x, y) { return { px: x, py: y, x, y, vx: 0, vy: 0 }; }
+  function passo(s, dt, tx, ty, J) {
+    if (!(dt > 0)) return s;   // quadro parado (dt = 0): não divide por zero
+    const f = J.f, z = J.z, r = J.r, k1 = z / (Math.PI * f), k2 = 1 / ((2 * Math.PI * f) ** 2), k3 = r * z / (2 * Math.PI * f);
+    const dx = (tx - s.px) / dt, dy = (ty - s.py) / dt; s.px = tx; s.py = ty;
+    const k2s = Math.max(k2, dt * dt / 2 + dt * k1 / 2, dt * k1);   // estável com qualquer dt
+    s.x += dt * s.vx; s.y += dt * s.vy;
+    s.vx += dt * (tx + k3 * dx - s.x - k1 * s.vx) / k2s;
+    s.vy += dt * (ty + k3 * dy - s.y - k1 * s.vy) / k2s;
+    return s;
+  }
+
+  // ---------- correntes ----------
+  // FABRIK com limite de dobra: pts[0] = ponta, pts[n] = base (presa). Gomo grosso dobra menos.
+  function fabrik(pts, alvo, base, dirBase, raio, dobra, iter = 8) {
+    const n = pts.length - 1; if (n < 1) return;
+    for (let it = 0; it < iter; it++) {
+      pts[0].x = alvo.x; pts[0].y = alvo.y;
+      for (let i = 1; i <= n; i++) { const a = pts[i - 1], b = pts[i], d = Math.hypot(b.x - a.x, b.y - a.y) || 1; b.x = a.x + (b.x - a.x) / d * SP; b.y = a.y + (b.y - a.y) / d * SP; }
+      pts[n].x = base.x; pts[n].y = base.y;
+      let ang = Math.atan2(dirBase.y, dirBase.x);
+      for (let i = n - 1; i >= 0; i--) {
+        const b = pts[i + 1], a = pts[i];
+        let q = Math.atan2(a.y - b.y, a.x - b.x), dq = q - ang;
+        while (dq > Math.PI) dq -= 2 * Math.PI; while (dq < -Math.PI) dq += 2 * Math.PI;
+        const maxDobra = dobra * Math.PI / 180 * clamp(24 / raio(i), .3, 2.6);
+        q = ang + clamp(dq, -maxDobra, maxDobra); ang = q;
+        a.x = b.x + Math.cos(q) * SP; a.y = b.y + Math.sin(q) * SP;
+      }
+    }
+  }
+  // corrente com ossos no meio: resolve em trechos (base → ossos → ponta). alvos = [{ i, p }], i = gomo (0 = ponta)
+  function resolver(pts, alvos, base, dirBase, raio, dobra) {
+    const n = pts.length - 1, ponta = alvos.find(a => a.i === 0);
+    const meio = alvos.filter(a => a.i > 0 && a.i < n).sort((a, b) => b.i - a.i);
+    const marcos = [{ i: n, p: base }, ...meio, ponta];
+    let b0 = base, dir = dirBase;
+    for (let k = 0; k < marcos.length - 1; k++) {
+      const iB = marcos[k].i, iP = marcos[k + 1].i; if (iB <= iP) continue;
+      fabrik(pts.slice(iP, iB + 1), marcos[k + 1].p, b0, dir, i => raio(i + iP), dobra);
+      b0 = { x: pts[iP].x, y: pts[iP].y };
+      const a = pts[iP], b = pts[Math.min(iP + 1, n)], dd = Math.hypot(a.x - b.x, a.y - b.y) || 1;
+      dir = { x: (a.x - b.x) / dd, y: (a.y - b.y) / dd };
+    }
+  }
+  function ajustaTamanho(pts, n) {   // ganha/perde gomos na base (saem de dentro do rolo)
+    while (pts.length - 1 < n) { const b = pts[pts.length - 1]; pts.push({ x: b.x, y: b.y }); }
+    while (pts.length - 1 > n) pts.pop();
+  }
+  const corrente = (n, x, y, dx, dy) => Array.from({ length: n + 1 }, (_, i) => ({ x: x + dx * (n - i) * SP, y: y + dy * (n - i) * SP }));
+  // ossos presos de uma pose, do mais perto da base para o mais perto da ponta
+  function ossosPresos(E, pose, parte) {
+    const arr = parte === 'p' ? pose.op : pose.or, n = parte === 'p' ? E.nP : E.nR, out = [];
+    for (let j = n - 1; j >= 0; j--) if (arr[j]) out.push({ chave: parte + j, rel: arr[j] });
+    return out;
+  }
+  // gomo de cada osso: proporcional ao caminho da pose (o trecho comprido ganha mais gomos)
+  function indices(E, pose, parte, n, desce = 0) {   // desce: a pose desceu (a base fica mais perto)
+    const presos = ossosPresos(E, pose, parte), ponta = parte === 'p' ? pose.cab : pose.rabo;
+    const cam = [[0, -desce], ...presos.map(o => o.rel), ponta], tr = [];
+    for (let i = 1; i < cam.length; i++) tr.push(Math.hypot(cam[i][0] - cam[i - 1][0], cam[i][1] - cam[i - 1][1]));
+    const total = tr.reduce((a, b) => a + b, 0) || 1, idx = {};
+    let acum = 0;
+    presos.forEach((o, k) => { acum += tr[k]; idx[o.chave] = clamp(Math.round(n * (1 - acum / total)), 1, n - 1); });
+    return { idx, total, presos };
+  }
+
+  // ---------- rolo, cabeça e grossuras ----------
+  function geo(b) {
+    const S = sprite(b.cfg.sprite), PT = S && S.partes, q = (PT && PT.rolo_tras) || [0, 0, 230, 149];
+    const resp = b.dead ? 1 : 1 + .012 * Math.sin(time * 1.6), w = q[2] * ZC, ky = ZC * resp, h = q[3] * ky;
+    const x0 = b.cx - w / 2, y0 = GROUND + 4 - h + b.subir;
+    return { S, PT, q, w, h, x0, y0, ky, N: { x: x0 + ROLO_C.pescoco[0] * ZC, y: y0 + ROLO_C.pescoco[1] * ky }, dN: { x: .05, y: -1 },
+      R: { x: x0 + ROLO_C.rabo[0] * ZC, y: y0 + ROLO_C.rabo[1] * ky }, dR: { x: -1, y: .05 } };
+  }
+  // cabeça sem pescoço (Pixelorama): pescocos = [x, y do corte, grossura, ângulo]; espelhada para a esquerda
+  function cab(b) {
+    const S = sprite(b.cfg.sprite), P = S && S.partes;
+    if (!P || !P.cabeca) return null;
+    const bravo = ['cospe', 'prep', 'bote', 'cravada'].includes(b.state);
+    const nome = bravo && P.cabeca_ataque ? 'cabeca_ataque' : 'cabeca', q = P[nome];
+    const pc = (S.pescocos && S.pescocos[nome]) || [.15, 1, .42, -1], k = CAB_K;
+    return { S, nome, q, k, ax: -pc[0] * q[2] * k, ay: -pc[1] * q[3] * k, angP: pc.length > 3 ? pc[3] : -1, rFim: pc[2] * q[3] * k / 2 };
+  }
+  const mundo = (lx, ly, rot) => { const c = Math.cos(rot), s = Math.sin(rot); return { x: -(lx * c - ly * s), y: lx * s + ly * c }; };
+  function cranio(b, rot) {   // centro do crânio em relação ao corte do pescoço
+    const z = cab(b);
+    if (!z) return { dx: -50, dy: -20, r: 40 };
+    const v = mundo(z.ax + z.q[2] * z.k * .62, z.ay + z.q[3] * z.k * .38, rot);
+    return { dx: v.x, dy: v.y, r: z.q[3] * z.k * .36 };
+  }
+  const rFimCab = b => { const z = cab(b); return z ? z.rFim * 1.08 : 26; };
+  const raioPesc = (b, i, n) => { const rF = rFimCab(b), r0 = ROLO_C.rPesc * ZC; return rF + (r0 - rF) * ease(Math.min(1, i / n * 1.6)); };
+  const raioRabo = (i, n) => 4 + (ROLO_C.rRabo * ZC - 4) * Math.pow(i / Math.max(1, n), .8);   // i = 0 na ponta
+
+  // ---------- qual pose e qual jeito em cada momento ----------
+  function poseDoMomento(b) {
+    const T = b.state;
+    if (T === 'cospe') return 'cospe';
+    if (T === 'prep') return 'prepara';
+    if (T === 'bote' || T === 'cravada') return 'bote';
+    if (T === 'rabada') return b.st < (enraged(b) ? .35 : .5) ? 'rabada_cima' : b.st < (enraged(b) ? .35 : .5) + .55 ? 'rabada_chao' : 'descanso';
+    return 'descanso';
+  }
+  const rapido = b => ['prep', 'bote', 'cravada', 'recua', 'rabada'].includes(b.state) || b.calma > 0;
+  function proximo(b) {
+    b.passo = (b.passo + 1) % PADRAO.length;
+    b.state = PADRAO[b.passo]; b.st = 0; b.volley = 0;
+    if (b.state === 'prep') b.botes = enraged(b) ? 2 : 1;
+  }
+  // move um ponto da corrente para a pose (com o deslocamento do bote) e devolve o seguidor
+  function alca(b, h, base, rel, dt, J, desvio = 0, extra = null) {
+    const ax = base.x + rel[0] + desvio + (extra ? extra.x : 0), ay = Math.min(base.y + rel[1] + (extra ? extra.y : 0), GROUND - 4);
+    if (!b.seg[h]) b.seg[h] = seguidor(ax, ay);
+    const sg = passo(b.seg[h], dt, ax, ay, J);
+    // parede invisível: com o jeito lento e balançante a cabeça passaria do topo da tela ou da arena.
+    // Bate na parede e perde a velocidade naquela direção (o balanço continua no resto).
+    const topo = h === 'cab' ? TOPO_CAB : 40;
+    if (sg.y < topo) { sg.y = topo; sg.vy = Math.max(0, sg.vy); }
+    if (sg.x < ARENA.x0 + 40) { sg.x = ARENA.x0 + 40; sg.vx = Math.max(0, sg.vx); }
+    if (sg.x > ARENA.x1 - 70) { sg.x = ARENA.x1 - 70; sg.vx = Math.min(0, sg.vx); }
+    return sg;
+  }
+  function mexer(b, dt, G) {
+    const E = b.E, nome = poseDoMomento(b), P0 = E.poses[nome], J = rapido(b) ? JEITO_ATAQUE : E.jeito;
+    // pose que passa do topo da tela desce inteira (cabeça e ossos juntos: o desenho não muda)
+    const ny = G.N.y - b.subir, osY = ossosPresos(E, P0, 'p').map(o => o.rel[1]);
+    const desce = Math.max(0, TOPO_CAB - (ny + P0.cab[1]), osY.length ? 40 - (ny + Math.min(...osY)) : 0);
+    const NB = { x: G.N.x, y: G.N.y + desce };
+    // o pescoço sai de dentro do rolo quando a pose pede mais comprimento e volta para dentro quando
+    // pede menos (sem isso a sobra estufa: com dobra pequena ele não consegue se encolher)
+    const ip = indices(E, P0, 'p', b.pesc.length - 1, desce);
+    const alvoExtra = clamp(Math.ceil((ip.total + Math.abs(b.desvio)) * 1.12 / SP) - E.pn, 14 - E.pn, 70);
+    b.extra += clamp(alvoExtra - b.extra, -dt * 40, dt * (rapido(b) ? 130 : 70));
+    ajustaTamanho(b.pesc, E.pn + Math.round(b.extra));
+    const n = b.pesc.length - 1, ip2 = indices(E, P0, 'p', n, desce);
+    // bote: a pose vai até o herói (a cabeça inteira, os ossos perto dela um pouco)
+    const dv = nome === 'bote' ? b.desvio : 0, peso = [.75, .45, .2, .1, 0];
+    const balanco = nome === 'descanso' && !rapido(b) ? { x: Math.sin(time * 1.1) * 22, y: Math.sin(time * 1.7) * 10 } : null;
+    const tremor = b.state === 'prep' ? { x: Math.sin(time * 55) * 4, y: 0 } : b.state === 'cravada' ? { x: Math.sin(time * 40) * 2, y: 0 } : null;
+    const sc = alca(b, 'cab', NB, P0.cab, dt, J, dv, balanco || tremor);
+    const alvos = [{ i: 0, p: { x: sc.x, y: Math.min(sc.y, GROUND - 14) } }];
+    for (const o of ip2.presos) alvos.push({ i: ip2.idx[o.chave], p: alca(b, o.chave, NB, o.rel, dt, J, dv * peso[+o.chave.slice(1)]) });
+    resolver(b.pesc, alvos, G.N, G.dN, i => raioPesc(b, i, n), E.dobra);
+    // a mesma parede para os gomos (com dobra pequena, o pescoço comprido não encolhe e a ponta sai da tela)
+    for (let i = 0; i <= n; i++) {
+      const p = b.pesc[i], topo = 40 + (TOPO_CAB - 40) * Math.max(0, 1 - i / 5);
+      if (p.y < topo) p.y = topo;
+      p.x = clamp(p.x, ARENA.x0 + 30, ARENA.x1 - 40);
+    }
+    // ondulação: uma onda que corre pelo pescoço (zero nas pontas)
+    for (let i = 1; i < n; i++) {
+      const a = b.pesc[i - 1], c = b.pesc[i + 1], dx = c.x - a.x, dy = c.y - a.y, d = Math.hypot(dx, dy) || 1;
+      const amp = E.ond * Math.sin(Math.PI * i / n) * Math.sin(time * 3 - i * .35) * .15;
+      b.pesc[i].x += -dy / d * amp; b.pesc[i].y += dx / d * amp;
+    }
+    // rabo: ponta e ossos presos
+    const nr = b.rabo.length - 1, ir = indices(E, P0, 'r', nr), sr = alca(b, 'rabo', G.R, P0.rabo, dt, J);
+    const alvR = [{ i: 0, p: { x: sr.x, y: Math.min(sr.y, GROUND - 6) } }];
+    for (const o of ir.presos) alvR.push({ i: ir.idx[o.chave], p: alca(b, o.chave, G.R, o.rel, dt, J) });
+    resolver(b.rabo, alvR, G.R, G.dR, i => raioRabo(i, nr), E.dobra);
+    for (let i = 0; i <= nr; i++) b.rabo[i].y = Math.min(b.rabo[i].y, GROUND + 2 - raioRabo(i, nr));
+    // cabeça no fim do pescoço, girada para o pescoço do desenho seguir o último gomo
+    const z = cab(b), p0 = b.pesc[0], p1 = b.pesc[Math.min(2, n)];
+    let a = Math.PI - Math.atan2(p0.y - p1.y, p0.x - p1.x);
+    while (a > Math.PI) a -= 2 * Math.PI; while (a < -Math.PI) a += 2 * Math.PI;
+    b.hx = p0.x; b.hy = p0.y; b.rot = clamp(a - (z ? z.angP : -.5), -1.3, 1.1);
+    // listas com a grossura (contato, golpes, luzes e o pó da morte): pescoço da cabeça para o rolo, rabo do rolo para a ponta
+    b.neck = b.pesc.map((p, i) => ({ x: p.x, y: p.y, r: raioPesc(b, i, n) }));
+    b.tail = b.rabo.map((p, i) => ({ x: p.x, y: p.y, r: raioRabo(i, nr) })).reverse();
+  }
+
+  // ---------- desenho (em coordenadas do mundo) ----------
+  function contorno(lista) {
+    ctx.strokeStyle = '#080305'; ctx.lineCap = 'round';
+    for (const g of lista) {
+      const e = g.ext || 0, d = Math.hypot(g.b.x - g.a.x, g.b.y - g.a.y) || 1, ux = (g.b.x - g.a.x) / d, uy = (g.b.y - g.a.y) / d;
+      ctx.lineWidth = g.r * 2 + 6; ctx.beginPath(); ctx.moveTo(g.a.x - ux * e, g.a.y - uy * e); ctx.lineTo(g.b.x + ux * e, g.b.y + uy * e); ctx.stroke();
+    }
+    ctx.lineCap = 'butt';
+  }
+  function base(lista) {   // costas e barriga nas cores da faixa (sem fresta preta quando estica)
+    for (const g of lista) {
+      const d = Math.hypot(g.b.x - g.a.x, g.b.y - g.a.y), fb = Math.min(1, BARRIGA_DESDE / (g.fh || 1));
+      ctx.save(); ctx.translate(g.a.x, g.a.y); ctx.rotate(Math.atan2(g.b.y - g.a.y, g.b.x - g.a.x)); if (g.vira) ctx.scale(1, -1);
+      const e = (g.ext || 0) + g.r * .45;
+      ctx.fillStyle = COR_COSTAS; ctx.fillRect(-e, -g.r, d + 2 * e, g.r * 2);
+      if (fb < 1) { ctx.fillStyle = COR_BARRIGA; ctx.fillRect(-e, -g.r + fb * g.r * 2, d + 2 * e, (1 - fb) * g.r * 2); }
+      ctx.restore();
+    }
+  }
+  function textura(lista, S) {
+    base(lista);
+    const fx = S && S.partes && S.partes.gomo_corpo; if (!fx) return;
+    const [qx, qy, qw, qh] = fx;
+    ctx.imageSmoothingEnabled = false;
+    for (const g of lista) {
+      const sh = qh * (g.fh || 1), d = Math.hypot(g.b.x - g.a.x, g.b.y - g.a.y), k = sh / (g.r * 2), sw = Math.max(1, d * k), e = g.ext || 0;
+      let sx = e ? (((g.s - e * k) % qw) + qw) % qw : g.s % qw, feito = 0;
+      const total = sw + 2 * e * k;
+      ctx.save(); ctx.translate(g.a.x, g.a.y); ctx.rotate(Math.atan2(g.b.y - g.a.y, g.b.x - g.a.x)); if (g.vira) ctx.scale(1, -1);
+      while (feito < total - .01) { const p = Math.min(total - feito, qw - sx); ctx.drawImage(S.image, qx + sx, qy, p, sh, -e + feito / k - .5, -g.r, p / k + 1.5, g.r * 2); feito += p; sx = (sx + p) % qw; }
+      ctx.restore();
+    }
+    ctx.imageSmoothingEnabled = true;
+  }
+  // fatias de uma lista com grossura; flanco = de lado (costas para cima, fio de barriga embaixo)
+  function fatias(pts, flanco) {
+    const out = []; let s = 0;
+    for (let i = 0; i < pts.length - 1; i++) {
+      const a = pts[i], b = pts[i + 1], r = a.r, fh = flanco ? .72 : 1;
+      out.push({ a, b, r, s, fh, vira: flanco ? b.x - a.x < 0 : false, ext: flanco ? 3 : 0 }); s += Math.hypot(b.x - a.x, b.y - a.y) * 82 * fh / (r * 2);
+    }
+    return out;
+  }
+  function desenhaRolo(S, q, x, y, w, h, alpha, flash) {
+    ctx.globalAlpha = alpha; ctx.imageSmoothingEnabled = false;
+    ctx.drawImage(S.image, q[0], q[1], q[2], q[3], x, y, w, h);
+    if (flash > 0) { ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = alpha * Math.min(1, flash * 3) * .35; ctx.drawImage(S.image, q[0], q[1], q[2], q[3], x, y, w, h); ctx.globalCompositeOperation = 'source-over'; }
+    ctx.globalAlpha = 1; ctx.imageSmoothingEnabled = true;
+  }
+
+  return {
+    enraged,
+    criar(cfg) {
+      const E = esqueleto(cfg);
+      const b = { cfg, E, cx: ARENA.x0 + 760, subir: 260, hx: 0, hy: 0, rot: 0, fire: cfg.vida, max: cfg.vida,
+        state: 'enter', st: 0, passo: -1, flash: 0, volley: 0, botes: 0, dead: false, deadT: 0, rCd: 0, calma: 0,
+        desvio: 0, extra: 0, seg: {}, neck: [], tail: [], cc: { x: 0, y: 0, r: 40 } };
+      const G = geo(b);
+      b.pesc = corrente(E.pn, G.N.x, G.N.y, G.dN.x, G.dN.y);
+      b.rabo = corrente(E.rn, G.R.x, G.R.y, G.dR.x, G.dR.y);
+      mexer(b, 1 / 60, G);
+      return b;
+    },
+    atualizar(b, dt) {
+      b.st += dt; b.flash = Math.max(0, b.flash - dt); b.rCd = Math.max(0, b.rCd - dt); b.calma = Math.max(0, b.calma - dt);
+      const furia = enraged(b), sp = furia ? 1.3 : 1, D = b.cfg.dano;
+      const pcx = player.x + player.w / 2, pcy = player.y + player.h / 2;
+      const G = geo(b);
+      if (b.dead) {
+        b.deadT += dt;
+        const n = Math.floor(b.deadT / .04);
+        if (n > (b.ultPo || 0)) {   // pó prateado: cabeça, pescoço (da cabeça para o rolo), rabo e rolo
+          b.ultPo = n;
+          const lista = [b.cc, ...b.neck, ...b.tail.slice().reverse()];
+          const p = lista[Math.min(n, lista.length - 1)];
+          if (n < lista.length) { burst(p.x, p.y, 12, SILVER, 220, 1, 120, 4); shake = .08; }
+          else if (n < lista.length + 14) { burst(G.x0 + Math.random() * G.w, G.y0 + Math.random() * G.h, 16, SILVER, 240, 1, 120, 4.5); shake = .1; }
+        }
+        if (b.deadT > (b.neck.length + b.tail.length + 16) * .04 && !pendant) pendant = { x: G.x0 + 40, y: GROUND - 120, vy: -200, t: 0 };
+        return;
+      }
+
+      const T = b.state;
+      if (T === 'enter') {
+        b.subir = Math.max(0, 260 * (1 - ease(Math.min(1, b.st / 1.8)))); shake = Math.max(shake, .05);
+        if (b.st > 2.2) proximo(b);
+      } else if (T === 'idle') {
+        if (pcx > G.x0 - 230 && b.rCd <= 0) { b.state = 'rabada'; b.st = 0; b.bateu = false; }   // chegou perto do rolo: rabada
+        else if (b.st > (furia ? 1.0 : 1.6)) proximo(b);
+      } else if (T === 'cospe') {
+        const c = b.cc, first = .6, gap = furia ? .55 : .8, volleys = furia ? 3 : 2;
+        if (b.volley < volleys && b.st > first + b.volley * gap) {
+          const n = furia ? 5 : 3, bx = c.x - c.r * .9, by = c.y + c.r * .35, base0 = Math.atan2(pcy - by, pcx - bx);
+          for (let i = 0; i < n; i++) {
+            const a = base0 + (i - (n - 1) / 2) * .2, s = 380 * sp;
+            fireballs.push({ x: bx, y: by, vx: Math.cos(a) * s, vy: Math.sin(a) * s, r: 18, life: 4, dano: D.bolaDeFogo });
+          }
+          burst(bx, by, 14, FIRE, 200, .5);
+          b.volley++;
+        }
+        if (b.st > first + volleys * gap + .4) proximo(b);
+      } else if (T === 'prep') {   // encolhe para trás e treme: aviso do bote
+        if (b.st > (furia ? .5 : .8)) {
+          // a cabeça vai até onde o herói está (sem passar da arena nem chegar perto demais do rolo)
+          const alvoX = clamp(pcx + 40, ARENA.x0 + 60, G.x0 + 60);
+          b.desvio = alvoX - (G.N.x + b.E.poses.bote.cab[0]);
+          b.state = 'bote'; b.st = 0;
+        }
+      } else if (T === 'bote') {
+        const ax = G.N.x + b.E.poses.bote.cab[0] + b.desvio, ay = clamp(G.N.y + b.E.poses.bote.cab[1], TOPO_CAB, GROUND - 14);
+        if (b.st > .5 / sp || Math.hypot(b.hx - ax, b.hy - ay) < 24) {
+          b.state = 'cravada'; b.st = 0; shake = .25;
+          burst(b.cc.x, GROUND - 4, 18, ['#6b5446', '#3d2f27'], 240, .6, 500, 4);
+        }
+      } else if (T === 'cravada') {
+        if (b.st >= (furia ? .85 : 1.2)) { b.state = 'recua'; b.st = 0; b.desvio = 0; }
+      } else if (T === 'recua') {
+        if (b.st >= .6) { b.calma = .8; if (--b.botes > 0) { b.state = 'prep'; b.st = .3; } else proximo(b); }
+      } else if (T === 'rabada') {
+        const prep = furia ? .35 : .5;
+        if (b.st > prep + .18 && !b.bateu) {   // a ponta bate no chão
+          b.bateu = true; shake = .3;
+          const p = b.tail[b.tail.length - 1]; burst(p.x, GROUND - 4, 22, ['#6b5446', '#3d2f27', ...FIRE], 280, .7, 500, 4);
+        }
+        if (b.st > prep && b.st < prep + .45)   // acerta enquanto desce e logo depois de bater
+          for (const s of b.tail) if (circleRect(s.x, s.y, s.r + 4, player)) { hurtPlayer(D.rabada, s.x + 40); break; }
+        if (b.st >= prep + 1.2) { b.rCd = furia ? 1.2 : 2; b.state = 'idle'; b.st = 0; b.calma = .8; }
+      }
+
+      mexer(b, dt, G);
+      const c = cranio(b, b.rot); b.cc = { x: b.hx + c.dx, y: b.hy + c.dy, r: c.r };
+
+      // contato: cabeça (mordida; veneno no bote), pescoço e rolo em brasa
+      if (T !== 'enter') {
+        if (circleRect(b.cc.x, b.cc.y, b.cc.r * .8, player)) { if (T === 'bote') hurtPlayer(D.veneno, b.cc.x, D.venenoSeg); else hurtPlayer(D.mordida, b.cc.x); }
+        for (let i = 3; i < b.neck.length; i += 3) { const s = b.neck[i]; if (circleRect(s.x, s.y, s.r * .8, player)) { hurtPlayer(D.corpo, s.x); break; } }
+        if (circleRect(G.x0 + G.w * .52, GROUND - G.h * .3, G.h * .42, player)) hurtPlayer(D.corpo, G.x0 + G.w * .52);
+      }
+      // efeitos: veneno nas presas, fogo na cabeça, brasas no corpo
+      if ((T === 'prep' || T === 'bote' || T === 'cravada') && Math.random() < dt * 30)
+        particles.push({ x: b.cc.x - b.cc.r * rnd(.6, 1), y: b.cc.y + b.cc.r * .5, vx: rnd(-10, 10), vy: rnd(20, 60), life: .6, max: .6, c: Math.random() < .5 ? '#8dff6a' : '#c8ff9a', s: rnd(2, 3), g: 400 });
+      if (Math.random() < dt * 22) particles.push({ x: b.cc.x + rnd(-30, 30), y: b.cc.y - b.cc.r, vx: rnd(-25, 25), vy: rnd(-140, -70), life: .8, max: .8, c: FIRE[(Math.random() * 3) | 0], s: rnd(2, 3.5), g: -30 });
+      if (Math.random() < dt * (furia ? 40 : 24)) {
+        const em = Math.random() < .5 && b.neck.length ? b.neck[(Math.random() * b.neck.length) | 0] : { x: G.x0 + G.w * (.15 + Math.random() * .7), y: G.y0 + G.h * (.25 + Math.random() * .3), r: 10 };
+        particles.push({ x: em.x + rnd(-10, 10), y: em.y - em.r * .6, vx: rnd(-20, 20), vy: rnd(-90, -40), life: .7, max: .7, c: FIRE[(Math.random() * 3) | 0], s: rnd(2, 4), g: -40 });
+      }
+    },
+    acertoCirculo(b, x, y, r) {
+      const c = b.cc, G = geo(b);
+      if (Math.hypot(x - c.x, y - c.y) < c.r + r) return { x: c.x, y: c.y, mult: b.state === 'cravada' ? 2 : 1.5 };
+      for (let i = 2; i < b.neck.length; i += 2) { const s = b.neck[i]; if (Math.hypot(x - s.x, y - s.y) < s.r + r) return { x: s.x, y: s.y, mult: .8 }; }
+      for (const s of b.tail) if (Math.hypot(x - s.x, y - s.y) < s.r + r) return { x: s.x, y: s.y, mult: .6 };
+      if (x > G.x0 + 30 && x < G.x0 + G.w - 30 && y > G.y0 + 40) return { x, y, mult: .6 };
+      return null;
+    },
+    acertoRet(b, rr) {
+      const c = b.cc, G = geo(b);
+      if (circleRect(c.x, c.y, c.r, rr)) return { x: c.x, y: Math.min(c.y, GROUND - 10), mult: b.state === 'cravada' ? 2 : 1.5 };
+      for (let i = 2; i < b.neck.length; i += 2) { const s = b.neck[i]; if (circleRect(s.x, s.y, s.r, rr)) return { x: s.x, y: s.y, mult: .8 }; }
+      for (const s of b.tail) if (circleRect(s.x, s.y, s.r, rr)) return { x: s.x, y: s.y, mult: .6 };
+      if (overlap(rr, { x: G.x0 + 30, y: G.y0 + 40, w: G.w - 60, h: G.h - 40 })) return { x: rr.x + rr.w / 2, y: rr.y + rr.h / 2, mult: .6 };
+      return null;
+    },
+    luzes(b) {
+      const G = geo(b);
+      if (b.dead && b.deadT > 2) return [];
+      return [[b.cc.x, b.cc.y, 240 + Math.sin(time * 9) * 12, '255,150,50'], [G.x0 + G.w * .5, G.y0 + G.h * .55, 260 + Math.sin(time * 5) * 10, '255,110,30'],
+        ...(b.neck.length > 8 ? [[b.neck[b.neck.length >> 1].x, b.neck[b.neck.length >> 1].y, 170, '255,110,30']] : [])];
+    },
+    desenhar(b) {
+      const rage = enraged(b), G = geo(b), S = G.S, PT = G.PT, C = b.neck;
+      const morto = b.dead ? Math.floor(b.deadT / .04) : 0;
+      const somePesc = Math.max(0, morto - 1), someRabo = Math.max(0, morto - 1 - C.length);
+      const somaRolo = b.dead ? clamp((b.deadT - (C.length + b.tail.length) * .04) / .6, 0, 1) : 0;
+      const cam = Math.round(camX);
+      ctx.save(); ctx.beginPath(); ctx.rect(-50, -400, W + 100, GROUND + 4 + 400); ctx.clip();
+      // sombra no chão
+      const sx = b.cx - cam, sg = ctx.createRadialGradient(sx, GROUND + 6, 10, sx, GROUND + 6, G.w * .55);
+      sg.addColorStop(0, `rgba(0,0,0,${.55 * (1 - somaRolo)})`); sg.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = sg; ctx.beginPath(); ctx.ellipse(sx, GROUND + 6, G.w * .55, 24, 0, 0, Math.PI * 2); ctx.fill();
+      if (!S) { ctx.restore(); return; }
+      ctx.translate(-cam, 0);
+      // rabo (atrás do rolo), da base para a ponta, de lado
+      const nT = b.tail.length - someRabo;
+      if (nT > 1) {
+        const rab = fatias(b.tail.slice(0, nT), true);
+        contorno(rab); textura(rab, S);
+        const pt = b.tail[nT - 1];   // a ponta do rabo queima
+        if (someRabo === 0) drawChama(pt.x, pt.y + pt.r, rage ? 1.1 : .85, 5);
+      }
+      // rolo de trás → pescoço (o trecho dentro do rolo, embaixo do anel de cima, não aparece) → borda da frente
+      const q = G.q, f = PT && PT.rolo_frente, d = (S.deslocs && S.deslocs.rolo_frente) || [56, 19];
+      if (PT && PT.rolo_tras && somaRolo < 1) desenhaRolo(S, q, Math.round(G.x0), Math.round(G.y0), G.w, G.h, 1 - somaRolo, b.flash);
+      if (somePesc < C.length - 1) {
+        const pesc = fatias(C.slice(somePesc), false);
+        const fx0 = G.x0 + d[0] * ZC, fy0 = G.y0 + d[1] * G.ky, fw = (f ? f[2] : 121) * ZC, fh = (f ? f[3] : 47) * G.ky;
+        ctx.save(); ctx.beginPath(); ctx.rect(cam - 50, -400, W + 100, GROUND + 500); ctx.rect(fx0, fy0 + fh * .4, fw, GROUND + 20 - fy0); ctx.clip('evenodd');
+        contorno(pesc); textura(pesc, S);
+        ctx.restore();
+      }
+      if (f && somaRolo < 1) desenhaRolo(S, f, Math.round(G.x0 + d[0] * ZC), Math.round(G.y0 + d[1] * G.ky), f[2] * ZC, f[3] * G.ky, 1 - somaRolo, b.flash);
+      // cabeça
+      const z = cab(b);
+      if (z && (!b.dead || morto < 1)) {
+        const [qx, qy, qw, qh] = z.q, k = z.k;
+        ctx.save(); ctx.translate(Math.round(b.hx), Math.round(b.hy)); ctx.scale(-1, 1); ctx.rotate(b.rot);
+        ctx.imageSmoothingEnabled = false;
+        ctx.drawImage(S.image, qx, qy, qw, qh, z.ax, z.ay, qw * k, qh * k);
+        const topoC = z.ay + qh * k * .1;
+        for (let j = 0; j < 3; j++)   // chamas do PixelLab no alto da cabeça (sem a imagem: chamas desenhadas)
+          if (!drawChama(z.ax + qw * k * (.36 + j * .16), topoC + 8, (rage ? 1.25 : 1) * (j === 1 ? 1.15 : .95), j * 3))
+            chamaPixel(z.ax + qw * k * (.36 + j * .16), topoC + 3, 13, (rage ? 30 : 22) + Math.sin(time * 9 + j * 1.9) * 7, time * 11 + j * 1.7);
+        if (b.flash > 0) { ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = Math.min(1, b.flash * 3) * .6; ctx.drawImage(S.image, qx, qy, qw, qh, z.ax, z.ay, qw * k, qh * k); ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over'; }
+        ctx.imageSmoothingEnabled = true; ctx.restore();
       }
       ctx.restore();
     },
