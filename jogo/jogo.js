@@ -1121,7 +1121,7 @@ CHEFES.boitata = (() => {
   const COR_COSTAS = '#2b201e', COR_BARRIGA = '#e6cf9f', BARRIGA_DESDE = .54;   // por baixo das escamas
   const JEITO_ATAQUE = { f: 2.8, z: .55, r: .6 };
   const JEITO_VOLTA = { f: 1.5, z: .8, r: 0 };   // volta do bote e da rabada: firme e sem tranco
-  const AFUNDA = 30;     // o rolo desce até o chão e fica NA FRENTE dele, sem corte (2026-11-14, Erick)
+  const AFUNDA = 40;     // o rolo desce até o chão e fica NA FRENTE dele, sem corte (2026-11-14, Erick)
   const TOPO_CAB = 95;   // a cabeça (o corte do pescoço) não sobe acima disto: chamas e HUD à vista
   const PADRAO = ['idle', 'cospe', 'idle', 'prep', 'idle', 'cospe', 'prep'];
   const MAX_P = 5, MAX_R = 3;
@@ -1243,7 +1243,8 @@ CHEFES.boitata = (() => {
   }
   const rFimCab = b => { const z = cab(b); return z ? z.rFim * 1.08 : 26; };
   const raioPesc = (b, i, n) => { const rF = rFimCab(b), r0 = ROLO_C.rPesc * ZC; return rF + (r0 - rF) * ease(Math.min(1, i / n * 1.6)); };
-  const raioRabo = (i, n) => 4 + (ROLO_C.rRabo * ZC - 4) * Math.pow(i / Math.max(1, n), .8);   // i = 0 na ponta
+  // i = 0 na ponta: bem fininha (2026-11-14, Erick), afinando mais rápido perto dela
+  const raioRabo = (i, n) => 1.2 + (ROLO_C.rRabo * ZC - 1.2) * Math.pow(i / Math.max(1, n), 1.15);
 
   // ---------- qual pose e qual jeito em cada momento ----------
   function poseDoMomento(b) {
@@ -1351,7 +1352,15 @@ CHEFES.boitata = (() => {
     } catch (_) { BRASA[nome] = null; }   // sem acesso aos pixels: fica sem o brilho
     return BRASA[nome];
   }
-  const boca = b => ({ x: b.cc.x - b.cc.r * .9, y: b.cc.y + b.cc.r * .35 });   // de onde saem as bolas de fogo
+  // de onde saem as bolas de fogo: a frente da boca na arte da cabeça (fração da imagem, antes de
+  // espelhar; a aberta tem a boca entre as mandíbulas em 36,27 de 47×46), girada com a cabeça
+  const BOCA = { cabeca_ataque: [.77, .59], cabeca: [.86, .66] };
+  function boca(b) {
+    const z = cab(b);
+    if (!z) return { x: b.cc.x - b.cc.r * .9, y: b.cc.y + b.cc.r * .35 };
+    const f = BOCA[z.nome] || BOCA.cabeca, v = mundo(z.ax + f[0] * z.q[2] * z.k, z.ay + f[1] * z.q[3] * z.k, b.rot);
+    return { x: b.hx + v.x, y: b.hy + v.y };
+  }
 
   // cópia suavizada de uma corrente: segue a de verdade com atraso curto e passa por "fixo" passadas
   // de média com os vizinhos (as 2 pontas ficam onde estão)
@@ -1374,7 +1383,7 @@ CHEFES.boitata = (() => {
     ctx.strokeStyle = '#080305'; ctx.lineCap = 'round';
     for (const g of lista) {
       const e = g.ext || 0, d = Math.hypot(g.b.x - g.a.x, g.b.y - g.a.y) || 1, ux = (g.b.x - g.a.x) / d, uy = (g.b.y - g.a.y) / d;
-      ctx.lineWidth = g.r * 2 + 6; ctx.beginPath(); ctx.moveTo(g.a.x - ux * e, g.a.y - uy * e); ctx.lineTo(g.b.x + ux * e, g.b.y + uy * e); ctx.stroke();
+      ctx.lineWidth = g.r * 2 + Math.min(6, 2 + g.r * .8); ctx.beginPath(); ctx.moveTo(g.a.x - ux * e, g.a.y - uy * e); ctx.lineTo(g.b.x + ux * e, g.b.y + uy * e); ctx.stroke();
     }
     ctx.lineCap = 'butt';
   }
@@ -1426,8 +1435,9 @@ CHEFES.boitata = (() => {
     enraged,
     criar(cfg) {
       const E = esqueleto(cfg);
-      const b = { cfg, E, cx: ARENA.x0 + 760, subir: 260, hx: 0, hy: 0, rot: 0, fire: cfg.vida, max: cfg.vida,
-        state: 'enter', st: 0, passo: -1, flash: 0, volley: 0, botes: 0, dead: false, deadT: 0, rCd: 0, calma: 0,
+      // já está na arena, enrolada, esperando o herói (estado 'espera': só respira e balança; sem ataques)
+      const b = { cfg, E, cx: ARENA.x0 + 760, subir: 0, hx: 0, hy: 0, rot: 0, fire: cfg.vida, max: cfg.vida,
+        state: 'espera', st: 0, passo: -1, flash: 0, volley: 0, botes: 0, dead: false, deadT: 0, rCd: 0, calma: 0,
         desvio: 0, extra: 0, seg: {}, neck: [], tail: [], cc: { x: 0, y: 0, r: 40 } };
       const G = geo(b);
       b.pesc = corrente(E.pn, G.N.x, G.N.y, G.dN.x, G.dN.y);
@@ -1455,9 +1465,11 @@ CHEFES.boitata = (() => {
       }
 
       const T = b.state;
-      if (T === 'enter') {
-        b.subir = Math.max(0, 260 * (1 - ease(Math.min(1, b.st / 1.8)))); shake = Math.max(shake, .05);
-        if (b.st > 2.2) proximo(b);
+      if (T === 'espera') {
+        // nada: só a pose de descanso, até o herói entrar na arena
+      } else if (T === 'enter') {   // o herói entrou: ela acorda (tremor e brasas), sem sair do lugar
+        if (b.st < dt * 1.5) { shake = .35; for (let i = 0; i < 3; i++) burst(G.x0 + G.w * (.25 + i * .25), G.y0 + G.h * .5, 14, FIRE, 220, .8, -80, 3); }
+        if (b.st > 1.4) proximo(b);
       } else if (T === 'idle') {
         if (pcx > G.x0 - 230 && b.rCd <= 0) { b.state = 'rabada'; b.st = 0; b.bateu = false; }   // chegou perto do rolo: rabada
         else if (b.st > (furia ? 1.0 : 1.6)) proximo(b);
@@ -1466,7 +1478,7 @@ CHEFES.boitata = (() => {
         // aviso: a boca acende nos 0,5 s antes de cada rajada
         b.aviso = b.volley < volleys ? clamp(1 - (first + b.volley * gap - b.st) / .5, 0, 1) : 0;
         if (b.volley < volleys && b.st > first + b.volley * gap) {
-          const n = furia ? 5 : 3, bx = c.x - c.r * .9, by = c.y + c.r * .35, base0 = Math.atan2(pcy - by, pcx - bx);
+          const m = boca(b), n = furia ? 5 : 3, bx = m.x, by = m.y, base0 = Math.atan2(pcy - by, pcx - bx);
           for (let i = 0; i < n; i++) {
             const a = base0 + (i - (n - 1) / 2) * .2, s = 380 * sp;
             fireballs.push({ x: bx, y: by, vx: Math.cos(a) * s, vy: Math.sin(a) * s, r: 18, life: 4, dano: D.bolaDeFogo });
@@ -1513,7 +1525,7 @@ CHEFES.boitata = (() => {
       }
 
       // contato: cabeça (mordida; veneno no bote), pescoço e rolo em brasa
-      if (T !== 'enter') {
+      if (T !== 'enter' && T !== 'espera') {
         if (circleRect(b.cc.x, b.cc.y, b.cc.r * .8, player)) { if (T === 'bote') hurtPlayer(D.veneno, b.cc.x, D.venenoSeg); else hurtPlayer(D.mordida, b.cc.x); }
         for (let i = 3; i < b.neck.length; i += 3) { const s = b.neck[i]; if (circleRect(s.x, s.y, s.r * .8, player)) { hurtPlayer(D.corpo, s.x); break; } }
         if (circleRect(G.x0 + G.w * .52, GROUND - G.h * .3, G.h * .42, player)) hurtPlayer(D.corpo, G.x0 + G.w * .52);
@@ -1622,7 +1634,8 @@ const CHEFE = CHEFES[CHEFE_CFG.tipo];
 function startBoss() {
   encontrar(FASE_ID);
   bossActive = true;
-  boss = CHEFE.criar(CHEFE_CFG);
+  boss = boss || CHEFE.criar(CHEFE_CFG);   // normalmente já está na arena, esperando
+  boss.state = 'enter'; boss.st = 0;
   if (params.has('chefevida')) boss.fire = +params.get('chefevida');   // teste: chefe com pouca vida
   banner = 3.6;
   enemies = enemies.filter(e => e.x < ARENA.x0 - 100);
@@ -1648,7 +1661,7 @@ function damageBoss(hit, dmg, kind) {
     floatText(b.hx, b.hy - 60, 'O fogo se apagou!', '#ffffff');
   }
 }
-const bossHittable = () => boss && !boss.dead && boss.state !== 'enter';
+const bossHittable = () => bossActive && boss && !boss.dead && boss.state !== 'enter';
 
 // ---------- atualização ----------
 let demoT = 0;
@@ -1878,7 +1891,10 @@ function update(dt) {
   fireballs = fireballs.filter(f => f.life > 0 && f.x > ARENA.x0 - 200 && f.x < ARENA.x1 + 200);
 
   if (!bossActive && !bossDefeated && player.x > FASE.gatilhoChefe) startBoss();
-  if (bossActive && boss) CHEFE.atualizar(boss, dt);
+  // o chefe já fica na arena esperando: criado quando o herói chega perto (antes da placa)
+  if (!boss && !bossDefeated && player.x > ARENA.x0 - 1500) boss = CHEFE.criar(CHEFE_CFG);
+  const chefeVisivel = boss && (bossActive || boss.state === 'espera');
+  if (chefeVisivel) CHEFE.atualizar(boss, dt);
   banner = Math.max(0, banner - dt);
 
   atualizarDrops(dt);
@@ -2934,7 +2950,7 @@ function luzes() {
     if (comAltar) L.push([c - camX, GROUND - 40, i <= checkpoint ? 150 + f : 55, i <= checkpoint ? '255,205,110' : null, .5]);
     else if (i > 0) L.push([c + 2 - camX, GROUND - 50, i <= checkpoint ? 110 : 60, i <= checkpoint ? '160,220,255' : null, .3]);
   });
-  if (bossActive && boss && CHEFE.luzes) for (const [x, y, r, cor] of CHEFE.luzes(boss)) L.push([x - camX, y, r, cor, .45]);
+  if (boss && (bossActive || boss.state === 'espera') && CHEFE.luzes) for (const [x, y, r, cor] of CHEFE.luzes(boss)) L.push([x - camX, y, r, cor, .45]);
   if (pendant) L.push([pendant.x - camX, pendant.y, 120, '220,230,255', .45]);
   if (SPR['objetos/placa']) L.push([ARENA.x0 + 40 - camX, GROUND - 40, 80 + f, '255,130,50', .35]);
   for (const b of baus) L.push([b.x - camX, b.y - 10, b.aberto ? 110 : 70, '255,210,90', b.aberto ? .5 : .3]);
@@ -3230,10 +3246,19 @@ function drawProjectiles() {
     const g = ctx.createRadialGradient(x, y, 2, x, y, 40);
     g.addColorStop(0, 'rgba(255,255,255,.8)'); g.addColorStop(1, 'rgba(200,210,230,0)');
     ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, y, 40, 0, Math.PI * 2); ctx.fill();
+    // arte do pingente da fase (img/sprites/objetos/pingente/<fase>.png), balançando de leve
+    const im = layer('objetos/pingente', FASE_ID);
+    if (im) {
+      const w = im.naturalWidth * 2, h = im.naturalHeight * 2;
+      ctx.save(); ctx.translate(Math.round(x), Math.round(y - h / 2)); ctx.rotate(Math.sin(pendant.t * 2.2) * .12);
+      ctx.imageSmoothingEnabled = false; ctx.drawImage(im, -Math.round(w / 2), 0, w, h); ctx.imageSmoothingEnabled = true;
+      ctx.restore();
+    } else {
     ctx.strokeStyle = '#c9ced8'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(x - 12, y - 22); ctx.lineTo(x, y - 12); ctx.lineTo(x + 12, y - 22); ctx.stroke();
     ctx.fillStyle = '#e6e9f0'; ctx.beginPath(); ctx.arc(x, y, 13, 0, Math.PI * 2); ctx.fill();
     ctx.strokeStyle = '#8f97a6'; ctx.lineWidth = 2.5;
     ctx.beginPath(); ctx.moveTo(x - 7, y + 5); ctx.bezierCurveTo(x - 9, y - 6, x + 1, y - 2, x, y + 2); ctx.bezierCurveTo(x - 1, y + 8, x + 9, y + 6, x + 7, y - 6); ctx.stroke();
+  }
   }
 }
 
@@ -3576,7 +3601,7 @@ function draw() {
   const sh = shake > 0 ? shake * 14 : 0;
   ctx.save(); ctx.translate(rnd(-sh, sh), rnd(-sh, sh) - Math.round(camY));
   medir('fundo', () => { drawBackground(); if (camY > 0) drawSala(); }); medir('mundo', () => { drawWorld(); drawBaus(); drawEnemies(); drawDrops(); });
-  if (bossActive && boss) medir('chefe', () => CHEFE.desenhar(boss));
+  if (boss && (bossActive || boss.state === 'espera')) medir('chefe', () => CHEFE.desenhar(boss));
   medir('perso', () => { if (!piso()) drawChao(); drawPlayer(); drawProjectiles(); drawParticles(); });
   medir('frente', drawFrente);
   ctx.restore();

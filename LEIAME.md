@@ -251,7 +251,7 @@ Pessoal (família).
   comprimento e volta para dentro quando pede menos (mínimo de 14 gomos), senão a sobra estufa.
   Teste de jeito sem mexer no código: `&jeito=f,z,r` (ex.: `?play&boss&x=8800&jeito=1.2,0.35,0`).
   A versão 5 ficou guardada como `CHEFES.boitata_v5` (`tipo: 'boitata_v5'`, usa `ancoras`).
-  **Ajustes de 2026-11-14 (pedidos do Erick):** o rolo desce 30 px (`AFUNDA`) e fica **na frente**
+  **Ajustes de 2026-11-14 (pedidos do Erick):** o rolo desce 40 px (`AFUNDA`) e fica **na frente**
   do chão, sem recorte (só a cabeça cravada entra no chão). O rabo nasce mais alto e mais para dentro, atrás da volta de baixo, em (36, 113) da arte e
   com grossura 17, sem a fresta entre ele e o rolo. A barriga do rabo fica do mesmo lado do corpo do
   começo ao fim: antes cada gomo virava a barriga para baixo e a ponta erguida aparecia invertida.
@@ -268,8 +268,19 @@ Pessoal (família).
   de lava da cabeça (os pixels laranja da arte) pulsam devagar. Antes de cada rajada a boca acende
   e cresce por 0,5 s (o aviso do cuspe) e sai mais fumaça das narinas. Na fúria (vida abaixo de 35%)
   a crista pega fogo de verdade (as chamas do PixelLab) e as rachaduras pulsam forte e rápido.
+  **Já na arena (2026-11-14, Erick):** o Boitatá não sobe mais do chão. Ele é criado quando o
+  herói chega a 1.500 px da arena e fica enrolado no lugar, em descanso (estado `espera`: sem
+  ataques, sem dano de contato, não leva golpe), visto já na hora da placa. Ao passar o gatilho, ele
+  acorda (tremor e brasas, 1,4 s) e a luta começa. **Bolas de fogo pela boca:** saem da frente da boca
+  aberta da arte (ponto 36,27 de 47×46, girado com a cabeça; `BOCA`), não mais de um ponto fixo do
+  crânio, que caía no nariz. **Ponta do rabo bem fina:** grossura de 30 na base até 1,2 na ponta,
+  afinando mais rápido no fim; rabo com 38 gomos (era 34) e contorno preto mais fino nas partes finas.
   A pose `prepara` foi feita pelo Claude a partir do descanso do Erick (cabeça recuada e armada
   sob o arco do pescoço); a padrão do laboratório deixava a cabeça caída dentro da volta.
+- **Pingente com arte (2026-11-14, preparado):** o jogo usa `objetos/pingente/<id da fase>` (ex.:
+  `img/sprites/objetos/pingente/boitata.png`, 26 px de altura na arte) balançando de leve; sem a
+  imagem, volta o disco desenhado. Prompt na seção 4.10 dos prompts (amuleto de prata em gota de
+  fogo, com a cobra enrolada em relevo e olho de brasa). Aguardando a arte.
 - **Tiro de água com arte (2026-11-14):** bolha do PixelLab (9 quadros de 64 px; folha original em
   `img/sprites/objetos/bola_agua/originais/`), 16 px de altura na arte. O poder diz qual imagem usar
   (`imagem` em `PODERES`, herois.js); o tiro gira para onde voa. A arte voa para a esquerda (bola

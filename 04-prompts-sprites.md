@@ -837,6 +837,34 @@ opens, the lid is a mouth with rows of sharp white teeth, a long red tongue and 
 yellow eyes inside. Side view, 16-bit detailed pixel art, black outline, transparent background.
 ```
 
+## 4.10 Pingente do Boitatá (PixelLab) — 2026-11-14
+
+O troféu que o Boitatá deixa ao virar pó (caderno, p. 11: pingente **prateado**). Hoje é um disco
+com um S desenhado pelo jogo. Ideia nova: um **amuleto de prata em forma de gota de fogo**, com a
+**cobra enrolada em relevo**, do mesmo jeito do chefe (3 voltas e a cabeça subindo do meio), com
+as rachaduras de lava nas costas e o olho de **brasa** (uma pedrinha laranja acesa). Prata velha,
+argola no alto com um pedaço de corrente. Assim ele lembra a luta: a pose do Boitatá na arena.
+
+1. **Create image** (objeto / map object), 64×64, fundo transparente, vista de frente.
+2. Gerar 4 a 8 variações e escolher. Salvar como
+   `img/sprites/objetos/pingente/boitata.png` (um arquivo por chefe: o próximo vira
+   `pingente/<id da fase>.png`). O Claude roda a ferramenta; o jogo troca o desenho atual pela
+   imagem e faz ela balançar de leve no chão.
+
+```
+A small silver amulet pendant, a trophy from a dark fantasy game. The pendant is shaped like a
+teardrop flame, made of old polished silver with a dark engraved border. On its face, in relief,
+a coiled serpent: the body coils in three loops like a spiral at the bottom, and the neck rises in
+an S from the middle of the coil, the head on top facing left with the mouth slightly open and two
+small fangs. Thin glowing orange lava cracks run along the serpent's back, and its eye is a tiny
+glowing ember-orange gem. A small silver loop at the top with a short piece of silver chain. Faint
+orange sparks around it. Front view, centered, 16-bit detailed pixel art, black outline,
+transparent background, no text.
+```
+
+Se vier muito enfeitado ou ilegível em tamanho pequeno, acrescente `simple, bold shapes, readable
+at small size` e tire `Faint orange sparks around it`.
+
 ## 5. Ficha dos 3 heróis com constelação (para a Milena)
 
 O humano já está definido (o 4º jogador, sem constelação). Antes das imagens de cada herói dos
