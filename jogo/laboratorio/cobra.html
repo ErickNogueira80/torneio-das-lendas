@@ -28,16 +28,17 @@
 <body>
 <main>
   <h1>Laboratório da cobra</h1>
-  <p>Teste e edição do movimento do Boitatá (fora do jogo). <b>A</b>: rolo desenhado, com pescoço e rabo em corrente.
-    <b>B</b>: a cobra inteira em corrente. O boneco é o herói, para dar a escala.</p>
+  <p>Teste e edição do movimento do Boitatá (fora do jogo). <b>B</b>: a cobra inteira em corrente (a escolhida).
+    <b>A</b>: rolo desenhado, com pescoço e rabo em corrente. O boneco é o herói, para dar a escala.</p>
   <canvas id="tela" width="960" height="540"></canvas>
 
   <div class="barra">
-    <button id="bA" class="ativo">A · rolo desenhado</button>
-    <button id="bB">B · corpo todo</button>
+    <button id="bB" class="ativo">B · corpo todo</button>
+    <button id="bA">A · rolo desenhado</button>
     <button id="bSeguir">Cabeça segue o dedo</button>
     <button id="bEditar" class="ativo">Editar esqueleto</button>
-    <button id="bOssos">Ossos no pescoço: 2</button>
+    <button id="bOssosP">Ossos no pescoço: 2</button>
+    <button id="bOssosR">Ossos no rabo: 1</button>
     <button id="bOsso">Mostrar gomos</button>
   </div>
 
@@ -52,10 +53,18 @@
   </div>
   <p class="dica">Com <b>Editar esqueleto</b> ligado, escolha uma pose e arraste as alças:
     <i style="background:#ffd54a"></i>cabeça <i style="background:#7fe0ff"></i>ossos do pescoço
-    <i style="background:#ff9a5a"></i>ponta do rabo <i style="background:#ffc49a"></i>meio do rabo.
-    Toque duas vezes num osso do meio para soltá-lo (fica livre); toque no círculo tracejado do pescoço para prender de novo.
+    <i style="background:#ff9a5a"></i>ponta do rabo <i style="background:#ffc49a"></i>ossos do rabo.
+    Toque duas vezes num osso para soltá-lo (fica livre); toque no círculo tracejado para prender de novo.
     As poses ficam guardadas neste navegador.</p>
 
+  <h2>Corpo</h2>
+  <div class="ajustes">
+    <label><span>Comprimento do pescoço: <b id="vpn"></b> gomos · na B, mais pescoço = sai mais baixo do rolo</span><input id="pn" type="range" min="12" max="60" step="1" value="26"></label>
+    <label><span>Comprimento do rabo: <b id="vrn"></b> gomos</span><input id="rn" type="range" min="8" max="45" step="1" value="22"></label>
+    <label><span>Rolo B · voltas: <b id="vv"></b></span><input id="v" type="range" min="1.5" max="4.5" step="0.1" value="3"></label>
+    <label><span>Rolo B · tamanho: <b id="vt"></b></span><input id="t" type="range" min="0.6" max="1.4" step="0.05" value="1"></label>
+    <label><span>Rolo B · grossura: <b id="vg"></b> · embaixo é mais gordo</span><input id="g" type="range" min="0.6" max="1.5" step="0.05" value="1"></label>
+  </div>
   <h2>Jeito do movimento</h2>
   <div class="ajustes">
     <label><span>Rapidez (f): <b id="vf"></b></span><input id="f" type="range" min="0.3" max="6" step="0.1" value="2.2"></label>
@@ -63,8 +72,6 @@
     <label><span>Resposta (r): <b id="vr"></b> · negativo = prepara antes</span><input id="r" type="range" min="-2" max="3" step="0.1" value="1.2"></label>
     <label><span>Ondulação do pescoço: <b id="vo"></b></span><input id="o" type="range" min="0" max="24" step="1" value="8"></label>
     <label><span>Dobra máxima por gomo: <b id="vd"></b>°</span><input id="d" type="range" min="6" max="40" step="1" value="16"></label>
-    <label><span>Rolo B · tamanho: <b id="vt"></b></span><input id="t" type="range" min="0.6" max="1.4" step="0.05" value="1"></label>
-    <label><span>Rolo B · voltas: <b id="vv"></b></span><input id="v" type="range" min="1.2" max="3.5" step="0.1" value="2.3"></label>
   </div>
   <h2>Poses para mandar ao Claude</h2>
   <textarea id="saida" readonly placeholder="Clique em Copiar poses: o texto aparece aqui (e vai para a área de transferência)."></textarea>
@@ -75,12 +82,14 @@
 const cv = document.getElementById('tela'), ctx = cv.getContext('2d');
 const W = 960, H = 540, CHAO = 460, SP = 12;   // SP = distância fixa entre os gomos
 const $ = id => document.getElementById(id);
-let modo = 'A', seguir = false, editar = true, mostrarGomos = false, nOssos = 2;
+let modo = 'B', seguir = false, editar = true, mostrarGomos = false;
 let mouse = { x: 300, y: 200, ativo: false }, arrasto = null, ultimoToque = { t: 0, nome: '' };
 let cobra = null, t = 0, fila = null, tFila = 0;
-const P = { f: 2.2, z: .55, r: 1.2, o: 8, d: 16, t: 1, v: 2.3 };
+const MAX_P = 5, MAX_R = 3;
+let nP = 2, nR = 1;   // ossos em uso no pescoço e no rabo
+const P = { pn: 26, rn: 22, v: 3, t: 1, g: 1, f: 2.2, z: .55, r: 1.2, o: 8, d: 16 };
 for (const k of Object.keys(P)) {
-  const el = $(k), at = () => { P[k] = +el.value; $('v' + k).textContent = el.value; if ((k === 't' || k === 'v') && cobra) montar(); };
+  const el = $(k), at = () => { P[k] = +el.value; $('v' + k).textContent = el.value; if ((k === 't' || k === 'v' || k === 'g') && cobra) montar(); };
   el.oninput = at; at();
 }
 const marca = (id, on) => $(id).classList.toggle('ativo', on);
@@ -94,6 +103,8 @@ fetch('../sprites/sprites.json', { cache: 'no-cache' }).then(r => r.json()).then
   if (h && h.img) { HEROI = { s: h, im: new Image() }; HEROI.im.src = '../sprites/' + h.img + (h.ver ? '?v=' + h.ver : ''); }
 });
 const pronta = im => im && im.complete && im.naturalWidth > 0;
+// cores por baixo das escamas (o que aparece nas frestas quando o corpo estica ou dobra)
+const COR_COSTAS = '#2b201e', COR_BARRIGA = '#e6cf9f', BARRIGA_DESDE = .54;   // a barriga começa em 54% da faixa
 
 // ---------- matemática ----------
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
@@ -129,39 +140,53 @@ function fabrik(pts, alvo, base, dirBase, raio, iter = 8) {
     }
   }
 }
-// corrente com ossos no meio: resolve em trechos (base → osso → osso → ponta); cada osso puxa o
-// gomo dele. alvos = [{ i, p }], i = índice do gomo (0 = ponta).
+// corrente com ossos no meio: resolve em trechos (base → ossos → ponta). alvos = [{ i, p }], i = gomo (0 = ponta).
 function resolver(pts, alvos, base, dirBase, raio) {
   const n = pts.length - 1, ponta = alvos.find(a => a.i === 0);
   const meio = alvos.filter(a => a.i > 0 && a.i < n).sort((a, b) => b.i - a.i);
   const marcos = [{ i: n, p: base }, ...meio, ponta];
   let b0 = base, dir = dirBase;
   for (let k = 0; k < marcos.length - 1; k++) {
-    const iB = marcos[k].i, iP = marcos[k + 1].i, sub = pts.slice(iP, iB + 1);
+    const iB = marcos[k].i, iP = marcos[k + 1].i; if (iB <= iP) continue;
+    const sub = pts.slice(iP, iB + 1);
     fabrik(sub, marcos[k + 1].p, b0, dir, i => raio(i + iP));
     b0 = { x: pts[iP].x, y: pts[iP].y };
     const a = pts[iP], b = pts[Math.min(iP + 1, n)], dd = Math.hypot(a.x - b.x, a.y - b.y) || 1;
     dir = { x: (a.x - b.x) / dd, y: (a.y - b.y) / dd };
   }
 }
+function ajustaTamanho(pts, n) {   // ganha/perde gomos na base
+  while (pts.length - 1 < n) { const b = pts[pts.length - 1]; pts.push({ x: b.x, y: b.y }); }
+  while (pts.length - 1 > n) pts.pop();
+}
 function corrente(n, x, y, dx, dy) { return Array.from({ length: n + 1 }, (_, i) => ({ x: x + dx * (n - i) * SP, y: y + dy * (n - i) * SP })); }
 
-// ---------- poses (pescoço relativo à base do pescoço; rabo relativo à base do rabo) ----------
+// ---------- poses ----------
+// pescoço relativo à base do pescoço; rabo relativo à base do rabo. ossos: do mais perto da ponta
+// para o mais perto da base; null = osso solto (a corrente fica livre ali).
 const NOMES = { descanso: 'Descanso', cospe: 'Cospe fogo', prepara: 'Prepara o bote', bote: 'Bote', rabada_cima: 'Rabada (cima)', rabada_chao: 'Rabada (chão)' };
-const RAPIDAS = { bote: 2.6, rabada_chao: 2.8 };
-const N_MAX = 24 + 60;   // poses que chegam mais rápido
+const RAPIDAS = { bote: 2.6, rabada_chao: 2.8 };   // poses que chegam mais rápido
+const vazio = n => Array(n).fill(null);
 const PADRAO = {
-  descanso:    { cab: [-150, -150], m1: [-60, -175], m2: [5, -110], rabo: [-240, 30], rm: [-120, 30] },
-  cospe:       { cab: [-130, -195], m1: [-40, -215], m2: [15, -130], rabo: [-240, 30], rm: [-120, 30] },
-  prepara:     { cab: [-40, -215], m1: [30, -205], m2: [40, -115], rabo: [-230, 30], rm: [-115, 30] },
-  bote:        { cab: [-420, 125], m1: [-230, -60], m2: [-60, -125], rabo: [-240, 30], rm: [-120, 30] },
-  rabada_cima: { cab: [-150, -150], m1: [-60, -175], m2: [5, -110], rabo: [-110, -210], rm: [-70, -110] },
-  rabada_chao: { cab: [-150, -150], m1: [-60, -175], m2: [5, -110], rabo: [-310, 40], rm: [-160, 20] },
+  descanso:    { cab: [-150, -150], op: [[-60, -175], [5, -110], null, null, null], rabo: [-240, 30], or: [[-120, 30], null, null] },
+  cospe:       { cab: [-130, -195], op: [[-40, -215], [15, -130], null, null, null], rabo: [-240, 30], or: [[-120, 30], null, null] },
+  prepara:     { cab: [-40, -215], op: [[30, -205], [40, -115], null, null, null], rabo: [-230, 30], or: [[-115, 30], null, null] },
+  bote:        { cab: [-420, 125], op: [[-230, -60], [-60, -125], null, null, null], rabo: [-240, 30], or: [[-120, 30], null, null] },
+  rabada_cima: { cab: [-150, -150], op: [[-60, -175], [5, -110], null, null, null], rabo: [-110, -210], or: [[-70, -110], null, null] },
+  rabada_chao: { cab: [-150, -150], op: [[-60, -175], [5, -110], null, null, null], rabo: [-310, 40], or: [[-160, 20], null, null] },
 };
 const SEQ = [['descanso', 1.2], ['cospe', 1.1], ['descanso', .8], ['prepara', .8], ['bote', 1.2], ['descanso', 1.2], ['rabada_cima', .55], ['rabada_chao', .7], ['descanso', 1.2]];
 let POSES = JSON.parse(JSON.stringify(PADRAO));
-try { const g = JSON.parse(localStorage.getItem('lab_cobra_poses') || 'null'); if (g) for (const k of Object.keys(PADRAO)) if (g[k]) POSES[k] = { ...PADRAO[k], ...g[k] }; } catch (_) { /* sem armazenamento */ }
-const salvar = () => { try { localStorage.setItem('lab_cobra_poses', JSON.stringify(POSES)); } catch (_) { /* sem armazenamento */ } };
+function normaliza(p, base) {   // aceita poses antigas (m1, m2, rm) e completa os ossos
+  const op = p.op || [p.m1 || null, p.m2 || null], or = p.or || [p.rm || null];
+  return { cab: p.cab || base.cab, rabo: p.rabo || base.rabo, op: [...op, ...vazio(MAX_P)].slice(0, MAX_P), or: [...or, ...vazio(MAX_R)].slice(0, MAX_R) };
+}
+try {
+  const g = JSON.parse(localStorage.getItem('lab_cobra_poses') || 'null');
+  if (g) for (const k of Object.keys(PADRAO)) if (g[k]) POSES[k] = normaliza(g[k], PADRAO[k]);
+  const o = JSON.parse(localStorage.getItem('lab_cobra_ossos') || 'null'); if (o) { nP = o.p; nR = o.r; }
+} catch (_) { /* sem armazenamento */ }
+const salvar = () => { try { localStorage.setItem('lab_cobra_poses', JSON.stringify(POSES)); localStorage.setItem('lab_cobra_ossos', JSON.stringify({ p: nP, r: nR })); } catch (_) { /* sem armazenamento */ } };
 let poseAtual = 'descanso', tocando = false, tSeq = 0;
 for (const k of Object.keys(NOMES)) {
   const b = document.createElement('button'); b.textContent = NOMES[k]; b.id = 'p_' + k;
@@ -170,19 +195,23 @@ for (const k of Object.keys(NOMES)) {
 }
 function marcaPoses() { for (const k of Object.keys(NOMES)) marca('p_' + k, k === poseAtual); }
 marcaPoses();
+const textoOssos = () => { $('bOssosP').textContent = 'Ossos no pescoço: ' + nP; $('bOssosR').textContent = 'Ossos no rabo: ' + nR; };
+textoOssos();
 
 // ---------- a cobra ----------
-const Z = 2, CAB_K = 3, N0 = 24, NR = 20;
+const Z = 2, CAB_K = 3;
 const heroi = { x: 250 };
 function geoRolo() {
   const c = PT ? PT.corpo : [0, 0, 173, 94], w = c[2] * Z, h = c[3] * Z, x0 = 770 - w / 2, y0 = CHAO + 6 - h;
   return { c, w, h, x0, y0, nx: x0 + .191 * w, ny: y0 + 3, rx: x0 + .017 * w + 6, ry: y0 + .723 * h };
 }
+// grossura do rolo B: u = 0 no alto (fino) até 1 embaixo (gordo)
+const rRolo = u => 34 * P.g * (.72 + .62 * clamp(u, 0, 1));
 function caminhoRolo() {   // B: espiral do alto (sai o pescoço) até embaixo (sai o rabo)
-  const pts = [], cx = 790, voltas = P.v, N = 900, k = P.t;
+  const pts = [], cx = 790, voltas = P.v, N = 1200, k = P.t, sobe = 50 * voltas * k;
   for (let i = 0; i <= N; i++) {
-    const u = i / N, th = -Math.PI / 2 - u * voltas * 2 * Math.PI, R = (70 + 95 * u) * k;
-    pts.push({ x: cx + Math.cos(th) * R, y: CHAO - 40 * k - (1 - u) * 120 * k + Math.sin(th) * R * .26, z: Math.sin(th) });
+    const u = i / N, th = -Math.PI / 2 - u * voltas * 2 * Math.PI, R = (60 + 105 * u) * k;
+    pts.push({ x: cx + Math.cos(th) * R, y: CHAO - rRolo(u) * .85 - (1 - u) * sobe + Math.sin(th) * R * .32, z: Math.sin(th), u });
   }
   const acc = [0];
   for (let i = 1; i < pts.length; i++) acc.push(acc[i - 1] + Math.hypot(pts[i].x - pts[i - 1].x, pts[i].y - pts[i - 1].y));
@@ -192,76 +221,110 @@ function noCaminho(C, s) {
   let lo = 0, hi = C.acc.length - 1; s = clamp(s, 0, C.len);
   while (hi - lo > 1) { const m = (lo + hi) >> 1; if (C.acc[m] < s) lo = m; else hi = m; }
   const k = (s - C.acc[lo]) / ((C.acc[hi] - C.acc[lo]) || 1), a = C.pts[lo], b = C.pts[hi];
-  return { x: a.x + (b.x - a.x) * k, y: a.y + (b.y - a.y) * k, z: a.z + (b.z - a.z) * k, dx: b.x - a.x, dy: b.y - a.y };
+  return { x: a.x + (b.x - a.x) * k, y: a.y + (b.y - a.y) * k, z: a.z + (b.z - a.z) * k, u: a.u + (b.u - a.u) * k, dx: b.x - a.x, dy: b.y - a.y };
 }
+// na B o pescoço "come" o começo do rolo: quanto mais pescoço (fixo + o que desenrola), mais baixo ele sai
+const usoRolo = c => (P.pn - 26 + c.extra) * SP;
 function bases(c) {   // de onde saem o pescoço e o rabo (e para que lado)
   if (modo === 'A') { const G = geoRolo(); return { N: { x: G.nx, y: G.ny }, dN: { x: .47, y: -.88 }, R: { x: G.rx, y: G.ry }, dR: { x: -1, y: .1 } }; }
-  const a = noCaminho(c.C, c.extra * SP), b = noCaminho(c.C, c.C.len), un = v => { const d = Math.hypot(v.x, v.y) || 1; return { x: v.x / d, y: v.y / d }; };
+  const a = noCaminho(c.C, Math.max(0, usoRolo(c))), b = noCaminho(c.C, c.C.len), un = v => { const d = Math.hypot(v.x, v.y) || 1; return { x: v.x / d, y: v.y / d }; };
   return { N: a, dN: un({ x: -a.dx, y: -a.dy }), R: b, dR: un({ x: b.dx, y: b.dy }) };
 }
 function montar() {
   const c = { extra: 0, C: modo === 'B' ? caminhoRolo() : null };
   const B = bases(c);
-  c.pesc = corrente(N0, B.N.x, B.N.y, B.dN.x, B.dN.y); c.rabo = corrente(NR, B.R.x, B.R.y, B.dR.x, B.dR.y);
-  c.s = {};
-  for (const h of ['cab', 'm1', 'm2', 'rabo', 'rm']) { const base = h.startsWith('r') ? B.R : B.N, p = POSES.descanso[h] || [0, 0]; c.s[h] = new Seguidor(base.x + p[0], base.y + p[1]); }
+  c.pesc = corrente(P.pn, B.N.x, B.N.y, B.dN.x, B.dN.y); c.rabo = corrente(P.rn, B.R.x, B.R.y, B.dR.x, B.dR.y);
+  c.s = {}; c.idx = {};
   cobra = c;
 }
 montar();
+function seguidor(h, x, y) { if (!cobra.s[h]) cobra.s[h] = new Seguidor(x, y); return cobra.s[h]; }
 $('bA').onclick = () => { modo = 'A'; marca('bA', true); marca('bB', false); montar(); };
 $('bB').onclick = () => { modo = 'B'; marca('bA', false); marca('bB', true); montar(); };
 $('bSeguir').onclick = () => { seguir = !seguir; marca('bSeguir', seguir); };
 $('bEditar').onclick = () => { editar = !editar; marca('bEditar', editar); };
 $('bOsso').onclick = () => { mostrarGomos = !mostrarGomos; marca('bOsso', mostrarGomos); };
-$('bOssos').onclick = () => { nOssos = (nOssos + 1) % 3; $('bOssos').textContent = 'Ossos no pescoço: ' + nOssos; };
+$('bOssosP').onclick = () => { nP = (nP + 1) % (MAX_P + 1); textoOssos(); salvar(); };
+$('bOssosR').onclick = () => { nR = (nR + 1) % (MAX_R + 1); textoOssos(); salvar(); };
 $('bTocar').onclick = () => { tocando = !tocando; fila = null; tSeq = 0; marca('bTocar', tocando); };
 $('bBote').onclick = () => { tocando = false; marca('bTocar', false); fila = [['prepara', .8], ['bote', 1.2], ['descanso', 0]]; tFila = 0; };
 $('bRabada').onclick = () => { tocando = false; marca('bTocar', false); fila = [['rabada_cima', .55], ['rabada_chao', .7], ['descanso', 0]]; tFila = 0; };
-$('bPadrao').onclick = () => { if (confirm('Voltar todas as poses ao padrão? As suas mudanças somem.')) { POSES = JSON.parse(JSON.stringify(PADRAO)); salvar(); } };
+$('bPadrao').onclick = () => { if (confirm('Voltar todas as poses ao padrão? As suas mudanças somem.')) { POSES = JSON.parse(JSON.stringify(PADRAO)); nP = 2; nR = 1; textoOssos(); salvar(); } };
 $('bCopiar').onclick = () => {
-  const txt = JSON.stringify({ versao: modo, ossosNoPescoco: nOssos, ajustes: { f: P.f, z: P.z, r: P.r, ondulacao: P.o, dobra: P.d, roloTamanho: P.t, roloVoltas: P.v }, poses: POSES });
+  const txt = JSON.stringify({ versao: modo, ossos: { pescoco: nP, rabo: nR }, corpo: { pescoco: P.pn, rabo: P.rn, voltas: P.v, tamanho: P.t, grossura: P.g },
+    ajustes: { f: P.f, z: P.z, r: P.r, ondulacao: P.o, dobra: P.d }, poses: POSES });
   $('saida').value = txt;
   try { navigator.clipboard.writeText(txt); } catch (_) { /* sem área de transferência: o texto fica na caixa */ }
 };
 
-// ---------- edição: arrastar alças ----------
-function posicao(e) { const r = cv.getBoundingClientRect(); return { x: (e.clientX - r.left) * W / r.width, y: (e.clientY - r.top) * H / r.height }; }
-const usaAlca = h => h === 'cab' || h === 'rabo' || h === 'rm' || (h === 'm1' && nOssos >= 1) || (h === 'm2' && nOssos >= 2);
-function alcas() {   // alças da pose atual, em coordenadas da tela
-  const B = bases(cobra), p = POSES[poseAtual], out = [];
-  for (const h of ['cab', 'm1', 'm2', 'rabo', 'rm']) if (usaAlca(h) && p[h]) { const b = h.startsWith('r') ? B.R : B.N; out.push({ h, x: b.x + p[h][0], y: b.y + p[h][1] }); }
+// ---------- ossos: quais estão em uso e em que gomo cada um fica ----------
+// lista de { chave, rel } do mais perto da BASE para o mais perto da ponta (só os presos)
+function ossosPresos(pose, parte) {
+  const arr = parte === 'p' ? pose.op : pose.or, n = parte === 'p' ? nP : nR, out = [];
+  for (let j = n - 1; j >= 0; j--) if (arr[j]) out.push({ chave: parte + j, rel: arr[j] });
   return out;
 }
-const idxOsso = (h, n) => (cobra && cobra.idx && cobra.idx[h] && h !== 'rm') ? cobra.idx[h] : Math.round(n * (h === 'm1' ? 1 / 3 : h === 'm2' ? 2 / 3 : .5));
+// gomo de cada osso: proporcional ao caminho da pose (o trecho comprido ganha mais gomos)
+function indices(pose, parte, n) {
+  const presos = ossosPresos(pose, parte), ponta = parte === 'p' ? pose.cab : pose.rabo;
+  const cam = [[0, 0], ...presos.map(o => o.rel), ponta], tr = [];
+  for (let i = 1; i < cam.length; i++) tr.push(Math.hypot(cam[i][0] - cam[i - 1][0], cam[i][1] - cam[i - 1][1]));
+  const total = tr.reduce((a, b) => a + b, 0) || 1, out = {};
+  let acum = 0;
+  presos.forEach((o, k) => { acum += tr[k]; out[o.chave] = clamp(Math.round(n * (1 - acum / total)), 1, n - 1); });
+  return { idx: out, total };
+}
+// onde mostrar um osso solto: dividido por igual entre os ossos em uso
+const idxSolto = (parte, j, n, total) => Math.round(n * (j + 1) / (total + 1));
+
+// ---------- edição: arrastar alças ----------
+function posicao(e) { const r = cv.getBoundingClientRect(); return { x: (e.clientX - r.left) * W / r.width, y: (e.clientY - r.top) * H / r.height }; }
+function alcas() {   // alças da pose atual, em coordenadas da tela
+  const B = bases(cobra), p = POSES[poseAtual], out = [{ h: 'cab', x: B.N.x + p.cab[0], y: B.N.y + p.cab[1] }, { h: 'rabo', x: B.R.x + p.rabo[0], y: B.R.y + p.rabo[1] }];
+  for (let j = 0; j < nP; j++) if (p.op[j]) out.push({ h: 'p' + j, x: B.N.x + p.op[j][0], y: B.N.y + p.op[j][1] });
+  for (let j = 0; j < nR; j++) if (p.or[j]) out.push({ h: 'r' + j, x: B.R.x + p.or[j][0], y: B.R.y + p.or[j][1] });
+  return out;
+}
+function poeNaPose(h, rel) {
+  const p = POSES[poseAtual];
+  if (h === 'cab') p.cab = rel; else if (h === 'rabo') p.rabo = rel;
+  else if (h[0] === 'p') p.op[+h.slice(1)] = rel; else p.or[+h.slice(1)] = rel;
+}
 cv.addEventListener('pointerdown', e => {
   const m = posicao(e); Object.assign(mouse, m, { ativo: true });
   if (!editar) return;
-  let melhor = null, dm = 34;
+  let melhor = null, dm = 30;
   for (const a of alcas()) { const d = Math.hypot(a.x - m.x, a.y - m.y); if (d < dm) { dm = d; melhor = a; } }
   const agora = performance.now();
   if (melhor) {
     const duplo = ultimoToque.nome === melhor.h && agora - ultimoToque.t < 350;
-    if (duplo && melhor.h !== 'cab' && melhor.h !== 'rabo') { POSES[poseAtual][melhor.h] = null; salvar(); arrasto = null; }
+    if (duplo && melhor.h !== 'cab' && melhor.h !== 'rabo') { poeNaPose(melhor.h, null); salvar(); arrasto = null; }
     else { arrasto = melhor.h; cv.setPointerCapture(e.pointerId); }
     ultimoToque = { t: agora, nome: melhor.h };
     return;
   }
   // tocar no círculo tracejado prende de novo um osso solto
-  const B = bases(cobra), p = POSES[poseAtual];
-  for (const h of ['m1', 'm2', 'rm']) if (usaAlca(h) && !p[h]) {
-    const pts = h === 'rm' ? cobra.rabo : cobra.pesc, q = pts[idxOsso(h, pts.length - 1)], b = h === 'rm' ? B.R : B.N;
-    if (Math.hypot(q.x - m.x, q.y - m.y) < 40) { p[h] = [Math.round(q.x - b.x), Math.round(q.y - b.y)]; salvar(); arrasto = h; cv.setPointerCapture(e.pointerId); return; }
+  const B = bases(cobra);
+  for (const s of soltos()) if (Math.hypot(s.x - m.x, s.y - m.y) < 26) {
+    const b = s.h[0] === 'p' ? B.N : B.R;
+    poeNaPose(s.h, [Math.round(s.x - b.x), Math.round(s.y - b.y)]); salvar(); arrasto = s.h; cv.setPointerCapture(e.pointerId); return;
   }
 });
 cv.addEventListener('pointermove', e => {
   const m = posicao(e); Object.assign(mouse, m, { ativo: true });
   if (!arrasto) return;
-  const B = bases(cobra), b = arrasto.startsWith('r') ? B.R : B.N;
-  POSES[poseAtual][arrasto] = [Math.round(m.x - b.x), Math.round(Math.min(m.y, CHAO - 4) - b.y)];
+  const B = bases(cobra), b = arrasto === 'cab' || arrasto[0] === 'p' ? B.N : B.R;
+  poeNaPose(arrasto, [Math.round(m.x - b.x), Math.round(Math.min(m.y, CHAO - 4) - b.y)]);
 });
 function solta() { if (arrasto) { arrasto = null; salvar(); } }
 cv.addEventListener('pointerup', solta); cv.addEventListener('pointercancel', solta);
 cv.addEventListener('pointerleave', () => { mouse.ativo = false; });
+function soltos() {   // ossos em uso que estão soltos na pose atual (onde mostrar o círculo tracejado)
+  const p = POSES[poseAtual], out = [];
+  for (const [parte, arr, n, pts] of [['p', p.op, nP, cobra.pesc], ['r', p.or, nR, cobra.rabo]])
+    for (let j = 0; j < n; j++) if (!arr[j]) { const q = pts[idxSolto(parte, j, pts.length - 1, n)]; if (q) out.push({ h: parte + j, x: q.x, y: q.y }); }
+  return out;
+}
 
 // ---------- atualização ----------
 function poseDoMomento(dt) {
@@ -279,32 +342,27 @@ function poseDoMomento(dt) {
 function atualizar(dt) {
   t += dt;
   const c = cobra, pose = poseDoMomento(dt), P0 = POSES[pose], fm = RAPIDAS[pose] || 1;
-  // caminho da pose: base → ossos presos → cabeça (o pescoço precisa ter pelo menos esse comprimento)
-  const presos = ['m2', 'm1'].filter(h => usaAlca(h) && P0[h]), cam = [[0, 0], ...presos.map(h => P0[h]), P0.cab], trechos = [];
-  for (let i = 1; i < cam.length; i++) trechos.push(Math.hypot(cam[i][0] - cam[i - 1][0], cam[i][1] - cam[i - 1][1]));
-  const total = trechos.reduce((a, b) => a + b, 0) || 1;
-  // o pescoço ganha gomos quando a pose pede mais comprimento (no B eles saem do rolo e o rolo encolhe)
-  const extraAlvo = clamp(Math.ceil(total * 1.15 / SP) - N0, 0, 60);
+  // o pescoço ganha gomos quando a pose pede mais comprimento (na B eles saem do rolo e o rolo encolhe)
+  const ip = indices(P0, 'p', c.pesc.length - 1);
+  const extraAlvo = clamp(Math.ceil(ip.total * 1.12 / SP) - P.pn, 0, 60);
   c.extra += clamp(extraAlvo - c.extra, -dt * 40, dt * 70);
-  const nAlvo = N0 + Math.round(c.extra);
-  while (c.pesc.length - 1 < nAlvo) { const b = c.pesc[c.pesc.length - 1]; c.pesc.push({ x: b.x, y: b.y }); }
-  while (c.pesc.length - 1 > nAlvo) c.pesc.pop();
+  if (modo === 'B') c.extra = Math.min(c.extra, (c.C.len - P.rn * SP) / SP - (P.pn - 26) - 8);   // sobra rolo
+  ajustaTamanho(c.pesc, P.pn + Math.round(c.extra)); ajustaTamanho(c.rabo, P.rn);
   const B = bases(c);
-  // alvos: as alças da pose, com a dinâmica de 2ª ordem (a alça que está sendo arrastada vai direto)
+  // alvos: as alças da pose, com a dinâmica de 2ª ordem (a alça arrastada vai direto)
   const balanco = pose === 'descanso' && !editar ? { x: Math.sin(t * 1.1) * 22, y: Math.sin(t * 1.7) * 10 } : { x: 0, y: 0 };
-  for (const h of ['cab', 'm1', 'm2', 'rabo', 'rm']) {
-    const p = P0[h]; if (!p) continue;
-    const b = h.startsWith('r') ? B.R : B.N;
-    let a = { x: b.x + p[0], y: Math.min(b.y + p[1], CHAO - 4) };
-    if (h === 'cab') { a.x += balanco.x; a.y += balanco.y; if (seguir && mouse.ativo && !editar) a = { x: mouse.x, y: Math.min(mouse.y, CHAO - 30) }; }
-    if (arrasto === h) c.s[h].pular(a.x, a.y); else c.s[h].passo(dt, a.x, a.y, fm);
-  }
-  // pescoço: cabeça e os ossos do meio que estão presos na pose
-  // cada osso fica no gomo proporcional ao caminho da pose (o trecho comprido ganha mais gomos)
-  const n = c.pesc.length - 1, alvos = [{ i: 0, p: { x: c.s.cab.x, y: Math.min(c.s.cab.y, CHAO - 14) } }];
-  let acum = 0;
-  presos.forEach((h, k) => { acum += trechos[k]; alvos.push({ i: clamp(Math.round(n * (1 - acum / total)), 2, n - 2), p: c.s[h] }); });
-  c.idx = Object.fromEntries(alvos.slice(1).map((a, k) => [presos[k], a.i]));
+  const move = (h, base, rel, extra) => {
+    let a = { x: base.x + rel[0] + (extra ? extra.x : 0), y: Math.min(base.y + rel[1] + (extra ? extra.y : 0), CHAO - 4) };
+    const s = seguidor(h, a.x, a.y);
+    if (arrasto === h) s.pular(a.x, a.y); else s.passo(dt, a.x, a.y, fm);
+    return s;
+  };
+  let alvoCab = { x: B.N.x + P0.cab[0], y: B.N.y + P0.cab[1] };
+  const sc = (seguir && mouse.ativo && !editar) ? move('cab', { x: mouse.x, y: Math.min(mouse.y, CHAO - 30) }, [0, 0]) : move('cab', B.N, P0.cab, balanco);
+  // pescoço: cabeça e ossos presos
+  const n = c.pesc.length - 1, ip2 = indices(P0, 'p', n), alvos = [{ i: 0, p: { x: sc.x, y: Math.min(sc.y, CHAO - 14) } }];
+  for (const o of ossosPresos(P0, 'p')) alvos.push({ i: ip2.idx[o.chave], p: move(o.chave, B.N, o.rel) });
+  c.idx = { ...ip2.idx };
   resolver(c.pesc, alvos, B.N, B.dN, i => raioPesc(i, n));
   // ondulação: uma onda que corre pelo pescoço (zero nas pontas)
   for (let i = 1; i < n; i++) {
@@ -312,16 +370,19 @@ function atualizar(dt) {
     const amp = P.o * Math.sin(Math.PI * i / n) * Math.sin(t * 3 - i * .35) * .15;
     c.pesc[i].x += -dy / d * amp; c.pesc[i].y += dx / d * amp;
   }
-  // rabo: ponta e meio
-  const nr = c.rabo.length - 1, alvR = [{ i: 0, p: { x: c.s.rabo.x, y: Math.min(c.s.rabo.y, CHAO - 6) } }];
-  if (P0.rm) alvR.push({ i: idxOsso('rm', nr), p: c.s.rm });
+  // rabo: ponta e ossos presos
+  const nr = c.rabo.length - 1, ir = indices(P0, 'r', nr), sr = move('rabo', B.R, P0.rabo), alvR = [{ i: 0, p: { x: sr.x, y: Math.min(sr.y, CHAO - 6) } }];
+  for (const o of ossosPresos(P0, 'r')) alvR.push({ i: ir.idx[o.chave], p: move(o.chave, B.R, o.rel) });
+  Object.assign(c.idx, ir.idx);
   resolver(c.rabo, alvR, B.R, B.dR, raioRabo);
   for (let i = 0; i < c.rabo.length; i++) c.rabo[i].y = Math.min(c.rabo[i].y, CHAO + 2 - raioRabo(i));
   c.pose = pose;
 }
 function rFimCab() { const pc = PESC && PESC.cabeca, q = PT && PT.cabeca; return pc && q ? pc[2] * q[3] * CAB_K / 2 * 1.08 : 26; }
-function raioPesc(i, n) { const r0 = modo === 'A' ? 55 : 44 * P.t, u = i / n; return rFimCab() + (r0 - rFimCab()) * ease(Math.min(1, u * 1.6)); }
-function raioRabo(i) { return 4 + 22 * (1 - i / NR); }
+function raioBase() { return modo === 'A' ? 55 : rRolo(cobra && cobra.C ? noCaminho(cobra.C, Math.max(0, usoRolo(cobra))).u : 0); }
+function raioPesc(i, n) { const r0 = raioBase(), u = i / n; return rFimCab() + (r0 - rFimCab()) * ease(Math.min(1, u * 1.6)); }
+// rabo: i = 0 na ponta (fino) até a base (grosso como o corpo onde ele sai)
+function raioRabo(i) { const rb = modo === 'A' ? 26 : rRolo(1), n = Math.max(1, (cobra ? cobra.rabo.length : P.rn + 1) - 1); return 4 + (rb - 4) * Math.pow(i / n, .8); }
 
 // ---------- desenho ----------
 function contorno(lista, ponta = 'round') {
@@ -331,7 +392,24 @@ function contorno(lista, ponta = 'round') {
     ctx.lineWidth = g.r * 2 + 6; ctx.beginPath(); ctx.moveTo(g.a.x - ux * e, g.a.y - uy * e); ctx.lineTo(g.b.x + ux * e, g.b.y + uy * e); ctx.stroke();
   }
 }
+// camada por baixo das escamas: costas e barriga nas cores da faixa (sem fresta preta ao esticar)
+function base(lista) {
+  ctx.lineCap = 'round';
+  for (const g of lista) {
+    const d = Math.hypot(g.b.x - g.a.x, g.b.y - g.a.y), fb = Math.min(1, BARRIGA_DESDE / (g.fh || 1));
+    if (fb >= 1) {   // só costas (o rolo): traço com ponta redonda, sem quinas nas viradas
+      ctx.strokeStyle = COR_COSTAS; ctx.lineWidth = g.r * 2; ctx.beginPath(); ctx.moveTo(g.a.x, g.a.y); ctx.lineTo(g.b.x, g.b.y); ctx.stroke();
+      continue;
+    }
+    ctx.save(); ctx.translate(g.a.x, g.a.y); ctx.rotate(Math.atan2(g.b.y - g.a.y, g.b.x - g.a.x)); if (g.vira) ctx.scale(1, -1);
+    const e = (g.ext || 0) + g.r * .45;
+    ctx.fillStyle = COR_COSTAS; ctx.fillRect(-e, -g.r, d + 2 * e, g.r * 2);
+    if (fb < 1) { ctx.fillStyle = COR_BARRIGA; ctx.fillRect(-e, -g.r + fb * g.r * 2, d + 2 * e, (1 - fb) * g.r * 2); }
+    ctx.restore();
+  }
+}
 function textura(lista, sombra = 0) {
+  base(lista);
   const fx = PT && PT.gomo_corpo; if (!fx || !pronta(IMG)) return;
   const [qx, qy, qw, qh] = fx;
   ctx.imageSmoothingEnabled = false;
@@ -341,16 +419,19 @@ function textura(lista, sombra = 0) {
     const total = sw + 2 * e * k;
     ctx.save(); ctx.translate(g.a.x, g.a.y); ctx.rotate(Math.atan2(g.b.y - g.a.y, g.b.x - g.a.x)); if (g.vira) ctx.scale(1, -1);
     while (feito < total - .01) { const p = Math.min(total - feito, qw - sx); ctx.drawImage(IMG, qx + sx, qy, p, sh, -e + feito / k - .5, -g.r, p / k + 1.5, g.r * 2); feito += p; sx = (sx + p) % qw; }
-    if (sombra) { ctx.fillStyle = `rgba(6,2,4,${sombra})`; ctx.fillRect(-.5 - e, -g.r, d + 1.5 + 2 * e, g.r * 2); }
     ctx.restore();
   }
+  if (sombra) {   // voltas de trás mais escuras: traço com ponta redonda no formato do corpo
+    ctx.strokeStyle = `rgba(6,2,4,${sombra})`; ctx.lineCap = 'round';
+    for (const g of lista) { ctx.lineWidth = g.r * 2; ctx.beginPath(); ctx.moveTo(g.a.x, g.a.y); ctx.lineTo(g.b.x, g.b.y); ctx.stroke(); }
+  }
 }
-// fatias de uma corrente (da ponta para a base); vira: fixo ou 'flanco' (de lado, costas para cima)
+// fatias de uma corrente; vira: fixo ou 'flanco' (de lado, costas para cima, fio de barriga embaixo)
 function fatias(pts, raio, vira, s0 = 0) {
   const out = []; let s = s0;
   for (let i = 0; i < pts.length - 1; i++) {
     const a = pts[i], b = pts[i + 1], r = raio(i), fl = vira === 'flanco', fh = fl ? .72 : 1;
-    out.push({ a, b, r, s, fh, vira: fl ? b.x - a.x < 0 : vira }); s += Math.hypot(b.x - a.x, b.y - a.y) * 82 * fh / (r * 2);
+    out.push({ a, b, r, s, fh, vira: fl ? b.x - a.x < 0 : vira, ext: fl ? 3 : 0 }); s += Math.hypot(b.x - a.x, b.y - a.y) * 82 * fh / (r * 2);
   }
   return out;
 }
@@ -373,25 +454,23 @@ function desenharHeroi() {
     ctx.imageSmoothingEnabled = false; ctx.drawImage(HEROI.im, q[0], q[1], q[2], q[3], x - q[4] * z, y - q[5] * z + 2, q[2] * z, q[3] * z);
   } else { ctx.fillStyle = '#2e5c8a'; ctx.fillRect(x - 14, y - 44, 28, 44); }
 }
-const COR = { cab: '#ffd54a', m1: '#7fe0ff', m2: '#7fe0ff', rabo: '#ff9a5a', rm: '#ffc49a' };
+const corAlca = h => h === 'cab' ? '#ffd54a' : h === 'rabo' ? '#ff9a5a' : h[0] === 'p' ? '#7fe0ff' : '#ffc49a';
 function desenharEsqueleto(c) {
-  const B = bases(c), A = alcas(), acha = h => A.find(a => a.h === h);
+  const B = bases(c), A = alcas(), acha = h => A.find(a => a.h === h), p = POSES[poseAtual];
   ctx.lineWidth = 2; ctx.setLineDash([5, 5]); ctx.strokeStyle = 'rgba(255,255,255,.5)';
-  for (const [b, cad] of [[B.N, ['m2', 'm1', 'cab']], [B.R, ['rm', 'rabo']]]) {
-    ctx.beginPath(); ctx.moveTo(b.x, b.y); for (const h of cad) { const a = acha(h); if (a) ctx.lineTo(a.x, a.y); } ctx.stroke();
+  for (const [b, parte, ponta] of [[B.N, 'p', 'cab'], [B.R, 'r', 'rabo']]) {
+    ctx.beginPath(); ctx.moveTo(b.x, b.y);
+    for (const o of ossosPresos(p, parte)) { const a = acha(o.chave); if (a) ctx.lineTo(a.x, a.y); }
+    const a = acha(ponta); ctx.lineTo(a.x, a.y); ctx.stroke();
   }
   ctx.setLineDash([]);
   for (const a of A) {
-    ctx.fillStyle = COR[a.h]; ctx.strokeStyle = '#000'; ctx.lineWidth = 2;
+    ctx.fillStyle = corAlca(a.h); ctx.strokeStyle = '#000'; ctx.lineWidth = 2;
     ctx.beginPath(); ctx.arc(a.x, a.y, arrasto === a.h ? 11 : 8, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    if (a.h !== 'cab' && a.h !== 'rabo') { ctx.fillStyle = '#000'; ctx.font = 'bold 10px system-ui'; ctx.textAlign = 'center'; ctx.fillText(String(+a.h.slice(1) + 1), a.x, a.y + 3.5); ctx.textAlign = 'left'; }
   }
   ctx.fillStyle = '#fff'; for (const b of [B.N, B.R]) ctx.fillRect(b.x - 4, b.y - 4, 8, 8);
-  // ossos soltos: círculo tracejado no lugar onde dá para prender de novo
-  const p = POSES[poseAtual];
-  for (const h of ['m1', 'm2', 'rm']) if (usaAlca(h) && !p[h]) {
-    const pts = h === 'rm' ? c.rabo : c.pesc, q = pts[idxOsso(h, pts.length - 1)];
-    ctx.strokeStyle = COR[h]; ctx.lineWidth = 2; ctx.setLineDash([3, 3]); ctx.beginPath(); ctx.arc(q.x, q.y, 10, 0, Math.PI * 2); ctx.stroke(); ctx.setLineDash([]);
-  }
+  for (const s of soltos()) { ctx.strokeStyle = corAlca(s.h); ctx.lineWidth = 2; ctx.setLineDash([3, 3]); ctx.beginPath(); ctx.arc(s.x, s.y, 10, 0, Math.PI * 2); ctx.stroke(); ctx.setLineDash([]); }
 }
 function desenhar() {
   const g = ctx.createLinearGradient(0, 0, 0, H); g.addColorStop(0, '#1a0f22'); g.addColorStop(.7, '#4a1f1f'); g.addColorStop(1, '#2a120c');
@@ -399,7 +478,8 @@ function desenhar() {
   ctx.fillStyle = '#1b120e'; ctx.fillRect(0, CHAO, W, H - CHAO); ctx.fillStyle = '#5a4034'; ctx.fillRect(0, CHAO, W, 3);
   desenharHeroi();
   const c = cobra, n = c.pesc.length - 1;
-  const pesc = fatias(c.pesc, i => raioPesc(i, n), false), rabo = fatias(c.rabo.slice().reverse(), i => raioRabo(c.rabo.length - 2 - i), 'flanco');
+  const pesc = fatias(c.pesc, i => raioPesc(i, n), false);
+  const rab = c.rabo.slice().reverse(), nr = c.rabo.length - 1, rabo = fatias(rab, i => raioRabo(nr - i), 'flanco');   // da base (grossa) para a ponta (fina)
   if (modo === 'A') {
     const G = geoRolo();
     contorno(rabo); textura(rabo);
@@ -407,19 +487,19 @@ function desenhar() {
     if (pronta(IMG) && PT) { ctx.imageSmoothingEnabled = false; ctx.drawImage(IMG, G.c[0], G.c[1], G.c[2], G.c[3], G.x0, G.y0, G.w, G.h); }
     textura(pesc);
   } else {
-    // corpo enrolado: gomos presos no caminho em espiral; os de trás (z < 0) mais escuros e antes
-    const C = c.C, s0 = c.extra * SP, nR = Math.floor((C.len - s0) / SP), pts = [], r = 44 * P.t, tras = [], frente = [];
-    for (let i = 0; i <= nR; i++) pts.push(noCaminho(C, s0 + i * SP));
+    // corpo enrolado: gomos presos no caminho em espiral (mais gordos embaixo); os de trás mais escuros e antes
+    const C = c.C, s0 = Math.max(0, usoRolo(c)), nRolo = Math.floor((C.len - s0) / SP), pts = [], tras = [], frente = [];
+    for (let i = 0; i <= nRolo; i++) pts.push(noCaminho(C, s0 + i * SP));
     pts.push(noCaminho(C, C.len));
     let s = pesc.length ? pesc[pesc.length - 1].s : 0;
     for (let i = 0; i < pts.length - 1; i++) {
-      const a = pts[i], b = pts[i + 1], gm = { a, b, r, s, fh: .55, vira: b.x - a.x < 0, ext: 9 };   // no rolo só as costas
+      const a = pts[i], b = pts[i + 1], r = rRolo((a.u + b.u) / 2), gm = { a, b, r, s, fh: .55, vira: b.x - a.x < 0, ext: 4 };   // no rolo só as costas
       s += Math.hypot(b.x - a.x, b.y - a.y) * 82 * .55 / (r * 2);
       ((a.z + b.z) / 2 < 0 ? tras : frente).push(gm);
     }
-    contorno(tras, 'butt'); textura(tras, .35);
+    contorno(tras); textura(tras, .35);
     contorno(rabo); textura(rabo);
-    contorno(frente, 'butt'); contorno(pesc); textura(frente); textura(pesc);
+    contorno(frente); contorno(pesc); textura(frente); textura(pesc);
   }
   desenharCabeca(c);
   if (mostrarGomos) { ctx.fillStyle = '#7fe0ff'; for (const p of [...c.pesc, ...c.rabo]) ctx.fillRect(p.x - 2, p.y - 2, 4, 4); }
@@ -428,12 +508,13 @@ function desenhar() {
   ctx.fillText((modo === 'A' ? 'A · rolo desenhado' : 'B · corpo todo') + '  ·  pose: ' + NOMES[c.pose || poseAtual] + (tocando ? '  (tocando a sequência)' : '') + (editar ? '  ·  editando' : ''), 14, 24);
 }
 
-// testes pela URL: ?modo=B, ?pose=bote, ?tocar, ?semeditar, ?ff=120 (avança quadros antes de mostrar)
+// testes pela URL: ?modo=A, ?pose=bote, ?tocar, ?semeditar, ?op=4&or=2 (ossos), ?ff=120 (avança quadros)
 const QS = new URLSearchParams(location.search);
-if (QS.get('modo') === 'B') { modo = 'B'; marca('bA', false); marca('bB', true); montar(); }
+if (QS.get('modo') === 'A') { modo = 'A'; marca('bA', true); marca('bB', false); montar(); }
 if (QS.get('pose') && POSES[QS.get('pose')]) { poseAtual = QS.get('pose'); marcaPoses(); }
 if (QS.has('tocar')) { tocando = true; marca('bTocar', true); }
 if (QS.has('semeditar')) { editar = false; marca('bEditar', false); }
+if (QS.has('op')) { nP = +QS.get('op'); nR = +(QS.get('or') || nR); textoOssos(); }
 for (let i = 0, n = +QS.get('ff') || 0; i < n; i++) atualizar(1 / 60);
 let antes = performance.now();
 function quadro(agora) {

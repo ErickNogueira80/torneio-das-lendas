@@ -137,7 +137,14 @@ Pessoal (família).
   trechos; cada trecho ganha gomos conforme o tamanho na pose) e desenrola quando a pose pede mais
   comprimento. "Tocar sequência" passa por todas as poses; "Copiar poses" gera o texto (JSON com
   poses e ajustes) para mandar ao Claude, que usa no jogo. Testes pela URL: `?modo=B`,
-  `?pose=bote`, `?tocar`, `?semeditar`, `?ff=N`. Nada disso está no jogo ainda.
+  `?pose=bote`, `?tocar`, `?semeditar`, `?op=5&or=3`, `?ff=N`. Nada disso está no jogo ainda.
+  **Rodada 3 (2026-11-14, pedidos do Erick):** a **B (corpo todo) é a preferida** e abre primeiro.
+  Rolo com 3 voltas e mais gordo embaixo (controles de voltas, tamanho e grossura); até 5 ossos no
+  pescoço e 3 no rabo (numerados; poses guardadas em `op`/`or`, as antigas são convertidas);
+  comprimento do pescoço e do rabo ajustáveis (na B, mais pescoço = ele sai mais baixo do rolo);
+  rabo corrigido (estava grosso na ponta) e saindo com a grossura do corpo; por baixo das escamas
+  uma camada nas cores das costas e da barriga (sem frestas pretas ao esticar; o preto fica só no
+  contorno). O Erick vai editar a cabeça para tirar parte do pescoço desenhado.
 - **Bolas de fogo e chamas do PixelLab (2026-11-14):** as bolas de fogo do chefe usam a animação de
   9 quadros `objetos/bola_fogo` (viradas para onde voam) e as chamas da cabeça do Boitatá e da ponta
   do rabo usam `objetos/chama` (9 quadros). As grades de 16 variações ficaram em `originais/`.
