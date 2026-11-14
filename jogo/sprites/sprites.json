@@ -981,6 +981,14 @@
   },
   "ver": "9917a894"
  },
+ "objetos/fundo_sala": {
+  "tipo": "objeto",
+  "pixel": 2,
+  "camadas": {
+   "cogumelos": "objetos/fundo_sala/cogumelos.png"
+  },
+  "ver": "a4292f62"
+ },
  "objetos/pingente": {
   "tipo": "objeto",
   "pixel": 2,

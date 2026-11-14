@@ -2942,13 +2942,17 @@ function drawSala() {
   // Se existir a arte pintada (objetos/fundo_sala), ela entra no lugar.
   const arte = layer('objetos/fundo_sala', 'cogumelos');
   if (arte) {
-    ctx.imageSmoothingEnabled = false; ctx.drawImage(arte, x0, topo, x1 - x0, chao - topo); ctx.imageSmoothingEnabled = true;
+    // o chão da arte (84,3% da altura) fica no chão da sala; o que passa dele é cortado
+    const aw = x1 - x0, ah = Math.round(aw * arte.naturalHeight / arte.naturalWidth), ay = Math.round(chao + 4 - ah * .843);
+    ctx.save(); ctx.beginPath(); ctx.rect(x0, topo, aw, chao + 2 - topo); ctx.clip();
+    ctx.imageSmoothingEnabled = false; ctx.drawImage(arte, x0, ay, aw, ah); ctx.imageSmoothingEnabled = true;
+    ctx.restore();
   } else {
     const cv = campoCogumelos();
     ctx.globalAlpha = .9 + .1 * Math.sin(time * 1.3); ctx.drawImage(cv, x0, chao - cv.height); ctx.globalAlpha = 1;
   }
   // cogumelos grandes no fundo (escurecidos: ficam atrás, na penumbra da caverna)
-  for (const c of D.grandes) {
+  for (const c of arte ? [] : D.grandes) {   // a arte pintada já tem os seus
     const im = layer('objetos/cogumelo_grande', c.n); if (!im) continue;
     const w = im.naturalWidth * 2, h = im.naturalHeight * 2;
     ctx.globalAlpha = .55; ctx.imageSmoothingEnabled = false;

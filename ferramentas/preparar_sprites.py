@@ -622,6 +622,7 @@ def preparar_fundo(pasta: Path, ajustes: dict) -> dict | None:
 
 OBJETO_ALTURA = {"altar": 27, "bau": 24, "placa": 35, "fogo": 24, "bola_fogo": 18, "bola_agua": 16, "chama": 20, "pingente": 40,
                  "cogumelo_mola": 24, "cogumelo_danca": 20, "cogumelo_azul": 15, "cogumelo_grande": 60, "fundo_sala": 210}   # altura dos objetos em px da arte (tela = o dobro)
+OBJETO_OPACO = {"fundo_sala"}   # objetos que são fundos pintados, sem transparência
 MAPA_TAMANHO = (640, 360)        # mapa do mundo em pixel art (cada pixel = 1,5 na tela)
 
 
@@ -641,7 +642,8 @@ def preparar_objeto(pasta: Path) -> dict | None:
             continue
         nome = arq.stem.lower().removeprefix(pasta.name.lower() + "_")
         nome = {"acesa": "aceso", "apagada": "apagado"}.get(nome, nome)
-        estados[nome] = _sem_verde(remover_fundo(Image.open(arq)))
+        # fundos pintados (opacos): sem tirar fundo nem verde (o escuro da borda é parte da arte)
+        estados[nome] = Image.open(arq).convert("RGBA") if pasta.name in OBJETO_OPACO else _sem_verde(remover_fundo(Image.open(arq)))
     if not estados:
         return None
     caixas = [np.where(np.asarray(im)[:, :, 3] > 25) for im in estados.values()]

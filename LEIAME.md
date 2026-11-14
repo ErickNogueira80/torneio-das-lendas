@@ -300,8 +300,12 @@ Pessoal (família).
   desenhado por código (`campoCogumelos`, feito uma vez numa imagem): 16 fileiras, do fundo (no alto,
   minúsculas, escuras, quase sem pé) para a frente (maiores e azuis), e o alto some no escuro, como
   um chão que sobe para dentro de uma caverna infinita. Seis luzes azuis fracas mostram o campo.
-  Se existir a arte pintada `img/sprites/objetos/fundo_sala/cogumelos.png` (prompt 4.11), ela entra
-  no lugar do campo (480×210 de arte, cobrindo a sala).
+  **Arte pintada em uso (2026-11-14, Gemini, prompt 4.11):** `img/sprites/objetos/fundo_sala/cogumelos.png`
+  (original em `originais/gemini_caverna_cogumelos.jpg`), reduzida para 490×210 de arte. Entra no
+  lugar do campo por código e dos cogumelos grandes do fundo. O chão da arte (84,3% da altura) fica
+  alinhado com o chão da sala; o que passa dele é cortado. A ferramenta não tira o fundo dos
+  objetos em `OBJETO_OPACO` (fundos pintados; o escuro da borda faz parte da arte). Sem a imagem,
+  volta o campo por código.
 - **Tiro de água com arte (2026-11-14):** bolha do PixelLab (9 quadros de 64 px; folha original em
   `img/sprites/objetos/bola_agua/originais/`), 16 px de altura na arte. O poder diz qual imagem usar
   (`imagem` em `PODERES`, herois.js); o tiro gira para onde voa. A arte voa para a esquerda (bola
