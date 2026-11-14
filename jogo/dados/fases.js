@@ -45,7 +45,7 @@ window.FASES = {
 			desc: 'Uma criatura lendária cercada de mistérios. Atacar ou esperar? A escolha é sua.'
     },
 		chefe: 'vaca_chefe'
-  }
+  },
 
   boitata: {
     // escuridão do estilo Lanterna: 0 = sem escuro, 1 = breu (só se vê onde há luz)
