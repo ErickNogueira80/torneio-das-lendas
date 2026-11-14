@@ -470,6 +470,17 @@ def preparar_partes(pasta: Path) -> dict | None:
             h, w = al.shape
             linhas = np.where(al.any(axis=1))[0]
             yb, yt = int(linhas.max()), int(linhas.min())
+            # cabeça SEM pescoço (editada no Pixelorama, 2026-11-14): o ponto mais de trás fica no meio da
+            # altura (no busto ele fica embaixo, no fim do pescoço). Aí o corpo entra por trás, um pouco
+            # abaixo do meio, escondido sob o crânio; ângulo fixo de -0,5 (o pescoço chega de trás e de baixo).
+            cols = np.where(al.any(axis=0))[0]; xm = int(cols.min())
+            tras_y = np.where(al[:, xm:xm + 4].any(axis=1))[0]
+            if tras_y.mean() < yt + (yb - yt) * .7:
+                faixa_t = np.where(al[:, : xm + 8].any(axis=1))[0]
+                alto = int(faixa_t.max() - faixa_t.min() + 1)
+                cy = float(faixa_t.mean() + alto * .15)
+                pescocos[n] = [round((xm + 4) / w, 3), round(cy / h, 3), round(alto * .62 / h, 3), -0.5]
+                continue
             faixa_b = np.where(al[max(yt, yb - 2): yb + 1].any(axis=0))[0]
             cx, cy = float(faixa_b.mean()), float(yb)
             ys, xs = np.where(al[: yt + (yb - yt) // 2])   # metade de cima: o crânio

@@ -144,7 +144,14 @@ Pessoal (família).
   comprimento do pescoço e do rabo ajustáveis (na B, mais pescoço = ele sai mais baixo do rolo);
   rabo corrigido (estava grosso na ponta) e saindo com a grossura do corpo; por baixo das escamas
   uma camada nas cores das costas e da barriga (sem frestas pretas ao esticar; o preto fica só no
-  contorno). O Erick vai editar a cabeça para tirar parte do pescoço desenhado.
+  contorno). Rabo: as partes finas dobram mais (a ponta enrola) e há o botão "Exemplo: rabo
+  enrolado" (deitado, sobe e enrola a ponta para trás, com 3 ossos).
+- **Cabeças sem pescoço (2026-11-14, editadas pelo Erick no Pixelorama):** a fechada é a variação 2
+  da grade (1ª linha, 2ª coluna) e a aberta a variação 1, com o pescoço desenhado apagado. Os
+  projetos `.pxo` estão em `img/sprites/chefes/boitata/originais/pixelorama_*.pxo` e os bustos
+  anteriores em `originais/v4b_*`. A ferramenta reconhece cabeça sem pescoço (o ponto mais de trás
+  fica no meio da altura) e põe a emenda atrás e um pouco abaixo do meio do crânio, escondida sob
+  ele, com ângulo -0,5. Vale no jogo e no laboratório.
 - **Bolas de fogo e chamas do PixelLab (2026-11-14):** as bolas de fogo do chefe usam a animação de
   9 quadros `objetos/bola_fogo` (viradas para onde voam) e as chamas da cabeça do Boitatá e da ponta
   do rabo usam `objetos/chama` (9 quadros). As grades de 16 variações ficaram em `originais/`.

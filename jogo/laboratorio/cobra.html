@@ -49,6 +49,7 @@
     <button id="bBote">Bote no herói</button>
     <button id="bRabada">Rabada</button>
     <button id="bCopiar">Copiar poses</button>
+    <button id="bEnrola">Exemplo: rabo enrolado</button>
     <button id="bPadrao">Voltar ao padrão</button>
   </div>
   <p class="dica">Com <b>Editar esqueleto</b> ligado, escolha uma pose e arraste as alças:
@@ -134,7 +135,7 @@ function fabrik(pts, alvo, base, dirBase, raio, iter = 8) {
       const b = pts[i + 1], a = pts[i];
       let q = Math.atan2(a.y - b.y, a.x - b.x), dq = q - ang;
       while (dq > Math.PI) dq -= 2 * Math.PI; while (dq < -Math.PI) dq += 2 * Math.PI;
-      const maxDobra = P.d * Math.PI / 180 * clamp(24 / raio(i), .3, 1.2);   // gomo grosso dobra menos (não belisca)
+      const maxDobra = P.d * Math.PI / 180 * clamp(24 / raio(i), .3, 2.6);   // gomo grosso dobra menos (não belisca); a ponta fina enrola
       q = ang + clamp(dq, -maxDobra, maxDobra); ang = q;
       a.x = b.x + Math.cos(q) * SP; a.y = b.y + Math.sin(q) * SP;
     }
@@ -249,6 +250,14 @@ $('bOssosR').onclick = () => { nR = (nR + 1) % (MAX_R + 1); textoOssos(); salvar
 $('bTocar').onclick = () => { tocando = !tocando; fila = null; tSeq = 0; marca('bTocar', tocando); };
 $('bBote').onclick = () => { tocando = false; marca('bTocar', false); fila = [['prepara', .8], ['bote', 1.2], ['descanso', 0]]; tFila = 0; };
 $('bRabada').onclick = () => { tocando = false; marca('bTocar', false); fila = [['rabada_cima', .55], ['rabada_chao', .7], ['descanso', 0]]; tFila = 0; };
+// rabo deitado que sobe e enrola a ponta para trás (como na imagem da cobra inteira), na pose atual
+$('bEnrola').onclick = () => {
+  const p = POSES[poseAtual];
+  p.rabo = [-250, -40]; p.or = [[-290, 10], [-230, 70], [-100, 62]];
+  nR = 3; textoOssos();
+  if (P.rn < 34) { P.rn = 34; $('rn').value = 34; $('vrn').textContent = 34; }
+  salvar();
+};
 $('bPadrao').onclick = () => { if (confirm('Voltar todas as poses ao padrão? As suas mudanças somem.')) { POSES = JSON.parse(JSON.stringify(PADRAO)); nP = 2; nR = 1; textoOssos(); salvar(); } };
 $('bCopiar').onclick = () => {
   const txt = JSON.stringify({ versao: modo, ossos: { pescoco: nP, rabo: nR }, corpo: { pescoco: P.pn, rabo: P.rn, voltas: P.v, tamanho: P.t, grossura: P.g },
