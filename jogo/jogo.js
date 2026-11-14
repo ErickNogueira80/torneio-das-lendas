@@ -1120,7 +1120,8 @@ CHEFES.boitata = (() => {
   const ROLO_C = { pescoco: [114, 37], rabo: [36, 113], rPesc: 22, rRabo: 17 };
   const COR_COSTAS = '#2b201e', COR_BARRIGA = '#e6cf9f', BARRIGA_DESDE = .54;   // por baixo das escamas
   const JEITO_ATAQUE = { f: 2.8, z: .55, r: .6 };
-  const AFUNDA = 16;     // o rolo afunda no chão (2026-11-14, Erick: estava alto)
+  const JEITO_VOLTA = { f: 1.5, z: .8, r: 0 };   // volta do bote e da rabada: firme e sem tranco
+  const AFUNDA = 30;     // o rolo desce até o chão e fica NA FRENTE dele, sem corte (2026-11-14, Erick)
   const TOPO_CAB = 95;   // a cabeça (o corte do pescoço) não sobe acima disto: chamas e HUD à vista
   const PADRAO = ['idle', 'cospe', 'idle', 'prep', 'idle', 'cospe', 'prep'];
   const MAX_P = 5, MAX_R = 3;
@@ -1273,7 +1274,10 @@ CHEFES.boitata = (() => {
     return sg;
   }
   function mexer(b, dt, G) {
-    const E = b.E, nome = poseDoMomento(b), P0 = E.poses[nome], J = rapido(b) ? JEITO_ATAQUE : E.jeito;
+    const E = b.E, nome = poseDoMomento(b), J = b.state === 'recua' || b.calma > 0 ? JEITO_VOLTA : rapido(b) ? JEITO_ATAQUE : E.jeito;
+    // bote: osso a menos de 170 px da cabeca fica solto (senao o pescoco cai reto ate ela e forma um L)
+    let P0 = E.poses[nome];
+    if (nome === 'bote') P0 = { ...P0, op: P0.op.map(o => o && Math.hypot(o[0] - P0.cab[0], o[1] - P0.cab[1]) < 170 ? null : o) };
     // pose que passa do topo da tela desce inteira (cabeça e ossos juntos: o desenho não muda)
     const ny = G.N.y - b.subir, osY = ossosPresos(E, P0, 'p').map(o => o.rel[1]);
     const desce = Math.max(0, TOPO_CAB - (ny + P0.cab[1]), osY.length ? 40 - (ny + Math.min(...osY)) : 0);
@@ -1282,7 +1286,7 @@ CHEFES.boitata = (() => {
     // pede menos (sem isso a sobra estufa: com dobra pequena ele não consegue se encolher)
     const ip = indices(E, P0, 'p', b.pesc.length - 1, desce);
     const alvoExtra = clamp(Math.ceil((ip.total + Math.abs(b.desvio)) * 1.12 / SP) - E.pn, 14 - E.pn, 70);
-    b.extra += clamp(alvoExtra - b.extra, -dt * 40, dt * (rapido(b) ? 130 : 70));
+    b.extra += clamp(alvoExtra - b.extra, -dt * (rapido(b) ? 110 : 40), dt * (b.state === 'bote' || b.state === 'prep' ? 420 : rapido(b) ? 130 : 70));   // no bote o pescoco sai do rolo de uma vez (a cabeca nao espera)
     ajustaTamanho(b.pesc, E.pn + Math.round(b.extra));
     const n = b.pesc.length - 1, ip2 = indices(E, P0, 'p', n, desce);
     // bote: a pose vai até o herói (a cabeça inteira, os ossos perto dela um pouco)
@@ -1291,6 +1295,10 @@ CHEFES.boitata = (() => {
     const tremor = b.state === 'prep' ? { x: Math.sin(time * 55) * 4, y: 0 } : b.state === 'cravada' ? { x: Math.sin(time * 40) * 2, y: 0 } : null;
     const sc = alca(b, 'cab', NB, P0.cab, dt, J, dv, balanco || tremor);
     const alvos = [{ i: 0, p: { x: sc.x, y: Math.min(sc.y, GROUND - 14) } }];
+    // osso que volta a valer (estava solto na pose anterior) comeca onde o pescoco esta, nao onde ficou parado
+    const ativos = new Set();
+    const acorda = (o, pts, i) => { ativos.add(o.chave); if (!b.ativos || !b.ativos.has(o.chave)) b.seg[o.chave] = seguidor(pts[i].x, pts[i].y); };
+    for (const o of ip2.presos) acorda(o, b.pesc, ip2.idx[o.chave]);
     for (const o of ip2.presos) alvos.push({ i: ip2.idx[o.chave], p: alca(b, o.chave, NB, o.rel, dt, J, dv * peso[+o.chave.slice(1)]) });
     resolver(b.pesc, alvos, G.N, G.dN, i => raioPesc(b, i, n), E.dobra);
     // a mesma parede para os gomos (com dobra pequena, o pescoço comprido não encolhe e a ponta sai da tela)
@@ -1308,34 +1316,55 @@ CHEFES.boitata = (() => {
     // rabo: ponta e ossos presos
     const nr = b.rabo.length - 1, ir = indices(E, P0, 'r', nr), sr = alca(b, 'rabo', G.R, P0.rabo, dt, J);
     const alvR = [{ i: 0, p: { x: sr.x, y: Math.min(sr.y, GROUND - 6) } }];
+    for (const o of ir.presos) acorda(o, b.rabo, ir.idx[o.chave]);
+    b.ativos = ativos;
     for (const o of ir.presos) alvR.push({ i: ir.idx[o.chave], p: alca(b, o.chave, G.R, o.rel, dt, J) });
     resolver(b.rabo, alvR, G.R, G.dR, i => raioRabo(i, nr), E.dobra);
     for (let i = 0; i <= nr; i++) b.rabo[i].y = Math.min(b.rabo[i].y, GROUND + 2 - raioRabo(i, nr));
-    // cabeça no fim do pescoço, girada para o pescoço do desenho seguir o último gomo
-    const z = cab(b), p0 = b.pesc[0], p1 = b.pesc[Math.min(2, n)];
-    let a = Math.PI - Math.atan2(p0.y - p1.y, p0.x - p1.x);
-    while (a > Math.PI) a -= 2 * Math.PI; while (a < -Math.PI) a += 2 * Math.PI;
-    b.hx = p0.x; b.hy = p0.y; b.rot = clamp(a - (z ? z.angP : -.5), -1.3, 1.1);
     // listas com a grossura (contato, golpes, luzes e o pó da morte): pescoço da cabeça para o rolo, rabo do rolo para a ponta
     // fluidez: o desenho usa uma cópia suavizada das correntes, no tempo (tira os tremidos de quando
     // um osso troca de gomo) e no espaço (arredonda as quinas nos ossos, onde a faixa abria em leque)
-    const vp = suave(b, 'vPesc', b.pesc, dt, 2), vr = suave(b, 'vRabo', b.rabo, dt, 2);
-    b.hx = vp[0].x; b.hy = vp[0].y;
+    const vp = suave(b, 'vPesc', b.pesc, dt, 2, rapido(b) ? 7 : 3), vr = suave(b, 'vRabo', b.rabo, dt, 2);
+    // cabeca no fim do pescoco (da copia suave), girada para o pescoco do desenho seguir o ultimo gomo
+    const z = cab(b), p0 = vp[0], p1 = vp[Math.min(2, n)];
+    let a = Math.PI - Math.atan2(p0.y - p1.y, p0.x - p1.x);
+    while (a > Math.PI) a -= 2 * Math.PI; while (a < -Math.PI) a += 2 * Math.PI;
+    b.hx = p0.x; b.hy = p0.y; b.rot = clamp(a - (z ? z.angP : -.5), -1.3, 1.1);
     b.neck = vp.map((p, i) => ({ x: p.x, y: p.y, r: raioPesc(b, i, n) }));
     b.tail = vr.map((p, i) => ({ x: p.x, y: p.y, r: raioRabo(i, nr) })).reverse();
   }
 
+  // máscara das rachaduras de lava da cabeça (os pixels laranja da arte), feita uma vez por cabeça
+  const BRASA = {};
+  function brasa(S, nome, q) {
+    if (BRASA[nome] !== undefined) return BRASA[nome];
+    try {
+      const c = document.createElement('canvas'); c.width = q[2]; c.height = q[3];
+      const g = c.getContext('2d'); g.drawImage(S.image, q[0], q[1], q[2], q[3], 0, 0, q[2], q[3]);
+      const d = g.getImageData(0, 0, q[2], q[3]), a = d.data;
+      for (let i = 0; i < a.length; i += 4) {
+        const r = a[i], gg = a[i + 1], bb = a[i + 2], laranja = a[i + 3] > 0 && r > 150 && r > gg * 1.25 && gg > 50 && bb < 120;
+        if (laranja) { a[i] = 255; a[i + 1] = Math.min(255, gg + 60); a[i + 2] = 60; a[i + 3] = 255; } else a[i + 3] = 0;
+      }
+      g.putImageData(d, 0, 0);
+      BRASA[nome] = c;
+    } catch (_) { BRASA[nome] = null; }   // sem acesso aos pixels: fica sem o brilho
+    return BRASA[nome];
+  }
+  const boca = b => ({ x: b.cc.x - b.cc.r * .9, y: b.cc.y + b.cc.r * .35 });   // de onde saem as bolas de fogo
+
   // cópia suavizada de uma corrente: segue a de verdade com atraso curto e passa por "fixo" passadas
   // de média com os vizinhos (as 2 pontas ficam onde estão)
-  function suave(b, chave, pts, dt, fixo) {
+  function suave(b, chave, pts, dt, fixo, passadas = 3, direto = false) {
     let v = b[chave];
     if (!v) v = b[chave] = pts.map(p => ({ x: p.x, y: p.y }));
     while (v.length < pts.length) { const u = v[v.length - 1]; v.push({ x: u.x, y: u.y }); }
     while (v.length > pts.length) v.pop();
-    const k = dt > 0 ? 1 - Math.exp(-dt * 22) : 1;
+    const k = dt > 0 ? 1 - Math.exp(-dt * 16) : 1;
     for (let i = 0; i < pts.length; i++) { v[i].x += (pts[i].x - v[i].x) * k; v[i].y += (pts[i].y - v[i].y) * k; }
-    v[0].x = pts[0].x; v[0].y = pts[0].y; v[v.length - 1].x = pts[pts.length - 1].x; v[v.length - 1].y = pts[pts.length - 1].y;
-    for (let it = 0; it < 3; it++)
+    if (direto) { v[0].x = pts[0].x; v[0].y = pts[0].y; }
+    v[v.length - 1].x = pts[pts.length - 1].x; v[v.length - 1].y = pts[pts.length - 1].y;
+    for (let it = 0; it < passadas; it++)
       for (let i = fixo; i < v.length - 1; i++) { v[i].x += ((v[i - 1].x + v[i + 1].x) / 2 - v[i].x) * .5; v[i].y += ((v[i - 1].y + v[i + 1].y) / 2 - v[i].y) * .5; }
     return v;
   }
@@ -1434,6 +1463,8 @@ CHEFES.boitata = (() => {
         else if (b.st > (furia ? 1.0 : 1.6)) proximo(b);
       } else if (T === 'cospe') {
         const c = b.cc, first = .6, gap = furia ? .55 : .8, volleys = furia ? 3 : 2;
+        // aviso: a boca acende nos 0,5 s antes de cada rajada
+        b.aviso = b.volley < volleys ? clamp(1 - (first + b.volley * gap - b.st) / .5, 0, 1) : 0;
         if (b.volley < volleys && b.st > first + b.volley * gap) {
           const n = furia ? 5 : 3, bx = c.x - c.r * .9, by = c.y + c.r * .35, base0 = Math.atan2(pcy - by, pcx - bx);
           for (let i = 0; i < n; i++) {
@@ -1460,7 +1491,7 @@ CHEFES.boitata = (() => {
       } else if (T === 'cravada') {
         if (b.st >= (furia ? .85 : 1.2)) { b.state = 'recua'; b.st = 0; b.desvio = 0; }
       } else if (T === 'recua') {
-        if (b.st >= .6) { b.calma = .8; if (--b.botes > 0) { b.state = 'prep'; b.st = .3; } else proximo(b); }
+        if (b.st >= .8) { b.calma = .6; if (--b.botes > 0) { b.state = 'prep'; b.st = .3; } else proximo(b); }
       } else if (T === 'rabada') {
         const prep = furia ? .35 : .5;
         if (b.st > prep + .18 && !b.bateu) {   // a ponta bate no chão
@@ -1472,8 +1503,14 @@ CHEFES.boitata = (() => {
         if (b.st >= prep + 1.2) { b.rCd = furia ? 1.2 : 2; b.state = 'idle'; b.st = 0; b.calma = .8; }
       }
 
+      if (T !== 'cospe') b.aviso = Math.max(0, (b.aviso || 0) - dt * 4);
       mexer(b, dt, G);
       const c = cranio(b, b.rot); b.cc = { x: b.hx + c.dx, y: b.hy + c.dy, r: c.r };
+      // fumaça saindo das narinas (mais forte no aviso do cuspe)
+      if (Math.random() < dt * (2 + (b.aviso || 0) * 30)) {
+        const m = boca(b);
+        particles.push({ x: m.x + rnd(-4, 6), y: m.y - b.cc.r * .45, vx: rnd(-30, -8), vy: rnd(-50, -25), life: 1, max: 1, c: Math.random() < .5 ? '#5c4b48' : '#7a6560', s: rnd(3, 5), g: -20 });
+      }
 
       // contato: cabeça (mordida; veneno no bote), pescoço e rolo em brasa
       if (T !== 'enter') {
@@ -1484,7 +1521,7 @@ CHEFES.boitata = (() => {
       // efeitos: veneno nas presas, fogo na cabeça, brasas no corpo
       if ((T === 'prep' || T === 'bote' || T === 'cravada') && Math.random() < dt * 30)
         particles.push({ x: b.cc.x - b.cc.r * rnd(.6, 1), y: b.cc.y + b.cc.r * .5, vx: rnd(-10, 10), vy: rnd(20, 60), life: .6, max: .6, c: Math.random() < .5 ? '#8dff6a' : '#c8ff9a', s: rnd(2, 3), g: 400 });
-      if (Math.random() < dt * 22) particles.push({ x: b.cc.x + rnd(-30, 30), y: b.cc.y - b.cc.r, vx: rnd(-25, 25), vy: rnd(-140, -70), life: .8, max: .8, c: FIRE[(Math.random() * 3) | 0], s: rnd(2, 3.5), g: -30 });
+      if (Math.random() < dt * (furia ? 22 : 7)) particles.push({ x: b.cc.x + rnd(-30, 30), y: b.cc.y - b.cc.r, vx: rnd(-25, 25), vy: rnd(-140, -70), life: .8, max: .8, c: FIRE[(Math.random() * 3) | 0], s: rnd(2, 3.5), g: -30 });
       if (Math.random() < dt * (furia ? 40 : 24)) {
         const em = Math.random() < .5 && b.neck.length ? b.neck[(Math.random() * b.neck.length) | 0] : { x: G.x0 + G.w * (.15 + Math.random() * .7), y: G.y0 + G.h * (.25 + Math.random() * .3), r: 10 };
         particles.push({ x: em.x + rnd(-10, 10), y: em.y - em.r * .6, vx: rnd(-20, 20), vy: rnd(-90, -40), life: .7, max: .7, c: FIRE[(Math.random() * 3) | 0], s: rnd(2, 4), g: -40 });
@@ -1518,7 +1555,7 @@ CHEFES.boitata = (() => {
       const somePesc = Math.max(0, morto - 1), someRabo = Math.max(0, morto - 1 - C.length);
       const somaRolo = b.dead ? clamp((b.deadT - (C.length + b.tail.length) * .04) / .6, 0, 1) : 0;
       const cam = Math.round(camX);
-      ctx.save(); ctx.beginPath(); ctx.rect(-50, -400, W + 100, GROUND + 4 + 400); ctx.clip();
+      ctx.save();   // sem recorte no chão: o rolo e o rabo ficam na frente da plataforma (só a cabeça cravada entra no chão)
       // sombra no chão
       const sx = b.cx - cam, sg = ctx.createRadialGradient(sx, GROUND + 6, 10, sx, GROUND + 6, G.w * .55);
       sg.addColorStop(0, `rgba(0,0,0,${.55 * (1 - somaRolo)})`); sg.addColorStop(1, 'rgba(0,0,0,0)');
@@ -1548,15 +1585,33 @@ CHEFES.boitata = (() => {
       const z = cab(b);
       if (z && (!b.dead || morto < 1)) {
         const [qx, qy, qw, qh] = z.q, k = z.k;
-        ctx.save(); ctx.translate(Math.round(b.hx), Math.round(b.hy)); ctx.scale(-1, 1); ctx.rotate(b.rot);
+        ctx.save(); ctx.beginPath(); ctx.rect(cam - 50, -400, W + 100, GROUND + 4 + 400); ctx.clip();   // a cabeça cravada entra no chão
+        ctx.translate(Math.round(b.hx), Math.round(b.hy)); ctx.scale(-1, 1); ctx.rotate(b.rot);
         ctx.imageSmoothingEnabled = false;
         ctx.drawImage(S.image, qx, qy, qw, qh, z.ax, z.ay, qw * k, qh * k);
-        const topoC = z.ay + qh * k * .1;
-        for (let j = 0; j < 3; j++)   // chamas do PixelLab no alto da cabeça (sem a imagem: chamas desenhadas)
-          if (!drawChama(z.ax + qw * k * (.36 + j * .16), topoC + 8, (rage ? 1.25 : 1) * (j === 1 ? 1.15 : .95), j * 3))
-            chamaPixel(z.ax + qw * k * (.36 + j * .16), topoC + 3, 13, (rage ? 30 : 22) + Math.sin(time * 9 + j * 1.9) * 7, time * 11 + j * 1.7);
+        // brasa por dentro: as rachaduras de lava da cabeça pulsam (mais fortes e rápidas na fúria)
+        const br = brasa(S, z.nome, z.q);
+        if (br) {
+          ctx.globalCompositeOperation = 'lighter';
+          ctx.globalAlpha = rage ? .55 + .4 * Math.sin(time * 7) : .3 + .25 * Math.sin(time * 2.6);
+          ctx.drawImage(br, z.ax, z.ay, qw * k, qh * k);
+          ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
+        }
+        // fogo de verdade só na fúria: a crista pega fogo (é o sinal de que ela ficou brava)
+        if (rage) {
+          const topoC = z.ay + qh * k * .1;
+          for (let j = 0; j < 3; j++)
+            if (!drawChama(z.ax + qw * k * (.36 + j * .16), topoC + 8, 1.15 * (j === 1 ? 1.15 : .95), j * 3))
+              chamaPixel(z.ax + qw * k * (.36 + j * .16), topoC + 3, 13, 30 + Math.sin(time * 9 + j * 1.9) * 7, time * 11 + j * 1.7);
+        }
         if (b.flash > 0) { ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = Math.min(1, b.flash * 3) * .6; ctx.drawImage(S.image, qx, qy, qw, qh, z.ax, z.ay, qw * k, qh * k); ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over'; }
         ctx.imageSmoothingEnabled = true; ctx.restore();
+        // aviso do cuspe: a boca acende e cresce até a bola sair
+        if (b.aviso > 0) {
+          const m = boca(b), rr = 8 + 26 * b.aviso, g = ctx.createRadialGradient(m.x, m.y, 1, m.x, m.y, rr);
+          g.addColorStop(0, `rgba(255,240,170,${.95 * b.aviso})`); g.addColorStop(.4, `rgba(255,150,40,${.7 * b.aviso})`); g.addColorStop(1, 'rgba(255,80,20,0)');
+          ctx.globalCompositeOperation = 'lighter'; ctx.fillStyle = g; ctx.beginPath(); ctx.arc(m.x, m.y, rr, 0, Math.PI * 2); ctx.fill(); ctx.globalCompositeOperation = 'source-over';
+        }
       }
       ctx.restore();
     },
@@ -2950,10 +3005,10 @@ function drawLancaCostas(cx, y, f) {
   desenhaLanca(70); ctx.restore();
 }
 // estocada: a lança vai à frente e volta, com riscos de vento
-function drawEstocada(cx, cy, f, k) {
+function drawEstocada(cx, cy, f, k, soVento = false) {   // soVento: o boneco já mostra a lança
   const vai = Math.sin(Math.min(1, k * 1.4) * Math.PI / 2), a = 1 - k;
   ctx.save(); ctx.translate(Math.round(cx + f * (vai * 34 - 6)), Math.round(cy)); ctx.scale(f, 1);
-  desenhaLanca(76);
+  if (!soVento) desenhaLanca(76);
   ctx.fillStyle = `rgba(220,238,255,${.7 * a})`;
   for (const [dy, l, d] of [[-8, 26, 4], [7, 18, 14]]) ctx.fillRect(40 + d, dy, Math.round(l * (1 - k * .4)), 2);
   ctx.restore();
@@ -3000,7 +3055,8 @@ function drawPlayer() {
   // o desenho acompanha o relevo do piso, a curva do galho e o caminho pela frente das árvores
   const { dy: noPiso, esc } = deslocDesenho(p.x + p.w / 2, p.onGround, p.onPlat, p.plano ?? 1);
   const x = Math.round(p.x - camX), y = Math.round(p.y + noPiso), f = p.face;
-  const S = sprite(HEROI.sprite);
+  // com a lança equipada usa o boneco segurando a lança (herois/<id>_lanca), se existir
+  const SL = itens.ataque === 'lanca' ? sprite(HEROI.sprite + '_lanca') : null, S = SL || sprite(HEROI.sprite);
   if (S) {
     const { a, t } = playerAnim(S);
     // com quadros de verdade a própria animação já respira e corre: sem balanço nem achatamento extra
@@ -3020,10 +3076,10 @@ function drawPlayer() {
       else if (a === 'parado') { ey = 1 + Math.sin(time * 3) * .012; }
     }
     drawSombra(p);
-    if (itens.ataque === 'lanca' && p.swordT <= 0) drawLancaCostas(x + p.w / 2, y, f);
+    if (itens.ataque === 'lanca' && p.swordT <= 0 && !SL) drawLancaCostas(x + p.w / 2, y, f);
     drawFrame(S, a, t, x + p.w / 2, y + p.h + 1 + bob, f, esc * ex * (1 + sq * .12), esc * ey * (1 - sq * .14), rot);
   } else drawPlayerShape(x, y, f);
-  if (p.swordT > 0) { if (arma().altura === 'fina') drawEstocada(x + p.w / 2, y + 26, f, 1 - p.swordT / 0.18); else drawGolpe(x + p.w / 2, y + 24, f, 1 - p.swordT / 0.18); }
+  if (p.swordT > 0) { if (arma().altura === 'fina') drawEstocada(x + p.w / 2, y + 26, f, 1 - p.swordT / 0.18, !!SL); else drawGolpe(x + p.w / 2, y + 24, f, 1 - p.swordT / 0.18); }
   if (p.poison > 0) { ctx.fillStyle = 'rgba(120,255,90,.18)'; ctx.fillRect(x - 4, y - 4, p.w + 8, p.h + 8); }
 }
 
@@ -3144,8 +3200,9 @@ function drawProjectiles() {
     const qd = ((Math.floor(time * 14 + o.x * .01) % 9) + 9) % 9, im = PODER.imagem && layer(PODER.imagem, String(qd + 1));
     if (im) {
       const w = im.naturalWidth * 2, h = im.naturalHeight * 2;
-      ctx.save(); ctx.translate(Math.round(x), Math.round(o.y)); ctx.rotate(Math.atan2(o.vy, o.vx));
-      ctx.imageSmoothingEnabled = false; ctx.drawImage(im, -Math.round(w * .7), -Math.round(h / 2), w, h); ctx.imageSmoothingEnabled = true;
+      // a arte voa para a esquerda (bola à esquerda, gotas à direita): espelha e gira para onde vai
+      ctx.save(); ctx.translate(Math.round(x), Math.round(o.y)); ctx.rotate(Math.atan2(o.vy, o.vx)); ctx.scale(-1, 1);
+      ctx.imageSmoothingEnabled = false; ctx.drawImage(im, -Math.round(w * .3), -Math.round(h / 2), w, h); ctx.imageSmoothingEnabled = true;
       ctx.restore();
       continue;
     }

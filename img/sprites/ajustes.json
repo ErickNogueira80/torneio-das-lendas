@@ -39,5 +39,41 @@
  },
  "inimigos/vagalume": {
   "altura": 40
+ },
+ "herois/humano_lanca": {
+  "altura": 64.4
+ },
+ "herois/humano_lanca/pular": {
+  "quadros": [
+   2,
+   3,
+   4
+  ]
+ },
+ "herois/humano_lanca/cair": {
+  "quadros": [
+   5,
+   6
+  ]
+ },
+ "herois/humano_lanca/espada": {
+  "quadros": [
+   3,
+   4,
+   5,
+   6
+  ]
+ },
+ "herois/humano_lanca/poder": {
+  "quadros": [
+   5
+  ]
+ },
+ "herois/humano_lanca/dano": {
+  "quadros": [
+   3,
+   4,
+   5
+  ]
  }
 }

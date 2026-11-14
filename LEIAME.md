@@ -121,8 +121,14 @@ Pessoal (família).
   O herói tem o espaço `ataque` (arma; começa com a espada) e um espaço `livre` (ainda sem uso);
   guardados no navegador (`tdl_itens`). Armas em `ARMAS` (`fases.js`): alcance, recarga e dano a
   mais. A **Lança** (prêmio do Mímico) é uma estocada fina de 96 px (a espada pega 54), +2 de dano,
-  recarga 0,42 s. Aparece nas costas do herói e na estocada (desenhada pelo jogo); o nome vai no
-  HUD. Pendente: o herói do PixelLab segura a espada nas animações (a lança aparece por cima).
+  recarga 0,42 s. O nome vai no HUD. **Herói com a lança (PixelLab, 2026-11-14):** com a lança
+  equipada o jogo usa o boneco `herois/humano_lanca` (pasta `img/sprites/herois/humano_lanca/`;
+  GIFs originais e o zip em `originais/`). Animações: parado = breathing-idle; correr = running 6
+  quadros; pular = running-jump quadros 2 a 4; cair = 5 e 6; espada (estocada) = Spear thrust 3 a 6;
+  poder = fireball quadro 5 (lança estendida, sem a bola de fogo); dano = 3 a 5; morrer = Dying. O
+  cross-punch e o jumping-1 (a lança some no meio) não entram. Altura 64,4 (a ponta da lança passa
+  da cabeça; o corpo fica do tamanho do herói de espada). Na estocada o jogo desenha só o vento.
+  Sem essa imagem, volta a lança desenhada nas costas e na estocada.
 - **Laboratório da cobra (2026-11-14, em discussão):** `jogo/laboratorio/cobra.html` (link:
   https://ericknogueira80.github.io/torneio-das-lendas/jogo/laboratorio/cobra.html). Página de teste,
   fora do jogo, para escolher a técnica de movimento do Boitatá: **A** = rolo desenhado + pescoço e
@@ -245,17 +251,29 @@ Pessoal (família).
   comprimento e volta para dentro quando pede menos (mínimo de 14 gomos), senão a sobra estufa.
   Teste de jeito sem mexer no código: `&jeito=f,z,r` (ex.: `?play&boss&x=8800&jeito=1.2,0.35,0`).
   A versão 5 ficou guardada como `CHEFES.boitata_v5` (`tipo: 'boitata_v5'`, usa `ancoras`).
-  **Ajustes de 2026-11-14 (pedidos do Erick):** o rolo afunda 16 px no chão (`AFUNDA`; estava
-  alto). O rabo nasce mais alto e mais para dentro, atrás da volta de baixo, em (36, 113) da arte e
+  **Ajustes de 2026-11-14 (pedidos do Erick):** o rolo desce 30 px (`AFUNDA`) e fica **na frente**
+  do chão, sem recorte (só a cabeça cravada entra no chão). O rabo nasce mais alto e mais para dentro, atrás da volta de baixo, em (36, 113) da arte e
   com grossura 17, sem a fresta entre ele e o rolo. A barriga do rabo fica do mesmo lado do corpo do
   começo ao fim: antes cada gomo virava a barriga para baixo e a ponta erguida aparecia invertida.
   Fluidez: o desenho usa uma cópia suavizada do pescoço e do rabo, no tempo (sem tremido quando um
   osso troca de gomo) e no espaço (sem quinas nos ossos, onde a faixa da barriga abria em leque).
+  **Bote mais suave:** no bote o pescoço sai do rolo de uma vez (420 gomos/s; antes a cabeça
+  esperava o pescoço crescer e dava um tranco). Osso a menos de 170 px da cabeça fica solto no bote
+  (o 1º osso do Erick ficava logo acima da cabeça e o pescoço caía reto até ela, formando um "L").
+  Osso que volta a valer começa onde o pescoço está (antes puxava para onde tinha ficado parado). A
+  volta do bote e da rabada tem um jeito próprio, firme e sem balanço (f 1,5, z 0,8, r 0), e dura
+  0,8 s. O pescoço recolhe mais rápido nos ataques. A cabeça também é suavizada no tempo. Medido em
+  40 s de luta: fora do bote, a cabeça anda no máximo uns 70 px por quadro (antes saltava 380).
+  **Cabeça em brasa (sugestão do Claude, aceita pelo Erick):** sem as 3 chamas fixas. As rachaduras
+  de lava da cabeça (os pixels laranja da arte) pulsam devagar. Antes de cada rajada a boca acende
+  e cresce por 0,5 s (o aviso do cuspe) e sai mais fumaça das narinas. Na fúria (vida abaixo de 35%)
+  a crista pega fogo de verdade (as chamas do PixelLab) e as rachaduras pulsam forte e rápido.
   A pose `prepara` foi feita pelo Claude a partir do descanso do Erick (cabeça recuada e armada
   sob o arco do pescoço); a padrão do laboratório deixava a cabeça caída dentro da volta.
 - **Tiro de água com arte (2026-11-14):** bolha do PixelLab (9 quadros de 64 px; folha original em
   `img/sprites/objetos/bola_agua/originais/`), 16 px de altura na arte. O poder diz qual imagem usar
-  (`imagem` em `PODERES`, herois.js); o tiro gira para onde voa. Sem a imagem, volta a bola desenhada.
+  (`imagem` em `PODERES`, herois.js); o tiro gira para onde voa. A arte voa para a esquerda (bola
+  à esquerda, gotas à direita): o jogo espelha antes de girar. Sem a imagem, volta a bola desenhada.
 - **Boitatá enrolado, versão 5 (2026-11-14, guardado como `boitata_v5`):** fica como na
   imagem da cobra inteira do PixelLab: o rolo parado no lado direito da arena, o pescoço subindo em
   S e a cabeça no alto. A imagem do rolo (`corpo.png`) é a cobra inteira recortada (sem o pescoço
