@@ -277,10 +277,22 @@ Pessoal (família).
   afinando mais rápido no fim; rabo com 38 gomos (era 34) e contorno preto mais fino nas partes finas.
   A pose `prepara` foi feita pelo Claude a partir do descanso do Erick (cabeça recuada e armada
   sob o arco do pescoço); a padrão do laboratório deixava a cabeça caída dentro da volta.
-- **Pingente com arte (2026-11-14, preparado):** o jogo usa `objetos/pingente/<id da fase>` (ex.:
-  `img/sprites/objetos/pingente/boitata.png`, 26 px de altura na arte) balançando de leve; sem a
-  imagem, volta o disco desenhado. Prompt na seção 4.10 dos prompts (amuleto de prata em gota de
-  fogo, com a cobra enrolada em relevo e olho de brasa). Aguardando a arte.
+- **Pingente com arte (2026-11-14):** o jogo usa `objetos/pingente/<id da fase>` (ex.:
+  `img/sprites/objetos/pingente/boitata.png`, 40 px de altura na arte, 80 na tela) balançando de
+  leve pela corrente; sem a imagem, volta o disco desenhado. Prompt na seção 4.10 dos prompts
+  (amuleto de prata em gota de fogo, com a cobra enrolada em relevo e olho de brasa). A arte do
+  Boitatá veio do Gemini com o xadrez de "transparente" desenhado no fundo (JPG): o fundo foi tirado
+  por inundação a partir das bordas (pixels sem cor, brilho 98 a 208), parando no contorno escuro.
+  Original em `originais/gemini_pingente_boitata.jpg`.
+- **Cogumelos azuis na sala secreta (2026-11-14, arte do PixelLab escolhida pelo Erick):** folhas
+  originais (azuis, verdes e vermelhos; grandes, largos, pequenos e a dança) em
+  `img/sprites/objetos/cogumelo_grande/originais/`. Por enquanto só os azuis, decisão do Erick:
+  `cogumelo_grande` (4 altos e 2 largos, 60 px de arte, 5 deles no fundo, escurecidos),
+  `cogumelo_azul` (7 cogumelinhos parados no chão, 15 px), `cogumelo_danca` (9 quadros, 20 px: 6
+  pequenos que **dançam**, cada um num tempo, alguns espelhados; com o herói a menos de 160 px dançam
+  mais rápido e pulinham) e `cogumelo_mola` (o largo de baixo claro, 24 px: é o cogumelo-mola, que
+  achata e alarga quando pisado e estica no pulo). Todos brilham em azul na luz. Sem as imagens,
+  volta o desenho por código. Os verdes e vermelhos ficam para outras salas.
 - **Tiro de água com arte (2026-11-14):** bolha do PixelLab (9 quadros de 64 px; folha original em
   `img/sprites/objetos/bola_agua/originais/`), 16 px de altura na arte. O poder diz qual imagem usar
   (`imagem` em `PODERES`, herois.js); o tiro gira para onde voa. A arte voa para a esquerda (bola

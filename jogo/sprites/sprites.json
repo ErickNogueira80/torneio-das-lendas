@@ -914,6 +914,57 @@
   },
   "ver": "a403c385"
  },
+ "objetos/cogumelo_azul": {
+  "tipo": "objeto",
+  "pixel": 2,
+  "camadas": {
+   "a": "objetos/cogumelo_azul/a.png",
+   "b": "objetos/cogumelo_azul/b.png",
+   "c": "objetos/cogumelo_azul/c.png",
+   "d": "objetos/cogumelo_azul/d.png",
+   "e": "objetos/cogumelo_azul/e.png",
+   "f": "objetos/cogumelo_azul/f.png",
+   "g": "objetos/cogumelo_azul/g.png"
+  },
+  "ver": "afdf3797"
+ },
+ "objetos/cogumelo_danca": {
+  "tipo": "objeto",
+  "pixel": 2,
+  "camadas": {
+   "1": "objetos/cogumelo_danca/1.png",
+   "2": "objetos/cogumelo_danca/2.png",
+   "3": "objetos/cogumelo_danca/3.png",
+   "4": "objetos/cogumelo_danca/4.png",
+   "5": "objetos/cogumelo_danca/5.png",
+   "6": "objetos/cogumelo_danca/6.png",
+   "7": "objetos/cogumelo_danca/7.png",
+   "8": "objetos/cogumelo_danca/8.png",
+   "9": "objetos/cogumelo_danca/9.png"
+  },
+  "ver": "f3ed24d7"
+ },
+ "objetos/cogumelo_grande": {
+  "tipo": "objeto",
+  "pixel": 2,
+  "camadas": {
+   "alto1": "objetos/cogumelo_grande/alto1.png",
+   "alto2": "objetos/cogumelo_grande/alto2.png",
+   "alto3": "objetos/cogumelo_grande/alto3.png",
+   "alto4": "objetos/cogumelo_grande/alto4.png",
+   "largo1": "objetos/cogumelo_grande/largo1.png",
+   "largo2": "objetos/cogumelo_grande/largo2.png"
+  },
+  "ver": "c868f4d0"
+ },
+ "objetos/cogumelo_mola": {
+  "tipo": "objeto",
+  "pixel": 2,
+  "camadas": {
+   "mola": "objetos/cogumelo_mola/mola.png"
+  },
+  "ver": "1a8c011a"
+ },
  "objetos/fogo": {
   "tipo": "objeto",
   "pixel": 2,
@@ -929,6 +980,14 @@
    "9": "objetos/fogo/9.png"
   },
   "ver": "9917a894"
+ },
+ "objetos/pingente": {
+  "tipo": "objeto",
+  "pixel": 2,
+  "camadas": {
+   "boitata": "objetos/pingente/boitata.png"
+  },
+  "ver": "136834f5"
  },
  "objetos/placa": {
   "tipo": "objeto",

@@ -2867,6 +2867,11 @@ function salaDeco() {
   for (let x = SALA.x0 + 20; x < SALA.x1 - 20; x += 40 + r() * 90) D.pedras.push({ x, w: 10 + r() * 24, h: 4 + r() * 10 });
   for (let i = 0; i < 7; i++) D.cogumelos.push({ x: SALA.x0 + 60 + r() * (SALA.x1 - SALA.x0 - 120), y: SALA.chao, s: 1 + (r() * 2 | 0) });
   for (let i = 0; i < 9; i++) D.raizes.push({ x: SALA.x0 + 30 + r() * (SALA.x1 - SALA.x0 - 60), len: 30 + r() * 90, ph: r() * 6 });
+  // cogumelos azuis do PixelLab (2026-11-14): grandes no fundo, contra a parede; cogumelinhos parados
+  // no chão e um grupinho que dança (mais rápido quando o herói chega perto)
+  D.grandes = [[60, 'alto1'], [250, 'largo1'], [610, 'alto3'], [770, 'largo2'], [905, 'alto2']].map(([dx, n]) => ({ x: SALA.x0 + dx, n }));
+  D.cogumelos.forEach((c, i) => { c.n = 'abcdefg'[i % 7]; });
+  D.dancam = [330, 380, 690, 735, 785, 840].map((dx, i) => ({ x: SALA.x0 + dx + (r() - .5) * 14, ph: r() * 9, esp: r() < .5 }));
   return (salaDecoPronta = D);
 }
 function drawSala() {
@@ -2895,6 +2900,14 @@ function drawSala() {
     const x = Math.round(t.x - camX);
     for (let y = 0; y < t.h; y += B) { const w = q(t.w * (1 - y / t.h)); if (w > 0) ctx.fillRect(x - w / 2, topo + y, w, B); }
   }
+  // cogumelos grandes no fundo (escurecidos: ficam atrás, na penumbra da caverna)
+  for (const c of D.grandes) {
+    const im = layer('objetos/cogumelo_grande', c.n); if (!im) continue;
+    const w = im.naturalWidth * 2, h = im.naturalHeight * 2;
+    ctx.globalAlpha = .55; ctx.imageSmoothingEnabled = false;
+    ctx.drawImage(im, Math.round(c.x - camX - w / 2), chao - h + 4, w, h);
+    ctx.globalAlpha = 1; ctx.imageSmoothingEnabled = true;
+  }
   ctx.fillStyle = '#2a1a14';
   for (const rz of D.raizes) {
     const x = Math.round(rz.x - camX);
@@ -2905,18 +2918,38 @@ function drawSala() {
   ctx.fillStyle = '#3a2a26'; ctx.fillRect(x0, chao + 2, x1 - x0, 2);
   ctx.fillStyle = '#140a0d';
   for (const p of D.pedras) { const x = Math.round(p.x - camX); ctx.fillRect(x, chao - q(p.h), q(p.w), q(p.h)); ctx.fillRect(x + 2, chao - q(p.h) - 2, q(p.w) - 4, 2); }
+  ctx.imageSmoothingEnabled = false;
   for (const c of D.cogumelos) {
-    const x = Math.round(c.x - camX), k = c.s * B, brilho = .7 + .3 * Math.sin(time * 2 + c.x);
+    const x = Math.round(c.x - camX), im = layer('objetos/cogumelo_azul', c.n);
+    if (im) { const w = im.naturalWidth * 2, h = im.naturalHeight * 2; ctx.drawImage(im, x - w / 2, chao - h + 2, w, h); continue; }
+    const k = c.s * B, brilho = .7 + .3 * Math.sin(time * 2 + c.x);   // sem a imagem: o desenhado
     ctx.fillStyle = '#cfc2a0'; ctx.fillRect(x - k / 2, chao - 3 * k, k, 3 * k);
     ctx.globalAlpha = brilho; ctx.fillStyle = '#5fe0cf'; ctx.fillRect(x - 2 * k, chao - 4 * k, 4 * k, k); ctx.fillRect(x - k, chao - 5 * k, 2 * k, k);
     ctx.globalAlpha = 1;
   }
+  // os pequenos dançam (9 quadros); com o herói perto dançam mais rápido, e alguns dançam espelhados
+  for (const c of D.dancam) {
+    const perto = naSala(player) && Math.abs(player.x + player.w / 2 - c.x) < 160;
+    const qd = Math.floor(time * (perto ? 15 : 8) + c.ph) % 9, im = layer('objetos/cogumelo_danca', String(qd + 1));
+    if (!im) continue;
+    const w = im.naturalWidth * 2, h = im.naturalHeight * 2, x = Math.round(c.x - camX), pulo = perto ? Math.round(Math.abs(Math.sin(time * 9 + c.ph)) * 4) : 0;
+    ctx.save(); ctx.translate(x, chao + 2 - pulo); if (c.esp) ctx.scale(-1, 1);
+    ctx.drawImage(im, -Math.round(w / 2), -h, w, h); ctx.restore();
+  }
+  ctx.imageSmoothingEnabled = true;
   drawMola();
 }
 // cogumelo-mola: chapéu largo que afunda quando pisam e estica no pulo
 function drawMola() {
   const B = 2, q = v => Math.round(v / B) * B, a = SALA.aperto, x = Math.round(SALA.mola - camX), chao = SALA.chao;
   const pisado = naSala(player) && player.naMola ? .35 : 0, sq = Math.max(a * (a > .5 ? -.4 : 1), pisado);   // estica no pulo, afunda pisado
+  // cogumelo largo azul do PixelLab: afunda (achata e alarga) e estica, preso pelo pé
+  const im = layer('objetos/cogumelo_mola', 'mola');
+  if (im) {
+    const w = im.naturalWidth * 2 * (1 + sq * .25), h = im.naturalHeight * 2 * (1 - sq * .45);
+    ctx.imageSmoothingEnabled = false; ctx.drawImage(im, Math.round(x - w / 2), Math.round(chao + 2 - h), Math.round(w), Math.round(h)); ctx.imageSmoothingEnabled = true;
+    return;
+  }
   const hp = q(16 * (1 - sq * .6)), lc = q(56 * (1 + sq * .25)), hc = q(14 * (1 - sq * .3));
   ctx.fillStyle = '#cfc2a0'; ctx.fillRect(x - 6, chao - hp, 12, hp);                 // pé
   ctx.fillStyle = '#9d8f72'; ctx.fillRect(x + 2, chao - hp, 4, hp);
@@ -2958,7 +2991,8 @@ function luzes() {
   for (const d of drops) L.push([d.x - camX, d.y, 110, '255,220,120', .5]);
   if (SALA && camY > 0) {   // sala secreta: o cogumelo e os cogumelinhos brilham
     L.push([SALA.mola - camX, SALA.chao - 26, 180 + f, '110,240,220', .5]);
-    for (const c of salaDeco().cogumelos) L.push([c.x - camX, c.y - 6, 75 + f, '110,240,220', .3]);
+    for (const c of salaDeco().cogumelos) L.push([c.x - camX, c.y - 14, 75 + f, '90,170,255', .3]);
+    for (const c of salaDeco().dancam) L.push([c.x - camX, SALA.chao - 20, 70 + f, '90,170,255', .35]);
   }
   for (const l of L) l[1] -= camY;   // a câmera vertical sobe tudo (até a lua, desenhada com o fundo)
   return L.filter(l => l[0] > -l[2] && l[0] < W + l[2] && l[1] > -l[2] && l[1] < H + l[2]);
@@ -3250,7 +3284,7 @@ function drawProjectiles() {
     const im = layer('objetos/pingente', FASE_ID);
     if (im) {
       const w = im.naturalWidth * 2, h = im.naturalHeight * 2;
-      ctx.save(); ctx.translate(Math.round(x), Math.round(y - h / 2)); ctx.rotate(Math.sin(pendant.t * 2.2) * .12);
+      ctx.save(); ctx.translate(Math.round(x), Math.round(y - h + 30)); ctx.rotate(Math.sin(pendant.t * 2.2) * .12);
       ctx.imageSmoothingEnabled = false; ctx.drawImage(im, -Math.round(w / 2), 0, w, h); ctx.imageSmoothingEnabled = true;
       ctx.restore();
     } else {
