@@ -56,9 +56,9 @@ PERSONAGEM = {
     "inimigos": {"altura": 44, "atlas": 112},
 }
 ALTURA_ESPECIFICA = {"inimigos/vagalume": 34}
-PARTES_LADO = {"cabeca": 256, "cabeca_ataque": 256, "gomo": 160, "rabo": 128, "corpo": 256, "faixa_corpo": 256}   # maior lado (sem pixel)
+PARTES_LADO = {"cabeca": 256, "cabeca_ataque": 256, "gomo": 160, "rabo": 128, "corpo": 256, "faixa_corpo": 256, "rolo_tras": 260, "rolo_frente": 260}   # maior lado (sem pixel)
 # peças do chefe em pixel art: maior lado em px da arte (o jogo amplia; mesmo estilo do resto)
-PARTES_PIXEL = {"cabeca": 46, "cabeca_ataque": 46, "gomo": 26, "rabo": 26, "corpo": 200, "faixa_corpo": 124}
+PARTES_PIXEL = {"cabeca": 46, "cabeca_ataque": 46, "gomo": 26, "rabo": 26, "corpo": 200, "faixa_corpo": 124, "rolo_tras": 256, "rolo_frente": 256}
 # Fundos em pixel art: cada pixel da arte vira 2x2 na tela virtual (FUNDO_PIXEL). Alturas na
 # resolução da arte: céu 270 (tela 540), longe 180 (360), perto 210 (420), chão 128 (ladrilho 256).
 FUNDO_PIXEL = 2
@@ -405,11 +405,14 @@ def tapar_buracos(im: Image.Image, cor=(232, 96, 26)) -> Image.Image:
 def preparar_partes(pasta: Path) -> dict | None:
     chave = f"chefes/{pasta.name}"
     itens = []
+    caixas = {}   # caixa de cada peça na imagem original (para alinhar camadas, ex.: rolo_frente sobre rolo_tras)
     for arq in sorted(pasta.iterdir()):
         nome = arq.stem.lower()
         if arq.suffix.lower() not in EXTS or nome not in PARTES_LADO:
             continue
         original = Image.open(arq)
+        if original.mode == "RGBA":
+            caixas[nome] = original.getbbox()
         borda = np.concatenate([np.asarray(original.convert("RGB"))[0], np.asarray(original.convert("RGB"))[:, 0]]).astype(int)
         if nome == "corpo" and np.median(borda[:, 2] - borda[:, 0]) >= 6 and np.median(borda.max(axis=1)) < 70:
             im = tirar_fundo_azulado(original)          # fundo azul-escuro liso (sombra junto)
@@ -433,7 +436,7 @@ def preparar_partes(pasta: Path) -> dict | None:
             im = cortar(tirar_xadrez(original))          # fundo de xadrez cinza desenhado
         else:
             im = cortar(_sem_verde(remover_fundo(original)))
-        if max(original.size) <= (260 if nome == "corpo" else 160):
+        if max(original.size) <= (260 if nome in ("corpo", "rolo_tras", "rolo_frente") else 160):
             px = im   # já é pixel art (ex.: PixelLab): usa como veio, sem reduzir de novo
         else:
             lado = PARTES_PIXEL[nome]
@@ -501,8 +504,12 @@ def preparar_partes(pasta: Path) -> dict | None:
             cols = np.where(tem)[0]
             x = int(ww * .47)
             pescocos["corpo"] = [round(x / ww, 3), round((float(topo[x]) + hh * .05) / hh, 3)]
+    # camada da frente do rolo: onde ela fica dentro da camada de trás (px da arte)
+    deslocs = {}
+    if "rolo_frente" in caixas and "rolo_tras" in caixas:
+        deslocs["rolo_frente"] = [caixas["rolo_frente"][0] - caixas["rolo_tras"][0], caixas["rolo_frente"][1] - caixas["rolo_tras"][1]]
     return {"tipo": "partes", "pixel": True, "img": f"{chave}.png", "partes": {n: list(pos[n]) for n, _ in itens},
-            "pescocos": pescocos}
+            "pescocos": pescocos, "deslocs": deslocs}
 
 
 def pixelizar(im: Image.Image, largura: int, altura: int, cores: int) -> Image.Image:

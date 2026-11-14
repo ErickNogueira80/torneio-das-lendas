@@ -146,6 +146,15 @@ Pessoal (família).
   uma camada nas cores das costas e da barriga (sem frestas pretas ao esticar; o preto fica só no
   contorno). Rabo: as partes finas dobram mais (a ponta enrola) e há o botão "Exemplo: rabo
   enrolado" (deitado, sobe e enrola a ponta para trás, com 3 ossos).
+- **Rolo novo em 2 camadas, versão C do laboratório (2026-11-14, decisão do Erick):** o corpo
+  enrolado volta a ser desenho fixo (some com as frestas pretas do rolo montado por gomos). Arte do
+  PixelLab (3 voltas, a de baixo mais larga; original em `originais/v5_rolo_3voltas_pixellab.png`)
+  dividida em `rolo_tras.png` (a imagem inteira) e `rolo_frente.png` (só a borda da frente do anel de
+  cima: linhas 114 a 152, colunas 70 a 190 da arte). Ordem: rabo → rolo de trás → pescoço →
+  borda da frente → cabeça: o pescoço sai de DENTRO da volta de cima. A ferramenta guarda onde a
+  camada da frente fica sobre a de trás (`deslocs` no sprites.json). Pescoço nasce em (114, 37) da
+  arte recortada e o rabo em (24, 127), atrás da volta de baixo. Escala 2 (pixel igual ao resto do
+  jogo; controle no laboratório); o rolo "respira" 1,2%. É a versão que abre no laboratório.
 - **Cabeças sem pescoço (2026-11-14, editadas pelo Erick no Pixelorama):** a fechada é a variação 2
   da grade (1ª linha, 2ª coluna) e a aberta a variação 1, com o pescoço desenhado apagado. Os
   projetos `.pxo` estão em `img/sprites/chefes/boitata/originais/pixelorama_*.pxo` e os bustos

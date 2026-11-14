@@ -508,8 +508,20 @@
     26,
     27
    ],
-   "gomo_corpo": [
+   "rolo_frente": [
     320,
+    2,
+    121,
+    39
+   ],
+   "rolo_tras": [
+    443,
+    2,
+    230,
+    149
+   ],
+   "gomo_corpo": [
+    675,
     2,
     124,
     82
@@ -533,7 +545,13 @@
     0.167
    ]
   },
-  "ver": "354fdf5c"
+  "deslocs": {
+   "rolo_frente": [
+    56,
+    19
+   ]
+  },
+  "ver": "053d49e5"
  },
  "fundos/boitata": {
   "tipo": "fundo",
