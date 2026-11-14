@@ -1116,9 +1116,11 @@ CHEFES.boitata = (() => {
   const enraged = b => b.fire < b.max * 0.35;
   const SP = 12, CAB_K = 3, ZC = 2;   // distância entre gomos; escala da cabeça; escala do rolo
   // pontos na arte do rolo (px da imagem recortada, 230×149) e a grossura do corpo ali
-  const ROLO_C = { pescoco: [114, 37], rabo: [24, 127], rPesc: 22, rRabo: 15 };
+  // rabo (2026-11-14, Erick): mais alto e mais para dentro, atrás da volta de baixo (sem fresta entre ele e o rolo)
+  const ROLO_C = { pescoco: [114, 37], rabo: [36, 113], rPesc: 22, rRabo: 17 };
   const COR_COSTAS = '#2b201e', COR_BARRIGA = '#e6cf9f', BARRIGA_DESDE = .54;   // por baixo das escamas
   const JEITO_ATAQUE = { f: 2.8, z: .55, r: .6 };
+  const AFUNDA = 16;     // o rolo afunda no chão (2026-11-14, Erick: estava alto)
   const TOPO_CAB = 95;   // a cabeça (o corte do pescoço) não sobe acima disto: chamas e HUD à vista
   const PADRAO = ['idle', 'cospe', 'idle', 'prep', 'idle', 'cospe', 'prep'];
   const MAX_P = 5, MAX_R = 3;
@@ -1218,7 +1220,7 @@ CHEFES.boitata = (() => {
   function geo(b) {
     const S = sprite(b.cfg.sprite), PT = S && S.partes, q = (PT && PT.rolo_tras) || [0, 0, 230, 149];
     const resp = b.dead ? 1 : 1 + .012 * Math.sin(time * 1.6), w = q[2] * ZC, ky = ZC * resp, h = q[3] * ky;
-    const x0 = b.cx - w / 2, y0 = GROUND + 4 - h + b.subir;
+    const x0 = b.cx - w / 2, y0 = GROUND + AFUNDA - h + b.subir;
     return { S, PT, q, w, h, x0, y0, ky, N: { x: x0 + ROLO_C.pescoco[0] * ZC, y: y0 + ROLO_C.pescoco[1] * ky }, dN: { x: .05, y: -1 },
       R: { x: x0 + ROLO_C.rabo[0] * ZC, y: y0 + ROLO_C.rabo[1] * ky }, dR: { x: -1, y: .05 } };
   }
@@ -1315,8 +1317,27 @@ CHEFES.boitata = (() => {
     while (a > Math.PI) a -= 2 * Math.PI; while (a < -Math.PI) a += 2 * Math.PI;
     b.hx = p0.x; b.hy = p0.y; b.rot = clamp(a - (z ? z.angP : -.5), -1.3, 1.1);
     // listas com a grossura (contato, golpes, luzes e o pó da morte): pescoço da cabeça para o rolo, rabo do rolo para a ponta
-    b.neck = b.pesc.map((p, i) => ({ x: p.x, y: p.y, r: raioPesc(b, i, n) }));
-    b.tail = b.rabo.map((p, i) => ({ x: p.x, y: p.y, r: raioRabo(i, nr) })).reverse();
+    // fluidez: o desenho usa uma cópia suavizada das correntes, no tempo (tira os tremidos de quando
+    // um osso troca de gomo) e no espaço (arredonda as quinas nos ossos, onde a faixa abria em leque)
+    const vp = suave(b, 'vPesc', b.pesc, dt, 2), vr = suave(b, 'vRabo', b.rabo, dt, 2);
+    b.hx = vp[0].x; b.hy = vp[0].y;
+    b.neck = vp.map((p, i) => ({ x: p.x, y: p.y, r: raioPesc(b, i, n) }));
+    b.tail = vr.map((p, i) => ({ x: p.x, y: p.y, r: raioRabo(i, nr) })).reverse();
+  }
+
+  // cópia suavizada de uma corrente: segue a de verdade com atraso curto e passa por "fixo" passadas
+  // de média com os vizinhos (as 2 pontas ficam onde estão)
+  function suave(b, chave, pts, dt, fixo) {
+    let v = b[chave];
+    if (!v) v = b[chave] = pts.map(p => ({ x: p.x, y: p.y }));
+    while (v.length < pts.length) { const u = v[v.length - 1]; v.push({ x: u.x, y: u.y }); }
+    while (v.length > pts.length) v.pop();
+    const k = dt > 0 ? 1 - Math.exp(-dt * 22) : 1;
+    for (let i = 0; i < pts.length; i++) { v[i].x += (pts[i].x - v[i].x) * k; v[i].y += (pts[i].y - v[i].y) * k; }
+    v[0].x = pts[0].x; v[0].y = pts[0].y; v[v.length - 1].x = pts[pts.length - 1].x; v[v.length - 1].y = pts[pts.length - 1].y;
+    for (let it = 0; it < 3; it++)
+      for (let i = fixo; i < v.length - 1; i++) { v[i].x += ((v[i - 1].x + v[i + 1].x) / 2 - v[i].x) * .5; v[i].y += ((v[i - 1].y + v[i + 1].y) / 2 - v[i].y) * .5; }
+    return v;
   }
 
   // ---------- desenho (em coordenadas do mundo) ----------
@@ -1354,11 +1375,14 @@ CHEFES.boitata = (() => {
     ctx.imageSmoothingEnabled = true;
   }
   // fatias de uma lista com grossura; flanco = de lado (costas para cima, fio de barriga embaixo)
+  // flanco: a barriga fica do mesmo lado do corpo do começo ao fim (decidido pelo 1º gomo, deitado no
+  // chão = barriga embaixo). Antes cada gomo virava a barriga para baixo e a ponta erguida invertia.
   function fatias(pts, flanco) {
     const out = []; let s = 0;
+    const viraR = flanco && pts.length > 1 && pts[1].x - pts[0].x < 0;
     for (let i = 0; i < pts.length - 1; i++) {
       const a = pts[i], b = pts[i + 1], r = a.r, fh = flanco ? .72 : 1;
-      out.push({ a, b, r, s, fh, vira: flanco ? b.x - a.x < 0 : false, ext: flanco ? 3 : 0 }); s += Math.hypot(b.x - a.x, b.y - a.y) * 82 * fh / (r * 2);
+      out.push({ a, b, r, s, fh, vira: flanco ? viraR : false, ext: flanco ? 3 : 0 }); s += Math.hypot(b.x - a.x, b.y - a.y) * 82 * fh / (r * 2);
     }
     return out;
   }
@@ -3116,6 +3140,15 @@ function drawProjectiles() {
   const [c0, c1, c2] = PODER.cores;
   for (const o of shots) {
     const x = o.x - camX;
+    // imagem do poder (ex.: bolha de água do PixelLab, 9 quadros): a bola na frente, o rastro atrás
+    const qd = ((Math.floor(time * 14 + o.x * .01) % 9) + 9) % 9, im = PODER.imagem && layer(PODER.imagem, String(qd + 1));
+    if (im) {
+      const w = im.naturalWidth * 2, h = im.naturalHeight * 2;
+      ctx.save(); ctx.translate(Math.round(x), Math.round(o.y)); ctx.rotate(Math.atan2(o.vy, o.vx));
+      ctx.imageSmoothingEnabled = false; ctx.drawImage(im, -Math.round(w * .7), -Math.round(h / 2), w, h); ctx.imageSmoothingEnabled = true;
+      ctx.restore();
+      continue;
+    }
     const g = ctx.createRadialGradient(x, o.y, 1, x, o.y, o.r * 1.8);
     g.addColorStop(0, c0); g.addColorStop(.35, c1); g.addColorStop(.75, c2); g.addColorStop(1, 'rgba(0,0,0,0)');
     ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, o.y, o.r * 1.8, 0, Math.PI * 2); ctx.fill();

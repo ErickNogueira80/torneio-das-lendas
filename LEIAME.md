@@ -245,6 +245,17 @@ Pessoal (família).
   comprimento e volta para dentro quando pede menos (mínimo de 14 gomos), senão a sobra estufa.
   Teste de jeito sem mexer no código: `&jeito=f,z,r` (ex.: `?play&boss&x=8800&jeito=1.2,0.35,0`).
   A versão 5 ficou guardada como `CHEFES.boitata_v5` (`tipo: 'boitata_v5'`, usa `ancoras`).
+  **Ajustes de 2026-11-14 (pedidos do Erick):** o rolo afunda 16 px no chão (`AFUNDA`; estava
+  alto). O rabo nasce mais alto e mais para dentro, atrás da volta de baixo, em (36, 113) da arte e
+  com grossura 17, sem a fresta entre ele e o rolo. A barriga do rabo fica do mesmo lado do corpo do
+  começo ao fim: antes cada gomo virava a barriga para baixo e a ponta erguida aparecia invertida.
+  Fluidez: o desenho usa uma cópia suavizada do pescoço e do rabo, no tempo (sem tremido quando um
+  osso troca de gomo) e no espaço (sem quinas nos ossos, onde a faixa da barriga abria em leque).
+  A pose `prepara` foi feita pelo Claude a partir do descanso do Erick (cabeça recuada e armada
+  sob o arco do pescoço); a padrão do laboratório deixava a cabeça caída dentro da volta.
+- **Tiro de água com arte (2026-11-14):** bolha do PixelLab (9 quadros de 64 px; folha original em
+  `img/sprites/objetos/bola_agua/originais/`), 16 px de altura na arte. O poder diz qual imagem usar
+  (`imagem` em `PODERES`, herois.js); o tiro gira para onde voa. Sem a imagem, volta a bola desenhada.
 - **Boitatá enrolado, versão 5 (2026-11-14, guardado como `boitata_v5`):** fica como na
   imagem da cobra inteira do PixelLab: o rolo parado no lado direito da arena, o pescoço subindo em
   S e a cabeça no alto. A imagem do rolo (`corpo.png`) é a cobra inteira recortada (sem o pescoço

@@ -593,6 +593,22 @@
   },
   "ver": "617dc6ce"
  },
+ "objetos/bola_agua": {
+  "tipo": "objeto",
+  "pixel": 2,
+  "camadas": {
+   "1": "objetos/bola_agua/1.png",
+   "2": "objetos/bola_agua/2.png",
+   "3": "objetos/bola_agua/3.png",
+   "4": "objetos/bola_agua/4.png",
+   "5": "objetos/bola_agua/5.png",
+   "6": "objetos/bola_agua/6.png",
+   "7": "objetos/bola_agua/7.png",
+   "8": "objetos/bola_agua/8.png",
+   "9": "objetos/bola_agua/9.png"
+  },
+  "ver": "2aaa7efb"
+ },
  "objetos/bola_fogo": {
   "tipo": "objeto",
   "pixel": 2,
