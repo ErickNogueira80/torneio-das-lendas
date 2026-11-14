@@ -428,22 +428,45 @@ Pessoal (família).
 - **Plano:** etapa 1 (motor separado em dados, imagens com reserva, ferramenta e prompts) feita
   em 2026-11-07. Etapas 2 e 3 em boa parte feitas em 2026-11-08 (ver "Estado atual").
 
-### Estado atual (2026-11-08) e próximos passos
+### Estado atual (2026-11-14) e próximos passos
 
-Para retomar numa sessão nova, comece por aqui.
+Para retomar numa sessão nova, comece por aqui (e leia as seções citadas para os detalhes).
 
 **Pronto e publicado:**
 - Fluxo: título → seleção de herói (só o humano liberado) → mapa do mundo (só o Boitatá
   liberado; bestiário no botão) → fase do Boitatá → vitória volta ao mapa.
-- Fase do Boitatá completa em pixel art: herói do PixelLab (7 animações), brasa e vespa do
-  PixelLab, fundos pixelizados, piso irregular, árvores-plataforma com raiz 2,5D, baú escondido,
-  altares como pontos de controle, placa com pergaminho, escuridão com luz (estilo Lanterna),
-  retrato no canto, HUD com molduras do Gemini, Boitatá enrolado (v5, 2026-11-14; a versão que entra e sai da
-  terra ficou guardada como `boitata_terra`).
+- Fase do Boitatá com 10 telas e 3 altares, toda em pixel art: herói do PixelLab (com espada e,
+  com a Lança equipada, o boneco com lança), brasa e vespa, fundos pixelizados, piso irregular,
+  árvores-plataforma, baú escondido, placa com pergaminho, escuridão com luz (estilo Lanterna),
+  retrato no canto, HUD com molduras do Gemini, tiro de água com a bolha do PixelLab.
+- **Sala secreta** embaixo de um dos buracos (qual é não se conta ao Erick nem à Milena): caverna
+  com fundo pintado (campo sem fim de cogumelos azuis), cogumelos que dançam, cogumelo-mola para
+  sair, Mímico de guardião e a Lança de prêmio (regra de 2 itens: `ataque` + `livre`).
+- **Boitatá versão 6** (seção "Boitatá versão 6"): esqueleto do laboratório no jogo, com o rolo em
+  2 camadas, pescoço e rabo em corrente com ossos e as poses do Erick (`chefe.esqueleto` em
+  `fases.js`). Já espera enrolado na arena; bolas de fogo pela boca com aviso; bote em arco até o
+  herói; rabada; cabeça em brasa e fogo só na fúria; rabo fino com osso extra na ponta; morre em pó
+  e deixa o **pingente novo** (arte do Gemini). Versões antigas guardadas: `boitata_v5`,
+  `boitata_terra`.
+- Laboratório da cobra (`jogo/laboratorio/cobra.html`) para editar poses; "Copiar poses" gera o
+  texto que vai para `chefe.esqueleto`. Poses do Erick em `jogo/laboratorio/poses/`.
 - Bestiário com ??? até o encontro e contador de derrotados; locais bloqueados sem spoiler.
 
-**Para testar rápido:** `?play&sala` (começa na sala secreta; `&espada` tira a lança), `?boss` (luta), `?chefevida=10` (chefe quase morto), `?play&x=8580` (placa), `?play&x=1300` (baú), `?herois`,
-`?mapa`, `?bestiario`, `?fps`, `?perf`, `?semluz`, `?semretrato`.
+**Para testar rápido:** `?play&sala` (começa na sala secreta; `&espada` tira a lança),
+`?play&boss&x=8800` (luta; `&chefevida=40` já na fúria, `&chefevida=10` quase morto;
+`&jeito=f,z,r` troca o jeito do descanso), `?play&x=8450` (chegando: o Boitatá esperando),
+`?play&x=8580` (placa), `?play&x=1300` (baú), `?herois`, `?mapa`, `?bestiario`, `?fps`, `?perf`,
+`?semluz`, `?semretrato`, `&ff=N` (avança N quadros; útil no Edge sem janela).
+
+**Em aberto (a decidir ou esperando arte):**
+- Arte do Mímico no PixelLab (prompt 4.9): hoje é o baú cortado na tampa.
+- Rabada do Boitatá fraca: a pose `rabada_chao` do Erick é quase o rabo enrolado, então a ponta
+  anda pouco. Sugestão: ponta mais alta na "cima" e mais longe na "chão" (no laboratório).
+- Jeito do descanso do Erick (rapidez 0,3, amortecimento 0,05) mantido; dá para comparar com
+  `&jeito=`. A pose `prepara` atual foi feita pelo Claude.
+- Espaço de item `livre` ainda sem uso (prêmios das próximas salas secretas; cada sala com um
+  guardião diferente). Cogumelos verdes e vermelhos guardados para outras salas.
+- Pingente ou dog tag (furo de continuidade, seção de pendências da Milena).
 
 **Cache das imagens (2026-11-14):** a ferramenta grava em cada item do `sprites.json` uma marca
 do conteúdo (`ver`) e o jogo pede as imagens com `?v=<marca>`. Antes disso, o celular guardava a
@@ -453,6 +476,8 @@ Basta rodar a ferramenta: não precisa trocar nada à mão para as imagens.
 **Fluxo de arte:** imagem nova em `img/sprites/...` (originais fora do git) → `python -I
 ferramentas/preparar_sprites.py` → conferir com o Edge sem janela num servidor local
 (`python -I -m http.server 8765`) → trocar o `?v=` em `jogo/index.html` → commit e push.
+Imagem opaca (fundo pintado): a pasta entra em `OBJETO_OPACO` na ferramenta. JPG com xadrez de
+"transparente" desenhado (Gemini): tirar o fundo antes (ver "Pingente com arte").
 Prompts em `04-prompts-sprites.md`. Peças paradas: Gemini (a ferramenta pixeliza). Animações e
 personagens: PixelLab (vista Sidescroller, direção East).
 
@@ -462,8 +487,7 @@ personagens: PixelLab (vista Sidescroller, direção East).
 - O humano sem poder de elemento (modo difícil) e ganhando o vento ao despertar o Câncer.
 - Próxima fase: Mula sem cabeça (ficha em `fases.js`, módulo novo em `CHEFES`, arte no Gemini e no
   PixelLab, texto da placa, ativar em `mapa.js`).
-- Pendências pequenas: tirar o disco voador do pasto na imagem do mapa (adiado); cabeça do Boitatá
-  um pouco mais escura que o corpo (dá para igualar na ferramenta).
+- Pendências pequenas: tirar o disco voador do pasto na imagem do mapa (adiado).
 
 ## Futuro: Godot e lojas (estudo de 2026-11-08, nada decidido)
 
