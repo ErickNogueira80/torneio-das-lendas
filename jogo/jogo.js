@@ -652,7 +652,8 @@ CHEFES.boitata = (() => {
       for (const c of b.chamas) {
         const a = Math.min(1, c.t * 1.5);
         ctx.globalAlpha = a;
-        for (let j = 0; j < 4; j++) chamaPixel(Math.round(c.x - camX - 27 + j * 18), GROUND + 2, 14, 18 + Math.sin(time * 10 + j * 2 + c.x) * 7, time * 11 + j);
+        if (!drawFogo(c.x - camX, GROUND + relevo(c.x), 70, c.x * .37))
+          for (let j = 0; j < 4; j++) chamaPixel(Math.round(c.x - camX - 27 + j * 18), GROUND + 2, 14, 18 + Math.sin(time * 10 + j * 2 + c.x) * 7, time * 11 + j);
         ctx.globalAlpha = 1;
       }
       if (b.dead && b.popped > C.filter(acima).length) return;
@@ -1400,6 +1401,21 @@ function flame(x, y, w, h, t, inner = '#ffe28a', mid = '#ff8a1e', outer = 'rgba(
   ctx.quadraticCurveTo(x - w * .9, y - h * .35, x, y - h * f);
   ctx.fill();
 }
+// fogo parado no chão (quadros do PixelLab em objetos/fogo, animados a 10 por segundo). x na tela,
+// y = chão. fase desencontra os fogos vizinhos. Devolve false sem a imagem (aí usa o desenho).
+function drawFogo(x, y, larg, fase = 0) {
+  const n = 9, i = ((Math.floor(time * 10 + fase) % n) + n) % n, im = layer('objetos/fogo', String(i + 1));
+  if (!im) return false;
+  const z = 2, w = im.naturalWidth * z, h = im.naturalHeight * z, copias = larg > w + 15 ? 2 : 1;
+  ctx.imageSmoothingEnabled = false;
+  for (let c = 0; c < copias; c++) {
+    const im2 = c ? layer('objetos/fogo', String(((i + 4) % n) + 1)) || im : im;
+    const cx = copias > 1 ? x - larg / 4 + c * larg / 2 : x;
+    ctx.drawImage(im2, Math.round(cx - w / 2), Math.round(y - h + 4), w, h);
+  }
+  ctx.imageSmoothingEnabled = true;
+  return true;
+}
 function roundRect(x, y, w, h, r) { ctx.beginPath(); ctx.roundRect ? ctx.roundRect(x, y, w, h, r) : ctx.rect(x, y, w, h); }
 
 function drawTree(x, base, h, w, b, color) {
@@ -1861,7 +1877,8 @@ function drawWorld() {
   for (const hz of HAZARDS) {
     const x = hz.x - camX; if (x > W || x + hz.w < 0) continue;
     ctx.fillStyle = 'rgba(255,90,20,.35)'; ctx.fillRect(x, GROUND - 4, hz.w, 4);
-    for (let i = 8; i < hz.w; i += 16) flame(x + i, GROUND, 14, 26 + Math.sin(time * 9 + i) * 6, time * 12 + i);
+    if (!drawFogo(x + hz.w / 2, GROUND + relevo(hz.x + hz.w / 2), hz.w, hz.x * .37))
+      for (let i = 8; i < hz.w; i += 16) flame(x + i, GROUND, 14, 26 + Math.sin(time * 9 + i) * 6, time * 12 + i);
   }
   const altar = sprite('objetos/altar') || SPR['objetos/altar'];
   const apagado = layer('objetos/altar', 'apagado'), aceso = layer('objetos/altar', 'aceso');

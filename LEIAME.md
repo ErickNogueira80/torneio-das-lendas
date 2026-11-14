@@ -110,6 +110,10 @@ Pessoal (família).
   80, 4.250 e 8.300). A parte nova (depois de 3.300) segue o mesmo jeito da antiga: 8 buracos de
   100 a 140 px, árvores-plataforma, 9 trechos de chão em chamas e 17 inimigos (brasas e vaga-lumes
   um pouco mais fortes no fim).
+- **Fogo parado (2026-11-14):** o chão em chamas da fase e o fogo que o Boitatá deixa no salto
+  usam a animação de 9 quadros do PixelLab (`img/sprites/objetos/fogo/`, recortada da folha em
+  `originais/`; 24 px de altura na arte, 48 na tela, 10 quadros por segundo, cada fogo começa num
+  quadro diferente). Sem a imagem, volta o fogo desenhado.
 - **Sala secreta (teste do Erick, 2026-11-14):** embaixo de um dos buracos há uma caverna com um
   baú (70 XP e vida cheia). Nada indica isso lá em cima: o buraco é igual aos outros. A posição
   fica em `sala` na ficha da fase e **não deve ser contada ao Erick nem à Milena** (o teste é a

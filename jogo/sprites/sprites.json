@@ -565,6 +565,22 @@
   },
   "ver": "617dc6ce"
  },
+ "objetos/fogo": {
+  "tipo": "objeto",
+  "pixel": 2,
+  "camadas": {
+   "1": "objetos/fogo/1.png",
+   "2": "objetos/fogo/2.png",
+   "3": "objetos/fogo/3.png",
+   "4": "objetos/fogo/4.png",
+   "5": "objetos/fogo/5.png",
+   "6": "objetos/fogo/6.png",
+   "7": "objetos/fogo/7.png",
+   "8": "objetos/fogo/8.png",
+   "9": "objetos/fogo/9.png"
+  },
+  "ver": "9917a894"
+ },
  "objetos/placa": {
   "tipo": "objeto",
   "pixel": 2,
