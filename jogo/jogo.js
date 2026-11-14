@@ -1314,8 +1314,16 @@ CHEFES.boitata = (() => {
       const amp = E.ond * Math.sin(Math.PI * i / n) * Math.sin(time * 3 - i * .35) * .15;
       b.pesc[i].x += -dy / d * amp; b.pesc[i].y += dx / d * amp;
     }
-    // rabo: ponta e ossos presos
-    const nr = b.rabo.length - 1, ir = indices(E, P0, 'r', nr), sr = alca(b, 'rabo', G.R, P0.rabo, dt, J);
+    // rabo: ponta e ossos presos. Osso extra automático perto da ponta (2026-11-14, Erick): entre o
+    // último osso e a ponta o rabo fino virava um palito reto; o osso extra curva esse trecho no
+    // mesmo sentido em que o rabo já vem enrolando, e balança de leve (a ponta fica viva)
+    const ors = P0.or.slice(0, E.nR), pres = ors.filter(Boolean), T = P0.rabo;
+    const B0 = pres[0] || [0, 0], C0 = pres[1] || (pres[0] ? [0, 0] : [B0[0] + 12, B0[1]]);
+    const vx = T[0] - B0[0], vy = T[1] - B0[1], len = Math.hypot(vx, vy) || 1;
+    const giro = (B0[0] - C0[0]) * vy - (B0[1] - C0[1]) * vx >= 0 ? 1 : -1, ond = Math.sin(time * 2.6) * .06;
+    const M = [(B0[0] + T[0]) / 2 - vy / len * len * (.2 + ond) * giro, (B0[1] + T[1]) / 2 + vx / len * len * (.2 + ond) * giro];
+    const ER = { ...E, nR: E.nR + 1 }, P0r = { ...P0, or: [M.map(Math.round), ...ors] };
+    const nr = b.rabo.length - 1, ir = indices(ER, P0r, 'r', nr), sr = alca(b, 'rabo', G.R, P0.rabo, dt, J);
     const alvR = [{ i: 0, p: { x: sr.x, y: Math.min(sr.y, GROUND - 6) } }];
     for (const o of ir.presos) acorda(o, b.rabo, ir.idx[o.chave]);
     b.ativos = ativos;
@@ -2871,8 +2879,37 @@ function salaDeco() {
   // no chão e um grupinho que dança (mais rápido quando o herói chega perto)
   D.grandes = [[60, 'alto1'], [250, 'largo1'], [610, 'alto3'], [770, 'largo2'], [905, 'alto2']].map(([dx, n]) => ({ x: SALA.x0 + dx, n }));
   D.cogumelos.forEach((c, i) => { c.n = 'abcdefg'[i % 7]; });
-  D.dancam = [330, 380, 690, 735, 785, 840].map((dx, i) => ({ x: SALA.x0 + dx + (r() - .5) * 14, ph: r() * 9, esp: r() < .5 }));
+  D.dancam = [130, 175, 330, 372, 418, 560, 610, 690, 732, 778, 822, 866].map((dx, i) => ({ x: SALA.x0 + dx + (r() - .5) * 14, ph: r() * 9, esp: r() < .5 }));
   return (salaDecoPronta = D);
+}
+let campoCv = null;
+function campoCogumelos() {
+  if (campoCv) return campoCv;
+  const L = SALA.x1 - SALA.x0, A = 290, c = document.createElement('canvas'); c.width = L; c.height = A;
+  const g = c.getContext('2d'), r = mulberry(77), B = 2, q = v => Math.round(v / B) * B;
+  // brilho azul lá no fundo (a caverna continua)
+  const fog = g.createLinearGradient(0, 0, 0, A);
+  fog.addColorStop(0, 'rgba(40,80,160,0)'); fog.addColorStop(.45, 'rgba(40,90,180,.16)'); fog.addColorStop(1, 'rgba(20,40,90,.05)');
+  g.fillStyle = fog; g.fillRect(0, 0, L, A);
+  const N = 16;
+  for (let k = 0; k < N; k++) {   // do mais longe (k = 0, no alto) para o mais perto: perspectiva
+    const t = k / (N - 1), base = Math.round(14 + Math.pow(t, 1.7) * (A - 22)), cap = 2 + Math.pow(t, 1.6) * 15, passo = 3 + Math.pow(t, 1.4) * 24;
+    const escuro = .22 + Math.pow(t, 1.2) * .78, cor = `rgb(${Math.round(28 * escuro)},${Math.round(85 * escuro + 12)},${Math.round(175 * escuro + 28)})`;
+    const claro = `rgba(130,220,255,${.2 + t * .7})`, pe = `rgba(${Math.round(120 + t * 80)},${Math.round(130 + t * 75)},${Math.round(160 + t * 55)},${.06 + t * .55})`;
+    for (let x = -10 + r() * passo; x < L + 10; x += passo * (.5 + r() * 1.1)) {
+      const w = q(cap * (.6 + r() * .8)), hp = q(cap * (.35 + r() * .6)), y = base + q((r() - .5) * 6 * (1 + t * 2)), hc = Math.max(B, q(w * .45));
+      if (hp > 0) { g.fillStyle = pe; g.fillRect(q(x - Math.max(1, w * .16)), y - hp, Math.max(B, q(w * .32)), hp); }   // pé
+      for (let yy = 0; yy < hc; yy += B) { const ww = Math.max(B, q(w * Math.sqrt(1 - ((hc - yy) / hc) ** 2 * .9))); g.fillStyle = cor; g.fillRect(q(x - ww / 2), y - hp - hc + yy, ww, B); }
+      if (w >= 6) { g.fillStyle = claro; g.fillRect(q(x - w * .2), y - hp - hc + B, B, B); if (w >= 12) g.fillRect(q(x + w * .15), y - hp - hc + 2 * B, B, B); }
+    }
+  }
+  // o alto some na escuridão (sem borda): a caverna continua para dentro
+  g.globalCompositeOperation = 'destination-out';
+  const some = g.createLinearGradient(0, 0, 0, A * .55);
+  some.addColorStop(0, 'rgba(0,0,0,1)'); some.addColorStop(1, 'rgba(0,0,0,0)');
+  g.fillStyle = some; g.fillRect(0, 0, L, A * .55);
+  g.globalCompositeOperation = 'source-over';
+  return (campoCv = c);
 }
 function drawSala() {
   if (!SALA) return;
@@ -2899,6 +2936,16 @@ function drawSala() {
   for (const t of D.teto) {
     const x = Math.round(t.x - camX);
     for (let y = 0; y < t.h; y += B) { const w = q(t.w * (1 - y / t.h)); if (w > 0) ctx.fillRect(x - w / 2, topo + y, w, B); }
+  }
+  // campo sem fim: fileiras de cogumelinhos subindo para o fundo (menores, mais apagados e mais altos
+  // quanto mais longe), como uma caverna sem fundo forrada de cogumelos. Desenhado uma vez numa imagem.
+  // Se existir a arte pintada (objetos/fundo_sala), ela entra no lugar.
+  const arte = layer('objetos/fundo_sala', 'cogumelos');
+  if (arte) {
+    ctx.imageSmoothingEnabled = false; ctx.drawImage(arte, x0, topo, x1 - x0, chao - topo); ctx.imageSmoothingEnabled = true;
+  } else {
+    const cv = campoCogumelos();
+    ctx.globalAlpha = .9 + .1 * Math.sin(time * 1.3); ctx.drawImage(cv, x0, chao - cv.height); ctx.globalAlpha = 1;
   }
   // cogumelos grandes no fundo (escurecidos: ficam atrás, na penumbra da caverna)
   for (const c of D.grandes) {
@@ -2927,13 +2974,14 @@ function drawSala() {
     ctx.globalAlpha = brilho; ctx.fillStyle = '#5fe0cf'; ctx.fillRect(x - 2 * k, chao - 4 * k, 4 * k, k); ctx.fillRect(x - k, chao - 5 * k, 2 * k, k);
     ctx.globalAlpha = 1;
   }
-  // os pequenos dançam (9 quadros); com o herói perto dançam mais rápido, e alguns dançam espelhados
+  // os pequenos dançam (9 quadros); com o herói perto dançam mais rápido (sem pular: os pés ficam no
+  // chão), e alguns dançam espelhados
   for (const c of D.dancam) {
     const perto = naSala(player) && Math.abs(player.x + player.w / 2 - c.x) < 160;
     const qd = Math.floor(time * (perto ? 15 : 8) + c.ph) % 9, im = layer('objetos/cogumelo_danca', String(qd + 1));
     if (!im) continue;
-    const w = im.naturalWidth * 2, h = im.naturalHeight * 2, x = Math.round(c.x - camX), pulo = perto ? Math.round(Math.abs(Math.sin(time * 9 + c.ph)) * 4) : 0;
-    ctx.save(); ctx.translate(x, chao + 2 - pulo); if (c.esp) ctx.scale(-1, 1);
+    const w = im.naturalWidth * 2, h = im.naturalHeight * 2, x = Math.round(c.x - camX);
+    ctx.save(); ctx.translate(x, chao + 2); if (c.esp) ctx.scale(-1, 1);
     ctx.drawImage(im, -Math.round(w / 2), -h, w, h); ctx.restore();
   }
   ctx.imageSmoothingEnabled = true;
@@ -2993,6 +3041,7 @@ function luzes() {
     L.push([SALA.mola - camX, SALA.chao - 26, 180 + f, '110,240,220', .5]);
     for (const c of salaDeco().cogumelos) L.push([c.x - camX, c.y - 14, 75 + f, '90,170,255', .3]);
     for (const c of salaDeco().dancam) L.push([c.x - camX, SALA.chao - 20, 70 + f, '90,170,255', .35]);
+    for (let i = 0; i < 6; i++) L.push([SALA.x0 + 80 + i * 160 - camX, SALA.chao - 150 - (i % 2) * 30, 150 + f, '70,130,255', .18]);   // o campo do fundo
   }
   for (const l of L) l[1] -= camY;   // a câmera vertical sobe tudo (até a lua, desenhada com o fundo)
   return L.filter(l => l[0] > -l[2] && l[0] < W + l[2] && l[1] > -l[2] && l[1] < H + l[2]);

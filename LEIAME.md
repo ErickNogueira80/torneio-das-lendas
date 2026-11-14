@@ -275,6 +275,9 @@ Pessoal (família).
   aberta da arte (ponto 36,27 de 47×46, girado com a cabeça; `BOCA`), não mais de um ponto fixo do
   crânio, que caía no nariz. **Ponta do rabo bem fina:** grossura de 30 na base até 1,2 na ponta,
   afinando mais rápido no fim; rabo com 38 gomos (era 34) e contorno preto mais fino nas partes finas.
+  **Osso extra na ponta do rabo (2026-11-14):** automático, entre o último osso da pose e a ponta,
+  puxado para o lado em que o rabo já vem enrolando (20% do trecho) e balançando de leve; sem ele o
+  trecho fino virava um palito reto. As poses do Erick não mudam.
   A pose `prepara` foi feita pelo Claude a partir do descanso do Erick (cabeça recuada e armada
   sob o arco do pescoço); a padrão do laboratório deixava a cabeça caída dentro da volta.
 - **Pingente com arte (2026-11-14):** o jogo usa `objetos/pingente/<id da fase>` (ex.:
@@ -288,11 +291,17 @@ Pessoal (família).
   originais (azuis, verdes e vermelhos; grandes, largos, pequenos e a dança) em
   `img/sprites/objetos/cogumelo_grande/originais/`. Por enquanto só os azuis, decisão do Erick:
   `cogumelo_grande` (4 altos e 2 largos, 60 px de arte, 5 deles no fundo, escurecidos),
-  `cogumelo_azul` (7 cogumelinhos parados no chão, 15 px), `cogumelo_danca` (9 quadros, 20 px: 6
+  `cogumelo_azul` (7 cogumelinhos parados no chão, 15 px), `cogumelo_danca` (9 quadros, 20 px: 12
   pequenos que **dançam**, cada um num tempo, alguns espelhados; com o herói a menos de 160 px dançam
-  mais rápido e pulinham) e `cogumelo_mola` (o largo de baixo claro, 24 px: é o cogumelo-mola, que
+  mais rápido; o pulinho saiu, parecia que saíam do chão) e `cogumelo_mola` (o largo de baixo claro, 24 px: é o cogumelo-mola, que
   achata e alarga quando pisado e estica no pulo). Todos brilham em azul na luz. Sem as imagens,
   volta o desenho por código. Os verdes e vermelhos ficam para outras salas.
+  **Caverna sem fim (2026-11-14, ideia do Erick):** atrás de tudo, um campo de cogumelinhos
+  desenhado por código (`campoCogumelos`, feito uma vez numa imagem): 16 fileiras, do fundo (no alto,
+  minúsculas, escuras, quase sem pé) para a frente (maiores e azuis), e o alto some no escuro, como
+  um chão que sobe para dentro de uma caverna infinita. Seis luzes azuis fracas mostram o campo.
+  Se existir a arte pintada `img/sprites/objetos/fundo_sala/cogumelos.png` (prompt 4.11), ela entra
+  no lugar do campo (480×210 de arte, cobrindo a sala).
 - **Tiro de água com arte (2026-11-14):** bolha do PixelLab (9 quadros de 64 px; folha original em
   `img/sprites/objetos/bola_agua/originais/`), 16 px de altura na arte. O poder diz qual imagem usar
   (`imagem` em `PODERES`, herois.js); o tiro gira para onde voa. A arte voa para a esquerda (bola

@@ -621,7 +621,7 @@ def preparar_fundo(pasta: Path, ajustes: dict) -> dict | None:
 
 
 OBJETO_ALTURA = {"altar": 27, "bau": 24, "placa": 35, "fogo": 24, "bola_fogo": 18, "bola_agua": 16, "chama": 20, "pingente": 40,
-                 "cogumelo_mola": 24, "cogumelo_danca": 20, "cogumelo_azul": 15, "cogumelo_grande": 60}   # altura dos objetos em px da arte (tela = o dobro)
+                 "cogumelo_mola": 24, "cogumelo_danca": 20, "cogumelo_azul": 15, "cogumelo_grande": 60, "fundo_sala": 210}   # altura dos objetos em px da arte (tela = o dobro)
 MAPA_TAMANHO = (640, 360)        # mapa do mundo em pixel art (cada pixel = 1,5 na tela)
 
 

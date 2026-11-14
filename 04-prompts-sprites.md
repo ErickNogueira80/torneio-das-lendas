@@ -865,6 +865,32 @@ transparent background, no text.
 Se vier muito enfeitado ou ilegível em tamanho pequeno, acrescente `simple, bold shapes, readable
 at small size` e tire `Faint orange sparks around it`.
 
+## 4.11 Fundo da sala secreta: caverna sem fim de cogumelos (Gemini ou PixelLab) — 2026-11-14
+
+Hoje o jogo desenha por código um campo de cogumelinhos que sobe e some no escuro. Esta imagem
+pintada entra no lugar dele: o **fundo** da sala (as paredes, o teto, a mola, os cogumelos que
+dançam e o baú continuam por cima, desenhados pelo jogo).
+
+- Formato **largo, 16:7** (ex.: 1920×840). O jogo reduz para pixel art (480×210, 2× na tela).
+- **Sem nada no primeiro plano:** a faixa de baixo (o chão onde o herói anda) deve ser só chão
+  escuro de terra, sem cogumelos grandes na frente, que o jogo põe os dele.
+- Salvar em `img/sprites/objetos/fundo_sala/cogumelos.png` (PNG; sem transparência tudo bem).
+
+```
+Pixel art background for a 2D side-scrolling game, wide 16:7. Inside a dark underground cave
+that seems endless: thousands of small glowing blue mushrooms carpet the floor and stretch far
+into the distance. The floor rises gently toward the back, so the mushroom carpet looks like it
+climbs up a wall, but it is really the cave going on forever into darkness. Near rows: bigger
+mushrooms with bright cyan spots; far rows: tiny glowing dots fading into a deep blue mist, then
+pure black at the top. Soft blue light, a few floating spores, rocky cave ceiling barely visible
+at the very top. Dark navy and black palette with cyan and blue glow only. The bottom strip of the
+image is plain dark earth floor with no large objects in front. 16-bit detailed pixel art, no
+characters, no text.
+```
+
+Se o resultado vier muito claro, acrescente `very dark, most of the image in shadow`. Se vier
+uma parede reta, reforce `the floor slopes upward into the distance, perspective`.
+
 ## 5. Ficha dos 3 heróis com constelação (para a Milena)
 
 O humano já está definido (o 4º jogador, sem constelação). Antes das imagens de cada herói dos
