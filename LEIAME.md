@@ -174,10 +174,20 @@ Pessoal (família).
   - Cabeça 1,5× (2× cravada), corpo 0,6×; encostar no corpo queima (`dano.corpo`), chão em chamas
     também (`dano.chama`). Fúria (< 35%): tudo 30% mais rápido, 3 rajadas de 5 bolas, bote duplo,
     ondas mais curtas e salto mais alto. Morre virando pó da cabeça para o rabo.
-  - Arte: a mesma de antes. O corpo é um tubo com a faixa de escamas `gomo_corpo` (mais grosso
-    perto da cabeça e afinando até o rabo); a cabeça usa `cabeca`/`cabeca_ataque` com o fogo
-    animado. A imagem do rolo (`corpo`) não é mais usada (fica no sprites.json). A versão
-    enrolada está no histórico do git (commit `3557936` e anteriores).
+  - Arte versão 4 (2026-11-14, gerada pelo Erick no PixelLab com os prompts da seção 2.3 de
+    `04-prompts-sprites.md`): cobra de verdade, com costas de carvão e rachaduras de lava e barriga
+    clara em placas. Escolhidas: cabeça fechada e aberta na 1ª linha e 1ª coluna das grades de 16,
+    e faixa do corpo embaixo à esquerda da grade de 4. Grades completas e a cobra inteira em
+    `img/sprites/chefes/boitata/originais/v4_*`; a versão 3 em `originais/v3_*`.
+    - Corpo: tubo com a `faixa_corpo` (a ferramenta usa como `gomo_corpo`). A barriga fica sempre
+      do lado de baixo/de dentro (a faixa é virada conforme o lado para onde a cobra vai). O
+      pescoço afina para 20 perto da cabeça, engrossa até 46 e afina até o rabo.
+    - Cabeça: busto com o pescoço descendo até um corte. A ferramenta mede o corte, a grossura e o
+      ângulo do pescoço (`pescocos`: x, y, grossura, ângulo); o jogo põe o corte na ponta do
+      corpo e gira a cabeça para o pescoço do desenho seguir o corpo (inclinação limitada). O
+      acerto e a mordida usam o centro do crânio, não a ponta do pescoço; o bote para 55 px antes
+      do herói para quem crava no chão ser o crânio.
+    - A versão enrolada está no histórico do git (commit `3557936` e anteriores).
   - Teste: `?play&boss&x=8800&ff=900` mostra um salto; `?chefevida=10` deixa o chefe quase morto.
   - Fluidez (2026-11-13, o Erick achou a movimentação dura): a velocidade não pula (acelera e
     freia: sai devagar da terra, perde força no alto do salto, freia ao chegar no alto quando se

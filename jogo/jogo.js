@@ -297,7 +297,33 @@ CHEFES.boitata = (() => {
   const PADRAO = ['ergue', 'salto', 'rastejo', 'salto', 'ergue', 'rastejo'];
   const MEIO = (ARENA.x0 + ARENA.x1) / 2;
   // grossura ao longo do corpo (s = distância a partir da cabeça)
-  const raio = s => s < 260 ? 32 + s / 260 * 14 : Math.max(14, 46 - Math.max(0, s - 900) / (COMP - 900) * 32);
+  // pescoço fino perto da cabeça (20), engrossa até 46 e afina de novo até o rabo
+  const raio = s => { if (s < 320) { const u = s / 320; return 20 + 26 * u * u * (3 - 2 * u); } return Math.max(14, 46 - Math.max(0, s - 900) / (COMP - 900) * 32); };
+  // pose da cabeça (a mesma no desenho e no acerto). Cabeça da versão 4: busto com o pescoço
+  // descendo até um corte; pescocos = [x, y do corte, grossura, ângulo do pescoço]. O corte vai na
+  // ponta do corpo e a cabeça gira para o pescoço do desenho seguir o corpo.
+  function poseCabeca(b) {
+    const S = sprite(b.cfg.sprite), P = S && S.partes, cab = b.corpo[0];
+    if (!P || !P.cabeca) return null;
+    const bravo = ['cospe', 'prep', 'bote', 'cravada'].includes(b.state);
+    const nome = bravo && P.cabeca_ataque ? 'cabeca_ataque' : 'cabeca', q = P[nome];
+    const pc = (S.pescocos && S.pescocos[nome]) || [.45, .5, .5];
+    let a = b.lado > 0 ? b.ang : Math.PI - b.ang;
+    while (a > Math.PI) a -= Math.PI * 2;
+    while (a < -Math.PI) a += Math.PI * 2;
+    const novo = pc.length > 3;
+    const k = (cab.r * (novo ? 2.2 : 1.75)) / (pc[2] * q[3]);
+    const rot = novo ? clamp(a - pc[3], -1, .65) : clamp(a, -.9, .9);
+    return { S, nome, q, k, rot, novo, ax: (novo ? 0 : -8) - pc[0] * q[2] * k, ay: -pc[1] * q[3] * k };
+  }
+  // centro do crânio no mundo (para morder e para levar golpe) e o raio dele
+  function centroCabeca(b) {
+    const cab = b.corpo[0], z = poseCabeca(b);
+    if (!z) return { x: cab.x, y: cab.y, r: 36 };
+    const lx = z.ax + z.q[2] * z.k * (z.novo ? .62 : .5), ly = z.ay + z.q[3] * z.k * (z.novo ? .38 : .5);
+    const c = Math.cos(z.rot), s = Math.sin(z.rot), e = b.lado > 0 ? 1 : -1;
+    return { x: cab.x + e * (lx * c - ly * s), y: cab.y + lx * s + ly * c, r: Math.max(30, z.q[3] * z.k * .36) };
+  }
   const acima = g => g.y - g.r < GROUND;   // gomo (ao menos em parte) acima da terra
 
   // põe a cobra inteira debaixo da terra, com a cabeça embaixo de x e o corpo estendido para trás
@@ -497,7 +523,8 @@ CHEFES.boitata = (() => {
       } else if (b.state === 'prep') {   // encolhe e treme: aviso do bote
         ox = -b.dir * 45 + Math.sin(time * 55) * 4; oy = -25;
         if (b.st > (furia ? .5 : .8)) {
-          const tx = clamp(pcx, ARENA.x0 + 30, ARENA.x1 - 30), ty = GROUND - 24;
+          // a ponta do corpo para um pouco antes do herói: quem crava no chão é o crânio, que fica à frente
+          const tx = clamp(pcx - b.dir * 55, ARENA.x0 + 30, ARENA.x1 - 30), ty = GROUND - 24;
           // o bote é uma curva: a cabeça avança para a frente e desce (continua a curva do pescoço)
           const x0 = b.hx, y0 = b.hy, cx = x0 + (tx - x0) * .55, cy = y0 - 35, pts = [];
           for (let i = 1; i <= 16; i++) { const t = i / 16, u = 1 - t; pts.push({ x: u * u * x0 + 2 * u * t * cx + t * t * tx, y: u * u * y0 + 2 * u * t * cy + t * t * ty }); }
@@ -541,8 +568,9 @@ CHEFES.boitata = (() => {
       b.morteX = cab.x;
 
       // contato: cabeça (mordida; veneno no bote), corpo em brasa e chão em chamas
-      if (acima(cab) && circleRect(cab.x, cab.y, 30, player)) {
-        if (b.state === 'bote') hurtPlayer(D.veneno, cab.x, D.venenoSeg); else hurtPlayer(D.mordida, cab.x);
+      const cc = centroCabeca(b); b.cc = cc;
+      if (cc.y - cc.r < GROUND && circleRect(cc.x, cc.y, cc.r * .8, player)) {
+        if (b.state === 'bote') hurtPlayer(D.veneno, cc.x, D.venenoSeg); else hurtPlayer(D.mordida, cc.x);
       }
       for (let i = 2; i < C.length; i += 2) {
         const g = C[i];
@@ -552,10 +580,10 @@ CHEFES.boitata = (() => {
       if (player.onGround) for (const c of b.chamas) if (Math.abs(pcx - c.x) < 34) { hurtPlayer(D.chama, c.x); break; }
 
       // efeitos: veneno nas presas, fogo na cabeça, brasas no corpo, terra onde ela fura o chão
-      if (acima(cab)) {
+      if (cc.y - cc.r < GROUND) {
         if ((b.state === 'prep' || b.state === 'bote' || b.state === 'cravada') && Math.random() < dt * 30)
-          particles.push({ x: cab.x + b.lado * rnd(10, 30), y: cab.y + 14, vx: rnd(-10, 10), vy: rnd(20, 60), life: .6, max: .6, c: Math.random() < .5 ? '#8dff6a' : '#c8ff9a', s: rnd(2, 3), g: 400 });
-        if (Math.random() < dt * 22) particles.push({ x: cab.x + rnd(-30, 10), y: cab.y - 30, vx: rnd(-25, 25), vy: rnd(-140, -70), life: .8, max: .8, c: FIRE[(Math.random() * 3) | 0], s: rnd(2, 3.5), g: -30 });
+          particles.push({ x: cc.x + b.lado * rnd(20, 50), y: cc.y + cc.r * .5, vx: rnd(-10, 10), vy: rnd(20, 60), life: .6, max: .6, c: Math.random() < .5 ? '#8dff6a' : '#c8ff9a', s: rnd(2, 3), g: 400 });
+        if (Math.random() < dt * 22) particles.push({ x: cc.x + rnd(-30, 30), y: cc.y - cc.r, vx: rnd(-25, 25), vy: rnd(-140, -70), life: .8, max: .8, c: FIRE[(Math.random() * 3) | 0], s: rnd(2, 3.5), g: -30 });
       }
       const vis = C.filter(acima);
       if (vis.length && Math.random() < dt * (furia ? 45 : 28) * Math.min(1, vis.length / 20)) {
@@ -573,14 +601,14 @@ CHEFES.boitata = (() => {
       }
     },
     acertoCirculo(b, x, y, r) {
-      const cab = b.corpo[0];
-      if (acima(cab) && Math.hypot(x - cab.x, y - cab.y) < 36 + r) return { x: cab.x, y: cab.y, mult: b.state === 'cravada' ? 2 : 1.5 };
+      const cc = b.cc || centroCabeca(b);
+      if (cc.y - cc.r < GROUND && y < GROUND && Math.hypot(x - cc.x, y - cc.y) < cc.r + r) return { x: cc.x, y: cc.y, mult: b.state === 'cravada' ? 2 : 1.5 };
       for (let i = 2; i < b.corpo.length; i += 2) { const s = b.corpo[i]; if (acima(s) && y < GROUND && Math.hypot(x - s.x, y - s.y) < s.r + r) return { x: s.x, y: s.y, mult: .6 }; }
       return null;
     },
     acertoRet(b, rr) {
-      const cab = b.corpo[0];
-      if (acima(cab) && circleRect(cab.x, cab.y, 36, rr)) return { x: cab.x, y: cab.y, mult: b.state === 'cravada' ? 2 : 1.5 };
+      const cc = b.cc || centroCabeca(b);
+      if (cc.y - cc.r < GROUND && circleRect(cc.x, cc.y, cc.r, rr)) return { x: cc.x, y: Math.min(cc.y, GROUND - 10), mult: b.state === 'cravada' ? 2 : 1.5 };
       for (let i = 2; i < b.corpo.length; i += 2) { const s = b.corpo[i]; if (acima(s) && circleRect(s.x, s.y, s.r, rr)) return { x: s.x, y: Math.min(s.y, GROUND - 10), mult: .6 }; }
       return null;
     },
@@ -589,7 +617,8 @@ CHEFES.boitata = (() => {
       if (b.dead) return b.popped > 3 ? L : L.concat([[b.corpo[0].x, b.corpo[0].y, 230, '255,150,50']]);
       for (const x of (b.state === 'aviso' ? b.avisos : [])) L.push([x, GROUND, 110 + Math.sin(time * 14) * 30, '255,110,30']);
       const C = b.corpo;
-      if (acima(C[0])) L.push([C[0].x, C[0].y, 230 + Math.sin(time * 9) * 12, '255,150,50']);
+      const cc = b.cc || C[0];
+      if (cc.y - (cc.r || 30) < GROUND) L.push([cc.x, cc.y, 240 + Math.sin(time * 9) * 12, '255,150,50']);
       let ult = -1e9;
       for (const g of C) if (acima(g) && g.s - ult > 280) { L.push([g.x, Math.min(g.y, GROUND - 20), 170 + Math.sin(time * 5 + g.s) * 10, '255,110,30']); ult = g.s; }
       return L;
@@ -654,6 +683,7 @@ CHEFES.boitata = (() => {
           const d = Math.hypot(a1.x - a0.x, a1.y - a0.y), r = a0.r, k = qh / (r * 2), sw = acc[i + 1] - acc[i];
           let sx = acc[i] % qw, feito = 0;
           ctx.save(); ctx.translate(Math.round(a0.x - camX), Math.round(a0.y)); ctx.rotate(Math.atan2(a1.y - a0.y, a1.x - a0.x));
+          if (b.dir > 0) ctx.scale(1, -1);   // a barriga (embaixo na faixa) fica sempre do lado de baixo/de dentro
           while (feito < sw - .01) {   // a fatia pode dar a volta no fim da faixa
             const pedaco = Math.min(sw - feito, qw - sx);
             ctx.drawImage(S.image, qx + sx, qy, pedaco, qh, feito / k - .5, -r, pedaco / k + 1.5, r * 2);
@@ -675,25 +705,18 @@ CHEFES.boitata = (() => {
       const cab = C[0];
       if (pp === 0 && cab.y - 40 < GROUND) {
         ctx.save(); ctx.translate(Math.round(cab.x - camX), Math.round(cab.y));
-        const right = b.lado > 0;
         ctx.scale(Math.abs(b.esc) < .08 ? (b.esc < 0 ? -.08 : .08) : b.esc, 1);
-        let a = right ? b.ang : Math.PI - b.ang;
-        while (a > Math.PI) a -= Math.PI * 2;
-        while (a < -Math.PI) a += Math.PI * 2;
-        ctx.rotate(clamp(a, -.9, .9));
-        const bravo = ['cospe', 'prep', 'bote', 'cravada'].includes(b.state);
-        if (P && P.cabeca) {
-          const nomeC = bravo && P.cabeca_ataque ? 'cabeca_ataque' : 'cabeca', [qx, qy, qw, qh] = P[nomeC];
-          const [nx, ny, hc] = (S.pescocos && S.pescocos[nomeC]) || [.45, .5, .5];
-          const k = (cab.r * 1.75) / (hc * qh);
+        const z = poseCabeca(b);
+        if (z) {
+          const [qx, qy, qw, qh] = z.q, k = z.k, hx0 = z.ax, hy0 = z.ay, larg = qw * k;
+          ctx.rotate(z.rot);
           ctx.imageSmoothingEnabled = !S.pixel;
-          const hx0 = -8 - nx * qw * k, hy0 = -ny * qh * k;
           ctx.drawImage(S.image, qx, qy, qw, qh, hx0, hy0, qw * k, qh * k);
-          // fogo vivo na cabeça
-          const topoC = -hc / 2 * qh * k, larg = qw * k;
-          for (let j = 0; j < 6; j++) {
-            const fx = hx0 + larg * (.1 + j * .09), alt = (rage ? 34 : 26) + Math.sin(time * 9 + j * 1.9) * 8 + Math.sin(time * 23 + j) * 3;
-            chamaPixel(fx, topoC + 3, 15, alt, time * 11 + j * 1.7);
+          // fogo vivo no alto da cabeça
+          const topoC = z.novo ? hy0 + qh * k * .1 : hy0 + qh * k * .3;
+          for (let j = 0; j < 5; j++) {
+            const fx = hx0 + larg * (z.novo ? .3 + j * .11 : .1 + j * .11), alt = (rage ? 30 : 22) + Math.sin(time * 9 + j * 1.9) * 7 + Math.sin(time * 23 + j) * 3;
+            chamaPixel(fx, topoC + 3, 13, alt, time * 11 + j * 1.7);
           }
           if (b.flash > 0) { ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = Math.min(1, b.flash * 3) * .6; ctx.drawImage(S.image, qx, qy, qw, qh, hx0, hy0, qw * k, qh * k); ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over'; }
           ctx.imageSmoothingEnabled = true;

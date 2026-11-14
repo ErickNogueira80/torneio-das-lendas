@@ -432,6 +432,10 @@ jaw. Cut at the neck on the left edge. No flames outside the mouth, no sparks. 1
 pixel art, black outline, transparent background.
 ```
 
+**Resultado (2026-11-14):** gerado e em uso no jogo. Escolhidas a cabeça fechada e a aberta da
+1ª linha e 1ª coluna e a faixa de baixo à esquerda (contorno dos dois lados). O PixelLab fez as
+cabeças como busto virado para a esquerda; o Claude espelhou e a ferramenta mede o pescoço.
+
 Conferir antes de seguir: a barriga clara e as costas de lava bem separadas, a mesma cor de
 escama nas quatro imagens, e a faixa B sem pontas (deve emendar consigo mesma).
 

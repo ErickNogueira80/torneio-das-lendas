@@ -56,9 +56,9 @@ PERSONAGEM = {
     "inimigos": {"altura": 44, "atlas": 112},
 }
 ALTURA_ESPECIFICA = {"inimigos/vagalume": 34}
-PARTES_LADO = {"cabeca": 256, "cabeca_ataque": 256, "gomo": 160, "rabo": 128, "corpo": 256}   # maior lado (sem pixel)
+PARTES_LADO = {"cabeca": 256, "cabeca_ataque": 256, "gomo": 160, "rabo": 128, "corpo": 256, "faixa_corpo": 256}   # maior lado (sem pixel)
 # peças do chefe em pixel art: maior lado em px da arte (o jogo amplia; mesmo estilo do resto)
-PARTES_PIXEL = {"cabeca": 46, "cabeca_ataque": 46, "gomo": 26, "rabo": 26, "corpo": 200}
+PARTES_PIXEL = {"cabeca": 46, "cabeca_ataque": 46, "gomo": 26, "rabo": 26, "corpo": 200, "faixa_corpo": 124}
 # Fundos em pixel art: cada pixel da arte vira 2x2 na tela virtual (FUNDO_PIXEL). Alturas na
 # resolução da arte: céu 270 (tela 540), longe 180 (360), perto 210 (420), chão 128 (ladrilho 256).
 FUNDO_PIXEL = 2
@@ -445,8 +445,14 @@ def preparar_partes(pasta: Path) -> dict | None:
     if not itens:
         return None
     itens = [(n, ajustar_peca(n, im)) for n, im in itens]
+    # faixa do corpo: a imagem própria (versão 4: costas de lava em cima, barriga embaixo) ou, sem
+    # ela, um pedaço do rolo (versão 3)
+    faixa = dict(itens).pop("faixa_corpo", None)
+    itens = [(n, im) for n, im in itens if n != "faixa_corpo"]
     corpo = dict(itens).get("corpo")
-    if corpo is not None:
+    if faixa is not None:
+        itens.append(("gomo_corpo", faixa))
+    elif corpo is not None:
         itens.append(("gomo_corpo", gomo_do_corpo(corpo)))
     folha, pos = empacotar(itens)
     saida = DESTINO / f"{chave}.png"
@@ -454,18 +460,26 @@ def preparar_partes(pasta: Path) -> dict | None:
     folha.save(saida, optimize=True)
     print(f"  {chave}: partes {', '.join(n for n, _ in itens)} -> {saida.relative_to(RAIZ)}")
     # ponto do pescoço de cada cabeça (centro do desenho no quarto de trás e de baixo), em fração
+    # cabeças da versão 4 (busto virado para a direita, pescoço descendo até o corte embaixo):
+    # [x, y do meio do corte, grossura do pescoço (fração da altura), ângulo do pescoço (radianos,
+    # do corte para o crânio)]. O jogo põe o corte na ponta do corpo e gira a cabeça por esse ângulo.
     pescocos = {}
     for n, im in itens:
         if n.startswith("cabeca"):
             al = np.asarray(im)[:, :, 3] > 0
             h, w = al.shape
-            rgb = np.asarray(im)[:, :, :3].astype(int)
-            escuro = al & (rgb.max(axis=2) < 120)       # o crânio (as chamas são claras)
-            ys, xs = np.where(escuro)
-            if len(xs):
-                tras = xs <= xs.min() + max(3, (xs.max() - xs.min()) * .15)
-                pescocos[n] = [round(float(xs.min()) / w, 3), round(float(ys[tras].mean()) / h, 3),
-                               round(float(ys[tras].max() - ys[tras].min() + 1) / h, 3)]
+            linhas = np.where(al.any(axis=1))[0]
+            yb, yt = int(linhas.max()), int(linhas.min())
+            faixa_b = np.where(al[max(yt, yb - 2): yb + 1].any(axis=0))[0]
+            cx, cy = float(faixa_b.mean()), float(yb)
+            ys, xs = np.where(al[: yt + (yb - yt) // 2])   # metade de cima: o crânio
+            ang = float(np.arctan2(ys.mean() - cy, xs.mean() - cx))
+            linha = al[max(yt, yb - 4)]                       # largura um pouco acima do corte,
+            x0 = x1 = int(round(cx))                          # só no trecho contínuo do pescoço
+            while x0 > 0 and linha[x0 - 1]: x0 -= 1
+            while x1 < w - 1 and linha[x1 + 1]: x1 += 1
+            grossura = (x1 - x0 + 1) * abs(np.sin(ang))
+            pescocos[n] = [round(cx / w, 3), round((cy + 1) / h, 3), round(grossura / h, 3), round(ang, 3)]
     # corpo enrolado: ponto de onde sai o pescoço (o topo do desenho), em fração da imagem
     for n, im in itens:
         if n == "corpo":
