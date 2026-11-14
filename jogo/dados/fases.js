@@ -25,6 +25,28 @@ window.ARMAS = {
 };
 
 window.FASES = {
+
+  vaca: {
+		id: 'vaca',
+		titulo: 'O Pasto Misterioso',
+		subtitulo: 'A Vaca Sagrada & O OVNI',
+		largura: 9600,
+		escuridao: 0.5, // Entardecer / Noite misteriosa no pasto
+		altares: [80, 4250, 8300],
+		sala: {
+			x: 3200, // Debaixo de um dos buracos da parte intermediária
+			guardiao: 'mimico', // Ou outro guardião temático
+			premio: 'item_livre' // Espaço livre para recompensa
+		},
+		placa: {
+			x: 8450,
+			titulo: 'A Vaca Sagrada',
+			subt: 'O Enigma do Pasto',
+			desc: 'Uma criatura lendária cercada de mistérios. Atacar ou esperar? A escolha é sua.'
+    },
+		chefe: 'vaca_chefe'
+  }
+
   boitata: {
     // escuridão do estilo Lanterna: 0 = sem escuro, 1 = breu (só se vê onde há luz)
     escuridao: 0.78,
