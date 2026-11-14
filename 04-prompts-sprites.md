@@ -373,6 +373,72 @@ charred black and dark red scales with glowing lava cracks, the tip turning into
 16-bit detailed pixel art, black outline, transparent background.
 ```
 
+### 2.3 Boitatá versão 4: cobra de verdade (costas de lava, barriga clara) — 2026-11-14
+
+Desde 2026-11-13 o Boitatá é uma cobra imensa que entra e sai da terra; o movimento é do código.
+O Erick achou na internet uma cobra em pixel art mais próxima do que imagina (pescoço em S saindo
+de voltas no chão, barriga clara em placas, cabeça de cobra com a boca aberta). Como a imagem é
+da internet, **não subir a imagem no PixelLab**: usar só os textos abaixo, que descrevem o
+estilo. Mudança em relação à versão 3: a barriga fica clara (creme/areia, em placas), e só as
+costas têm as escamas carvão com rachaduras de lava. Fogo e faíscas na cabeça **não** vão no
+desenho (o jogo anima por cima).
+
+Geração de **imagem** no PixelLab, fundo transparente, vista lateral. Fazer primeiro a cobra
+inteira (A): ela é a referência de estilo para as outras (B, C, D), que podem usá-la como
+"style/reference image" dentro do PixelLab. Salvar em `img/sprites/chefes/boitata/` com os nomes
+abaixo (as versões anteriores vão para `originais/` com prefixo `v3_`; o Claude adapta a
+ferramenta para a faixa nova).
+
+**A. `cobra_inteira.png`** (o maior tamanho disponível, ideal 128×128 ou mais)
+
+```
+Giant fire serpent boss (Boitata from Brazilian folklore), full body, side view facing left.
+The body rests on the ground in a thick coil, the neck rises in a tall S curve and the head is
+raised high, mouth wide open hissing with sharp fangs and a forked tongue, the thin tail curls
+out on the ground at the left. Back and sides: charred black and very dark red scales with
+glowing orange and yellow lava cracks between the scales. Belly: smooth pale cream and sand
+colored ventral plates in wide horizontal bands, clearly separated from the back, running along
+the whole underside of the neck and body. Burning yellow eye. No flames, no smoke, no sparks
+around it. Dark fantasy boss, 16-bit detailed pixel art, clean black outline, transparent
+background.
+```
+
+**B. `faixa_corpo.png`** (largo: 128×48 se der; senão 128×128 com a faixa atravessando o meio)
+
+```
+A straight horizontal section of the same fire serpent body, seen from the side, crossing the
+whole image from the left edge to the right edge with no ends (seamless, tileable left to
+right). Top half: charred black and very dark red scales with glowing orange lava cracks. Bottom
+quarter: pale cream and sand colored belly plates in vertical bands. Same thickness along the
+whole length. 16-bit detailed pixel art, black outline only on the top and bottom edges,
+transparent background.
+```
+
+**C. `cabeca.png`** (64×64)
+
+```
+Head of the same fire serpent, side view facing right, mouth closed, flat snake skull with a
+strong jaw line, burning yellow eye, charred black and dark red scales with glowing orange lava
+cracks on top, pale cream belly plates under the jaw and throat. Cut at the neck on the left
+edge. No flames, no sparks. 16-bit detailed pixel art, black outline, transparent background.
+```
+
+**D. `cabeca_ataque.png`** (64×64; usar a C como referência)
+
+```
+Same fire serpent head, side view facing right, mouth wide open hissing, long curved fangs,
+forked tongue out, glowing orange fire deep in the throat, pale cream belly plates under the
+jaw. Cut at the neck on the left edge. No flames outside the mouth, no sparks. 16-bit detailed
+pixel art, black outline, transparent background.
+```
+
+Conferir antes de seguir: a barriga clara e as costas de lava bem separadas, a mesma cor de
+escama nas quatro imagens, e a faixa B sem pontas (deve emendar consigo mesma).
+
+Depois, se o visual for aprovado: animações curtas da cabeça no PixelLab (tipo **Custom**,
+câmera **Sidescroller**, direção **East**, criado a partir da C): `sibilar` (língua entrando e
+saindo, 4 quadros) e `morder` (boca abrindo e fechando, 4 a 6 quadros).
+
 ### 2.2 Boitatá enrolado: o corpo (PixelLab, opcional)
 
 Desde 2026-11-08 o Boitatá fica enrolado no lado direito da arena (1/3 da tela) e só a cabeça
