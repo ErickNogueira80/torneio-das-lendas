@@ -123,6 +123,9 @@ Pessoal (família).
   mais. A **Lança** (prêmio do Mímico) é uma estocada fina de 96 px (a espada pega 54), +2 de dano,
   recarga 0,42 s. Aparece nas costas do herói e na estocada (desenhada pelo jogo); o nome vai no
   HUD. Pendente: o herói do PixelLab segura a espada nas animações (a lança aparece por cima).
+- **Bolas de fogo e chamas do PixelLab (2026-11-14):** as bolas de fogo do chefe usam a animação de
+  9 quadros `objetos/bola_fogo` (viradas para onde voam) e as chamas da cabeça do Boitatá e da ponta
+  do rabo usam `objetos/chama` (9 quadros). As grades de 16 variações ficaram em `originais/`.
 - **Fogo parado (2026-11-14):** o chão em chamas da fase e o fogo que o Boitatá deixa no salto
   usam a animação de 9 quadros do PixelLab (`img/sprites/objetos/fogo/`, recortada da folha em
   `originais/`; 24 px de altura na arte, 48 na tela, 10 quadros por segundo, cada fogo começa num

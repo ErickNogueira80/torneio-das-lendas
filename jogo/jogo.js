@@ -1062,7 +1062,11 @@ CHEFES.boitata = (() => {
       sg.addColorStop(0, `rgba(0,0,0,${.55 * (1 - somaRolo)})`); sg.addColorStop(1, 'rgba(0,0,0,0)');
       ctx.fillStyle = sg; ctx.beginPath(); ctx.ellipse(b.cx - camX, GROUND + 6, G.w * .62, 24, 0, 0, Math.PI * 2); ctx.fill();
       // rabo (atrás do rolo), pescoço (sai de dentro do rolo, desenhado antes dele) e o rolo
-      if (someRabo < b.tail.length) tubo(b.tail, S, true, b.tail.length - 1 - someRabo);
+      if (someRabo < b.tail.length) {
+        tubo(b.tail, S, true, b.tail.length - 1 - someRabo);
+        const pt = b.tail[b.tail.length - 1 - someRabo];   // a ponta do rabo queima
+        if (pt && someRabo === 0) drawChama(pt.x - camX, pt.y + pt.r, rage ? 1.1 : .85, 5);
+      }
       // contorno do pescoço, depois o rolo (cobre a ponta redonda do contorno que entra nele) e por
       // fim a textura do pescoço por cima
       if (somePesc < C.length - 1) tubo(C, S, false, C.length - 1, somePesc, 'contorno');
@@ -1086,10 +1090,9 @@ CHEFES.boitata = (() => {
           ctx.imageSmoothingEnabled = false;
           ctx.drawImage(S.image, qx, qy, qw, qh, z.ax, z.ay, qw * k, qh * k);
           const topoC = z.ay + qh * k * .1;
-          for (let j = 0; j < 5; j++) {
-            const alt = (rage ? 30 : 22) + Math.sin(time * 9 + j * 1.9) * 7 + Math.sin(time * 23 + j) * 3;
-            chamaPixel(z.ax + qw * k * (.3 + j * .11), topoC + 3, 13, alt, time * 11 + j * 1.7);
-          }
+          for (let j = 0; j < 3; j++)   // chamas do PixelLab no alto da cabeça (sem a imagem: chamas desenhadas)
+            if (!drawChama(z.ax + qw * k * (.36 + j * .16), topoC + 8, (rage ? 1.25 : 1) * (j === 1 ? 1.15 : .95), j * 3))
+              chamaPixel(z.ax + qw * k * (.36 + j * .16), topoC + 3, 13, (rage ? 30 : 22) + Math.sin(time * 9 + j * 1.9) * 7, time * 11 + j * 1.7);
           if (b.flash > 0) { ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = Math.min(1, b.flash * 3) * .6; ctx.drawImage(S.image, qx, qy, qw, qh, z.ax, z.ay, qw * k, qh * k); ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over'; }
           ctx.imageSmoothingEnabled = true; ctx.restore();
         } else {
@@ -1816,6 +1819,14 @@ function drawFogo(x, y, larg, fase = 0) {
     ctx.drawImage(im2, Math.round(cx - w / 2), Math.round(y - h + 4), w, h);
   }
   ctx.imageSmoothingEnabled = true;
+  return true;
+}
+// chama pequena animada (PixelLab, objetos/chama, 9 quadros): base em (x, y), no contexto atual
+function drawChama(x, y, esc = 1, fase = 0) {
+  const n = 9, i = ((Math.floor(time * 12 + fase) % n) + n) % n, im = layer('objetos/chama', String(i + 1));
+  if (!im) return false;
+  const w = im.naturalWidth * 2 * esc, h = im.naturalHeight * 2 * esc;
+  ctx.imageSmoothingEnabled = false; ctx.drawImage(im, Math.round(x - w / 2), Math.round(y - h + 2), Math.round(w), Math.round(h)); ctx.imageSmoothingEnabled = true;
   return true;
 }
 function roundRect(x, y, w, h, r) { ctx.beginPath(); ctx.roundRect ? ctx.roundRect(x, y, w, h, r) : ctx.rect(x, y, w, h); }
@@ -2677,6 +2688,15 @@ function drawProjectiles() {
   }
   for (const f of fireballs) {
     const x = f.x - camX;
+    // bola de fogo do PixelLab (9 quadros): a bola na frente e o rastro para trás, virada para onde vai
+    const q = ((Math.floor(time * 14 + f.x * .01) % 9) + 9) % 9, im = layer('objetos/bola_fogo', String(q + 1));
+    if (im) {
+      const w = im.naturalWidth * 2, h = im.naturalHeight * 2;
+      ctx.save(); ctx.translate(Math.round(x), Math.round(f.y)); ctx.rotate(Math.atan2(f.vy, f.vx) - Math.PI);
+      ctx.imageSmoothingEnabled = false; ctx.drawImage(im, -Math.round(w * .28), -Math.round(h / 2), w, h); ctx.imageSmoothingEnabled = true;
+      ctx.restore();
+      continue;
+    }
     const g = ctx.createRadialGradient(x, f.y, 2, x, f.y, f.r * 1.6);
     g.addColorStop(0, '#fff3c0'); g.addColorStop(.35, '#ffb02e'); g.addColorStop(.7, '#e2401a'); g.addColorStop(1, 'rgba(200,40,10,0)');
     ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, f.y, f.r * 1.6, 0, Math.PI * 2); ctx.fill();

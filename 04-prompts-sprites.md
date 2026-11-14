@@ -755,6 +755,61 @@ space for text. No text, no letters, no symbols in the middle. Plain solid #00FF
 background, no shadow. Painterly 2D game UI art. Wide image, aspect ratio 16:9.
 ```
 
+## 4.8 O humano com a lança (PixelLab) — 2026-11-14
+
+A lança (prêmio do Mímico) hoje é desenhada pelo jogo por cima do herói, que continua com a
+espada na mão. Para ficar certo: um personagem novo no PixelLab, igual ao humano, mas com a lança.
+
+1. **Create Character**, mesmas opções do humano (56×56, vista lateral, 8 direções), com a
+   descrição abaixo. Se o PixelLab permitir partir do personagem atual (editar/duplicar), melhor:
+   mantém o rosto e a roupa iguais.
+2. Mesmas regras de animação da seção 0 (direção **East**, **Template motion → Skeleton v3**), mas
+   em toda descrição trocar a espada pela lança: `holding the bronze spear with both hands, spear
+   always visible`.
+3. Animações (nomes de arquivo iguais aos do humano, com `_lanca`): `parado`, `correr`, `pular`,
+   `estocada` (Combat → **Cross Punch** ou **Lead Jab**, descrição: `Thrusting the bronze spear
+   straight forward with both hands, long reach, spear always visible`), `poder`, `dano`.
+4. Salvar em `img/sprites/herois/humano_lanca/`. O Claude liga a troca: com a lança equipada, o
+   jogo usa este personagem.
+
+```
+Teenage boy adventurer, about 16 years old, fantasy RPG hero. Short messy dark brown hair,
+brown eyes, fair skin, determined friendly face. Dark navy blue short hooded cape over the
+shoulders, fastened at the chest. Deep blue knee-length tunic over gray long sleeves. Golden
+yellow belt with a square buckle. Brown leather bracers on both forearms. Dark blue trousers.
+Tall brown leather boots with folded cuffs. Holds a long spear in both hands, angled forward:
+a straight dark wooden shaft as tall as he is, a leaf-shaped bronze spearhead, and a small red
+cloth ribbon tied just below the spearhead. No sword. No green on the character. Clean readable
+silhouette, rich colors, 16-bit detailed pixel art.
+```
+
+## 4.9 Mímico (PixelLab) — 2026-11-14
+
+Guardião da sala secreta. Fechado, ele **tem de ser idêntico ao baú da fase** (é a graça). Por isso
+partir da imagem do baú: `img/sprites/objetos/bau/bau_fechado.jpg` (arte nossa, pode subir).
+
+1. **Create Character** a partir da imagem (ou de imagem de referência), tipo **Custom**, câmera
+   **Sidescroller**, 48 px (ou o mais perto disso), direção **East**.
+2. Animações (4 a 6 quadros cada), descrevendo sempre `the same wooden treasure chest`:
+   - `dormir`: `Closed treasure chest standing still, completely normal, only a tiny glint on the
+     gold lock` (2 a 4 quadros, quase parado).
+   - `acordar`: `The treasure chest shakes and rattles, the lid lifts a little and two yellow eyes
+     glow inside the dark gap`.
+   - `pular`: `The treasure chest mimic hops forward, lid wide open like a mouth, rows of sharp
+     white teeth, a long red tongue hanging out`.
+   - `morder`: `The treasure chest mimic snaps its lid shut hard like a biting mouth, sharp teeth`.
+3. Salvar as folhas em `img/sprites/inimigos/mimico/` (`dormir_folha.png`, `acordar_folha.png`,
+   ...). O Claude troca o desenho atual (baú cortado na tampa) pelas animações.
+
+Descrição do personagem (se o PixelLab pedir texto além da imagem):
+
+```
+A treasure chest mimic monster from a dark fantasy game: an old dark brown wooden treasure chest
+with golden metal straps and a golden lock, exactly like a normal chest when closed. When it
+opens, the lid is a mouth with rows of sharp white teeth, a long red tongue and two glowing
+yellow eyes inside. Side view, 16-bit detailed pixel art, black outline, transparent background.
+```
+
 ## 5. Ficha dos 3 heróis com constelação (para a Milena)
 
 O humano já está definido (o 4º jogador, sem constelação). Antes das imagens de cada herói dos

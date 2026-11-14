@@ -575,6 +575,38 @@
   },
   "ver": "617dc6ce"
  },
+ "objetos/bola_fogo": {
+  "tipo": "objeto",
+  "pixel": 2,
+  "camadas": {
+   "1": "objetos/bola_fogo/1.png",
+   "2": "objetos/bola_fogo/2.png",
+   "3": "objetos/bola_fogo/3.png",
+   "4": "objetos/bola_fogo/4.png",
+   "5": "objetos/bola_fogo/5.png",
+   "6": "objetos/bola_fogo/6.png",
+   "7": "objetos/bola_fogo/7.png",
+   "8": "objetos/bola_fogo/8.png",
+   "9": "objetos/bola_fogo/9.png"
+  },
+  "ver": "94434243"
+ },
+ "objetos/chama": {
+  "tipo": "objeto",
+  "pixel": 2,
+  "camadas": {
+   "1": "objetos/chama/1.png",
+   "2": "objetos/chama/2.png",
+   "3": "objetos/chama/3.png",
+   "4": "objetos/chama/4.png",
+   "5": "objetos/chama/5.png",
+   "6": "objetos/chama/6.png",
+   "7": "objetos/chama/7.png",
+   "8": "objetos/chama/8.png",
+   "9": "objetos/chama/9.png"
+  },
+  "ver": "a403c385"
+ },
  "objetos/fogo": {
   "tipo": "objeto",
   "pixel": 2,
