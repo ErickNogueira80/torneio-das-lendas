@@ -7,78 +7,83 @@
 <style>
   :root { --fundo: #0e0a10; --painel: #1a1420; --texto: #efe6d8; --fraco: #a99a8a; --ouro: #f0c674; --borda: #3a2c3a; }
   * { box-sizing: border-box; }
-  body { margin: 0; background: var(--fundo); color: var(--texto); font: 15px/1.4 system-ui, sans-serif; }
-  main { max-width: 1000px; margin: 0 auto; padding: 12px 16px 32px; }
-  h1 { font-size: 20px; margin: 4px 0 2px; color: var(--ouro); }
-  h2 { font-size: 15px; margin: 14px 0 6px; color: var(--ouro); }
-  p { margin: 4px 0 10px; color: var(--fraco); }
+  body { margin: 0; background: var(--fundo); color: var(--texto); font: 14px/1.4 system-ui, sans-serif; }
+  .app { display: grid; grid-template-columns: 210px minmax(0, 1fr) 230px; gap: 12px; padding: 10px 12px 24px; max-width: 1600px; margin: 0 auto; align-items: start; }
+  .col { display: flex; flex-direction: column; gap: 6px; position: sticky; top: 8px; max-height: calc(100vh - 16px); overflow-y: auto; padding-right: 2px; }
+  .col h2 { font-size: 13px; margin: 8px 0 2px; color: var(--ouro); text-transform: uppercase; letter-spacing: .04em; }
+  .col button { width: 100%; text-align: left; }
+  h1 { font-size: 19px; margin: 0 0 2px; color: var(--ouro); }
+  p { margin: 2px 0 8px; color: var(--fraco); }
   canvas { width: 100%; height: auto; display: block; background: #120c14; border: 1px solid var(--borda); border-radius: 8px; touch-action: none; }
-  .barra { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0; }
-  button { background: var(--painel); color: var(--texto); border: 1px solid var(--borda); border-radius: 8px; padding: 8px 12px; font: inherit; cursor: pointer; }
+  button { background: var(--painel); color: var(--texto); border: 1px solid var(--borda); border-radius: 8px; padding: 7px 10px; font: inherit; cursor: pointer; }
   button.ativo { background: #4a2f18; border-color: var(--ouro); color: var(--ouro); }
-  .ajustes { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 6px 18px; background: var(--painel); border: 1px solid var(--borda); border-radius: 8px; padding: 10px 14px; }
-  label { display: flex; flex-direction: column; font-size: 13px; color: var(--fraco); }
+  label { display: flex; flex-direction: column; font-size: 12.5px; color: var(--fraco); background: var(--painel); border: 1px solid var(--borda); border-radius: 8px; padding: 6px 8px; }
   label b { color: var(--texto); font-weight: 600; }
   input[type=range] { width: 100%; }
-  textarea { width: 100%; height: 110px; background: #120c14; color: var(--texto); border: 1px solid var(--borda); border-radius: 8px; font: 12px/1.3 ui-monospace, monospace; padding: 8px; }
-  .dica { font-size: 13px; color: var(--fraco); }
-  .dica i { font-style: normal; display: inline-block; width: 11px; height: 11px; border-radius: 50%; vertical-align: -1px; margin: 0 3px 0 8px; }
+  textarea { width: 100%; height: 90px; background: #120c14; color: var(--texto); border: 1px solid var(--borda); border-radius: 8px; font: 12px/1.3 ui-monospace, monospace; padding: 8px; margin-top: 8px; }
+  .dica { font-size: 12.5px; color: var(--fraco); margin-top: 8px; }
+  .dica i { font-style: normal; display: inline-block; width: 11px; height: 11px; border-radius: 50%; vertical-align: -1px; margin: 0 3px 0 6px; }
+  #poses { display: flex; flex-direction: column; gap: 6px; }
+  .app > * { min-width: 0; }
+  label span { overflow-wrap: anywhere; }
+  @media (max-width: 900px) {
+    .app { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); padding: 8px; }
+    .centro { grid-column: 1 / -1; order: -1; }
+    .col { position: static; max-height: none; }
+  }
 </style>
 </head>
 <body>
-<main>
-  <h1>Laboratório da cobra</h1>
-  <p>Teste e edição do movimento do Boitatá (fora do jogo). <b>C</b>: o rolo novo desenhado, em 2 camadas: o pescoço sai de
-    dentro da volta de cima (a borda da frente passa na frente dele). <b>B</b>: a cobra inteira em corrente.
-    <b>A</b>: o rolo antigo. O boneco é o herói, para dar a escala.</p>
-  <canvas id="tela" width="960" height="540"></canvas>
-
-  <div class="barra">
+<main class="app">
+  <aside class="col">
+    <h2>Versão</h2>
     <button id="bC" class="ativo">C · rolo novo (2 camadas)</button>
     <button id="bB">B · corpo todo</button>
     <button id="bA">A · rolo antigo</button>
-    <button id="bSeguir">Cabeça segue o dedo</button>
+    <h2>Esqueleto</h2>
     <button id="bEditar" class="ativo">Editar esqueleto</button>
     <button id="bOssosP">Ossos no pescoço: 2</button>
     <button id="bOssosR">Ossos no rabo: 1</button>
     <button id="bOsso">Mostrar gomos</button>
-  </div>
-
-  <h2>Poses</h2>
-  <div class="barra" id="poses"></div>
-  <div class="barra">
+    <button id="bSeguir">Cabeça segue o dedo</button>
+    <h2>Poses</h2>
+    <div id="poses"></div>
+    <h2>Ações</h2>
     <button id="bTocar">▶ Tocar sequência</button>
     <button id="bBote">Bote no herói</button>
     <button id="bRabada">Rabada</button>
-    <button id="bCopiar">Copiar poses</button>
     <button id="bEnrola">Exemplo: rabo enrolado</button>
+    <button id="bCopiar">Copiar poses</button>
     <button id="bPadrao">Voltar ao padrão</button>
-  </div>
-  <p class="dica">Com <b>Editar esqueleto</b> ligado, escolha uma pose e arraste as alças:
-    <i style="background:#ffd54a"></i>cabeça <i style="background:#7fe0ff"></i>ossos do pescoço
-    <i style="background:#ff9a5a"></i>ponta do rabo <i style="background:#ffc49a"></i>ossos do rabo.
-    Toque duas vezes num osso para soltá-lo (fica livre); toque no círculo tracejado para prender de novo.
-    As poses ficam guardadas neste navegador.</p>
+  </aside>
 
-  <h2>Corpo</h2>
-  <div class="ajustes">
-    <label><span>Comprimento do pescoço: <b id="vpn"></b> gomos · na B, mais pescoço = sai mais baixo do rolo</span><input id="pn" type="range" min="12" max="60" step="1" value="26"></label>
+  <section class="centro">
+    <h1>Laboratório da cobra</h1>
+    <p>Movimento do Boitatá, fora do jogo. <b>C</b>: o rolo novo em 2 camadas (o pescoço sai de dentro da volta de cima).
+      <b>B</b>: a cobra inteira em corrente. <b>A</b>: o rolo antigo. O boneco é o herói, para dar a escala.</p>
+    <canvas id="tela" width="960" height="540"></canvas>
+    <p class="dica">Com <b>Editar esqueleto</b> ligado, escolha uma pose e arraste as alças:
+      <i style="background:#ffd54a"></i>cabeça <i style="background:#7fe0ff"></i>ossos do pescoço
+      <i style="background:#ff9a5a"></i>ponta do rabo <i style="background:#ffc49a"></i>ossos do rabo.
+      Toque duas vezes num osso para soltá-lo; toque no círculo tracejado para prender de novo. As poses ficam guardadas neste navegador.</p>
+    <textarea id="saida" readonly placeholder="Copiar poses: o texto aparece aqui (e vai para a área de transferência) para mandar ao Claude."></textarea>
+  </section>
+
+  <aside class="col">
+    <h2>Corpo</h2>
+    <label><span>Comprimento do pescoço: <b id="vpn"></b> gomos</span><input id="pn" type="range" min="12" max="60" step="1" value="26"></label>
     <label><span>Comprimento do rabo: <b id="vrn"></b> gomos</span><input id="rn" type="range" min="8" max="45" step="1" value="22"></label>
-    <label><span>Rolo C · tamanho: <b id="vzc"></b>× · 2 = pixel igual ao resto do jogo</span><input id="zc" type="range" min="1.5" max="2.5" step="0.25" value="2"></label>
+    <label><span>Rolo C · tamanho: <b id="vzc"></b>× (2 = pixel do jogo)</span><input id="zc" type="range" min="1.5" max="2.5" step="0.25" value="2"></label>
     <label><span>Rolo B · voltas: <b id="vv"></b></span><input id="v" type="range" min="1.5" max="4.5" step="0.1" value="3"></label>
     <label><span>Rolo B · tamanho: <b id="vt"></b></span><input id="t" type="range" min="0.6" max="1.4" step="0.05" value="1"></label>
-    <label><span>Rolo B · grossura: <b id="vg"></b> · embaixo é mais gordo</span><input id="g" type="range" min="0.6" max="1.5" step="0.05" value="1"></label>
-  </div>
-  <h2>Jeito do movimento</h2>
-  <div class="ajustes">
+    <label><span>Rolo B · grossura: <b id="vg"></b></span><input id="g" type="range" min="0.6" max="1.5" step="0.05" value="1"></label>
+    <h2>Jeito do movimento</h2>
     <label><span>Rapidez (f): <b id="vf"></b></span><input id="f" type="range" min="0.3" max="6" step="0.1" value="2.2"></label>
     <label><span>Amortecimento (z): <b id="vz"></b> · menor = balança mais</span><input id="z" type="range" min="0.05" max="1.5" step="0.05" value="0.55"></label>
     <label><span>Resposta (r): <b id="vr"></b> · negativo = prepara antes</span><input id="r" type="range" min="-2" max="3" step="0.1" value="1.2"></label>
     <label><span>Ondulação do pescoço: <b id="vo"></b></span><input id="o" type="range" min="0" max="24" step="1" value="8"></label>
     <label><span>Dobra máxima por gomo: <b id="vd"></b>°</span><input id="d" type="range" min="6" max="40" step="1" value="16"></label>
-  </div>
-  <h2>Poses para mandar ao Claude</h2>
-  <textarea id="saida" readonly placeholder="Clique em Copiar poses: o texto aparece aqui (e vai para a área de transferência)."></textarea>
+  </aside>
 </main>
 <script>
 'use strict';
@@ -510,8 +515,13 @@ function desenhar() {
     contorno(rabo); textura(rabo);
     ctx.imageSmoothingEnabled = false;
     if (pronta(IMG) && PT && PT.rolo_tras) ctx.drawImage(IMG, q[0], q[1], q[2], q[3], G.x0, G.y0, G.w, G.h);
-    contorno(pesc); textura(pesc);
+    // recorte: o trecho do pescoço que fica dentro do rolo, embaixo do anel de cima, não aparece
+    // (sem isso, a ponta redonda do contorno aparecia embaixo da faixa da barriga)
     const f = PT && PT.rolo_frente, d = (DESL && DESL.rolo_frente) || [56, 19];
+    const fx0 = G.x0 + d[0] * G.Zc, fy0 = G.y0 + d[1] * G.ky, fw = (f ? f[2] : 121) * G.Zc, fh = (f ? f[3] : 47) * G.ky;
+    ctx.save(); ctx.beginPath(); ctx.rect(0, 0, W, H); ctx.rect(fx0, fy0 + fh * .4, fw, CHAO + 20 - fy0); ctx.clip('evenodd');
+    contorno(pesc); textura(pesc);
+    ctx.restore();
     if (f && pronta(IMG)) { ctx.imageSmoothingEnabled = false; ctx.drawImage(IMG, f[0], f[1], f[2], f[3], G.x0 + d[0] * G.Zc, G.y0 + d[1] * G.ky, f[2] * G.Zc, f[3] * G.ky); }
   } else if (modo === 'A') {
     const G = geoRolo();
