@@ -443,6 +443,33 @@ Depois, se o visual for aprovado: animações curtas da cabeça no PixelLab (tip
 câmera **Sidescroller**, direção **East**, criado a partir da C): `sibilar` (língua entrando e
 saindo, 4 quadros) e `morder` (boca abrindo e fechando, 4 a 6 quadros).
 
+### 2.4 Rolo do corpo em 2 camadas (pescoço saindo do meio do rolo) — 2026-11-14
+
+Decisão do Erick: o rolo vira desenho fixo (some com as frestas pretas do rolo montado por gomos) e
+o pescoço sai **do meio** do rolo, como num desenho de cobra enrolada: a volta de cima passa na
+frente do começo do pescoço. O jogo desenha: camada de trás (o rolo inteiro) → pescoço (corrente que
+se mexe, com a base escondida dentro do rolo) → camada da frente (só o pedaço da volta de cima que
+passa na frente do pescoço). O rabo também é do jogo (nasce atrás da volta de baixo).
+
+PixelLab, geração de **imagem**, o maior tamanho disponível (256×256 se der), fundo transparente.
+Usar a `originais/v4_cobra_inteira.png` como referência de estilo (é arte nossa).
+
+```
+Giant fire serpent body coiled in a tall round pile, seen from the side: three thick coils stacked
+on the ground, the lowest coil the widest and thickest, each coil above a little smaller. The neck
+rises from the CENTER of the pile: it comes up from inside, behind the top coil (the top coil passes
+in front of the base of the neck), and is cut off flat a short distance above the pile (no head, no
+upper neck). No tail visible: the body ends hidden inside the pile. Back and sides: charred black and
+very dark red scales with glowing orange lava cracks. Pale cream belly plates only on the lower edge
+of each coil and on the front of the neck stub. No flames, no smoke, no sparks. Dark fantasy boss,
+16-bit detailed pixel art, clean black outline, transparent background.
+```
+
+Depois, no Pixelorama (ou o Claude faz): duplicar a camada; na cópia apagar tudo menos o pedaço
+da volta de cima que fica **na frente** do toco do pescoço. Exportar as duas do mesmo tamanho:
+`img/sprites/chefes/boitata/rolo_tras.png` (o rolo inteiro, pode ficar com o toco do pescoço; o jogo
+cobre) e `rolo_frente.png` (só o pedaço da frente, o resto transparente).
+
 ### 2.2 Boitatá enrolado: o corpo (PixelLab, opcional)
 
 Desde 2026-11-08 o Boitatá fica enrolado no lado direito da arena (1/3 da tela) e só a cabeça
