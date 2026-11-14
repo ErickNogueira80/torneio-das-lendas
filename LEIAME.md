@@ -130,8 +130,14 @@ Pessoal (família).
   gomos saem do rolo e ele encolhe). Técnicas: corrente com distância fixa e limite de dobra (a
   parte grossa dobra menos), FABRIK (base presa, ponta vai ao alvo), onda que corre pelo pescoço e
   "dinâmica de 2ª ordem" (t3ssel8r) na cabeça e na ponta do rabo, com controles na página (rapidez,
-  amortecimento, resposta, ondulação, dobra). Testes pela URL: `?modo=B`, `?osso`, `?bote`,
-  `?rabada`, `?ff=N`. Nada disso está no jogo ainda.
+  amortecimento, resposta, ondulação, dobra, tamanho e voltas do rolo B).
+  **Editor de esqueleto (2026-11-14):** alças para arrastar (cabeça, até 2 ossos no meio do
+  pescoço, ponta e meio do rabo) e 6 poses com nome (descanso, cospe fogo, prepara o bote, bote,
+  rabada cima e chão), guardadas no navegador. O pescoço passa pelos ossos presos (FABRIK em
+  trechos; cada trecho ganha gomos conforme o tamanho na pose) e desenrola quando a pose pede mais
+  comprimento. "Tocar sequência" passa por todas as poses; "Copiar poses" gera o texto (JSON com
+  poses e ajustes) para mandar ao Claude, que usa no jogo. Testes pela URL: `?modo=B`,
+  `?pose=bote`, `?tocar`, `?semeditar`, `?ff=N`. Nada disso está no jogo ainda.
 - **Bolas de fogo e chamas do PixelLab (2026-11-14):** as bolas de fogo do chefe usam a animação de
   9 quadros `objetos/bola_fogo` (viradas para onde voam) e as chamas da cabeça do Boitatá e da ponta
   do rabo usam `objetos/chama` (9 quadros). As grades de 16 variações ficaram em `originais/`.
