@@ -157,6 +157,8 @@ Pessoal (família).
   camada da frente fica sobre a de trás (`deslocs` no sprites.json). Pescoço nasce em (114, 37) da
   arte recortada e o rabo em (24, 127), atrás da volta de baixo. Escala 2 (pixel igual ao resto do
   jogo; controle no laboratório); o rolo "respira" 1,2%. É a versão que abre no laboratório.
+  Poses do Erick (2026-11-14): `jogo/laboratorio/poses/erick-2026-11-14.json` (texto do "Copiar
+  poses"; descanso e cospe fogo editados, 3 ossos no pescoço e 3 no rabo, pescoço de 42 gomos).
   Layout do laboratório (2026-11-14, pedido do Erick): controles em colunas nas laterais da tela
   (esquerda: versão, esqueleto, poses e ações; direita: corpo e jeito do movimento); no celular eles
   descem para baixo da tela.
