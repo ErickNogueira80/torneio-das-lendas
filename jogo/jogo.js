@@ -304,6 +304,8 @@ const resistOf = (resist, kind) => (resist && resist[kind] !== undefined ? resis
 // Os acertos devolvem { x, y, mult } da parte atingida (mult > 1 = ponto fraco) ou null.
 const CHEFES = {};
 
+if (typeof CHEFES === 'undefined') window.CHEFES = {};
+
 CHEFES.boitata_terra = (() => {
   // Versão 4 do Boitatá (2026-11-13), guardada para outra fase: cobra de fogo imensa que vive debaixo da terra. O corpo é mais comprido que a tela e
   // segue o rastro da cabeça, como uma cobra de verdade: por onde a cabeça passa, o corpo passa
@@ -1638,102 +1640,67 @@ CHEFES.boitata = (() => {
   };
 })();
 CHEFES.vaca_chefe = {
-    init: function(boss) {
-        boss.hpMax = 9999; // Muito HP
-        boss.hp = boss.hpMax;
-        boss.forca = 99;   // Muita força
-        boss.timerBatalha = 0; // Conta em segundos (0 a 300)
-        boss.atacou = false;   // Rota 1 (pacífica) ou Rota 2 (combate)
-        boss.faseMsgIndex = -1;
-        boss.perdeuPorAbducao = false;
-        boss.venceuPacifico = false;
-        boss.tempoPosGolpe = -1; // Contador para os 30s após o golpe fatal
-    },
+  init: function(boss) {
+    boss.max = 9999;
+    boss.fire = boss.max; // Barra de vida/energia do chefe
+    boss.hp = boss.max;
+    boss.forca = 99;
+    boss.timerBatalha = 0;
+    boss.atacou = false;
+    boss.faseMsgIndex = -1;
+    boss.perdeuPorAbducao = false;
+    boss.venceuPacifico = false;
+    boss.tempoPosGolpe = -1;
+  },
+  update: function(boss, player, dt) {
+    if (boss.dead || boss.venceuPacifico || boss.perdeuPorAbducao) return;
 
-    update: function(boss, player, dt) {
-        if (boss.derrotado || boss.venceuPacifico || boss.perdeuPorAbducao) return;
+    boss.timerBatalha += (dt || 0.016);
+    let minutos = Math.floor(boss.timerBatalha / 60);
+    let segundos = Math.floor(boss.timerBatalha % 60);
 
-        // Incrementa o timer da batalha (dt em segundos aproximados, assumindo 60fps ou delta)
-        boss.timerBatalha += dt;
-        let minutos = Math.floor(boss.timerBatalha / 60);
-        let segundos = Math.floor(boss.timerBatalha % 60);
-
-        // Checa se o player atacou a vaca pelo menos 1x
-        if (!boss.atacou && player.atacando && colideAtaqueComBoss(player, boss)) {
-            boss.atacou = true;
-            boss.timerBatalha = 0; // Reseta o timer para a rota de combate de 5 min
-            mostrarMensagemTela("⚠️ Você mexeu com a vaca!");
-        }
-
-        // ==========================================
-        // ROTA 1: PACÍFICA (Não atacou por 5 minutos)
-        // ==========================================
-        if (!boss.atacou) {
-            if (minutos === 0 && segundos === 0 && boss.faseMsgIndex < 0) {
-                boss.faseMsgIndex = 0;
-            } else if (minutos === 1 && segundos === 0 && boss.faseMsgIndex < 1) {
-                boss.faseMsgIndex = 1;
-                mostrarMensagemTela("👁️ A vaca está de olho");
-            } else if (minutos === 2 && segundos === 0 && boss.faseMsgIndex < 2) {
-                boss.faseMsgIndex = 2;
-                mostrarMensagemTela("🧐 A vaca está desconfiada");
-            } else if (minutos === 3 && segundos === 0 && boss.faseMsgIndex < 3) {
-                boss.faseMsgIndex = 3;
-                mostrarMensagemTela("🥱 A vaca vai dormir");
-            } else if (minutos === 4 && segundos === 0 && boss.faseMsgIndex < 4) {
-                boss.faseMsgIndex = 4;
-                mostrarMensagemTela("💤 A vaca dormiu");
-            }
-
-            // Aos 5 minutos (300 segundos), abdução pacífica e ganha o pingente
-            if (boss.timerBatalha >= 300) {
-                boss.venceuPacifico = true;
-                ativarEfeitoRaioVerdeOVNI(boss, () => {
-                    concluirFaseComPingente('vaca');
-                });
-            }
-        } 
-        // ==========================================
-        // ROTA 2: COMBATE (Atacou a vaca)
-        // ==========================================
-        else {
-            if (minutos === 1 && segundos === 0 && boss.faseMsgIndex < 10) {
-                boss.faseMsgIndex = 10;
-                mostrarMensagemTela("⚠️ A vaca tá ficando brava");
-            } else if (minutos === 2 && segundos === 0 && boss.faseMsgIndex < 11) {
-                boss.faseMsgIndex = 11;
-                mostrarMensagemTela("⏳ Termina logo com isso");
-            } else if (minutos === 3 && segundos === 0 && boss.faseMsgIndex < 12) {
-                boss.faseMsgIndex = 12;
-                mostrarMensagemTela("🚨 Você foi avisado");
-                // Dá o golpe deixando o player com 1 de HP e inicia contagem de 30s
-                player.hp = 1;
-                tocarEfeitoSonoro('coice_forte');
-                boss.tempoPosGolpe = boss.timerBatalha; // Marca o tempo do aviso
-            }
-
-            // Se passaram 30 segundos do aviso (ou se o timer global de 5 min estourou) e não venceu
-            if (boss.tempoPosGolpe > 0 && (boss.timerBatalha - boss.tempoPosGolpe >= 30)) {
-                boss.perdeuPorAbducao = true;
-                ativarEfeitoRaioVerdeOVNI(player, () => {
-                    gameover("Você foi abduzido e derrotado pela Vaca!");
-                });
-            }
-
-            // Condição normal de vitória por HP (caso o player consiga tirar todo o HP titânico dela)
-            if (boss.hp <= 0) {
-                derrotarChefeComprimentoNormal(boss);
-            }
-        }
-    },
-
-    draw: function(ctx, boss) {
-        // Desenha a vaca e, se estiver no momento da abdução, desenha o raio verde do OVNI em cima
-        desenharSpriteVaca(ctx, boss);
-        if (boss.venceuPacifico || boss.perdeuPorAbducao) {
-            desenharRaioVerdeOVNI(ctx, boss);
-        }
+    // Se o player atacou a vaca
+    if (!boss.atacou && player.atacando && typeof colideAtaqueComBoss === 'function' && colideAtaqueComBoss(player, boss)) {
+      boss.atacou = true;
+      boss.timerBatalha = 0;
+      if (typeof mostrarMensagemTela === 'function') mostrarMensagemTela("⚠️ Você mexeu com a vaca!");
     }
+
+    if (!boss.atacou) {
+      // Rota 1: Pacífica (5 min sem atacar)
+      if (minutos === 1 && segundos === 0 && boss.faseMsgIndex < 1) { boss.faseMsgIndex = 1; if (typeof mostrarMensagemTela === 'function') mostrarMensagemTela("👁️ A vaca está de olho"); }
+      else if (minutos === 2 && segundos === 0 && boss.faseMsgIndex < 2) { boss.faseMsgIndex = 2; if (typeof mostrarMensagemTela === 'function') mostrarMensagemTela("🧐 A vaca está desconfiada"); }
+      else if (minutos === 3 && segundos === 0 && boss.faseMsgIndex < 3) { boss.faseMsgIndex = 3; if (typeof mostrarMensagemTela === 'function') mostrarMensagemTela("🥱 A vaca vai dormir"); }
+      else if (minutos === 4 && segundos === 0 && boss.faseMsgIndex < 4) { boss.faseMsgIndex = 4; if (typeof mostrarMensagemTela === 'function') mostrarMensagemTela("💤 A vaca dormiu"); }
+
+      if (boss.timerBatalha >= 300) {
+        boss.venceuPacifico = true;
+        if (typeof concluirFaseComPingente === 'function') concluirFaseComPingente('vaca');
+      }
+    } else {
+      // Rota 2: Combate (Atacou a vaca)
+      if (minutos === 1 && segundos === 0 && boss.faseMsgIndex < 10) { boss.faseMsgIndex = 10; if (typeof mostrarMensagemTela === 'function') mostrarMensagemTela("⚠️ A vaca tá ficando brava"); }
+      else if (minutos === 2 && segundos === 0 && boss.faseMsgIndex < 11) { boss.faseMsgIndex = 11; if (typeof mostrarMensagemTela === 'function') mostrarMensagemTela("⏳ Termina logo com isso"); }
+      else if (minutos === 3 && segundos === 0 && boss.faseMsgIndex < 12) {
+        boss.faseMsgIndex = 12;
+        if (typeof mostrarMensagemTela === 'function') mostrarMensagemTela("🚨 Você foi avisado");
+        player.hp = 1;
+        boss.tempoPosGolpe = boss.timerBatalha;
+      }
+
+      if (boss.tempoPosGolpe > 0 && (boss.timerBatalha - boss.tempoPosGolpe >= 30)) {
+        boss.perdeuPorAbducao = true;
+        if (typeof gameover === 'function') gameover("Você foi abduzido e derrotado pela Vaca!");
+      }
+
+      if (boss.fire <= 0 && typeof derrotarChefeComprimentoNormal === 'function') {
+        derrotarChefeComprimentoNormal(boss);
+      }
+    }
+  },
+  draw: function(ctx, boss) {
+    // Desenho padrão da entidade no canvas se necessário
+  }
 };
 const CHEFE = CHEFES[CHEFE_CFG.tipo];
 
