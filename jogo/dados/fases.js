@@ -10,6 +10,18 @@ window.INIMIGOS = {
     resist: { agua: 1.5, fogo: 0, terra: 1, ar: 1, espada: 1 } },
   vagalume: { nome: 'Vaga-lume de fogo', mov: 'voo', w: 22, h: 22, dano: 6, xp: 15, sprite: 'inimigos/vagalume', luz: 80, corLuz: '255,200,90',
     resist: { agua: 1.5, fogo: 0, terra: 1, ar: 1.2, espada: 1 } },
+  // guardião de sala secreta: parece um baú; acorda quando o herói chega perto e pula atrás dele.
+  // Vencido, solta o prêmio da sala (sala.guardiao.premio). Cada sala pode ter um guardião diferente.
+  mimico: { nome: 'Mímico', mov: 'mimico', w: 46, h: 40, dano: 9, xp: 70, luz: 0,
+    resist: { agua: 1, fogo: 1, terra: 1, ar: 1, espada: 1 } },
+};
+
+/* Armas (o espaço de ataque do herói; regra do caderno, p. 34: no máximo 2 itens e um deles de
+   ataque). alcance = comprimento do golpe à frente do herói; recarga em segundos; bonus = dano a mais. */
+window.ARMAS = {
+  espada: { nome: 'Espada', alcance: 54, altura: 'corpo', recarga: .34, bonus: 0 },
+  lanca: { nome: 'Lança', alcance: 96, altura: 'fina', recarga: .42, bonus: 2,
+    texto: 'Lança! Golpe bem mais longo que a espada' },
 };
 
 window.FASES = {
@@ -64,12 +76,12 @@ window.FASES = {
     // xp e cura são o prêmio; texto aparece ao abrir.
     baus: [
       { x: 1660, y: 185, xp: 40, cura: true, texto: 'Baú escondido! +40 XP e vida cheia' },
-      { x: 5210, y: 1020, xp: 70, cura: true, texto: 'Sala secreta! +70 XP e vida cheia' },
     ],
     // sala secreta (teste de 2026-11-14): embaixo de um dos buracos há uma sala com um baú; nada
     // indica isso lá em cima. Quem cai nesse buraco desce para a sala (a câmera acompanha) e sai
     // pulando no cogumelo-mola. x0..x1 = largura da sala (uma tela); chao = y do piso da sala.
-    sala: { x0: 5090, x1: 6050, chao: 1020, mola: 5570 },
+    sala: { x0: 5090, x1: 6050, chao: 1020, mola: 5570,
+      guardiao: { tipo: 'mimico', x: 5210, vida: 70, premio: 'lanca' } },
     perigos: [ // chão em chamas (longe dos troncos e raízes das árvores, dos buracos e dos altares)
       { x: 1080, w: 90 }, { x: 2400, w: 100 }, { x: 2760, w: 80 },
       { x: 3400, w: 90 }, { x: 4080, w: 90 }, { x: 5300, w: 90 },

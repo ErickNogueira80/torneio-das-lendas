@@ -212,13 +212,34 @@ function makeEnemies() {
     if (T.mov === 'patrulha') Object.assign(e, { x: d.x, y: GROUND - T.h, x1: d.x1, x2: d.x2, vx: d.vel });
     else Object.assign(e, { bx: d.x, by: d.y, x: d.x, y: d.y, t: d.t || 0 });
     return e;
-  });
+  }).concat(guardiaoDaSala());
 }
+// guardião da sala secreta (ex.: o mímico), parado no lugar do baú
+function guardiaoDaSala() {
+  const g = SALA && SALA.guardiao, T = g && INIMIGOS[g.tipo];
+  if (!T) return [];
+  return [{ tipo: g.tipo, T, w: T.w, h: T.h, hp: g.vida, max: g.vida, flash: 0, x: g.x - T.w / 2, y: SALA.chao - T.h,
+    vx: 0, vy: 0, estado: 'dorme', t: 0, pulo: 0, face: 1, boca: 0, premio: g.premio }];
+}
+
+// ---------- itens (2 espaços: ataque e livre; guardados no navegador) ----------
+function carregarItens() { try { return { ataque: 'espada', livre: null, ...JSON.parse(localStorage.getItem('tdl_itens') || '{}') }; } catch (_) { return { ataque: 'espada', livre: null }; } }
+let itens = carregarItens();
+if (params.has('espada')) itens.ataque = 'espada';   // teste: começa sem a lança
+const arma = () => ARMAS[itens.ataque] || ARMAS.espada;
+function equipar(id) {
+  const A = ARMAS[id]; if (!A) return;
+  itens.ataque = id;
+  try { localStorage.setItem('tdl_itens', JSON.stringify(itens)); } catch (_) { /* sem armazenamento */ }
+  floatText(player.x - 80, player.y - 50, A.texto || A.nome + '!', '#ffe28a');
+  burst(player.x + 14, player.y + 20, 30, ['#ffe28a', '#f5c542', '#fff6d0'], 220, 1, 60, 3);
+}
+let drops = [];   // prêmios caídos no chão esperando o herói pegar
 
 function newGame() {
   Object.assign(player, { lvl: 1, xp: 0, attr: { ...HEROI.attr } });
   enemies = makeEnemies();
-  checkpoint = 0; playTime = 0; falls = 0; pendingLevels = 0;
+  checkpoint = 0; playTime = 0; falls = 0; pendingLevels = 0; drops = [];
   bossDefeated = false; pendant = null;
   baus = (FASE.baus || []).map(b => ({ ...b, aberto: false, t: 0 }));
   if (START_BOSS) {
@@ -1214,11 +1235,16 @@ function updatePlayer(dt) {
 
   // espada
   p.swordCd -= dt; p.swordT -= dt;
-  if (swordPressed && p.swordCd <= 0) { p.swordT = 0.18; p.swordCd = 0.34; p.hitSet.clear(); burst(p.x + p.w / 2 + p.face * 34, p.y + 24, 5, ['#eef6ff', '#c4d8ee'], 110, .25, 0, 2); }
+  const A = arma();
+  if (swordPressed && p.swordCd <= 0) { p.swordT = 0.18; p.swordCd = A.recarga; p.hitSet.clear(); burst(p.x + p.w / 2 + p.face * (A.alcance * .6), p.y + 24, 5, ['#eef6ff', '#c4d8ee'], 110, .25, 0, 2); }
   if (p.swordT > 0) {
-    const r = { x: p.face > 0 ? p.x + p.w - 4 : p.x - 50, y: p.y - 8, w: 54, h: p.h + 12 };
-    for (const e of enemies) if (!p.hitSet.has(e) && overlap(r, e)) { p.hitSet.add(e); damageEnemy(e, swordDmg(), 'espada'); }
-    if (!p.hitSet.has('boss') && bossHittable()) { const hit = CHEFE.acertoRet(boss, r); if (hit) { p.hitSet.add('boss'); damageBoss(hit, swordDmg(), 'espada'); } }
+    // a espada pega o corpo todo à frente; a lança é uma estocada fina e bem mais longa
+    const r = A.altura === 'fina'
+      ? { x: p.face > 0 ? p.x + p.w - 6 : p.x + 6 - A.alcance, y: p.y + 8, w: A.alcance, h: 26 }
+      : { x: p.face > 0 ? p.x + p.w - 4 : p.x + 4 - A.alcance, y: p.y - 8, w: A.alcance, h: p.h + 12 };
+    const dano = swordDmg() + (A.bonus || 0);
+    for (const e of enemies) if (!p.hitSet.has(e) && overlap(r, e)) { p.hitSet.add(e); damageEnemy(e, dano, 'espada'); }
+    if (!p.hitSet.has('boss') && bossHittable()) { const hit = CHEFE.acertoRet(boss, r); if (hit) { p.hitSet.add('boss'); damageBoss(hit, dano, 'espada'); } }
     for (const f of fireballs) if (circleRect(f.x, f.y, f.r, r)) { f.life = 0; burst(f.x, f.y, 10, FIRE, 160, .4); }
   }
   // poder do elemento
@@ -1232,8 +1258,10 @@ function updatePlayer(dt) {
 }
 
 function damageEnemy(e, dmg, kind) {
+  if (e.dead) return;   // já derrotado (ex.: golpe durante a tela de subir de nível)
   const res = resistOf(e.T.resist, kind);
   if (res === 0) { floatText(e.x, e.y - 8, 'imune!', '#ffb36b'); return; }
+  if (e.estado === 'dorme') { e.estado = 'acorda'; e.t = 0; }   // bater no mímico dormindo o acorda
   const d = Math.max(1, Math.round(dmg * res));
   e.hp -= d; e.flash = .12;
   const cores = kind === 'espada' ? FIRE : PODER.rastro;
@@ -1242,8 +1270,48 @@ function damageEnemy(e, dmg, kind) {
   if (e.hp <= 0) {
     e.dead = true; contarMorte(e.tipo);
     burst(e.x + e.w / 2, e.y + e.h / 2, 18, cores, 220, .7);
+    if (e.premio) {   // guardião: solta o prêmio da sala e enche a vida
+      drops.push({ tipo: e.premio, x: e.x + e.w / 2, y: e.y + e.h - 20, vy: -320, t: 0 });
+      player.hp = maxHp(); player.pe = maxPe(); player.poison = 0;
+    }
     gainXp(e.T.xp, e.x, e.y);
   }
+}
+// Mímico: dorme como um baú; acorda (treme) quando o herói chega perto e pula atrás dele
+function atualizarMimico(e, dt) {
+  e.t += dt;
+  const pcx = player.x + player.w / 2, ex = e.x + e.w / 2, chao = SALA ? SALA.chao : GROUND;
+  if (e.estado === 'dorme') { if (Math.abs(pcx - ex) < 110 && Math.abs(player.y + player.h - chao) < 80) { e.estado = 'acorda'; e.t = 0; } return; }
+  if (e.estado === 'acorda') {
+    if (e.t > .7) { e.estado = 'luta'; e.t = 0; e.pulo = .25; floatText(e.x - 10, e.y - 20, 'É um mímico!', '#ff9a7a'); }
+    return;
+  }
+  e.vy += GRAV * dt; e.x += e.vx * dt; e.y += e.vy * dt;
+  if (e.y + e.h >= chao) {
+    if (e.vy > 300) { shake = Math.max(shake, .1); burst(ex, chao - 2, 10, ['#6b5446', '#3d2f27'], 140, .4, 400, 3); }
+    e.y = chao - e.h; e.vy = 0; e.vx = 0; e.noChao = true;
+  } else e.noChao = false;
+  if (SALA) e.x = clamp(e.x, SALA.x0 + 10, SALA.x1 - e.w - 10);
+  if (e.noChao) {
+    e.pulo -= dt;
+    if (e.pulo <= 0) {
+      const d = Math.sign(pcx - ex) || 1, dist = Math.abs(pcx - ex);
+      e.face = d; e.vx = d * clamp(dist * 1.5, 120, 360); e.vy = dist < 140 ? -440 : -620; e.pulo = rnd(.6, 1.0);
+    }
+  }
+  // a boca abre no ar e bate enquanto está no chão
+  const alvo = e.noChao ? .25 + Math.abs(Math.sin(e.t * 9)) * .35 : 1;
+  e.boca += (alvo - e.boca) * Math.min(1, dt * 14);
+}
+function atualizarDrops(dt) {
+  for (const d of drops) {
+    d.t += dt;
+    const chao = SALA && d.x > SALA.x0 && d.x < SALA.x1 && d.y > GROUND ? SALA.chao : GROUND;
+    if (d.y < chao - 26) { d.vy += 900 * dt; d.y = Math.min(chao - 26, d.y + d.vy * dt); }
+    if (Math.random() < dt * 8) particles.push({ x: d.x + rnd(-16, 16), y: d.y + rnd(-16, 16), vx: 0, vy: -30, life: .6, max: .6, c: '#ffe28a', s: 2, g: 0 });
+    if (d.t > .5 && Math.hypot(player.x + 14 - d.x, player.y + 22 - d.y) < 40) { d.pego = true; equipar(d.tipo); }
+  }
+  drops = drops.filter(d => !d.pego);
 }
 
 function update(dt) {
@@ -1257,8 +1325,9 @@ function update(dt) {
       e.x += e.vx * dt;
       if (e.x < e.x1) { e.x = e.x1; e.vx = Math.abs(e.vx); }
       if (e.x > e.x2) { e.x = e.x2; e.vx = -Math.abs(e.vx); }
-    } else { e.t += dt; e.x = e.bx + Math.sin(e.t * .8) * 90; e.y = e.by + Math.sin(e.t * 2.1) * 35; }
-    if (overlap(player, e)) hurtPlayer(e.T.dano, e.x + e.w / 2);
+    } else if (e.T.mov === 'mimico') atualizarMimico(e, dt);
+    else { e.t += dt; e.x = e.bx + Math.sin(e.t * .8) * 90; e.y = e.by + Math.sin(e.t * 2.1) * 35; }
+    if (overlap(player, e) && e.estado !== 'dorme') hurtPlayer(e.T.dano, e.x + e.w / 2);
   }
   enemies = enemies.filter(e => !e.dead);
 
@@ -1296,6 +1365,7 @@ function update(dt) {
   if (bossActive && boss) CHEFE.atualizar(boss, dt);
   banner = Math.max(0, banner - dt);
 
+  atualizarDrops(dt);
   for (const b of baus) {
     b.t += dt;
     if (!b.aberto && overlap(player, { x: b.x - 14, y: b.y - 20, w: 28, h: 20 })) {
@@ -2344,6 +2414,8 @@ function luzes() {
   if (pendant) L.push([pendant.x - camX, pendant.y, 120, '220,230,255', .45]);
   if (SPR['objetos/placa']) L.push([ARENA.x0 + 40 - camX, GROUND - 40, 80 + f, '255,130,50', .35]);
   for (const b of baus) L.push([b.x - camX, b.y - 10, b.aberto ? 110 : 70, '255,210,90', b.aberto ? .5 : .3]);
+  for (const e of enemies) if (e.T.mov === 'mimico') L.push([e.x + e.w / 2 - camX, e.y + e.h - 10, e.estado === 'dorme' ? 70 : 90, e.estado === 'dorme' ? '255,210,90' : '255,90,70', .3]);
+  for (const d of drops) L.push([d.x - camX, d.y, 110, '255,220,120', .5]);
   if (SALA && camY > 0) {   // sala secreta: o cogumelo e os cogumelinhos brilham
     L.push([SALA.mola - camX, SALA.chao - 26, 180 + f, '110,240,220', .5]);
     for (const c of salaDeco().cogumelos) L.push([c.x - camX, c.y - 6, 75 + f, '110,240,220', .3]);
@@ -2393,6 +2465,30 @@ function playerAnim(S) {
 }
 
 // golpe de espada: onda de ar em meia-lua que abre e afina enquanto some, com riscos de vento
+// lança em pixel art (blocos de 2 px): cabo de madeira, fita vermelha e ponta de bronze
+function desenhaLanca(comp) {   // deitada, da origem (cabo) para +x (ponta)
+  const B = 2;
+  ctx.fillStyle = '#2a160a'; ctx.fillRect(-B, -3, comp - 14 + B, 6);
+  ctx.fillStyle = '#8a5a2c'; ctx.fillRect(0, -2, comp - 14, 4);
+  ctx.fillStyle = '#b07a40'; ctx.fillRect(0, -2, comp - 14, 2);
+  ctx.fillStyle = '#c0392b'; ctx.fillRect(comp - 22, -4, 6, 8); ctx.fillRect(comp - 26, 2, 4, 6);
+  for (let i = 0; i < 9; i++) { const h = 16 - Math.round(i * 1.8); ctx.fillStyle = '#3a2410'; ctx.fillRect(comp - 16 + i * B, -Math.round(h / 2), B, h); }
+  for (let i = 0; i < 8; i++) { const h = 12 - Math.round(i * 1.6); ctx.fillStyle = i < 2 ? '#c88a3a' : '#e0a84a'; ctx.fillRect(comp - 16 + i * B, -Math.round(h / 2), B, h); }
+  ctx.fillStyle = '#fff0b8'; ctx.fillRect(comp - 14, -3, 8, 2);
+}
+function drawLancaCostas(cx, y, f) {
+  ctx.save(); ctx.translate(Math.round(cx - f * 12), Math.round(y + 44)); ctx.scale(f, 1); ctx.rotate(-1.15);
+  desenhaLanca(70); ctx.restore();
+}
+// estocada: a lança vai à frente e volta, com riscos de vento
+function drawEstocada(cx, cy, f, k) {
+  const vai = Math.sin(Math.min(1, k * 1.4) * Math.PI / 2), a = 1 - k;
+  ctx.save(); ctx.translate(Math.round(cx + f * (vai * 34 - 6)), Math.round(cy)); ctx.scale(f, 1);
+  desenhaLanca(76);
+  ctx.fillStyle = `rgba(220,238,255,${.7 * a})`;
+  for (const [dy, l, d] of [[-8, 26, 4], [7, 18, 14]]) ctx.fillRect(40 + d, dy, Math.round(l * (1 - k * .4)), 2);
+  ctx.restore();
+}
 function drawGolpe(cx, cy, f, k) {
   const a = 1 - k, R = 24 + k * 26, esp = 14 * a + 3, abre = 1.05 + k * .25;
   ctx.save(); ctx.translate(Math.round(cx + f * (10 + k * 10)), Math.round(cy)); ctx.scale(f, 1);
@@ -2455,9 +2551,10 @@ function drawPlayer() {
       else if (a === 'parado') { ey = 1 + Math.sin(time * 3) * .012; }
     }
     drawSombra(p);
+    if (itens.ataque === 'lanca' && p.swordT <= 0) drawLancaCostas(x + p.w / 2, y, f);
     drawFrame(S, a, t, x + p.w / 2, y + p.h + 1 + bob, f, esc * ex * (1 + sq * .12), esc * ey * (1 - sq * .14), rot);
   } else drawPlayerShape(x, y, f);
-  if (p.swordT > 0) drawGolpe(x + p.w / 2, y + 24, f, 1 - p.swordT / 0.18);
+  if (p.swordT > 0) { if (arma().altura === 'fina') drawEstocada(x + p.w / 2, y + 26, f, 1 - p.swordT / 0.18); else drawGolpe(x + p.w / 2, y + 24, f, 1 - p.swordT / 0.18); }
   if (p.poison > 0) { ctx.fillStyle = 'rgba(120,255,90,.18)'; ctx.fillRect(x - 4, y - 4, p.w + 8, p.h + 8); }
 }
 
@@ -2494,15 +2591,56 @@ function drawPlayerShape(x, y, f) {
   ctx.restore();
 }
 
+// Mímico: a imagem do baú cortada na linha da tampa. Dormindo é igual a um baú (até o brilho);
+// acordado, a tampa abre pela dobradiça (do lado de trás) e aparecem dentes, língua e olhos.
+function drawMimico(e, x) {
+  const im = layer('objetos/bau', 'fechado'), z = 2, chao = Math.round(e.y + e.h);
+  const tremor = e.estado === 'acorda' ? Math.round(Math.sin(time * 60) * 2) : 0;
+  const ab = e.estado === 'dorme' ? 0 : e.estado === 'acorda' ? (Math.sin(time * 30) > .5 ? .12 : 0) : e.boca;
+  const cx = Math.round(x + e.w / 2 + tremor);
+  if (!im) {   // sem a imagem do baú: caixa desenhada
+    ctx.fillStyle = '#5a3418'; ctx.fillRect(cx - 23, chao - 30, 46, 30);
+    ctx.fillStyle = '#6e4220'; ctx.fillRect(cx - 23, chao - 40 - ab * 18, 46, 12);
+    return;
+  }
+  const nw = im.naturalWidth, nh = im.naturalHeight, w = nw * z, h = nh * z, corte = Math.round(nh * .42);
+  const bx = cx - w / 2, by = chao + 2 - h, linha = by + corte * z, abre = Math.round(ab * 22);
+  ctx.imageSmoothingEnabled = false;
+  if (ab > .05) {   // boca: fundo escuro, língua, olhos e dentes de baixo
+    ctx.fillStyle = '#2a0608'; ctx.fillRect(bx + 4, linha - abre, w - 8, abre + 6);
+    ctx.fillStyle = '#c94a62'; ctx.fillRect(cx - 8, linha - 4, 18, 6); ctx.fillRect(cx + e.face * 8, linha - 6, 8, 4);
+    if (abre > 8) { ctx.fillStyle = '#ffd54a'; ctx.fillRect(cx - 12, linha - abre + 4, 4, 4); ctx.fillRect(cx + 8, linha - abre + 4, 4, 4); }
+    ctx.fillStyle = '#f4ead2';
+    for (let i = 0; i < 5; i++) ctx.fillRect(Math.round(bx + 8 + i * (w - 18) / 4), linha - 5, 4, 5);
+  }
+  ctx.drawImage(im, 0, corte, nw, nh - corte, bx, linha, w, h - corte * z);   // corpo do baú
+  // tampa (com os dentes de cima), girando pela dobradiça de trás
+  const dob = e.face > 0 ? bx : bx + w;
+  ctx.save(); ctx.translate(dob, linha); ctx.rotate(-e.face * ab * .65);
+  ctx.drawImage(im, 0, 0, nw, corte, bx - dob, -corte * z, w, corte * z);
+  if (ab > .05) { ctx.fillStyle = '#f4ead2'; for (let i = 0; i < 5; i++) ctx.fillRect(Math.round(bx - dob + 6 + i * (w - 16) / 4), 0, 4, 6); }
+  ctx.restore();
+  if (e.estado === 'dorme' && Math.sin(e.t * 2.4) > .7) { ctx.fillStyle = '#fff6c0'; ctx.fillRect(bx + w - 6, by + 2, 2, 2); }   // o mesmo brilho de chamariz do baú
+  ctx.imageSmoothingEnabled = true;
+}
+// prêmios no chão (ex.: a lança que o mímico solta), flutuando e brilhando
+function drawDrops() {
+  for (const d of drops) {
+    ctx.save(); ctx.translate(Math.round(d.x - camX), Math.round(d.y + Math.sin(d.t * 3) * 4)); ctx.rotate(-.8); ctx.translate(-32, 0);
+    if (d.tipo === 'lanca') desenhaLanca(64); else { ctx.fillStyle = '#ffe28a'; ctx.fillRect(20, -8, 16, 16); }
+    ctx.restore();
+  }
+}
 function drawEnemies() {
   for (const e of enemies) {
     const x = e.x - camX; if (x < -60 || x > W + 60) continue;
-    if (x > 0 && x < W) encontrar(e.tipo);
+    if (x > 0 && x < W && e.estado !== 'dorme') encontrar(e.tipo);   // o mímico dormindo ainda é "um baú"
     const anda = e.T.mov === 'patrulha' && e.y + e.h >= GROUND - 2;
     const dE = anda ? deslocDesenho(e.x + e.w / 2, true, null, 1).dy : 0;
     ctx.save(); ctx.translate(0, Math.round(dE));
-    const S = sprite(e.T.sprite);
-    if (S) {
+    const S = e.T.sprite ? sprite(e.T.sprite) : null;
+    if (e.T.mov === 'mimico') drawMimico(e, x);
+    else if (S) {
       const face = e.T.mov === 'patrulha' ? (e.vx > 0 ? 1 : -1) : (player.x > e.x ? 1 : -1);
       drawFrame(S, e.T.mov === 'voo' ? 'voar' : 'andar', time * 8 + e.x * .01, x + e.w / 2, e.y + e.h + (e.T.mov === 'voo' ? 6 : 0), face);
     } else if (e.tipo === 'brasa') {
@@ -2600,7 +2738,7 @@ function drawHUDArte(p, dtH, bV, bB, cN) {
   ctx.fillText(Math.ceil(Math.max(0, p.hp)) + ' / ' + maxHp(), 112, 32);
   ctx.fillStyle = '#e8f2ff'; ctx.font = 'bold 10px "Crimson Pro", serif'; ctx.fillText(Math.floor(p.pe) + ' / ' + maxPe(), 110, 55);
   ctx.fillStyle = '#b3a88f'; ctx.font = '12px "Crimson Pro", serif';
-  ctx.fillText(`${HEROI.nome} · V${p.attr.V} F${p.attr.F} I${p.attr.I} A${p.attr.A}`, 100, 82);
+  ctx.fillText(`${HEROI.nome} · V${p.attr.V} F${p.attr.F} I${p.attr.I} A${p.attr.A}${itens.ataque !== 'espada' ? ' · ' + arma().nome : ''}`, 100, 82);
   // chefe
   if (bossActive && boss && !boss.dead) {
     const frac = boss.fire / boss.max, furia = CHEFE.enraged && CHEFE.enraged(boss);
@@ -2684,7 +2822,7 @@ function drawHUD() {
   ctx.fillText('Vida ' + Math.ceil(Math.max(0, p.hp)) + '/' + maxHp(), 98, 30);
   ctx.fillText('Energia ' + Math.floor(p.pe) + '/' + maxPe(), 98, 50);
   ctx.fillStyle = '#b3a88f'; ctx.font = '12px "Crimson Pro", serif';
-  ctx.fillText(`${HEROI.nome} · V${p.attr.V} F${p.attr.F} I${p.attr.I} A${p.attr.A}`, 90, 80);
+  ctx.fillText(`${HEROI.nome} · V${p.attr.V} F${p.attr.F} I${p.attr.I} A${p.attr.A}${itens.ataque !== 'espada' ? ' · ' + arma().nome : ''}`, 90, 80);
 
   if (bossActive && boss && !boss.dead) {
     const frac = boss.fire / boss.max, bw = 380, bx = W / 2 - bw / 2, by = H - 34, furia = CHEFE.enraged && CHEFE.enraged(boss);
@@ -2893,7 +3031,7 @@ function draw() {
   }
   const sh = shake > 0 ? shake * 14 : 0;
   ctx.save(); ctx.translate(rnd(-sh, sh), rnd(-sh, sh) - Math.round(camY));
-  medir('fundo', () => { drawBackground(); if (camY > 0) drawSala(); }); medir('mundo', () => { drawWorld(); drawBaus(); drawEnemies(); });
+  medir('fundo', () => { drawBackground(); if (camY > 0) drawSala(); }); medir('mundo', () => { drawWorld(); drawBaus(); drawEnemies(); drawDrops(); });
   if (bossActive && boss) medir('chefe', () => CHEFE.desenhar(boss));
   medir('perso', () => { if (!piso()) drawChao(); drawPlayer(); drawProjectiles(); drawParticles(); });
   medir('frente', drawFrente);

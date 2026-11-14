@@ -110,12 +110,25 @@ Pessoal (família).
   80, 4.250 e 8.300). A parte nova (depois de 3.300) segue o mesmo jeito da antiga: 8 buracos de
   100 a 140 px, árvores-plataforma, 9 trechos de chão em chamas e 17 inimigos (brasas e vaga-lumes
   um pouco mais fortes no fim).
+- **Guardião da sala secreta: o Mímico (decisões do Erick, 2026-11-14):** cada sala secreta pode
+  ter um guardião diferente (`sala.guardiao` na ficha da fase; tipo em `INIMIGOS`), e **é preciso
+  vencê-lo para ganhar o prêmio**. Nesta fase é o **Mímico**: no lugar do baú da sala, idêntico a um
+  baú (mesma imagem, mesmo brilho e mesma luz). Acorda quando o herói chega a 110 px (ou leva um
+  golpe), treme, mostra "É um mímico!" e pula atrás do herói com a boca aberta (70 de vida, mordida
+  9). A arte é a do baú cortada na linha da tampa, com dentes, língua e olhos desenhados pelo jogo
+  (dá para trocar por arte do PixelLab). Vencido: vida cheia, 70 XP e solta o prêmio.
+- **Itens e a Lança (2026-11-14):** regra do caderno (p. 34): no máximo 2 itens, um deles de ataque.
+  O herói tem o espaço `ataque` (arma; começa com a espada) e um espaço `livre` (ainda sem uso);
+  guardados no navegador (`tdl_itens`). Armas em `ARMAS` (`fases.js`): alcance, recarga e dano a
+  mais. A **Lança** (prêmio do Mímico) é uma estocada fina de 96 px (a espada pega 54), +2 de dano,
+  recarga 0,42 s. Aparece nas costas do herói e na estocada (desenhada pelo jogo); o nome vai no
+  HUD. Pendente: o herói do PixelLab segura a espada nas animações (a lança aparece por cima).
 - **Fogo parado (2026-11-14):** o chão em chamas da fase e o fogo que o Boitatá deixa no salto
   usam a animação de 9 quadros do PixelLab (`img/sprites/objetos/fogo/`, recortada da folha em
   `originais/`; 24 px de altura na arte, 48 na tela, 10 quadros por segundo, cada fogo começa num
   quadro diferente). Sem a imagem, volta o fogo desenhado.
-- **Sala secreta (teste do Erick, 2026-11-14):** embaixo de um dos buracos há uma caverna com um
-  baú (70 XP e vida cheia). Nada indica isso lá em cima: o buraco é igual aos outros. A posição
+- **Sala secreta (teste do Erick, 2026-11-14):** embaixo de um dos buracos há uma caverna com o
+  Mímico guardando a Lança (ver abaixo). Nada indica isso lá em cima: o buraco é igual aos outros. A posição
   fica em `sala` na ficha da fase e **não deve ser contada ao Erick nem à Milena** (o teste é a
   surpresa de achar). Quem cai nesse buraco desce para a sala (a câmera desce junto; é a única
   câmera vertical do jogo), e sai pulando no **cogumelo-mola**: quem cai nele quica (é a dica),
@@ -292,7 +305,7 @@ Para retomar numa sessão nova, comece por aqui.
   terra ficou guardada como `boitata_terra`).
 - Bestiário com ??? até o encontro e contador de derrotados; locais bloqueados sem spoiler.
 
-**Para testar rápido:** `?play&sala` (começa na sala secreta), `?boss` (luta), `?chefevida=10` (chefe quase morto), `?play&x=8580` (placa), `?play&x=1300` (baú), `?herois`,
+**Para testar rápido:** `?play&sala` (começa na sala secreta; `&espada` tira a lança), `?boss` (luta), `?chefevida=10` (chefe quase morto), `?play&x=8580` (placa), `?play&x=1300` (baú), `?herois`,
 `?mapa`, `?bestiario`, `?fps`, `?perf`, `?semluz`, `?semretrato`.
 
 **Cache das imagens (2026-11-14):** a ferramenta grava em cada item do `sprites.json` uma marca
