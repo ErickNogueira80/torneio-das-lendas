@@ -33,8 +33,25 @@ window.FASES = {
     largura: 9600,
     escuridao: 0.5,
     altares: [80, 4250, 8300],
+    solidos: [
+      { x: -300, y: 460, w: 10200, h: 140 }
+    ],
+    plataformas: [
+      { x: 600, y: 360, w: 180 },
+      { x: 1200, y: 300, w: 200 }
+    ],
+    perigos: [
+      { x: 1500, w: 120 },
+      { x: 2800, w: 130 }
+    ],
+    controles: [80, 4250, 8300],
+    fim: 8640,
+    arena: { x0: 8640, x1: 9600 },
     sala: {
       x: 3200,
+      chao: 640,
+      x0: 3100,
+      x1: 3400,
       guardiao: 'mimico',
       premio: 'item_livre'
     },
