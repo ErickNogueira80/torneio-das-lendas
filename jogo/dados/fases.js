@@ -44,6 +44,11 @@ window.FASES = {
       { x: 1500, w: 120 },
       { x: 2800, w: 130 }
     ],
+    inimigos: [
+      { tipo: 'brasa', x: 800 },
+      { tipo: 'vagalume', x: 1400 },
+      { tipo: 'brasa', x: 2200 }
+    ],
     controles: [80, 4250, 8300],
     fim: 8640,
     arena: { x0: 8640, x1: 9600 },
