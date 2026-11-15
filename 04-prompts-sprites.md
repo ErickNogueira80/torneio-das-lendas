@@ -891,6 +891,81 @@ characters, no text.
 Se o resultado vier muito claro, acrescente `very dark, most of the image in shadow`. Se vier
 uma parede reta, reforce `the floor slopes upward into the distance, perspective`.
 
+## 4.12 Fase da Vaca: o pasto (Gemini e PixelLab) — 2026-11-15
+
+A fase da Vaca já roda **sem imagem nenhuma**: o jogo desenha o céu do fim de tarde, os morros, as
+árvores redondas, o capim, os cardos, os besouros, os pombos, a Vaca, o OVNI e a dog tag. Cada imagem
+abaixo entra no lugar do desenho quando for salva (a ordem é só sugestão). Referência de cores: a
+pintura do local, `web/locais/08-o-pasto-da-vaca-e-o-ovni.jpg` (pôr do sol roxo e laranja, pasto
+verde, vaca branca com manchas marrons e asinhas brancas de pombo).
+
+**1. Ageláda, a Vaca (PixelLab, a mais importante).** Create Character, tipo Custom (quadrúpede),
+câmera **Sidescroller**, direção **East**, uns 96 px de largura. Animações (4 a 8 quadros cada):
+`parado` (pastando, abana o rabo), `andar`, `empinar` (fica em pé nas patas de trás e pisa forte),
+`gas` (de costas, rabo levantado, nuvem verde saindo), `cansada` (cabeça baixa, língua de fora). Salvar
+as folhas em `img/sprites/chefes/vaca/` (`parado_folha.png`, `andar_folha.png`...). O Claude liga no
+jogo (o desenho atual sai sozinho quando a arte existe).
+
+```
+A sacred cow boss from a fantasy game: a big friendly-looking dairy cow, white with large
+reddish-brown patches, pink muzzle and udder, short cream horns, a small golden bell on the neck,
+and two SMALL white pigeon wings on its back (tiny compared to the body, with soft grey feather
+tips). Calm and stubborn expression. Side view, 16-bit detailed pixel art, black outline,
+transparent background.
+```
+
+**2. Fundo do pasto (Gemini, 4 imagens).** Mesmo esquema da floresta (seção 4): salvar em
+`img/sprites/fundos/vaca/` como `ceu.png`, `longe.png`, `perto.png` e `chao.png`. Começo comum:
+
+```
+Create an image. 2D side-scrolling game background layer, peaceful green pasture at sunset,
+purple and orange sky, painterly style matching a fantasy RPG, seamless horizontally tileable
+(the left and right edges must match), no characters, no animals, no text.
+```
+
+- `ceu` (16:9): `Only the SKY: sunset gradient from deep purple at the top to warm orange and
+  yellow near the horizon, a big low sun, long pink and orange clouds. No ground, no trees.`
+- `longe` (21:9): `Only DISTANT rolling purple-blue hills and soft green hills with small round
+  trees, flat bottom edge, on a plain solid #00FF00 green background (the sky area must be pure green).`
+- `perto` (21:9): `Only CLOSER green meadow hills with a few round leafy trees and an old wooden
+  fence, sparse with big gaps, flat bottom edge, on a plain solid #00FF00 green background.`
+- `chao` (1:1): `Square 1:1 seamless tileable texture of brown soil with small pebbles and roots,
+  seen from the side, the top edge covered by a strip of bright green grass.`
+
+**3. Inimigos (PixelLab, Sidescroller, East, 32 px).** Pastas `img/sprites/inimigos/besouro/`
+(animação `andar`) e `img/sprites/inimigos/pombo/` (animação `voar`).
+
+```
+A rhinoceros beetle enemy: shiny dark blue-black shell with a light blue highlight, one curved
+horn on the head, small yellow eyes, six short legs. Side view, 16-bit pixel art, black outline,
+transparent background.
+```
+
+```
+An angry grey city pigeon enemy: grey body, iridescent green and purple neck, orange eye with an
+angry eyebrow, small dark beak, pink feet. Side view, 16-bit pixel art, black outline,
+transparent background.
+```
+
+**4. Dog tag dourada (PixelLab, Create image 64×64).** Salvar como
+`img/sprites/objetos/pingente/vaca.png` (o jogo já procura esse nome).
+
+```
+A small golden military dog tag, a trophy from a fantasy game: rounded rectangle of shiny gold
+with a darker gold border, a small hole at the top with a short golden ball chain, a tiny
+engraved cow head with little wings on its face. Front view, centered, 16-bit detailed pixel
+art, black outline, transparent background, no text.
+```
+
+**5. OVNI (opcional, PixelLab, Create image 128×64).** Hoje é desenhado pelo jogo. Se quiser
+arte: `img/sprites/objetos/ovni.png`.
+
+```
+A classic flying saucer UFO: silver metal disc with a glass dome on top, a ring of colorful
+round lights (red, yellow, green, blue, purple) around the rim, a green glow underneath. Side
+view, 16-bit detailed pixel art, black outline, transparent background.
+```
+
 ## 5. Ficha dos 3 heróis com constelação (para a Milena)
 
 O humano já está definido (o 4º jogador, sem constelação). Antes das imagens de cada herói dos

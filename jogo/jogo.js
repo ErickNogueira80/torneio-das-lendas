@@ -56,6 +56,7 @@ const SOLIDS_COL = SALA ? SOLIDS.concat([
 const naSala = p => !!SALA && p.x + p.w > SALA.x0 && p.x < SALA.x1 && p.y > GROUND - 4;
 const MOLA_V = 1700;   // pulo do cogumelo-mola: sobe do piso da sala até bem acima do chão
 const CHEFE_CFG = FASE.chefe;
+const PASTO = FASE.tema === 'pasto';   // fase do pasto (Vaca): cenário, piso, árvores e perigos próprios
 
 // ---------- utilidades ----------
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
@@ -65,6 +66,39 @@ const overlap = (a, b) => a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h 
 function circleRect(cx, cy, r, b) {
   const nx = clamp(cx, b.x, b.x + b.w), ny = clamp(cy, b.y, b.y + b.h);
   return (cx - nx) ** 2 + (cy - ny) ** 2 < r * r;
+}
+
+// ---------- pixel art feita pelo jogo (quando ainda não há imagem) ----------
+// Desenha em coordenadas da arte (1 px = 1 px da arte) numa tela pequena, com contorno de 1 px, e
+// guarda pronta. Quem usa amplia sem borrar (2 px de tela por px da arte, como o resto do jogo).
+function pxRet(g, x, y, w, h, cor) { g.fillStyle = cor; g.fillRect(Math.round(x), Math.round(y), w, h); }
+function pxElipse(g, cx, cy, rx, ry, cor) {
+  g.fillStyle = cor;
+  for (let y = -ry; y <= ry; y++) { const w = Math.round(rx * Math.sqrt(Math.max(0, 1 - (y * y) / (ry * ry)))); g.fillRect(Math.round(cx - w), Math.round(cy + y), w * 2 + 1, 1); }
+}
+function pxLinha(g, pts, esp, cor) {
+  g.fillStyle = cor;
+  for (let i = 0; i < pts.length - 1; i++) {
+    const [x0, y0] = pts[i], [x1, y1] = pts[i + 1], n = Math.max(1, Math.ceil(Math.max(Math.abs(x1 - x0), Math.abs(y1 - y0))));
+    for (let k = 0; k <= n; k++) g.fillRect(Math.round(x0 + (x1 - x0) * k / n - esp / 2), Math.round(y0 + (y1 - y0) * k / n - esp / 2), esp, esp);
+  }
+}
+const PX_CACHE = new Map();
+function pxCache(chave, w, h, pinta, contorno) {
+  if (PX_CACHE.has(chave)) return PX_CACHE.get(chave);
+  const c = document.createElement('canvas'); c.width = w; c.height = h;
+  pinta(c.getContext('2d'));
+  let out = c;
+  if (contorno) {   // contorno: a silhueta em cor escura deslocada 1 px para os 4 lados, por baixo
+    const s = document.createElement('canvas'); s.width = w; s.height = h;
+    const gs = s.getContext('2d'); gs.drawImage(c, 0, 0); gs.globalCompositeOperation = 'source-in'; gs.fillStyle = contorno; gs.fillRect(0, 0, w, h);
+    out = document.createElement('canvas'); out.width = w; out.height = h;
+    const go = out.getContext('2d');
+    for (const [dx, dy] of [[-1, 0], [1, 0], [0, -1], [0, 1]]) go.drawImage(s, dx, dy);
+    go.drawImage(c, 0, 0);
+  }
+  PX_CACHE.set(chave, out);
+  return out;
 }
 
 // ---------- imagens (sprites) ----------
@@ -272,6 +306,8 @@ function burst(x, y, n, colors, spd = 220, life = .7, grav = 300, size = 4) {
 }
 const FIRE = ['#ffd36b', '#ff9a2e', '#ff5a1a', '#c2260e'];
 const SILVER = ['#ffffff', '#e2e6ee', '#b9c0cc', '#d8dce6'];
+const GOLD = ['#fff6d0', '#ffe28a', '#f5c542', '#d9a52e'];
+const OURO = CHEFE_CFG.corPremio === 'ouro';   // prêmio dourado (a dog tag da Vaca)
 function floatText(x, y, txt, c = '#fff') { texts.push({ x, y, txt, c, life: 1 }); }
 
 function hurtPlayer(dmg, srcX, poison = 0) {
@@ -1637,6 +1673,330 @@ CHEFES.boitata = (() => {
     },
   };
 })();
+CHEFES.vaca = (() => {
+  // Ageláda, a vaca sagrada (2026-11-15). Do caderno da Milena: vaca com pequenas asas de pombo
+  // brancas que não deixa ninguém passar e muge (p. 17); ataques Gás mortal e Terremoto (p. 26);
+  // "como matar": pelo cansaço ou fazendo ela chegar a 0 PS (p. 35). Nos dois casos, quando ela
+  // cansa, uma luz verde a leva para um OVNI e uma dog tag dourada cai no chão (p. 17).
+  // Cansaço: sobe a cada ataque dela e mais quando o herói desvia sem levar dano. Quem só desvia
+  // vence pelo cansaço; quem bate vence pelos PS. Terremoto: ela empina e pisa; as ondas correm pelo
+  // chão (pular). Gás: ela dá as costas, levanta o rabo e solta nuvens verdes que envenenam (a água
+  // espalha o gás). Sem a arte `chefes/vaca`, o desenho é feito aqui em pixel art.
+  const K = 2;                                    // 2 px de tela por px da arte, como o resto do jogo
+  const AW = 116, AH = 86, OX = 54, OY = 80;      // tamanho da arte; (OX, OY) = entre os pés
+  const CY = OY - 31, RX = 34, RY = 15;           // centro e raios do corpo na arte
+  const PIVO = OX - 21;                           // patas de trás: ela empina girando aqui
+  const enraged = b => b.fire < b.max * .35;
+  const cansada = b => b.cansaco >= 65;
+  const ease = t => t * t * (3 - 2 * t);
+  const PADRAO = ['terremoto', 'gas', 'terremoto', 'terremoto', 'gas'];
+  const COR = { branco: '#f3eee4', sombra: '#cfc3b0', mancha: '#8b4a2b', manchaEsc: '#6a3620', focinho: '#efb3a8', focinhoEsc: '#b8736a',
+    casco: '#3a2a22', chifre: '#efe2bd', contorno: '#24140f', ubre: '#f2a0ad', olho: '#140c0a', asa: '#ffffff', asaSomb: '#b9c6d6', rabo: '#4a2a1a' };
+  const CABECA = { alta: [OX + 44, CY - 17], baixa: [OX + 46, CY + 9], cansada: [OX + 43, CY - 3], brava: [OX + 46, CY - 8] };
+
+  // ---- desenho em pixel art (cada quadro é montado uma vez e guardado) ----
+  const corpoDentro = (x, y) => ((x - OX) / RX) ** 2 + ((y - CY) / RY) ** 2 <= 1;
+  function mancha(g, cx, cy, rx, ry, cor) {   // mancha só dentro do corpo
+    g.fillStyle = cor;
+    for (let y = -ry; y <= ry; y++) {
+      const w = Math.round(rx * Math.sqrt(Math.max(0, 1 - (y * y) / (ry * ry)) + (((y * 7) & 3) - 1.5) * .04));
+      for (let x = -w; x <= w; x++) if (corpoDentro(cx + x, cy + y)) g.fillRect(cx + x, cy + y, 1, 1);
+    }
+  }
+  function pernas(g, xs, passo, cor) {
+    const sw = [-2, 0, 2, 0][passo & 3];
+    xs.forEach(([x, par], i) => {
+      const dx = (par ? sw : -sw);
+      for (let y = 0; y < 18; y++) pxRet(g, x + Math.round(dx * y / 18), OY - 18 + y, 6, 1, y > 14 ? COR.casco : cor);
+      if (i === 0 && cor === COR.branco) pxRet(g, x + Math.round(dx * .5), OY - 12, 6, 3, COR.mancha);   // meia marrom numa pata
+    });
+  }
+  function asas(g, x, y, flap, cor, ponta) {   // asinhas de pombo: 4 penas abrindo para trás e para cima
+    const a0 = -2.25 + [-.45, 0, .45][flap];
+    for (let i = 0; i < 4; i++) {
+      const a = a0 + i * .22, len = 20 - i * 3;
+      const fx = x + Math.cos(a) * len, fy = y + Math.sin(a) * len;
+      pxLinha(g, [[x, y], [fx, fy]], 3, cor);
+      pxLinha(g, [[x + Math.cos(a) * len * .7, y + Math.sin(a) * len * .7], [fx, fy]], 3, ponta);
+    }
+  }
+  function quadro(cab, passo, rabo, lingua, flap) {
+    return pxCache(`vaca|${cab}|${passo}|${rabo}|${lingua}|${flap}`, AW, AH, g => {
+      const [hx, hy] = CABECA[cab];
+      // asa de trás e pernas de trás (mais escuras)
+      asas(g, OX + 4, CY - 13, flap, COR.asaSomb, '#93a2b6');
+      pernas(g, [[OX - 23, 1], [OX + 22, 0]], passo, COR.sombra);
+      // rabo
+      const R = { baixo: [[OX - 33, CY - 8], [OX - 38, CY], [OX - 39, CY + 10], [OX - 38, CY + 17]],
+        balanca: [[OX - 33, CY - 8], [OX - 39, CY - 1], [OX - 42, CY + 8], [OX - 44, CY + 14]],
+        alto: [[OX - 33, CY - 8], [OX - 40, CY - 15], [OX - 42, CY - 25], [OX - 38, CY - 32]] }[rabo];
+      pxLinha(g, R, 2, COR.rabo);
+      pxElipse(g, R[3][0], R[3][1], 2, 3, COR.manchaEsc);
+      // corpo, sombra de baixo e manchas
+      pxElipse(g, OX, CY, RX, RY, COR.sombra);
+      pxElipse(g, OX, CY - 2, RX - 1, RY - 3, COR.branco);
+      mancha(g, OX - 17, CY - 4, 10, 8, COR.mancha); mancha(g, OX + 7, CY - 9, 8, 5, COR.mancha);
+      mancha(g, OX - 3, CY + 7, 6, 4, COR.mancha); mancha(g, OX + 24, CY + 3, 6, 7, COR.mancha);
+      mancha(g, OX - 29, CY - 1, 4, 6, COR.manchaEsc);
+      // úbere
+      pxElipse(g, OX + 5, CY + 14, 6, 3, COR.ubre);
+      for (const t of [1, 4, 7]) pxRet(g, OX + t, CY + 16, 1, 2, COR.focinhoEsc);
+      // pernas da frente
+      pernas(g, [[OX - 18, 0], [OX + 16, 1]], passo, COR.branco);
+      // pescoço, sininho e cabeça
+      pxLinha(g, [[OX + 27, CY - 5], [hx - 5, hy + 2]], 12, COR.branco);
+      pxElipse(g, OX + 31, CY + 1 + (hy - CY) * .25, 2, 2, '#e3b75a');
+      pxElipse(g, hx, hy, 9, 8, COR.branco);
+      pxElipse(g, hx - 3, hy - 3, 4, 4, COR.mancha);
+      pxElipse(g, hx - 8, hy - 6, 4, 2, COR.mancha);                                   // orelha
+      pxLinha(g, [[hx - 3, hy - 7], [hx - 4, hy - 11], [hx - 2, hy - 13]], 2, COR.chifre);
+      pxLinha(g, [[hx + 2, hy - 7], [hx + 3, hy - 11], [hx + 5, hy - 12]], 2, COR.chifre);
+      pxElipse(g, hx + 7, hy + 3, 5, 5, COR.focinho);
+      pxRet(g, hx + 9, hy + 1, 1, 2, COR.focinhoEsc); pxRet(g, hx + 9, hy + 5, 1, 2, COR.focinhoEsc);
+      pxRet(g, hx + 4, hy + 7, 5, 1, COR.focinhoEsc);
+      if (cab === 'cansada') { pxRet(g, hx + 1, hy - 3, 3, 1, COR.olho); pxRet(g, hx + 1, hy - 2, 3, 1, COR.sombra); }   // olho caído
+      else { pxRet(g, hx + 1, hy - 4, 2, 3, COR.olho); pxRet(g, hx + 1, hy - 4, 1, 1, '#ffffff'); }
+      if (cab === 'brava') pxLinha(g, [[hx - 1, hy - 7], [hx + 4, hy - 5]], 1, COR.olho);   // sobrancelha franzida
+      if (lingua) pxRet(g, hx + 7, hy + 8, 2, 4, '#e0607a');
+      // asa da frente
+      asas(g, OX - 1, CY - 12, flap, COR.asa, COR.asaSomb);
+    }, COR.contorno);
+  }
+
+  // ---- posições no mundo ----
+  function cabeca(b, cab) {   // centro da cabeça no mundo (gira junto quando ela empina)
+    const [hx, hy] = CABECA[cab || 'alta'];
+    const dx = (hx - PIVO) * K, dy = (hy - OY) * K, a = -b.rot, px = b.x + b.face * (PIVO - OX) * K;
+    return { x: px + b.face * (dx * Math.cos(a) - dy * Math.sin(a)), y: GROUND - b.sobe + (dx * Math.sin(a) + dy * Math.cos(a)) };
+  }
+  const corpo = b => ({ x: b.x - (RX - 2) * K, y: GROUND - b.sobe - (OY - CY + RY) * K, w: (RX - 2) * 2 * K, h: (OY - CY + RY) * K });
+  const traseira = b => ({ x: b.x - b.face * (RX + 2) * K, y: GROUND - b.sobe - (OY - CY + 6) * K });
+  function poseCab(b) {
+    if (b.dead) return b.deadT > 2.2 ? 'alta' : 'cansada';
+    if (b.state === 'espera') return b.mugT > 0 ? 'alta' : 'baixa';
+    if (b.state === 'empina' || b.state === 'pisa') return 'brava';
+    return cansada(b) ? 'cansada' : 'alta';
+  }
+
+  // ---- ataques ----
+  function bater(b, dano, x, veneno = 0) { if (player.inv <= 0) b.acertou = true; hurtPlayer(dano, x, veneno); }
+  function muu(b, txt) { const h = cabeca(b, poseCab(b)); floatText(h.x - 24, h.y - 46, txt || (Math.random() < .5 ? 'Muuu...' : 'Muuuu!'), '#fff3d6'); b.mugT = 1.2; }
+  function proximo(b) {
+    const fur = enraged(b), pcx = player.x + player.w / 2;
+    b.acertou = false; b.rot = 0;
+    const atk = PADRAO[b.passoAtk++ % PADRAO.length];
+    if (atk === 'terremoto') { b.state = 'empina'; b.face = pcx < b.x ? -1 : 1; b.pisadas = fur ? 1 : 0; }
+    else { b.state = 'vira'; b.puffs = 0; }
+    b.st = 0;
+  }
+  function fimAtaque(b) {
+    const C = b.cfg.cansaco, antes = b.cansaco;
+    b.cansaco = Math.min(100, b.cansaco + C.ataque + (b.acertou ? 0 : C.desvio));
+    for (const [lim, txt] of C.avisos) if (antes < lim && b.cansaco >= lim) { const h = cabeca(b, 'alta'); floatText(h.x - 70, h.y - 70, txt, '#9fe7ff'); }
+    b.rot = 0;
+    if (b.cansaco >= 100) derrotar(b, 'A vaca caiu de cansaço!');
+    else { b.state = 'anda'; b.st = 0; }
+  }
+  function derrotar(b, txt) {   // cansaço no máximo (a derrota por PS passa por damageBoss)
+    b.dead = true; b.deadT = 0; contarMorte(FASE_ID);
+    floatText(b.x - 80, GROUND - 190, txt, '#ffffff');
+  }
+  function pisar(b) {
+    const sp = enraged(b) ? 1.2 : 1, fx = b.x + b.face * 22 * K;
+    shake = .5;
+    burst(fx, GROUND - 4, 26, ['#6b4a32', '#8a6a4a', '#4a3424'], 300, .8, 700, 4);
+    for (const dir of [-1, 1]) b.ondas.push({ x: fx, dir, v: 430 * sp, t: 0 });
+  }
+  function soltarGas(b) {
+    const t = traseira(b);
+    b.gases.push({ x: t.x, y: t.y, vx: -b.face * rnd(70, 125), vy: rnd(-22, 4), r: 16, rMax: rnd(54, 74), vida: 5.5, max: 5.5, ph: rnd(0, 6) });
+    burst(t.x, t.y, 10, ['#a6d94e', '#cbe86b', '#7fae3a'], 120, .6, -20, 4);
+    shake = Math.max(shake, .12);
+  }
+
+  // ---- OVNI e luz verde ----
+  function desenhaOvni(x, y, t) {
+    const R = (dx, dy, w, h, c) => { ctx.fillStyle = c; ctx.fillRect(Math.round(x + dx), Math.round(y + dy), w, h); };
+    const linha = (dy, meia, c) => R(-meia, dy, meia * 2, 2, c);
+    for (let i = 0; i < 9; i++) linha(-22 + i * 2, [10, 16, 19, 21, 22, 22, 22, 21, 19][i], i < 3 ? '#bff4ff' : '#7fd8e8');   // cúpula
+    R(-6, -20, 6, 4, '#ffffff');
+    for (let i = 0; i < 6; i++) linha(-4 + i * 2, [56, 66, 70, 70, 64, 52][i], ['#d9dee6', '#b8c0cc', '#9aa4b2', '#7d8796', '#5e6878', '#46505e'][i]);   // disco
+    const cores = ['#ff5a5a', '#ffd34a', '#6aff8a', '#5ab4ff', '#d77aff'];
+    for (let i = 0; i < 9; i++) R(-60 + i * 14, 0, 4, 4, cores[(i + Math.floor(t * 6)) % cores.length]);   // luzinhas piscando
+    linha(8, 26, '#9dffb0'); linha(10, 18, '#e2ffe6');                                                    // brilho verde embaixo
+  }
+  function desenhaRaio(x, yTopo, forca) {
+    if (forca <= 0) return;
+    ctx.save(); ctx.globalCompositeOperation = 'lighter';
+    const g = ctx.createLinearGradient(0, yTopo, 0, GROUND);
+    g.addColorStop(0, `rgba(150,255,170,${.55 * forca})`); g.addColorStop(1, `rgba(90,255,120,${.25 * forca})`);
+    ctx.fillStyle = g;
+    for (let y = Math.round(yTopo); y < GROUND; y += 4) {   // cone em degraus de 4 px (pixel art)
+      const k = (y - yTopo) / (GROUND - yTopo), meia = Math.round((24 + k * 70 + Math.sin(time * 9 + y * .05) * 3) / 2) * 2;
+      ctx.fillRect(Math.round(x - meia), y, meia * 2, 4);
+    }
+    ctx.fillStyle = `rgba(170,255,190,${.35 * forca})`; ctx.fillRect(Math.round(x - 60), GROUND - 4, 120, 4);   // poça de luz no chão
+    ctx.restore();
+  }
+
+  return {
+    enraged,
+    criar(cfg) {
+      // já está na arena pastando, esperando o herói (estado 'espera': só pasta, abana o rabo e muge)
+      return { cfg, x: ARENA.x0 + 640, face: -1, fire: cfg.vida, max: cfg.vida, cansaco: 0, state: 'espera', st: 0, flash: 0,
+        dead: false, deadT: 0, ondas: [], gases: [], passoAtk: 0, pisadas: 0, puffs: 0, acertou: false, rot: 0, sobe: 0, esc: 1, alpha: 1,
+        anda: false, passoT: 0, mugir: 1.5, mugT: 0, apanhou: false, ultFire: cfg.vida, ovni: null, falou: false, hx: 0, hy: 0,
+        ...(params.has('cansaco') ? { cansaco: +params.get('cansaco') } : {}) };   // teste: &cansaco=90 já quase caindo
+    },
+    atualizar(b, dt) {
+      b.st += dt; b.flash = Math.max(0, b.flash - dt); b.mugT = Math.max(0, b.mugT - dt);
+      const D = b.cfg.dano, fur = enraged(b), sp = (fur ? 1.3 : 1) * (cansada(b) ? .8 : 1);
+      const pcx = player.x + player.w / 2;
+      if (b.fire < b.ultFire && !b.apanhou) { b.apanhou = true; floatText(b.x - 70, GROUND - 200, 'Você mexeu com a vaca!', '#ffb36b'); }
+      b.ultFire = b.fire;
+
+      // ondas do terremoto: correm pelo chão; só pega quem está no chão
+      for (const o of b.ondas) {
+        o.x += o.dir * o.v * dt; o.t += dt;
+        if (Math.random() < dt * 40) particles.push({ x: o.x + rnd(-10, 10), y: GROUND - 6, vx: rnd(-40, 40), vy: rnd(-260, -120), life: .5, max: .5, c: Math.random() < .5 ? '#6b4a32' : '#8a6a4a', s: rnd(3, 5), g: 900 });
+        if (!b.dead && player.y + player.h >= GROUND - 6 && Math.abs(pcx - o.x) < 22 + player.w / 2) bater(b, D.terremoto, o.x - o.dir * 40);
+      }
+      b.ondas = b.ondas.filter(o => o.t < 2.6 && o.x > ARENA.x0 - 20 && o.x < ARENA.x1 + 20);
+      // nuvens de gás: crescem, freiam e somem; a água do herói espalha o gás
+      for (const g of b.gases) {
+        g.x += g.vx * dt; g.y += g.vy * dt; g.vx *= 1 - .45 * dt; g.vy *= 1 - .3 * dt; g.vida -= dt;
+        g.r = Math.min(g.rMax, g.r + 45 * dt);
+        for (const o of shots) if (Math.hypot(o.x - g.x, o.y - g.y) < g.r) { g.vida = Math.min(g.vida, .6); g.vx += o.vx * .15; }
+        if (!b.dead && g.vida > .7 && circleRect(g.x, g.y, g.r * .62, player)) bater(b, D.gas, g.x, D.gasSeg);
+      }
+      b.gases = b.gases.filter(g => g.vida > 0);
+
+      if (b.dead) {   // abdução: deita cansada, o OVNI desce, a luz verde a leva e cai a dog tag
+        b.deadT += dt; const t = b.deadT;
+        b.rot = Math.max(0, b.rot - dt * 2); b.ondas = [];
+        for (const g of b.gases) g.vida = Math.min(g.vida, .8);
+        if (!b.ovni) b.ovni = { x: b.x + 10, y: -140, raio: 0, foi: false };
+        const O = b.ovni;
+        if (t < 2.2) O.y = -140 + 230 * ease(clamp((t - .6) / 1.4, 0, 1));
+        O.x = b.x + 10 + Math.sin(time * 2) * 6;
+        O.raio = t < 2 ? 0 : t < 4.6 ? clamp((t - 2) / .3, 0, 1) : clamp(1 - (t - 4.6) / .3, 0, 1);
+        if (t > 2.4) b.sobe = (GROUND - O.y - 30) * ease(clamp((t - 2.4) / 2, 0, 1));
+        b.esc = 1 - .65 * clamp((t - 3.6) / .8, 0, 1);
+        b.alpha = 1 - clamp((t - 4.2) / .3, 0, 1);
+        if (t > 2.6 && !b.falou) { b.falou = true; floatText(b.x - 40, 120, 'Sim. Aliens.', '#9dffb0'); }
+        if (O.raio > 0 && Math.random() < dt * 30) particles.push({ x: O.x + rnd(-40, 40), y: GROUND - rnd(0, 200), vx: 0, vy: -rnd(60, 140), life: .8, max: .8, c: Math.random() < .5 ? '#9dffb0' : '#e2ffe6', s: rnd(2, 3), g: 0 });
+        if (t > 4.7 && !pendant) pendant = { x: b.x, y: O.y + 30, vy: 0, t: 0 };
+        if (t > 4.9) { O.x += (t - 4.9) * 1400 * dt; O.y -= (t - 4.9) * 500 * dt; }
+        b.hx = b.x; b.hy = GROUND - b.sobe - 80;
+        return;
+      }
+
+      const T = b.state;
+      b.anda = false;
+      if (T === 'espera') {   // pastando; muge de vez em quando
+        b.mugir -= dt; if (b.mugir <= 0) { b.mugir = rnd(3.5, 6); muu(b); }
+      } else if (T === 'enter') {   // o herói entrou: ela levanta a cabeça e muge alto (e não responde mais nada)
+        if (b.st < dt * 1.5) { b.face = pcx < b.x ? -1 : 1; muu(b, 'MUUUUU!'); shake = .35; }
+        if (b.st > 1.4) { b.state = 'anda'; b.st = 0; }
+      } else if (T === 'anda') {   // fica de frente para o herói, a uns 240 px, sempre entre ele e a saída
+        b.face = pcx < b.x ? -1 : 1;
+        const alvo = clamp(pcx + (pcx < b.x ? 240 : -240), ARENA.x0 + 220, ARENA.x1 - 110), d = alvo - b.x;
+        if (Math.abs(d) > 8) { b.x += Math.sign(d) * Math.min(Math.abs(d), 75 * sp * dt); b.anda = true; }
+        if (b.st > (fur ? 1.0 : 1.7) / sp) proximo(b);
+      } else if (T === 'empina') {   // aviso do terremoto: fica em pé nas patas de trás
+        b.rot = .55 * ease(clamp(b.st / (.55 / sp), 0, 1));
+        if (b.st > .75 / sp) { b.state = 'pisa'; b.st = 0; pisar(b); }
+      } else if (T === 'pisa') {
+        b.rot = Math.max(0, .55 * (1 - b.st / .08));
+        if (b.st > .7) { if (b.pisadas > 0) { b.pisadas--; b.state = 'empina'; b.st = .2; } else fimAtaque(b); }
+      } else if (T === 'vira') {   // dá as costas para o herói e levanta o rabo: aviso do gás
+        b.face = pcx < b.x ? 1 : -1;
+        if (b.st < dt * 1.5) floatText(b.x - 40, GROUND - 190, 'Gás mortal!', '#b6ff6a');
+        if (b.st > .7 / sp) { b.state = 'gas'; b.st = 0; }
+      } else if (T === 'gas') {
+        const n = fur ? 4 : 3;
+        if (b.puffs < n && b.st > b.puffs * .3) { soltarGas(b); b.puffs++; }
+        if (b.st > n * .3 + .7) fimAtaque(b);
+      }
+      if (b.anda) b.passoT += dt * 7 * sp;
+      // encostar no corpo dela empurra e machuca um pouco
+      if (T !== 'espera' && T !== 'enter' && overlap(player, corpo(b))) bater(b, D.corpo, b.x);
+      // efeitos: suor quando cansada, bufo quando brava
+      const h = cabeca(b, poseCab(b)); b.hx = h.x; b.hy = h.y;
+      if (b.cansaco >= 35 && Math.random() < dt * (b.cansaco / 25)) particles.push({ x: h.x + rnd(-14, 14), y: h.y - 14, vx: rnd(-30, 30), vy: rnd(-90, -50), life: .6, max: .6, c: '#bfe8ff', s: 3, g: 400 });
+      if ((fur || T === 'empina') && Math.random() < dt * 8) particles.push({ x: h.x + b.face * 18, y: h.y + 6, vx: b.face * rnd(30, 70), vy: rnd(-20, 0), life: .5, max: .5, c: '#e8e2da', s: rnd(3, 5), g: -30 });
+    },
+    acertoCirculo(b, x, y, r) {
+      if (b.dead) return null;
+      if (Math.hypot(x - b.hx, y - b.hy) < 20 + r) return { x: b.hx, y: b.hy, mult: 1.3 };
+      const c = corpo(b);
+      if (circleRect(x, y, r, c)) return { x, y, mult: 1 };
+      return null;
+    },
+    acertoRet(b, rr) {
+      if (b.dead) return null;
+      if (circleRect(b.hx, b.hy, 20, rr)) return { x: b.hx, y: b.hy, mult: 1.3 };
+      const c = corpo(b);
+      if (overlap(rr, c)) return { x: clamp(rr.x + rr.w / 2, c.x, c.x + c.w), y: rr.y + rr.h / 2, mult: 1 };
+      return null;
+    },
+    // barra extra no HUD: o cansaço (o outro jeito de vencer)
+    barraExtra: b => ({ frac: b.cansaco / 100, rotulo: 'cansaço', c1: '#9fe7ff', c2: '#2f6f9a' }),
+    luzes(b) {
+      const L = b.alpha > 0 ? [[b.x, GROUND - 70 - b.sobe, 210, null]] : [];   // luz suave na vaca (o fim de tarde escurece)
+      for (const g of b.gases) L.push([g.x, g.y, g.r * 1.5, '170,230,90']);
+      if (b.ovni && b.ovni.y > -60) { L.push([b.ovni.x, b.ovni.y, 200, '150,255,170']); if (b.ovni.raio > 0) L.push([b.ovni.x, GROUND - 80, 260 * b.ovni.raio, '120,255,140']); }
+      return L;
+    },
+    desenhar(b) {
+      // ondas do terremoto (pedras e terra levantando, em pixel)
+      for (const o of b.ondas) {
+        const x = Math.round(o.x - camX), f = clamp(1 - o.t / 2.6, .3, 1);
+        for (let i = -3; i <= 3; i++) {
+          const h = Math.round((26 - Math.abs(i) * 6) * f * (1 + Math.sin(time * 30 + i) * .1) / 2) * 2;
+          if (h <= 0) continue;
+          ctx.fillStyle = '#4a3424'; ctx.fillRect(x + i * 6 - 3, GROUND - h, 6, h);
+          ctx.fillStyle = '#8a6a4a'; ctx.fillRect(x + i * 6 - 3, GROUND - h, 6, 2);
+        }
+      }
+      const S = b.cfg.sprite && sprite(b.cfg.sprite);
+      if (b.ovni) desenhaRaio(b.ovni.x - camX, b.ovni.y + 10, b.ovni.raio);
+      if (b.alpha > 0) {
+        // sombra (encolhe quando ela sobe)
+        const sx = b.x - camX, ss = clamp(1 - b.sobe / 300, .2, 1);
+        ctx.fillStyle = `rgba(0,0,0,${.35 * ss})`; ctx.beginPath(); ctx.ellipse(sx, GROUND + 4, 72 * ss, 9 * ss, 0, 0, Math.PI * 2); ctx.fill();
+        ctx.save(); ctx.globalAlpha = b.alpha;
+        const px = b.x + b.face * (PIVO - OX) * K * b.esc, chutando = b.dead && b.deadT > 2.4;
+        ctx.translate(Math.round(px - camX), Math.round(GROUND - b.sobe));
+        ctx.scale(b.face, 1); ctx.rotate(-b.rot + (chutando ? Math.sin(time * 5) * .08 : 0)); ctx.scale(b.esc, b.esc);
+        const animS = { espera: 'parado', enter: 'parado', anda: 'andar', empina: 'empinar', pisa: 'empinar', vira: 'gas', gas: 'gas' }[b.state];
+        if (S && drawFrame(S, b.dead ? 'cansada' : animS, time * 8, (OX - PIVO) * K, 0, 1)) { /* arte do PixelLab */ }
+        else {
+          const cab = poseCab(b), passo = chutando ? Math.floor(time * 14) : b.anda ? Math.floor(b.passoT) : 0;
+          const rabo = b.state === 'vira' || b.state === 'gas' ? 'alto' : (Math.sin(time * 3 + 1) > .3 ? 'balanca' : 'baixo');
+          const flap = Math.floor(time * (chutando ? 16 : b.state === 'espera' ? 3 : 7)) % 3;
+          const fr = quadro(cab, passo & 3, rabo, b.dead || cansada(b), flap);
+          ctx.imageSmoothingEnabled = false;
+          ctx.drawImage(fr, -PIVO * K, -OY * K, AW * K, AH * K);
+          if (b.flash > 0) { ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = b.alpha * Math.min(1, b.flash * 3) * .5; ctx.drawImage(fr, -PIVO * K, -OY * K, AW * K, AH * K); }
+          ctx.imageSmoothingEnabled = true;
+        }
+        ctx.restore();
+      }
+      // nuvens de gás (bolhas em blocos de 4 px)
+      for (const g of b.gases) {
+        const a = clamp(g.vida / 1.2, 0, 1) * .5;
+        for (let i = 0; i < 5; i++) {
+          const ang = g.ph + i * 1.26 + time * .6, r = g.r * (.5 + .12 * (i % 3));
+          const cx = g.x - camX + Math.cos(ang) * g.r * .35, cy = g.y + Math.sin(ang) * g.r * .25;
+          ctx.fillStyle = `rgba(${['166,217,78', '203,232,107', '127,174,58'][i % 3]},${a})`;
+          for (let dy = -r; dy < r; dy += 4) { const hw = Math.round(Math.sqrt(r * r - dy * dy) / 4) * 4; ctx.fillRect(Math.round(cx / 4) * 4 - hw, Math.round((cy + dy) / 4) * 4, hw * 2, 4); }
+        }
+      }
+      if (b.ovni && b.ovni.y > -80) desenhaOvni(b.ovni.x - camX, b.ovni.y, time);
+    },
+  };
+})();
 const CHEFE = CHEFES[CHEFE_CFG.tipo];
 
 function startBoss() {
@@ -1666,7 +2026,7 @@ function damageBoss(hit, dmg, kind) {
   burst(hit.x, hit.y, kind === 'espada' ? 8 : 14, kind === 'espada' ? FIRE : PODER.rastro, 180, .6, -60);
   if (b.fire <= 0) {
     b.dead = true; b.deadT = 0; fireballs = []; contarMorte(FASE_ID);
-    floatText(b.hx, b.hy - 60, 'O fogo se apagou!', '#ffffff');
+    floatText(b.hx - 60, b.hy - 60, CHEFE_CFG.textoFim || 'O fogo se apagou!', '#ffffff');
   }
 }
 const bossHittable = () => bossActive && boss && !boss.dead && boss.state !== 'enter';
@@ -1922,7 +2282,7 @@ function update(dt) {
     if (Math.random() < dt * 10) particles.push({ x: pendant.x + rnd(-14, 14), y: pendant.y + rnd(-14, 14), vx: 0, vy: -30, life: .6, max: .6, c: '#ffffff', s: 2, g: 0 });
     if (!bossDefeated && Math.hypot(player.x + 14 - pendant.x, player.y + 22 - pendant.y) < 40) {
       bossDefeated = true; victoryT = 0;
-      burst(pendant.x, pendant.y, 40, SILVER, 260, 1.2, 0, 4);
+      burst(pendant.x, pendant.y, 40, OURO ? GOLD : SILVER, 260, 1.2, 0, 4);
     }
   }
   if (bossDefeated) { victoryT += dt; if (victoryT > 1.2) { state = 'victory'; pointers.clear(); } }
@@ -2445,12 +2805,12 @@ function drawChao() {
 function drawFrente() {
   // primeiro plano em pixel (blocos de 4 px): moitas escuras embaixo e cipós pendurados no alto
   const par = 1.3, B = 4;
-  ctx.fillStyle = '#08040b';
+  ctx.fillStyle = PASTO ? '#0b160a' : '#08040b';
   const bola = (cx, cy, r) => { for (let dy = -r; dy < r; dy += B) { const hw = Math.round(Math.sqrt(r * r - dy * dy) / B) * B; ctx.fillRect(cx - hw, cy + dy, hw * 2, B); } };
   for (const f of FRENTE) {
     const x = Math.round((f.x - camX * par) / B) * B; if (x < -120 || x > W + 120) continue;
     if (f.tipo === 'moita') for (const [dx, r] of f.bolas) bola(x + Math.round(dx / B) * B, H + 6, Math.round(r / B) * B);
-    else for (const [dx, len] of f.fios) {
+    else if (!PASTO) for (const [dx, len] of f.fios) {
       const fx = x + Math.round(dx / B) * B;
       for (let y = 0; y < len; y += B) ctx.fillRect(fx + (Math.floor(y / 24) % 2 ? B : 0), y, B, B);
       for (let y = 16; y < len; y += 22) ctx.fillRect(fx - B, y, B * 3, B);   // folhinhas
@@ -2496,6 +2856,7 @@ let luaTela = [760, 120];
 function drawBackground() {
   const C = FASE.cores, F = FASE.fundo;
   const ceu = layer(F, 'ceu'), longe = layer(F, 'longe'), perto = layer(F, 'perto');
+  if (PASTO && !ceu && !longe) return drawFundoPasto();   // pasto sem imagens: cenário desenhado pelo jogo
   if (ceu) {
     const k = Math.max(W / ceu.naturalWidth, H / ceu.naturalHeight);
     const w = ceu.naturalWidth * k, over = Math.max(0, w - W), x0 = -over * clamp(camX / Math.max(1, LEVEL_END - W), 0, 1);
@@ -2548,6 +2909,138 @@ function drawBackground() {
   }
 }
 
+// ---------- cenário do pasto (fase da Vaca, desenhado enquanto não há imagens em fundos/vaca) ----------
+// Fim de tarde como na pintura do local: céu roxo e laranja, sol baixo atrás dos morros, morros
+// longe, colinas verdes com árvores redondas, cercas e vaquinhas pastando ao longe. Cada camada é
+// montada uma vez em meia resolução (pixel de 2 px) e só copiada por quadro, com paralaxe.
+let pastoPronto = null;
+const hexRgb = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
+function fundoPasto() {
+  if (pastoPronto) return pastoPronto;
+  if (typeof document === 'undefined') return null;
+  const Z = 2, Hh = H / Z, alcance = Math.max(LEVEL_END, ARENA.x1) - W, C = FASE.cores, r = mulberry(23);
+  const nova = (w) => { const c = document.createElement('canvas'); c.width = w; c.height = Hh; return c; };
+  // céu em faixas (degraus de cor, jeito de pixel art), estrelinhas, sol e nuvens
+  const ceu = nova(W / Z), g = ceu.getContext('2d');
+  const stops = C.ceu.map(hexRgb), pos = [0, .42, .7, .86];
+  for (let y = 0; y < Hh; y += 3) {
+    const f = y / Hh; let i = 0; while (i < pos.length - 2 && f > pos[i + 1]) i++;
+    const k = clamp((f - pos[i]) / (pos[i + 1] - pos[i]), 0, 1), a = stops[i], b = stops[i + 1];
+    g.fillStyle = `rgb(${a.map((v, j) => Math.round(v + (b[j] - v) * k)).join(',')})`; g.fillRect(0, y, W / Z, 3);
+  }
+  for (let i = 0; i < 40; i++) { g.fillStyle = `rgba(255,240,255,${.25 + r() * .5})`; g.fillRect(r() * W / Z | 0, r() * 70 | 0, 1, 1); }
+  const sol = [345, 160];
+  for (const [rr, cor] of [[34, 'rgba(255,200,120,.18)'], [27, 'rgba(255,210,130,.28)'], [21, '#ffd07a'], [17, '#ffe6a6']]) pxElipse(g, sol[0], sol[1], rr, rr, cor);
+  for (let i = 0; i < 9; i++) {   // nuvens compridas, com a barriga laranja do pôr do sol
+    const cx = r() * W / Z, cy = 22 + r() * 95, w = 30 + r() * 70;
+    pxRet(g, cx - w / 2, cy, w, 4, C.nuvem[0]); pxRet(g, cx - w / 3, cy - 3, w * .55, 3, C.nuvem[0]);
+    pxRet(g, cx - w / 2 + 4, cy + 4, w - 8, 2, C.nuvem[1]);
+  }
+  // camadas com paralaxe: morros longe, colinas com árvores, pasto com cercas e vaquinhas
+  const camadas = [];
+  const morros = (par, base, amp, cor, borda, extra) => {
+    const c = nova(Math.ceil((alcance * par + W) / Z) + 4), gg = c.getContext('2d'), tops = [];
+    for (let x = 0; x < c.width; x += 2) {
+      const y = Math.round(base + Math.sin(x * .011 + par * 9) * amp + Math.sin(x * .031 + par * 3) * amp * .4);
+      tops.push(y); pxRet(gg, x, y, 2, Hh - y, cor); pxRet(gg, x, y, 2, 2, borda);
+    }
+    if (extra) extra(gg, c.width, x => tops[Math.max(0, Math.min(tops.length - 1, x >> 1))]);
+    camadas.push([c, par]);
+  };
+  const arvore = (gg, x, y, s, folha, escura, tronco) => {
+    pxRet(gg, x - 1, y - 6 * s, 2 + (s > 1 ? 1 : 0), 6 * s, tronco);
+    pxElipse(gg, x, y - 9 * s, 6 * s, 5 * s, escura); pxElipse(gg, x - s, y - 10 * s, 5 * s, 4 * s, folha);
+    pxElipse(gg, x - 2 * s, y - 12 * s, 2 * s, 2 * s, C.folhaLuz);
+  };
+  morros(.12, 150, 10, C.morroLonge[0], C.morroLonge[1]);
+  morros(.26, 178, 8, C.colina[0], C.colina[1], (gg, w, topo) => {
+    for (let x = 10; x < w; x += 14 + r() * 40) arvore(gg, x, topo(x) + 3, 1, C.colina[2], C.colina[3], C.colina[3]);
+  });
+  morros(.45, 200, 6, C.pasto[0], C.pasto[1], (gg, w, topo) => {
+    for (let x = 0; x < w; x += 9) {   // cerca
+      const y = topo(x) + 14; pxRet(gg, x, y - 7, 1, 8, C.cerca);
+      pxRet(gg, x, y - 6, 9, 1, C.cerca); pxRet(gg, x, y - 3, 9, 1, C.cerca);
+    }
+    for (let x = 30; x < w; x += 60 + r() * 140) arvore(gg, x, topo(x) + 4, 2, C.pasto[2], C.pasto[3], '#3a2a1e');
+  });
+  // névoa quente na base das camadas de longe
+  return (pastoPronto = { ceu, camadas, sol: [sol[0] * Z, sol[1] * Z] });
+}
+function drawFundoPasto() {
+  const P = fundoPasto(); if (!P) return;
+  ctx.imageSmoothingEnabled = false;
+  ctx.drawImage(P.ceu, 0, 0, W, H);
+  luaTela = P.sol;
+  if (!bossActive && !bossDefeated) {   // um OVNIzinho cruzando o céu bem longe (pista)
+    const x = Math.round(((time * 16) % 1500) - 250), y = Math.round(64 + Math.sin(time * 1.3) * 6);
+    ctx.fillStyle = '#9aa4b2'; ctx.fillRect(x - 8, y, 16, 4); ctx.fillStyle = '#bff4ff'; ctx.fillRect(x - 4, y - 4, 8, 4);
+    ctx.fillStyle = Math.sin(time * 8) > 0 ? '#9dffb0' : '#ff5a5a'; ctx.fillRect(x - 2, y + 4, 4, 2);
+  }
+  P.camadas.forEach(([c, par], i) => {
+    ctx.drawImage(c, camX * par / 2, 0, W / 2, H / 2, 0, 0, W, H);
+    if (i === 0) {   // névoa quente entre os morros de longe e as colinas
+      const g = ctx.createLinearGradient(0, 280, 0, 420); g.addColorStop(0, 'rgba(255,170,120,0)'); g.addColorStop(1, 'rgba(255,170,120,.22)');
+      ctx.fillStyle = g; ctx.fillRect(0, 280, W, 140);
+    }
+  });
+  ctx.imageSmoothingEnabled = true;
+  for (const a of ASH) {   // sementinhas e vaga-lumes subindo devagar
+    const y = ((a.y - time * a.v * .5) % H + H) % H, x = ((a.x + Math.sin(time + a.ph) * 24 - camX * .2) % W + W) % W;
+    ctx.fillStyle = a.s > 2.5 ? 'rgba(255,240,150,.85)' : 'rgba(255,255,240,.45)';
+    ctx.fillRect(Math.round(x), Math.round(y), 2, 2);
+  }
+}
+// textura de terra do pasto (no lugar da imagem fundos/<fase>/chao)
+let chaoGeradoPronto = null;
+function chaoGerado() {
+  if (!PASTO || typeof document === 'undefined') return null;
+  if (chaoGeradoPronto) return chaoGeradoPronto;
+  const c = document.createElement('canvas'); c.width = 96; c.height = 96;
+  const g = c.getContext('2d'), r = mulberry(5);
+  g.fillStyle = '#5e412c'; g.fillRect(0, 0, 96, 96);
+  for (let i = 0; i < 160; i++) { g.fillStyle = ['#4f3624', '#6d4c34', '#563b28'][i % 3]; g.fillRect((r() * 48 | 0) * 2, (r() * 48 | 0) * 2, 2, 2); }
+  for (let i = 0; i < 10; i++) { const x = (r() * 46 | 0) * 2, y = (r() * 46 | 0) * 2; g.fillStyle = '#8b7b68'; g.fillRect(x, y, 4, 2); g.fillStyle = '#5c5044'; g.fillRect(x, y + 2, 4, 2); }
+  for (let i = 0; i < 4; i++) { let x = r() * 96, y = r() * 96; g.fillStyle = '#3e2a1a'; for (let k = 0; k < 8; k++) { g.fillRect(x | 0, y | 0, 2, 2); x += 2; y += r() < .5 ? 2 : 0; } }   // raizinhas
+  return (chaoGeradoPronto = c);
+}
+// inimigos do pasto desenhados (até chegar a arte do PixelLab): pombo bravo e besouro-chifrudo
+function quadroPombo(f) {
+  return pxCache('pombo|' + f, 18, 15, g => {
+    pxRet(g, 1, 8, 4, 2, '#6a7280');                                   // rabo
+    pxElipse(g, 8, 8, 5, 4, '#9aa3b0'); pxElipse(g, 8, 9, 4, 2, '#bcc3cc');
+    pxElipse(g, 13, 4, 3, 3, '#7f8896');
+    pxRet(g, 11, 6, 3, 2, '#5fae8a'); pxRet(g, 12, 7, 2, 1, '#9a6ac0');   // pescoço furta-cor
+    pxRet(g, 14, 3, 1, 1, '#ff8a2a'); pxRet(g, 13, 2, 2, 1, '#2a2a30');   // olho bravo
+    pxRet(g, 16, 4, 2, 1, '#3a3a3a');                                  // bico
+    pxRet(g, 7, 12, 1, 2, '#e07a6a'); pxRet(g, 9, 12, 1, 2, '#e07a6a');
+    if (f) pxLinha(g, [[7, 8], [3, 12]], 2, '#7f8896'); else pxLinha(g, [[7, 7], [4, 1]], 2, '#7f8896');   // asa
+  }, '#1e1a24');
+}
+function quadroBesouro(f) {
+  return pxCache('besouro|' + f, 20, 13, g => {
+    for (let i = 0; i < 3; i++) pxRet(g, 4 + i * 4 + ((i + f) % 2 ? 1 : -1), 9, 1, 3, '#1a1f30');   // patas
+    pxElipse(g, 8, 6, 7, 4, '#2a3350'); pxRet(g, 4, 3, 5, 1, '#6a7cb0'); pxRet(g, 3, 4, 2, 1, '#4a5a8a');
+    pxRet(g, 8, 3, 1, 6, '#161b2c');
+    pxElipse(g, 15, 7, 2, 2, '#1c2238'); pxRet(g, 16, 6, 1, 1, '#ffd34a');
+    pxLinha(g, [[16, 5], [18, 2], [19, 1]], 1, '#c9a060');              // chifre
+  }, '#0c0e16');
+}
+// cardos (perigo do pasto no lugar do chão em chamas): moita de folhas com espinhos e flores roxas
+function quadroCardo(w) {
+  return pxCache('cardo|' + w, Math.round(w / 2) + 4, 26, g => {
+    const r = mulberry(w), L = Math.round(w / 2);
+    for (let x = 2; x < L; x += 3) {
+      const h = 6 + r() * 8;
+      pxLinha(g, [[x, 25], [x + (r() - .5) * 6, 25 - h]], 2, r() < .5 ? '#3f7a2a' : '#5e9a3a');
+      pxRet(g, x - 1, 25 - h * .6, 1, 1, '#d8e8b0'); pxRet(g, x + 2, 25 - h * .4, 1, 1, '#d8e8b0');   // espinhos
+    }
+    for (let x = 5; x < L - 2; x += 7 + r() * 5) {
+      const y = 9 + r() * 6; pxLinha(g, [[x, 25], [x, y + 3]], 1, '#4f8a30');
+      pxElipse(g, x, y + 3, 2, 2, '#4f8a30'); pxElipse(g, x, y, 2, 2, '#b46ad8'); pxRet(g, x - 1, y - 2, 2, 1, '#e0a8ff');
+    }
+  }, '#16260f');
+}
+
 let groundPattern = null;
 // ---------- piso irregular (montado uma vez) ----------
 // O chão da fase inteira vira uma imagem pronta: topo ondulado em degraus de pixel, beiradas
@@ -2557,8 +3050,11 @@ const PISO_TOPO = GROUND - 26;
 let pisoPronto = null;
 function piso() {
   if (pisoPronto) return pisoPronto;
-  const chao = layer(FASE.fundo, 'chao');
+  const chao = layer(FASE.fundo, 'chao') || chaoGerado();
   if (!chao || typeof document === 'undefined') return null;
+  // cores da crosta: terra queimada (Boitatá) ou capim (pasto)
+  const PC = PASTO ? { c1: '#8cc152', c2: '#a5d364', esc: '#4e8a30', deg: '#3f7027', sombra: 'rgba(20,12,6,.5)', pedra: '#3e2a1a', brasa: null, tufo: ['#3f7a2a', '#5e9e3a', '#7cbf4a'] }
+    : { c1: '#5a4036', c2: '#7a5644', esc: '#3a2a26', deg: '#4a352d', sombra: 'rgba(10,5,8,.6)', pedra: '#2a1c1a', brasa: 'rgba(255,120,40,.8)', tufo: ['#140a10'] };
   const larg = Math.ceil(Math.max(LEVEL_END, ARENA.x1)) + 8, alt = H - PISO_TOPO, B = 2, z = fundoPixel() || 1;
   const c = document.createElement('canvas'); c.width = larg; c.height = alt;
   const g = c.getContext('2d'); g.imageSmoothingEnabled = false;
@@ -2588,17 +3084,23 @@ function piso() {
       const x = s.x + i * 4, yy = base + y;
       topos.set(x, PISO_TOPO + yy);
       const dy = i > 0 ? ys[i] - ys[i - 1] : 0;   // degrau: lateral do degrau também ganha crosta
-      g.fillStyle = i % 7 === 3 ? '#7a5644' : '#5a4036'; g.fillRect(x, yy, 4, 2);       // crosta clara
-      g.fillStyle = '#3a2a26'; g.fillRect(x, yy + 2, 4, 2);                              // crosta escura
-      if (dy) { g.fillStyle = '#4a352d'; g.fillRect(x, Math.min(yy, yy - dy), 2, Math.abs(dy) + 2); }
-      g.fillStyle = 'rgba(10,5,8,.6)'; g.fillRect(x, yy + 4, 4, 3);                       // sombra embaixo
-      if (r() < .12) { g.fillStyle = '#2a1c1a'; g.fillRect(x + (r() * 3 | 0), yy + 7 + (r() * 14 | 0), 2, 2 + (r() * 3 | 0)); }   // pedrinhas na terra
-      if (r() < .05) { g.fillStyle = 'rgba(255,120,40,.8)'; g.fillRect(x + 1, yy + 6 + (r() * 10 | 0), 2, 2); }   // brasa
+      const cap = PASTO ? 2 : 0;   // no pasto o capim é mais grosso
+      g.fillStyle = i % 7 === 3 ? PC.c2 : PC.c1; g.fillRect(x, yy, 4, 2 + cap);                 // crosta clara
+      g.fillStyle = PC.esc; g.fillRect(x, yy + 2 + cap, 4, 2 + cap);                             // crosta escura
+      if (dy) { g.fillStyle = PC.deg; g.fillRect(x, Math.min(yy, yy - dy), 2, Math.abs(dy) + 2); }
+      g.fillStyle = PC.sombra; g.fillRect(x, yy + 4 + cap * 2, 4, 3);                             // sombra embaixo
+      if (r() < .12) { g.fillStyle = PC.pedra; g.fillRect(x + (r() * 3 | 0), yy + 7 + (r() * 14 | 0), 2, 2 + (r() * 3 | 0)); }   // pedrinhas na terra
+      if (r() < .05 && PC.brasa) { g.fillStyle = PC.brasa; g.fillRect(x + 1, yy + 6 + (r() * 10 | 0), 2, 2); }   // brasa
     });
     // tufos, pedras e galhos em cima da crosta
-    g.fillStyle = '#140a10';
+    g.fillStyle = PC.tufo[0];
     for (let x = s.x + 10; x < s.x + s.w - 10; x += 14 + r() * 34) {
       const yy = base + ys[Math.round((x - s.x) / 4)] || base, t = r();
+      if (PASTO) {   // capim alto e florzinhas
+        for (let i = 0, n = 3 + (r() * 4 | 0); i < n; i++) { g.fillStyle = PC.tufo[(r() * 3) | 0]; const h = 4 + (r() * 8 | 0); g.fillRect(x + i * 2, yy - h + 2, 2, h); }
+        if (t < .2) { g.fillStyle = ['#ffe066', '#ffffff', '#c58cff'][(r() * 3) | 0]; g.fillRect(x + 2, yy - 8, 2, 2); }
+        continue;
+      }
       if (t < .16) { g.fillRect(x, yy - 4, 10, 4); g.fillRect(x + 2, yy - 6, 6, 2); }
       else if (t < .26) { g.fillRect(x, yy - 2, 22, 2); g.fillRect(x + 14, yy - 6, 2, 4); }
       else { const n = 2 + (r() * 5 | 0), h = 4 + r() * 9; for (let i = 0; i < n; i++) g.fillRect(Math.round(x + i * 3), Math.round(yy - h + ((i * 7) % 5)), 2, Math.round(h - ((i * 7) % 5))); }
@@ -2644,7 +3146,8 @@ function arvores() {
     if (ult && pl.x - (ult.x + ult.w) < 130 && g.length < 2) g.push(pl); else grupos.push([pl]);
   }
   const B = 2, q = v => Math.round(v / B) * B;
-  const COR = { casca: '#2c1c17', sulco: '#1a0f0c', luz: '#4a3129', brilho: '#5e4034', brasa: '#ff7a2e' };
+  const COR = PASTO ? { casca: '#4a3020', sulco: '#2e1c12', luz: '#6a4630', brilho: '#86603e', brasa: null }   // árvore viva do pasto
+    : { casca: '#2c1c17', sulco: '#1a0f0c', luz: '#4a3129', brilho: '#5e4034', brasa: '#ff7a2e' };
   const z = fundoPixel() || 1;
   arvoresProntas = grupos.map((g, gi) => {
     const r = mulberry(100 + gi);
@@ -2652,7 +3155,8 @@ function arvores() {
     if (g.length === 2) { const a = g[0].x + g[0].w, b = g[1].x; tx = (a + b) / 2; tw = clamp(b - a + 40, 64, 104); }
     else { tx = g[0].x + g[0].w + 18; tw = 66; }
     if (pecas) tw = pecas.t.naturalWidth * z;
-    const x0 = Math.floor(Math.min(...g.map(p => p.x), tx - tw) - 40), x1 = Math.ceil(Math.max(...g.map(p => p.x + p.w), tx + tw) + 40);
+    const copa = PASTO ? 150 : 0;   // a copa do pasto é mais larga que os galhos
+    const x0 = Math.floor(Math.min(...g.map(p => p.x), tx - tw - copa) - 40), x1 = Math.ceil(Math.max(...g.map(p => p.x + p.w), tx + tw + copa) + 40);
     const c = document.createElement('canvas'); c.width = x1 - x0; c.height = H;
     const ctx2 = c.getContext('2d'), R2 = (x, y, w, h, cor) => { ctx2.fillStyle = cor; ctx2.fillRect(q(x - x0), q(y), Math.max(B, q(w)), Math.max(B, q(h))); };
     const sobreChao = SOLIDS.some(s => tx >= s.x && tx < s.x + s.w && s.y >= GROUND - 1);
@@ -2696,14 +3200,24 @@ function arvores() {
       R2(l + w - 4, y, 4, B, COR.sulco);             // sombra na direita
       for (let sx = 10; sx < w - 8; sx += 9) if ((y + sx * 7) % 23 > 4) R2(l + sx + Math.sin(y * .05 + sx) * 1.5, y, 2, B, COR.sulco);
     }
-    for (let i = 0; i < 5; i++) { const yy = 60 + r() * (pe - 140); R2(tx - tw * .2 + r() * tw * .3, yy, 2, 6 + r() * 10, COR.brasa); }
+    if (COR.brasa) for (let i = 0; i < 5; i++) { const yy = 60 + r() * (pe - 140); R2(tx - tw * .2 + r() * tw * .3, yy, 2, 6 + r() * 10, COR.brasa); }
     for (let i = 0; i < 4; i++) {                    // nós da casca
       const nx = tx - tw * .3 + r() * tw * .5, ny = 40 + r() * (pe - 120);
       R2(nx - 6, ny - 2, 14, 10, COR.sulco); R2(nx - 4, ny, 10, 6, COR.casca); R2(nx - 2, ny + 2, 6, 2, COR.luz);
     }
     { const oy = 110 + r() * 60, ox = tx - 8;        // oco escuro com brilho de brasa no fundo
       for (let y = 0; y < 28; y += B) { const w = 18 * Math.sin(Math.PI * y / 28) + 2; R2(ox + 9 - w / 2, oy + y, w, B, '#0a0507'); }
-      R2(ox + 6, oy + 18, 6, 2, '#a8401a'); }
+      if (COR.brasa) R2(ox + 6, oy + 18, 6, 2, '#a8401a'); }
+    if (PASTO) {   // copa redonda e cheia (bem acima dos galhos-plataforma)
+      const fundo = Math.min(...g.map(p => p.y)) - 60, cy = fundo - 70;
+      const bolha = (cx, cy0, rr, cor) => { for (let y = -rr; y < rr; y += B) { const w = Math.sqrt(rr * rr - y * y) * (1 + Math.sin(y * .3 + cx) * .06); R2(cx - w, cy0 + y, w * 2, B, cor); } };
+      ctx2.clearRect(Math.floor(tx - tw - x0), 0, Math.ceil(tw * 2), Math.max(0, cy - 20));   // o tronco termina dentro da copa
+      const bolhas = Array.from({ length: 11 }, () => [tx + (r() - .5) * 230, cy + (r() - .5) * 90, 38 + r() * 34]);
+      for (const [bx, by, rr] of bolhas) bolha(bx, Math.min(by, fundo - rr), rr, '#2a4a24');
+      for (const [bx, by, rr] of bolhas) bolha(bx - 6, Math.min(by, fundo - rr) - 8, rr * .8, '#3d6b2e');
+      for (const [bx, by, rr] of bolhas) bolha(bx - 12, Math.min(by, fundo - rr) - 16, rr * .45, '#5a8f3a');
+      for (const [bx, by, rr] of bolhas.slice(0, 5)) bolha(bx + rr * .45, Math.min(by, fundo - rr) - rr * .3, rr * .22, '#a3b84a');   // luz do pôr do sol
+    } else
     // galhos secos no alto do tronco
     for (let i = 0; i < 3; i++) {
       const lado = i % 2 ? -1 : 1, y0 = 30 + i * 55 + r() * 20;
@@ -2730,7 +3244,8 @@ function arvores() {
         const xx = ini + comp * (.25 + i * .25), len = 8 + r() * 26;
         for (let y = 0; y < len; y += B) R2(xx + (y % 8 < 4 ? 0 : 2), pl.y + 20 + y, 2, B, COR.sulco);
       }
-      const brasaX = ini + comp * (.3 + r() * .5); R2(brasaX, pl.y + 6, 4, 2, COR.brasa);
+      if (COR.brasa) { const brasaX = ini + comp * (.3 + r() * .5); R2(brasaX, pl.y + 6, 4, 2, COR.brasa); }
+      else for (let i = 0; i < 3; i++) { const fx = ini + comp * (.2 + i * .3); R2(fx, pl.y - 6, 10, 6, '#3d6b2e'); R2(fx + 2, pl.y - 8, 6, 2, '#5a8f3a'); }   // folhinhas no galho
     }
     return { c, x0 };
   });
@@ -2826,6 +3341,11 @@ function drawWorld() {
   }
   for (const hz of HAZARDS) {
     const x = hz.x - camX; if (x > W || x + hz.w < 0) continue;
+    if (FASE.perigoTipo === 'cardo') {   // cardos espinhentos no pasto
+      const fr = quadroCardo(hz.w); ctx.imageSmoothingEnabled = false;
+      ctx.drawImage(fr, Math.round(x) - 4, Math.round(GROUND + relevo(hz.x + hz.w / 2) - fr.height * 2 + 6), fr.width * 2, fr.height * 2);
+      ctx.imageSmoothingEnabled = true; continue;
+    }
     ctx.fillStyle = 'rgba(255,90,20,.35)'; ctx.fillRect(x, GROUND - 4, hz.w, 4);
     if (!drawFogo(x + hz.w / 2, GROUND + relevo(hz.x + hz.w / 2), hz.w, hz.x * .37))
       for (let i = 8; i < hz.w; i += 16) flame(x + i, GROUND, 14, 26 + Math.sin(time * 9 + i) * 6, time * 12 + i);
@@ -3029,14 +3549,14 @@ function luzes() {
   for (const o of shots) L.push([o.x - camX, o.y, 90, PODER.corLuz || '150,210,255', .5]);
   for (const b of fireballs) L.push([b.x - camX, b.y, 130, '255,140,40', .55]);
   for (const e of enemies) if (!e.dead && e.T.luz) { const anda = e.T.mov === 'patrulha' && e.y + e.h >= GROUND - 2; L.push([e.x + e.w / 2 - camX, e.y + e.h / 2 + (anda ? deslocDesenho(e.x + e.w / 2, true, null, 1).dy : 0), e.T.luz + f, e.T.corLuz || '255,150,60', .4]); }
-  for (const hz of HAZARDS) for (let x = hz.x + 25; x < hz.x + hz.w; x += 50) L.push([x - camX, GROUND - 10, 95 + f, '255,120,30', .4]);
+  if (FASE.perigoTipo !== 'cardo') for (const hz of HAZARDS) for (let x = hz.x + 25; x < hz.x + hz.w; x += 50) L.push([x - camX, GROUND - 10, 95 + f, '255,120,30', .4]);
   const comAltar = !!layer('objetos/altar', 'aceso');
   CHECKS.forEach((c, i) => {
     if (comAltar) L.push([c - camX, GROUND - 40, i <= checkpoint ? 150 + f : 55, i <= checkpoint ? '255,205,110' : null, .5]);
     else if (i > 0) L.push([c + 2 - camX, GROUND - 50, i <= checkpoint ? 110 : 60, i <= checkpoint ? '160,220,255' : null, .3]);
   });
   if (boss && (bossActive || boss.state === 'espera') && CHEFE.luzes) for (const [x, y, r, cor] of CHEFE.luzes(boss)) L.push([x - camX, y, r, cor, .45]);
-  if (pendant) L.push([pendant.x - camX, pendant.y, 120, '220,230,255', .45]);
+  if (pendant) L.push([pendant.x - camX, pendant.y, 120, OURO ? '255,220,120' : '220,230,255', .45]);
   if (SPR['objetos/placa']) L.push([ARENA.x0 + 40 - camX, GROUND - 40, 80 + f, '255,130,50', .35]);
   for (const b of baus) L.push([b.x - camX, b.y - 10, b.aberto ? 110 : 70, '255,210,90', b.aberto ? .5 : .3]);
   for (const e of enemies) if (e.T.mov === 'mimico') L.push([e.x + e.w / 2 - camX, e.y + e.h - 10, e.estado === 'dorme' ? 70 : 90, e.estado === 'dorme' ? '255,210,90' : '255,90,70', .3]);
@@ -3276,6 +3796,11 @@ function drawEnemies() {
       ctx.fillStyle = '#2a0a04';
       const lx = e.vx > 0 ? 3 : -3;
       ctx.beginPath(); ctx.arc(x + 9 + lx, e.y + 14, 2.6, 0, Math.PI * 2); ctx.arc(x + 17 + lx, e.y + 14, 2.6, 0, Math.PI * 2); ctx.fill();
+    } else if (e.tipo === 'pombo' || e.tipo === 'besouro') {   // pasto: desenho em pixel (até chegar a arte)
+      const pombo = e.tipo === 'pombo', fr = pombo ? quadroPombo(Math.floor(time * 8 + e.x) % 2) : quadroBesouro(Math.floor(time * 7) % 2);
+      const face = pombo ? (player.x > e.x ? 1 : -1) : (e.vx > 0 ? 1 : -1), w = fr.width * 2, h = fr.height * 2;
+      ctx.save(); ctx.translate(Math.round(x + e.w / 2), Math.round(e.y + e.h + (pombo ? 4 : 2))); ctx.scale(face, 1);
+      ctx.imageSmoothingEnabled = false; ctx.drawImage(fr, -w / 2, -h, w, h); ctx.imageSmoothingEnabled = true; ctx.restore();
     } else {
       const cx = x + 11, cy = e.y + 11;
       const halo = ctx.createRadialGradient(cx, cy, 2, cx, cy, 26);
@@ -3331,7 +3856,7 @@ function drawProjectiles() {
   if (pendant) {
     const x = pendant.x - camX, y = pendant.y + Math.sin(pendant.t * 3) * 4;
     const g = ctx.createRadialGradient(x, y, 2, x, y, 40);
-    g.addColorStop(0, 'rgba(255,255,255,.8)'); g.addColorStop(1, 'rgba(200,210,230,0)');
+    g.addColorStop(0, OURO ? 'rgba(255,240,180,.85)' : 'rgba(255,255,255,.8)'); g.addColorStop(1, OURO ? 'rgba(255,200,90,0)' : 'rgba(200,210,230,0)');
     ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, y, 40, 0, Math.PI * 2); ctx.fill();
     // arte do pingente da fase (img/sprites/objetos/pingente/<fase>.png), balançando de leve
     const im = layer('objetos/pingente', FASE_ID);
@@ -3339,6 +3864,15 @@ function drawProjectiles() {
       const w = im.naturalWidth * 2, h = im.naturalHeight * 2;
       ctx.save(); ctx.translate(Math.round(x), Math.round(y - h + 30)); ctx.rotate(Math.sin(pendant.t * 2.2) * .12);
       ctx.imageSmoothingEnabled = false; ctx.drawImage(im, -Math.round(w / 2), 0, w, h); ctx.imageSmoothingEnabled = true;
+      ctx.restore();
+    } else if (CHEFE_CFG.premioForma === 'dogtag') {   // dog tag dourada desenhada (pixel), com a correntinha
+      ctx.save(); ctx.translate(Math.round(x), Math.round(y)); ctx.rotate(Math.sin(pendant.t * 2.2) * .12);
+      ctx.fillStyle = '#c9a24e'; for (let i = 0; i < 6; i++) { ctx.fillRect(-14 + i * 2, -28 + i * 2, 2, 2); ctx.fillRect(12 - i * 2, -28 + i * 2, 2, 2); }
+      ctx.fillStyle = '#5a4210'; ctx.fillRect(-12, -16, 24, 34); ctx.fillRect(-10, -18, 20, 38);
+      ctx.fillStyle = '#e8b93a'; ctx.fillRect(-10, -14, 20, 30); ctx.fillRect(-8, -16, 16, 34);
+      ctx.fillStyle = '#fff1a8'; ctx.fillRect(-8, -14, 4, 22);
+      ctx.fillStyle = '#5a4210'; ctx.fillRect(-2, -12, 4, 4);                                   // furinho
+      ctx.fillStyle = '#b07f1e'; for (let i = 0; i < 4; i++) ctx.fillRect(-4, -2 + i * 4, 10 - (i % 2) * 4, 2);   // letras gravadas
       ctx.restore();
     } else {
     ctx.strokeStyle = '#c9ced8'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(x - 12, y - 22); ctx.lineTo(x, y - 12); ctx.lineTo(x + 12, y - 22); ctx.stroke();
@@ -3403,6 +3937,7 @@ function drawHUDArte(p, dtH, bV, bB, cN) {
     ctx.textAlign = 'center'; ctx.fillStyle = '#ffd9a0'; ctx.font = 'bold 19px Cinzel, serif';
     ctx.fillText(CHEFE_CFG.nome, W / 2, by - 4);
     barraArte(pc, bx, by, bw, bh, frac, rastro.boss, furia ? '#ff6a3a' : '#ffb04a', furia ? '#8a1206' : '#b33a0e');
+    barraExtraChefe(by - 34);
   } else rastro.boss = 1;
   drawBanner();
 }
@@ -3500,8 +4035,17 @@ function drawHUD() {
     }
     barraOrnada(bx, by, bw, 14, frac, rastro.boss, furia ? '#ff6a3a' : '#ffb04a', furia ? '#8a1206' : '#b33a0e');
     ctx.fillStyle = '#ece4d4'; ctx.font = '10px "Crimson Pro", serif'; ctx.fillText(CHEFE_CFG.rotuloVida, W / 2, by + 11);
+    barraExtraChefe(ny - 36);
   } else rastro.boss = 1;
   drawBanner();
+}
+
+// barra extra do chefe (ex.: o cansaço da Vaca), fina, acima do nome
+function barraExtraChefe(y) {
+  const e = CHEFE.barraExtra && CHEFE.barraExtra(boss); if (!e) return;
+  const w = 220, x = W / 2 - w / 2;
+  ctx.textAlign = 'right'; ctx.fillStyle = '#d6ecf5'; ctx.font = 'bold 12px "Crimson Pro", serif'; ctx.fillText(e.rotulo, x - 16, y + 8);
+  barraOrnada(x, y, w, 8, e.frac, 0, e.c1, e.c2, false);
 }
 
 // ---------- pergaminho da placa do chefe ----------
@@ -3643,7 +4187,7 @@ function drawVictory() {
   ctx.fillStyle = '#ece4d4'; ctx.font = 'italic 19px "Crimson Pro", serif';
   const y = wrap(V.citacao, W / 2, 160, 580, 24);
   ctx.fillStyle = '#b3a88f'; ctx.font = '14px "Crimson Pro", serif'; ctx.fillText(V.fonte, W / 2, y);
-  ctx.fillStyle = '#e6e9f0'; ctx.font = 'bold 20px Cinzel, serif'; ctx.fillText(V.premio + ' conquistado', W / 2, y + 40);
+  ctx.fillStyle = '#e6e9f0'; ctx.font = 'bold 20px Cinzel, serif'; ctx.fillText(V.conquista || V.premio + ' conquistado', W / 2, y + 40);
   const m = Math.floor(playTime / 60), s = Math.floor(playTime % 60);
   ctx.fillStyle = '#ece4d4'; ctx.font = '18px "Crimson Pro", serif';
   ctx.fillText(`Nível ${player.lvl}  ·  V${player.attr.V} F${player.attr.F} I${player.attr.I} A${player.attr.A}  ·  tempo ${m}:${String(s).padStart(2, '0')}  ·  quedas ${falls}`, W / 2, y + 76);

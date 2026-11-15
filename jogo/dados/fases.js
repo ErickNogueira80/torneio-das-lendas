@@ -10,6 +10,12 @@ window.INIMIGOS = {
     resist: { agua: 1.5, fogo: 0, terra: 1, ar: 1, espada: 1 } },
   vagalume: { nome: 'Vaga-lume de fogo', mov: 'voo', w: 22, h: 22, dano: 6, xp: 15, sprite: 'inimigos/vagalume', luz: 80, corLuz: '255,200,90',
     resist: { agua: 1.5, fogo: 0, terra: 1, ar: 1.2, espada: 1 } },
+  // pasto (fase da Vaca): besouro que anda pelo chão e pombo bravo que voa em volta (desenhados pelo
+  // jogo até chegar a arte do PixelLab em inimigos/besouro e inimigos/pombo)
+  besouro: { nome: 'Besouro-chifrudo', mov: 'patrulha', w: 30, h: 22, dano: 8, xp: 10, sprite: 'inimigos/besouro', luz: 0,
+    resist: { agua: 1, fogo: 1.2, terra: 0.8, ar: 1, espada: 1 } },
+  pombo: { nome: 'Pombo bravo', mov: 'voo', w: 26, h: 22, dano: 6, xp: 14, sprite: 'inimigos/pombo', luz: 0,
+    resist: { agua: 1, fogo: 1, terra: 1, ar: 1.3, espada: 1 } },
   // guardião de sala secreta: parece um baú; acorda quando o herói chega perto e pula atrás dele.
   // Vencido, solta o prêmio da sala (sala.guardiao.premio). Cada sala pode ter um guardião diferente.
   mimico: { nome: 'Mímico', mov: 'mimico', w: 46, h: 40, dano: 9, xp: 70, luz: 0,
@@ -133,6 +139,104 @@ window.FASES = {
       citacao: '"Após a morte, novamente eles viram pó prateado e um pingente com o Boitatá aparece no chão."',
       fonte: 'do caderno, página 11',
       premio: 'Pingente do Boitatá',
+    },
+    proximas: 'Mula sem cabeça, Robin Hood, Nessie... (em breve)',
+  },
+
+  vaca: {
+    // O pasto da Vaca (2026-11-15): fim de tarde, 10 telas como a do Boitatá, 3 altares, árvores vivas
+    // como plataformas, cardos no lugar do chão em chamas, besouros e pombos. Sem sala secreta por
+    // enquanto. Cenário desenhado pelo jogo até chegarem as imagens de fundos/vaca (ver prompts).
+    tema: 'pasto',
+    escuridao: 0.3,   // fim de tarde: um pouco escuro, o sol baixo ilumina
+    placa: {
+      titulo: 'Ageláda',
+      subtitulo: 'A vaca sagrada',
+      texto: 'Na Índia as vacas são consideradas deusas, entidades sagradas. Para eles a vaca representa a vida, a fertilidade, a generosidade e a pureza. Ela também é associada à bondade e à maternidade.',
+    },
+    id: 'vaca',
+    nome: 'O pasto',
+    imagemTitulo: '../web/locais/08-o-pasto-da-vaca-e-o-ovni.jpg',
+    descricao: '"Em sua frente tem uma vaca com pequenas asas de pombo brancas. Ela não deixa vocês passarem. Ela muge."',
+    fonte: 'do caderno da Milena, página 17',
+
+    cores: { ceu: ['#2e2450', '#7a4a7e', '#e0805a', '#f7c47a'], nuvem: ['#9a5a7e', '#f0a070'],
+      morroLonge: ['#5e4a80', '#7d64a0'], colina: ['#3b4f4c', '#55705a', '#4a6a48', '#2e423a'],
+      pasto: ['#4a7034', '#6a9a46', '#5a8a3c', '#34522a'], folhaLuz: '#a3b84a', cerca: '#4a3424',
+      chao: '#5e412c', chaoTopo: '#8cc152' },
+    fundo: 'fundos/vaca',
+
+    fim: 9600,
+    // 7 trechos de chão e 6 buracos (110 a 130 px): o pasto é mais aberto que a floresta
+    solidos: [
+      { x: -300, y: 460, w: 1400, h: 140 },
+      { x: 1220, y: 460, w: 1080, h: 140 },
+      { x: 2420, y: 460, w: 1380, h: 140 },
+      { x: 3910, y: 460, w: 1290, h: 140 },
+      { x: 5330, y: 460, w: 1300, h: 140 },
+      { x: 6760, y: 460, w: 820, h: 140 },
+      { x: 7700, y: 460, w: 2000, h: 140 },
+    ],
+    plataformas: [
+      { x: 450, y: 362, w: 160 }, { x: 680, y: 292, w: 140 },
+      { x: 1500, y: 352, w: 150 }, { x: 1720, y: 282, w: 150 },
+      { x: 2600, y: 362, w: 150 }, { x: 2820, y: 300, w: 150 },
+      { x: 3300, y: 352, w: 150 },
+      { x: 4500, y: 362, w: 150 }, { x: 4720, y: 292, w: 140 },
+      { x: 5500, y: 352, w: 150 }, { x: 5720, y: 282, w: 150 },
+      { x: 5900, y: 185, w: 130 },   // galho alto da árvore do baú: só se alcança pulando do galho de 282
+      { x: 7000, y: 362, w: 140 }, { x: 7200, y: 292, w: 160 },
+      { x: 7900, y: 352, w: 150 }, { x: 8120, y: 290, w: 140 },
+    ],
+    baus: [
+      { x: 5960, y: 185, xp: 45, cura: true, texto: 'Baú escondido! +45 XP e vida cheia' },
+    ],
+    perigoTipo: 'cardo',   // cardos espinhentos (machucam como o chão em chamas)
+    perigos: [
+      { x: 900, w: 80 }, { x: 2000, w: 90 }, { x: 3000, w: 80 }, { x: 3600, w: 90 },
+      { x: 5000, w: 80 }, { x: 6300, w: 90 }, { x: 7400, w: 80 },
+    ],
+    controles: [80, 4250, 8300],
+    inimigos: [
+      { tipo: 'besouro', x: 800, x1: 700, x2: 1050, vel: 55, vida: 18 },
+      { tipo: 'besouro', x: 1400, x1: 1260, x2: 1900, vel: 65, vida: 18 },
+      { tipo: 'besouro', x: 2700, x1: 2460, x2: 2950, vel: 70, vida: 20 },
+      { tipo: 'besouro', x: 3400, x1: 3100, x2: 3560, vel: 75, vida: 22 },
+      { tipo: 'besouro', x: 4500, x1: 4320, x2: 4950, vel: 80, vida: 22 },
+      { tipo: 'besouro', x: 5600, x1: 5400, x2: 6250, vel: 85, vida: 24 },
+      { tipo: 'besouro', x: 7000, x1: 6800, x2: 7350, vel: 90, vida: 25 },
+      { tipo: 'besouro', x: 7900, x1: 7750, x2: 8200, vel: 95, vida: 26 },
+      { tipo: 'pombo', x: 1150, y: 300, vida: 10, t: 0 },
+      { tipo: 'pombo', x: 2350, y: 240, vida: 12, t: 2 },
+      { tipo: 'pombo', x: 3850, y: 260, vida: 12, t: 4 },
+      { tipo: 'pombo', x: 5250, y: 240, vida: 14, t: 1 },
+      { tipo: 'pombo', x: 6700, y: 250, vida: 14, t: 3 },
+      { tipo: 'pombo', x: 7650, y: 230, vida: 15, t: 5 },
+      { tipo: 'pombo', x: 8200, y: 210, vida: 15, t: 2 },
+    ],
+
+    arena: { x0: 8640, x1: 9600 },
+    gatilhoChefe: 8780,
+    chefe: {
+      tipo: 'vaca',
+      nome: 'AGELÁDA',
+      vida: 220,   // Vigor 5 no caderno: a mais resistente até aqui
+      rotuloVida: 'PS',
+      sprite: 'chefes/vaca',   // arte do PixelLab (quando houver); sem ela, o jogo desenha a vaca
+      resist: { agua: 1, fogo: 1, terra: 1, ar: 1, espada: 1 },
+      frase: ['"Em sua frente tem uma vaca com pequenas asas de pombo brancas.', 'Ela não deixa vocês passarem. Ela muge."'],
+      dica: 'Pule as ondas do terremoto · saia de perto do gás · atacar ou esperar?',
+      textoFim: 'A vaca não aguenta mais!',
+      dano: { terremoto: 12, gas: 4, gasSeg: 3, corpo: 6 },
+      // o outro jeito de vencer (p. 35, "pelo cansaço"): cada ataque cansa; desviar sem levar dano cansa mais
+      cansaco: { ataque: 4, desvio: 4, avisos: [[35, 'A vaca está ofegante'], [65, 'A vaca mal se aguenta em pé'], [88, 'A vaca vai cair de cansaço!']] },
+      premioForma: 'dogtag', corPremio: 'ouro',
+    },
+    vitoria: {
+      citacao: '"Quando a vaca finalmente parece cansada, uma luz verde começa a pairar sobre ela e depois de alguns instantes ela é levada para cima. Quem estava levando ela era um OVNI. Sim. Aliens."',
+      fonte: 'do caderno, página 17',
+      premio: 'Dog tag dourada',
+      conquista: 'Dog tag dourada conquistada',
     },
     proximas: 'Mula sem cabeça, Robin Hood, Nessie... (em breve)',
   },

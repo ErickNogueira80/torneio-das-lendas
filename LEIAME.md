@@ -428,7 +428,43 @@ Pessoal (família).
 - **Plano:** etapa 1 (motor separado em dados, imagens com reserva, ferramenta e prompts) feita
   em 2026-11-07. Etapas 2 e 3 em boa parte feitas em 2026-11-08 (ver "Estado atual").
 
-### Estado atual (2026-11-14) e próximos passos
+- **Fase da Vaca: o pasto (2026-11-15, pedido do Erick):** `FASES.vaca` em `fases.js`, liberada no
+  mapa. Partiu de um rascunho que apareceu no projeto em 2026-11-15 (fora desta série de sessões, não
+  commitado) com a ideia "atacar ou esperar": o rascunho não funcionava (o `jogo.js` não compilava, o
+  chefe chamava funções que não existem e a fase não tinha cenário) e foi refeito no padrão do Boitatá.
+  - **Fase:** fim de tarde (escuridão 0,3), 10 telas, 3 altares (80, 4.250 e 8.300), 6 buracos de 110 a
+    130 px, 8 árvores vivas de copa redonda como plataformas, baú no galho alto (x 5.960, mesmo jeito
+    do da floresta: só pulando do galho de 282), 7 **cardos** no lugar do chão em chamas
+    (`perigoTipo: 'cardo'`), 8 **besouros-chifrudos** (patrulha) e 7 **pombos bravos** (voo). Sem sala
+    secreta por enquanto. `tema: 'pasto'` liga o cenário próprio no motor (`PASTO`).
+  - **Sem imagem nenhuma:** o jogo desenha tudo em pixel art (céu em faixas com sol baixo e nuvens,
+    morros, colinas com árvores, cerca, capim e flores no piso, copa das árvores, cardos, besouro,
+    pombo, a Vaca, o OVNI e a dog tag). Um OVNIzinho cruza o céu ao longe durante a fase (pista). Cada
+    imagem dos prompts 4.12 entra no lugar do desenho quando existir (`fundos/vaca/...`,
+    `chefes/vaca`, `inimigos/besouro`, `inimigos/pombo`, `objetos/pingente/vaca.png`).
+  - **Ageláda (`CHEFES.vaca`), do caderno:** vaca com asinhas brancas de pombo que não deixa passar e
+    muge (p. 17); ataques **Terremoto** e **Gás mortal** (p. 26); vence-se "pelo cansaço ou fazendo ela
+    chegar a 0 PS" (p. 35). Na arena ela já está pastando e mugindo; quando o herói entra, levanta a
+    cabeça ("MUUUUU!") e fica sempre entre ele e a saída, a uns 240 px.
+    **Terremoto:** empina nas patas de trás (aviso) e pisa; duas ondas de terra correm pelo chão
+    (pular; 12 de dano). Na fúria pisa duas vezes. **Gás mortal:** dá as costas, levanta o rabo e
+    solta 3 nuvens verdes (4 na fúria) que andam até o herói, crescem e somem em 5 s; envenenam (4 de
+    dano e 3 s de veneno). A água do herói espalha o gás. Encostar no corpo dela: 6.
+  - **Dois jeitos de vencer:** **PS** = 220 (Vigor 5, a mais resistente até aqui; cabeça 1,3×,
+    corpo 1×, sem resistência a elemento). **Cansaço** (barra azul fina acima do nome): cada ataque
+    dela soma 4 e mais 4 se o herói desviou sem levar dano; avisos em 35 ("A vaca está ofegante"), 65
+    ("mal se aguenta em pé"; fica mais lenta, sua e põe a língua de fora) e 88. Quem só desvia vence
+    em uns 12 ataques (cerca de 1 minuto); quem bate vence pelos PS. Bater nela mostra uma vez "Você
+    mexeu com a vaca!". Fúria abaixo de 35% dos PS.
+  - **Final (p. 17), nos dois jeitos:** ela deita cansada, o OVNI desce, a luz verde a leva para cima
+    ("Sim. Aliens."), o OVNI vai embora e cai a **dog tag dourada** (texto do caderno; o furo
+    "pingente ou dog tag" continua em aberto). Vitória com a citação da p. 17.
+  - **Motor:** chefes podem ter `barraExtra` (barra fina no HUD), `textoFim` (texto ao zerar a vida),
+    `premioForma: 'dogtag'` e `corPremio: 'ouro'`; vitória aceita `conquista` (concordância do texto).
+    Pixel art feita pelo jogo: `pxRet`, `pxElipse`, `pxLinha` e `pxCache` (desenha uma vez em tela
+    pequena, com contorno, e guarda).
+
+### Estado atual (2026-11-15) e próximos passos
 
 Para retomar numa sessão nova, comece por aqui (e leia as seções citadas para os detalhes).
 
@@ -451,14 +487,23 @@ Para retomar numa sessão nova, comece por aqui (e leia as seções citadas para
 - Laboratório da cobra (`jogo/laboratorio/cobra.html`) para editar poses; "Copiar poses" gera o
   texto que vai para `chefe.esqueleto`. Poses do Erick em `jogo/laboratorio/poses/`.
 - Bestiário com ??? até o encontro e contador de derrotados; locais bloqueados sem spoiler.
+- **Fase da Vaca (2026-11-15)**, liberada no mapa: o pasto ao pôr do sol e a Ageláda (terremoto, gás
+  mortal, cansaço ou PS, abdução pelo OVNI e dog tag dourada). Tudo desenhado pelo jogo até chegar a
+  arte (seção "Fase da Vaca").
 
 **Para testar rápido:** `?play&sala` (começa na sala secreta; `&espada` tira a lança),
 `?play&boss&x=8800` (luta; `&chefevida=40` já na fúria, `&chefevida=10` quase morto;
 `&jeito=f,z,r` troca o jeito do descanso), `?play&x=8450` (chegando: o Boitatá esperando),
 `?play&x=8580` (placa), `?play&x=1300` (baú), `?herois`, `?mapa`, `?bestiario`, `?fps`, `?perf`,
 `?semluz`, `?semretrato`, `&ff=N` (avança N quadros; útil no Edge sem janela).
+Vaca: `?fase=vaca&play&boss&x=8800` (luta; `&cansaco=90` quase caindo de cansaço, `&chefevida=10`
+quase sem PS), `?fase=vaca&play&x=5750` (árvore do baú), `?fase=vaca&demo&cansaco=96` (vence sozinho).
 
 **Em aberto (a decidir ou esperando arte):**
+- Arte da fase da Vaca (prompts 4.12): a Vaca no PixelLab, o fundo do pasto no Gemini, besouro,
+  pombo e a dog tag. Quando chegar, o Claude liga as folhas no jogo.
+- Fase da Vaca sem sala secreta (a próxima pode ter os cogumelos verdes ou vermelhos e outro
+  guardião). Equilíbrio da luta a testar no celular (PS 220, cansaço 4 + 4 por ataque).
 - Arte do Mímico no PixelLab (prompt 4.9): hoje é o baú cortado na tampa.
 - Rabada do Boitatá fraca: a pose `rabada_chao` do Erick é quase o rabo enrolado, então a ponta
   anda pouco. Sugestão: ponta mais alta na "cima" e mais longe na "chão" (no laboratório).
@@ -486,7 +531,7 @@ personagens: PixelLab (vista Sidescroller, direção East).
   (seção 5 dos prompts); falta decidir se os elementos seguem a tabela dela ou a da astrologia.
 - O humano sem poder de elemento (modo difícil) e ganhando o vento ao despertar o Câncer.
 - Próxima fase: Mula sem cabeça (ficha em `fases.js`, módulo novo em `CHEFES`, arte no Gemini e no
-  PixelLab, texto da placa, ativar em `mapa.js`).
+  PixelLab, texto da placa, ativar em `mapa.js`). A Vaca serve de modelo de fase sem imagens.
 - Pendências pequenas: tirar o disco voador do pasto na imagem do mapa (adiado).
 
 ## Futuro: Godot e lojas (estudo de 2026-11-08, nada decidido)
@@ -567,6 +612,10 @@ continuidade do texto.
   para a tela de escolha, os diálogos e o HUD, e cenário escuro iluminado só pelo herói, pelo
   fogo e pelos poderes. O boneco e as animações vêm do PixelLab (pixellab.ai, câmera
   Sidescroller). O motor ganha modo pixel nítido e luz dinâmica.
+
+- 2026-11-15 (Erick): fase da Vaca implementada a partir da ideia do rascunho "atacar ou esperar",
+  seguindo o caderno: dois jeitos de vencer (cansaço ou 0 PS), os dois terminam na abdução pelo OVNI.
+  O prêmio segue o caderno (dog tag dourada) até a Milena decidir o furo "pingente ou dog tag".
 
 ## Pontos de referência (revisão de 2026-11-07)
 
