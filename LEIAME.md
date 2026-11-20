@@ -551,7 +551,7 @@ recorte em magenta `#FF00FF`, porque o recorte verde apaga o verde da arte.
 - **Mato alto (2026-11-20):** no pasto, touceiras de capim em pixel art feitas pelo jogo
   (`quadroMato`, 6 variações): no chão a cada 260 a 780 px (atrás do herói e dos inimigos, só em chão
   firme) e, no primeiro plano, touceiras escuras no lugar das moitas pretas (que continuam no Boitatá).
-- **Chão = gramado (2026-11-20, pedido do Erick):** no pasto o chão deixou de ser a faixa de terra
+- **Chão = gramado (2026-11-20, pedido do Erick; substituído no mesmo dia pelo campo aberto, abaixo):** no pasto o chão deixou de ser a faixa de terra
   vista em corte; é o próprio campo, que continua o gramado do fundo até a beira da tela (`gramado()`,
   ladrilho de capim em pixel art; borda de cima só com pontas de capim, sem a crosta clara; escurece
   para baixo). Os buracos são valas escuras. A imagem `fundos/vaca/chao` (terra) ficou sem uso no
@@ -578,6 +578,16 @@ recorte em magenta `#FF00FF`, porque o recorte verde apaga o verde da arte.
     **faixa preta** (crista de capim perto da câmera, paralaxe 1,25, altura ajustável) que esconde
     onde o chão acabaria. Limite: abaixo da linha dos pés só há 80 px de tela; se o Erick quiser o
     campo maior, a linha do chão do pasto precisa subir.
+  - **No jogo (2026-11-20, ajustes copiados do laboratório pelo Erick):** `chao: campo`, raiz na
+    frente do chão enterrada 34 px, tronco 1,15 e copa 1,05 (em `ajustes.json`: tronco 64 e copa 273
+    px da arte), copa 6 px mais alta, vento, neblina e faixa preta de 26 px. No motor (`jogo.js`):
+    `texturaCampo()` no lugar do `gramado()` (piso sem borda nem crosta; `PISO_TOPO` do pasto é
+    `GROUND - 44`), `drawCapim(false/true)` (capim que balança atrás e na frente dos pés, meia
+    resolução), `crista()`/`drawCrista()` (faixa preta montada uma vez para a fase, paralaxe 1,25,
+    samambaias baixas para não esconder o herói) e a neblina no começo do `drawWorld`. Saíram as
+    touceiras de mato (`MATO`, `quadroMato`), substituídas pelo capim. Valas dos buracos começam
+    transparentes. Próximo: trocar o capim e a faixa preta desenhados pelo código pelas peças
+    pintadas `capim` e `frente` (prompts 4.12).
 
 **Próximos passos possíveis:**
 - Heróis de Áries (Água), Sagitário (Fogo) e Capricórnio (Terra): a Milena preenche a ficha

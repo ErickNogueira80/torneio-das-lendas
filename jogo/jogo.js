@@ -2802,58 +2802,11 @@ function drawChao() {
     for (let i = 0; i < t.n; i++) ctx.fillRect(x + i * 3, GROUND - t.h + ((i * 7) % 5), 2, t.h - ((i * 7) % 5));
   }
 }
-// mato alto do pasto (2026-11-20): touceiras de capim no chão (atrás do herói) e no primeiro plano
-// (no lugar das moitas pretas). Pixel art feita pelo jogo, 6 variações.
-const MATO = [], MATO_FRENTE = [];
-if (PASTO) { const r = mulberry(23);
-  for (let x = 150; x < LEVEL_END; x += 260 + r() * 520) {
-    const noChao = SOLIDS.some(s => s.y >= GROUND - 1 && x - 30 >= s.x && x + 60 <= s.x + s.w);
-    if (noChao) MATO.push({ x, v: (r() * 6) | 0, esp: r() < .5 });
-  }
-  for (let x = 0; x < 14000; x += 340 + r() * 600) MATO_FRENTE.push({ x, v: (r() * 6) | 0, esp: r() < .5 }); }
-function quadroMato(v, escuro) {
-  const P = escuro ? ['#0c1609', '#132410', '#1c3316', '#28441c', '#3a5a26', '#5a6e2c']
-    : ['#1a3014', '#25441a', '#33601f', '#4a7d2a', '#86a83a', '#d8c070'];
-  return pxCache('mato' + v + (escuro ? 'e' : ''), 50, 52, g => {
-    const r = mulberry(300 + v), n = 15 + (r() * 7 | 0);
-    const folhas = Array.from({ length: n }, (_, i) => ({ x: 6 + r() * 38, h: 18 + r() * 32, curva: (r() - .5) * 18, cam: i < n * .4 ? 0 : i < n * .75 ? 1 : 2 }));
-    folhas.sort((a, b) => a.cam - b.cam);
-    for (const f of folhas) {
-      const cor = P[f.cam + 1], pts = [];
-      for (let k = 0; k <= 8; k++) { const t = k / 8; pts.push([f.x + f.curva * t * t, 51 - f.h * t]); }
-      pxLinha(g, pts.slice(0, 6), 2, cor); pxLinha(g, pts.slice(5), 1, cor);
-      const [tx, ty] = pts[8];
-      pxRet(g, tx, ty, 1, 2, f.cam === 2 ? P[4] : P[3]);              // ponta clara (luz do fim de tarde)
-      if (f.cam === 2 && r() < .3) { pxRet(g, tx - 1, ty - 2, 2, 3, P[5]); }   // espiga
-    }
-    pxRet(g, 4, 49, 42, 3, P[0]);   // base
-  }, escuro ? null : '#0e1a0a');
-}
-function drawMato() {
-  if (!PASTO) return;
-  ctx.imageSmoothingEnabled = false;
-  for (const m of MATO) {
-    const x = Math.round(m.x - camX); if (x < -110 || x > W + 10) continue;
-    const im = quadroMato(m.v, false), y = GROUND + 8 - im.height * 2;
-    if (m.esp) { ctx.save(); ctx.translate(x + im.width * 2, y); ctx.scale(-1, 1); ctx.drawImage(im, 0, 0, im.width * 2, im.height * 2); ctx.restore(); }
-    else ctx.drawImage(im, x, y, im.width * 2, im.height * 2);
-  }
-  ctx.imageSmoothingEnabled = true;
-}
 function drawFrente() {
   // primeiro plano em pixel (blocos de 4 px): moitas escuras embaixo e cipós pendurados no alto
   const par = 1.3, B = 4;
   ctx.fillStyle = PASTO ? '#0b160a' : '#08040b';
-  if (PASTO) {   // pasto: touceiras escuras de capim no primeiro plano, em vez das moitas pretas
-    ctx.imageSmoothingEnabled = false;
-    for (const m of MATO_FRENTE) {
-      const x = Math.round(m.x - camX * par); if (x < -130 || x > W + 10) continue;
-      const im = quadroMato(m.v, true), k = 2.4, y = H + 14 - im.height * k;
-      if (m.esp) { ctx.save(); ctx.translate(x + im.width * k, y); ctx.scale(-1, 1); ctx.drawImage(im, 0, 0, im.width * k, im.height * k); ctx.restore(); }
-      else ctx.drawImage(im, x, y, im.width * k, im.height * k);
-    }
-    ctx.imageSmoothingEnabled = true;
-  }
+  if (PASTO) { drawCapim(true); drawCrista(); return; }   // pasto: capim na frente dos pés e a faixa preta
   const bola = (cx, cy, r) => { for (let dy = -r; dy < r; dy += B) { const hw = Math.round(Math.sqrt(r * r - dy * dy) / B) * B; ctx.fillRect(cx - hw, cy + dy, hw * 2, B); } };
   for (const f of FRENTE) {
     const x = Math.round((f.x - camX * par) / B) * B; if (x < -120 || x > W + 120) continue;
@@ -3040,23 +2993,111 @@ function drawFundoPasto() {
 }
 // textura de terra do pasto (no lugar da imagem fundos/<fase>/chao)
 let chaoGeradoPronto = null;
-// gramado do pasto (2026-11-20, pedido do Erick): o chão é o próprio campo, que continua o gramado do
-// fundo, e não uma faixa de terra vista em corte. Ladrilho de 64 px da arte, que emenda nos 4 lados.
-let gramadoPronto = null;
-function gramado() {
-  if (gramadoPronto) return gramadoPronto;
-  const N = 64, c = document.createElement('canvas'); c.width = N; c.height = N;
-  const g = c.getContext('2d'), r = mulberry(17), P = (x, y, cor) => { g.fillStyle = cor; g.fillRect(((x % N) + N) % N, ((y % N) + N) % N, 1, 1); };
-  g.fillStyle = '#34531f'; g.fillRect(0, 0, N, N);
-  const verdes = ['#2a4519', '#2f4d1c', '#3d6326', '#46702b', '#527d31'];
-  for (let i = 0; i < 420; i++) {   // folhas de capim: risquinhos verticais um pouco tortos
-    const x = r() * N | 0, y = r() * N | 0, h = 3 + (r() * 6 | 0), lado = r() < .5 ? -1 : 1, cor = verdes[(r() * verdes.length) | 0];
-    for (let k = 0; k < h; k++) P(x + (k > h * .6 ? lado : 0), y - k, cor);
+// campo do pasto (2026-11-20, escolhido pelo Erick no laboratório): o campo é visto um pouco de cima,
+// então não há corte de terra. Pinceladas de capim deitadas pelo vento, claras e douradas em cima,
+// escurecendo para verde-azulado embaixo, onde a faixa preta da frente (crista) passa na frente.
+// Ladrilho de 320 x 90 px da arte (emenda nas laterais); o topo é recortado em lâminas.
+let campoPronto = null;
+function texturaCampo() {
+  if (campoPronto) return campoPronto;
+  const TW = 320, TH = 90, TOP = 10, c = document.createElement('canvas'); c.width = TW; c.height = TH;
+  const g = c.getContext('2d'), r = mulberry(23);
+  const gr = g.createLinearGradient(0, TOP, 0, TH);
+  gr.addColorStop(0, '#a9c650'); gr.addColorStop(.42, '#80ad40'); gr.addColorStop(.75, '#447338'); gr.addColorStop(1, '#183739');
+  g.fillStyle = gr; g.fillRect(0, TOP + 2, TW, TH);
+  const cores = y => { const t = (y - TOP) / (TH - TOP); return t < .22 ? ['#b7cf55', '#cfe06a', '#9fc04a'] : t < .45 ? ['#93bb45', '#a9c94f', '#7eaa3c'] : t < .72 ? ['#6c9c3a', '#80ad40', '#557f33'] : ['#3e6b38', '#2f5838', '#22453d']; };
+  const P = (x, y, cor) => { g.fillStyle = cor; g.fillRect(((x % TW) + TW) % TW, y, 1, 1); };
+  for (let i = 0; i < 5600; i++) {   // pinceladas deitadas para a direita (vento)
+    const x = r() * TW | 0, y = TOP + 3 + r() * (TH - TOP - 3) | 0, cs = cores(y), len = 3 + r() * 7 | 0, lean = .5 + r() * .7;
+    let cor = cs[(r() * 3) | 0]; if (r() < .06 && y < TOP + 45) cor = '#eef2a8';   // fios com luz do pôr do sol
+    for (let k = 0; k < len; k++) P(Math.round(x + k * lean), y - k, cor);
   }
-  for (let i = 0; i < 70; i++) P(r() * N | 0, r() * N | 0, '#6e9638');      // pontas com luz
-  for (let i = 0; i < 18; i++) P(r() * N | 0, r() * N | 0, '#a8b84a');      // luz do pôr do sol
-  for (let i = 0; i < 4; i++) { const x = r() * N | 0, y = r() * N | 0, cor = ['#f0e070', '#e8d8ff', '#ffffff', '#c58cff'][i]; P(x, y, cor); P(x + 1, y, cor); P(x, y - 1, cor); }
-  return (gramadoPronto = c);
+  for (let x = 0; x < TW; x++) { const h = 3 + r() * 9 | 0, lean = .3 + r() * .6, cor = ['#b7cf55', '#cfe06a', '#9fc04a', '#e3eb92'][(r() * 4) | 0]; for (let k = 0; k < h; k++) P(Math.round(x + k * lean), TOP + 3 - k, cor); }
+  return (campoPronto = c);
+}
+// capim que balança no vento (pasto): uma camada atrás do herói e outra na frente, cobrindo os pés.
+// Desenhado em meia resolução (cada pixel vira 2x2, como a arte da fase).
+const hashC = n => { const v = Math.sin(n * 12.9898 + 78.233) * 43758.5453; return v - Math.floor(v); };
+let capimCv = null;
+function chaoEm(x) { return SOLIDS.some(s => s.y >= GROUND - 1 && x >= s.x + 6 && x <= s.x + s.w - 6); }
+function drawCapim(frente) {
+  if (!PASTO || typeof document === 'undefined') return;
+  if (!capimCv) { capimCv = document.createElement('canvas'); capimCv.width = W / 2; capimCv.height = H / 2; }
+  const gl = capimCv.getContext('2d'); gl.clearRect(0, 0, W / 2, H / 2);
+  const passo = frente ? 6 : 3;
+  const PAL = frente ? ['#4f8436', '#6c9e3e', '#8fbb4a', '#c8dc72'] : ['#6f9e3c', '#8fb948', '#b0cf58', '#dfe88e'];
+  for (let wx = Math.floor((camX - 40) / passo) * passo; wx < camX + W + 40; wx += passo) {
+    if (!chaoEm(wx)) continue;
+    const r1 = hashC(wx * 1.7 + (frente ? 99 : 0)), r2 = hashC(wx * 3.1 + 7), r3 = hashC(wx * 5.3 + 3);
+    if (frente && r1 < .45) continue;
+    const base = GROUND + relevo(wx) + (frente ? 12 + r2 * 16 : 4 + r2 * 8);
+    let h = frente ? 10 + r1 * 24 : 12 + r1 * r1 * 44;
+    h *= .45 + .55 * (.5 + .5 * Math.sin(wx * .011 + 2 * Math.sin(wx * .0037)));   // touceiras e clareiras
+    const vento = Math.sin(time * 1.6 + wx * .017) * .6 + Math.sin(time * .7 + wx * .006) * .4;
+    const inc = (r3 - .5) * h * .45 + vento * h * (frente ? .16 : .26);
+    const bx = (wx - camX) / 2, by = base / 2, hh = h / 2, ii = inc / 2, n = Math.ceil(hh) + 1;
+    const ponta = !frente && r2 > .82 ? '#d8c36a' : PAL[3];
+    for (let k = 0; k <= n; k++) {
+      const t = k / n;
+      gl.fillStyle = t > .78 ? ponta : t > .45 ? PAL[2] : t > .18 ? PAL[1] : PAL[0];
+      gl.fillRect(Math.round(bx + ii * t * t), Math.round(by - hh * t), t < .3 && frente ? 2 : 1, 1);
+    }
+    if (!frente && r1 > .965) { gl.fillStyle = ['#ffffff', '#f3dd6a', '#c49cff'][(r3 * 3) | 0]; gl.fillRect(Math.round(bx + ii) - 1, Math.round(by - hh) - 1, 2, 2); }
+  }
+  ctx.imageSmoothingEnabled = false; ctx.drawImage(capimCv, 0, 0, W, H); ctx.imageSmoothingEnabled = true;
+}
+// faixa preta da frente (crista): morrinho de capim e samambaias bem perto da câmera, que esconde onde
+// o chão "acabaria". Montada uma vez para a fase inteira (paralaxe 1,25), em meia resolução.
+const CRISTA = 26, CRISTA_PAR = 1.25;
+let cristaPronta = null;
+function folhagemEscura(seed, w, h) {
+  const c = document.createElement('canvas'); c.width = w; c.height = h;
+  const g = c.getContext('2d'), r = mulberry(seed);
+  g.fillStyle = g.strokeStyle = '#060d08'; g.lineCap = 'round';
+  const ramos = 5 + (r() * 4 | 0);
+  for (let f = 0; f < ramos; f++) {
+    let a = -Math.PI / 2 + (r() - .5) * 1.9, x = w / 2 + (r() - .5) * w * .35, y = h + 6;
+    const len = h * (.4 + r() * .5), curva = (r() - .5) * 2.2, passos = 70, samambaia = r() < .65;
+    for (let i = 0; i < passos; i++) {
+      const t = i / passos, x0 = x, y0 = y; a += curva / passos; x += Math.cos(a) * len / passos; y += Math.sin(a) * len / passos;
+      g.lineWidth = samambaia ? (1 - t) * 6 + 2 : (1 - t) * 11 + 1; g.beginPath(); g.moveTo(x0, y0); g.lineTo(x, y); g.stroke();
+      if (samambaia && i % 3 === 0 && t > .05) {
+        const tam = (1 - t) * h * .11 + 5;
+        for (const lado of [-1, 1]) { g.save(); g.translate(x, y); g.rotate(a + lado * (1.25 - t * .4)); g.beginPath(); g.ellipse(tam * .85, 0, tam, Math.max(2.5, tam * .28), 0, 0, 7); g.fill(); g.restore(); }
+      }
+    }
+  }
+  return c;
+}
+function crista() {
+  if (cristaPronta) return cristaPronta;
+  if (typeof document === 'undefined') return null;
+  const larg = Math.ceil((Math.max(LEVEL_END, ARENA.x1) + 3 * W) * CRISTA_PAR / 2) + 40, alt = 110;   // meia resolução
+  const c = document.createElement('canvas'); c.width = larg; c.height = alt;
+  const g = c.getContext('2d'), base = (H - CRISTA) / 2, topoTela = H / 2 - alt;
+  const perfil = sx => base - (9 * Math.sin(sx * 2 * .0035 + 1) + 5 * Math.sin(sx * 2 * .0105 + .4) + 2 * Math.sin(sx * 2 * .031)) / 2 - topoTela;
+  g.fillStyle = '#04070a';
+  g.beginPath(); g.moveTo(0, alt);
+  for (let sx = 0; sx <= larg; sx++) g.lineTo(sx, perfil(sx));
+  g.lineTo(larg, alt); g.closePath(); g.fill();
+  for (let sx = 0; sx < larg; sx += 1.5) {   // capim recortado no topo
+    const wx = sx * 2, r1 = hashC(wx * .7 + 5), h = 4 + r1 * 26 * (.35 + .65 * (.5 + .5 * Math.sin(wx * .017)));
+    const lean = (hashC(wx * 2.3) - .3) * h * .5, y0 = perfil(sx) + 2, n = Math.ceil(h / 2);
+    for (let k = 0; k <= n; k++) { const t = k / n; g.fillRect(Math.round(sx + lean / 2 * t * t), Math.round(y0 - h / 2 * t), t < .4 ? 2 : 1, 1); }
+  }
+  const folhas = [0, 1, 2, 3].map(v => folhagemEscura(70 + v * 13, 300, 330)), r = mulberry(41);   // samambaias de vez em quando
+  for (let sx = 40 + r() * 200; sx < larg; sx += 380 + r() * 520) {
+    const im = folhas[(r() * 4) | 0], k = (1.05 + r() * .35) * .3 / 2, w = im.width * k, h = im.height * k, esp = r() < .5;
+    g.save(); g.translate(sx + (esp ? w : 0), alt - (CRISTA - 30) / 2 - h); if (esp) g.scale(-1, 1); g.drawImage(im, 0, 0, w, h); g.restore();
+  }
+  return (cristaPronta = { c, topoTela });
+}
+function drawCrista() {
+  const C = crista(); if (!C) return;
+  const sx = Math.max(0, Math.round(camX * CRISTA_PAR / 2));
+  ctx.imageSmoothingEnabled = false;
+  ctx.drawImage(C.c, sx, 0, W / 2, C.c.height, 0, C.topoTela * 2, W, C.c.height * 2);
+  ctx.imageSmoothingEnabled = true;
 }
 function chaoGerado() {
   if (!PASTO || typeof document === 'undefined') return null;
@@ -3112,12 +3153,12 @@ let groundPattern = null;
 // O chão da fase inteira vira uma imagem pronta: topo ondulado em degraus de pixel, beiradas
 // quebradas nos buracos, crosta clara, tufos, pedras e galhos. A física continua reta (GROUND);
 // o desenho sobe e desce uns pixels em volta dela. Por quadro, o jogo só copia o pedaço visível.
-const PISO_TOPO = GROUND - 26;
+const PISO_TOPO = GROUND - (PASTO ? 44 : 26);   // o campo do pasto começa mais acima (lâminas de capim)
 let pisoPronto = null;
 function piso() {
   if (pisoPronto) return pisoPronto;
   if (typeof document === 'undefined') return null;
-  const chao = PASTO ? gramado() : layer(FASE.fundo, 'chao') || chaoGerado();
+  const chao = PASTO ? texturaCampo() : layer(FASE.fundo, 'chao') || chaoGerado();
   if (!chao) return null;
   // cores da crosta: terra queimada (Boitatá) ou capim (pasto)
   const PC = PASTO ? { c1: '#8cc152', c2: '#a5d364', esc: '#4e8a30', deg: '#3f7027', sombra: 'rgba(20,12,6,.5)', pedra: '#3e2a1a', brasa: null, tufo: ['#3f7a2a', '#5e9e3a', '#7cbf4a'] }
@@ -3142,6 +3183,12 @@ function piso() {
       if (borda < 14) y += (14 - borda) * (14 - borda) / 14;
       ys.push(Math.round(y / B) * B);
     }
+    if (PASTO) {   // campo: começa 40 px acima da linha dos pés e desce até a faixa preta; sem borda nem crosta
+      g.save(); g.beginPath(); g.rect(s.x, 0, s.w, alt); g.clip();
+      g.translate(0, GROUND - 40 - PISO_TOPO); g.scale(z, z); g.fillStyle = pat; g.fillRect(s.x / z - 4, 0, s.w / z + 8, chao.height); g.restore();
+      ys.forEach((y, i) => topos.set(s.x + i * 4, PISO_TOPO + base + y));
+      continue;
+    }
     g.save(); g.beginPath(); g.moveTo(s.x, alt);
     ys.forEach((y, i) => { const x = s.x + i * 4; g.lineTo(x, base + y); g.lineTo(x + 4, base + y); });
     g.lineTo(s.x + s.w, alt); g.closePath(); g.clip();
@@ -3151,12 +3198,6 @@ function piso() {
       const x = s.x + i * 4, yy = base + y;
       topos.set(x, PISO_TOPO + yy);
       const dy = i > 0 ? ys[i] - ys[i - 1] : 0;   // degrau: lateral do degrau também ganha crosta
-      if (PASTO) {   // gramado: só pontas de capim na borda de cima, com a luz do fim de tarde
-        g.fillStyle = i % 3 ? '#4a7430' : '#5f8a36'; g.fillRect(x, yy, 4, 2);
-        g.fillStyle = r() < .5 ? '#6e9638' : '#46702b'; g.fillRect(x + (r() * 3 | 0), yy - 2, 1, 2 + (r() * 3 | 0));
-        if (r() < .25) { g.fillStyle = '#a8b84a'; g.fillRect(x + 2, yy - 2, 1, 1); }
-        return;
-      }
       const cap = 0;
       g.fillStyle = i % 7 === 3 ? PC.c2 : PC.c1; g.fillRect(x, yy, 4, 2 + cap);                 // crosta clara
       g.fillStyle = PC.esc; g.fillRect(x, yy + 2 + cap, 4, 2 + cap);                             // crosta escura
@@ -3169,11 +3210,6 @@ function piso() {
     g.fillStyle = PC.tufo[0];
     for (let x = s.x + 10; x < s.x + s.w - 10; x += 14 + r() * 34) {
       const yy = base + ys[Math.round((x - s.x) / 4)] || base, t = r();
-      if (PASTO) {   // capim alto e florzinhas
-        for (let i = 0, n = 3 + (r() * 4 | 0); i < n; i++) { g.fillStyle = PC.tufo[(r() * 3) | 0]; const h = 4 + (r() * 8 | 0); g.fillRect(x + i * 2, yy - h + 2, 2, h); }
-        if (t < .2) { g.fillStyle = ['#ffe066', '#ffffff', '#c58cff'][(r() * 3) | 0]; g.fillRect(x + 2, yy - 8, 2, 2); }
-        continue;
-      }
       if (t < .16) { g.fillRect(x, yy - 4, 10, 4); g.fillRect(x + 2, yy - 6, 6, 2); }
       else if (t < .26) { g.fillRect(x, yy - 2, 22, 2); g.fillRect(x + 14, yy - 6, 2, 4); }
       else { const n = 2 + (r() * 5 | 0), h = 4 + r() * 9; for (let i = 0; i < n; i++) g.fillRect(Math.round(x + i * 3), Math.round(yy - h + ((i * 7) % 5)), 2, Math.round(h - ((i * 7) % 5))); }
@@ -3183,19 +3219,13 @@ function piso() {
     const chaos = SOLIDS.filter(s => s.y >= GROUND - 1).sort((a, b) => a.x - b.x);
     g.save(); g.globalCompositeOperation = 'destination-over';
     for (let i = 0; i + 1 < chaos.length; i++) {
-      const x0 = chaos[i].x + chaos[i].w - 6, x1 = chaos[i + 1].x + 6;
+      const x0 = chaos[i].x + chaos[i].w, x1 = chaos[i + 1].x;
       if (x1 - x0 < 8) continue;
-      const gr = g.createLinearGradient(0, base + 6, 0, alt);
-      gr.addColorStop(0, '#24331a'); gr.addColorStop(.3, '#141f0e'); gr.addColorStop(1, '#070b05');
-      g.fillStyle = gr; g.fillRect(x0, base + 6, x1 - x0, alt);
+      const gr = g.createLinearGradient(0, base + 12, 0, alt);
+      gr.addColorStop(0, 'rgba(36,51,26,0)'); gr.addColorStop(.3, '#141f0e'); gr.addColorStop(1, '#070b05');
+      g.fillStyle = gr; g.fillRect(x0, base + 12, x1 - x0, alt);
     }
     g.restore();
-  }
-  if (PASTO) {   // o gramado escurece para baixo (vai para perto da tela, na sombra)
-    g.save(); g.globalCompositeOperation = 'source-atop';
-    const gr = g.createLinearGradient(0, base, 0, alt);
-    gr.addColorStop(0, 'rgba(12,24,8,0)'); gr.addColorStop(.35, 'rgba(12,24,8,.15)'); gr.addColorStop(1, 'rgba(8,16,6,.6)');
-    g.fillStyle = gr; g.fillRect(0, 0, larg, alt); g.restore();
   }
   return (pisoPronto = { c, topos });
 }
@@ -3256,13 +3286,9 @@ function arvores() {
       ctx2.imageSmoothingEnabled = false;
       const { t, g: gal, r: raiz, meta } = pecas, th = t.naturalHeight * z;
       for (let y = pe - th; y > -th; y -= th) ctx2.drawImage(t, Math.round(tx - tw / 2 - x0), Math.round(y), tw, th + 1);
-      if (PASTO && raiz && sobreChao) {   // pasto: a raiz faz parte da árvore (atrás da copa; o chão cobre a base)
-        const rw = raiz.naturalWidth * z, rh = raiz.naturalHeight * z, cx = (meta.arvore_raiz && meta.arvore_raiz.centro) || .5;
-        ctx2.drawImage(raiz, Math.round(tx - rw * cx - x0), GROUND + 18 - rh, rw, rh);
-      }
       if (pecas.copa) {   // copa do pasto (2026-11-20): acima do galho mais alto; o tronco termina dentro dela
         const cw = pecas.copa.naturalWidth * z, ch = pecas.copa.naturalHeight * z;
-        const cy = Math.round(Math.min(...g.map(p => p.y)) + 22 - ch);   // o galho mais alto sai de dentro das folhas
+        const cy = Math.round(Math.min(...g.map(p => p.y)) + 16 - ch);   // o galho mais alto sai de dentro das folhas
         ctx2.clearRect(Math.floor(tx - tw - x0), 0, Math.ceil(tw * 2), Math.max(0, cy + ch * .45));
         ctx2.drawImage(pecas.copa, Math.round(tx - cw / 2 - x0), cy, cw, ch);
       }
@@ -3285,9 +3311,9 @@ function arvores() {
       }
       // raiz em 2,5D: desenhada depois do piso, descendo pela frente do chão em direção à tela
       let raizFrente = null;
-      if (raiz && sobreChao && !PASTO) {
+      if (raiz && sobreChao) {   // pasto: a raiz fica na frente do campo, enterrada 34 px (o capim que balança passa por cima)
         const rw = raiz.naturalWidth * z, rh = raiz.naturalHeight * z, cx = (meta.arvore_raiz && meta.arvore_raiz.centro) || .5;
-        raizFrente = { img: raiz, x: Math.round(tx - rw * cx), y: H + 6 - rh, w: rw, h: rh };
+        raizFrente = { img: raiz, x: Math.round(tx - rw * cx), y: (PASTO ? GROUND + 34 : H + 6) - rh, w: rw, h: rh };
       }
       return { c, x0, raizFrente };
     }
@@ -3407,6 +3433,11 @@ function drawWorld() {
   const C = FASE.cores, chao = layer(FASE.fundo, 'chao');
   if (chao && !groundPattern) groundPattern = ctx.createPattern(chao, 'repeat');
   const AR = arvores();
+  if (PASTO) {   // neblina quente entre o fundo e a área do jogo (profundidade)
+    const gr = ctx.createLinearGradient(0, 180, 0, GROUND + 20);
+    gr.addColorStop(0, 'rgba(255,196,160,0)'); gr.addColorStop(.6, 'rgba(255,190,150,.16)'); gr.addColorStop(1, 'rgba(255,200,150,.30)');
+    ctx.fillStyle = gr; ctx.fillRect(0, 180, W, GROUND + 20 - 180);
+  }
   if (AR) for (const t of AR) { const x = Math.round(t.x0 - camX); if (x < W && x + t.c.width > 0) ctx.drawImage(t.c, x, 0); }
   const P = piso();
   if (P) {
@@ -3418,7 +3449,7 @@ function drawWorld() {
     const x = Math.round(rz.x - camX); if (x > W || x + rz.w < 0) continue;
     ctx.imageSmoothingEnabled = false; ctx.drawImage(rz.img, x, rz.y, rz.w, rz.h); ctx.imageSmoothingEnabled = true;
   }
-  drawMato();
+  drawCapim(false);
   for (const s of SOLIDS) {
     if (P && s.y >= GROUND - 1) continue;
     const x = s.x - camX; if (x > W || x + s.w < 0) continue;

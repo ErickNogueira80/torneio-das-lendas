@@ -103,11 +103,11 @@ const ALTURA = { ceu: 270, longe: 180, perto: 210, chao: 128, capim: 48, frente:
 
 // ---------- estado ----------
 const EXTRA = { vento: true, neblina: false, silhueta: false, suave: false, crista: 26 };
-const NO_JOGO = { chao: 'gramado', borda: 'pontas', raiz: 'atras', tronco: 1, copa: 1, copaY: 0, raizY: 18, escuro: 0.6, mato: true, frente: true, buraco: true, ...EXTRA };
-const ANTES = { chao: 'terra', borda: 'crosta', raiz: 'atras', tronco: 1, copa: 1, copaY: 0, raizY: 18, escuro: 0, mato: true, frente: true, buraco: false, ...EXTRA };
+const NO_JOGO = { chao: 'campo', borda: 'nenhuma', raiz: 'frente', tronco: 1, copa: 1, copaY: -6, raizY: 34, escuro: 0.5, mato: false, frente: false, buraco: true, vento: true, neblina: true, silhueta: true, suave: false, crista: 26 };   // escolha do Erick (2026-11-20), já no jogo
+const ANTES = { chao: 'terra', borda: 'crosta', raiz: 'atras', tronco: 0.87, copa: 0.95, copaY: 0, raizY: 18, escuro: 0, mato: true, frente: true, buraco: false, ...EXTRA };
 // campo aberto (Erick, 2026-11-20): capim alto que cobre os pés, chão que escurece sem corte de terra,
 // neblina entre os planos e folhagem escura na frente da câmera
-const CAMPO = { chao: 'campo', borda: 'nenhuma', raiz: 'atras', tronco: 1.15, copa: 1.05, copaY: -6, raizY: 34, escuro: 0.5, mato: false, frente: false, buraco: true, vento: true, neblina: true, silhueta: true, suave: false, crista: 26 };
+const CAMPO = { chao: 'campo', borda: 'nenhuma', raiz: 'frente', tronco: 1, copa: 1, copaY: -6, raizY: 34, escuro: 0.5, mato: false, frente: false, buraco: true, vento: true, neblina: true, silhueta: true, suave: false, crista: 26 };
 let E = { ...NO_JOGO }, camX = 200;
 
 // ---------- utilidades ----------
