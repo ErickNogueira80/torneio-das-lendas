@@ -597,6 +597,9 @@ recorte em magenta `#FF00FF`, porque o recorte verde apaga o verde da arte.
     repetida (paralaxe 1,25; a parte cheia, a 57% da altura, fica 26 px acima do pé da tela). Os
     desenhos do código (`texturaCampo`, `crista`) ficam de reserva. O capim que balança continua por
     cima. As duas `Gemini_Generated_Image_*.jpg` da pasta são as texturas de terra antigas, sem uso.
+  - **Capim na frente dos pés (2026-11-20):** o capim que balança é do código (não precisa de arte da
+    IA). A camada da frente nasce na linha dos pés (base `GROUND + 4..16`), tem 16 a 42 px e um fio a
+    cada 4 px, para cobrir as botas do herói e dos inimigos como no Planet of Lana.
 
 **Próximos passos possíveis:**
 - Heróis de Áries (Água), Sagitário (Fogo) e Capricórnio (Terra): a Milena preenche a ficha

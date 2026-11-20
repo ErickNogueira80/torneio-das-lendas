@@ -3024,14 +3024,14 @@ function drawCapim(frente) {
   if (!PASTO || typeof document === 'undefined') return;
   if (!capimCv) { capimCv = document.createElement('canvas'); capimCv.width = W / 2; capimCv.height = H / 2; }
   const gl = capimCv.getContext('2d'); gl.clearRect(0, 0, W / 2, H / 2);
-  const passo = frente ? 6 : 3;
+  const passo = frente ? 4 : 3;
   const PAL = frente ? ['#4f8436', '#6c9e3e', '#8fbb4a', '#c8dc72'] : ['#6f9e3c', '#8fb948', '#b0cf58', '#dfe88e'];
   for (let wx = Math.floor((camX - 40) / passo) * passo; wx < camX + W + 40; wx += passo) {
     if (!chaoEm(wx)) continue;
     const r1 = hashC(wx * 1.7 + (frente ? 99 : 0)), r2 = hashC(wx * 3.1 + 7), r3 = hashC(wx * 5.3 + 3);
-    if (frente && r1 < .45) continue;
-    const base = GROUND + relevo(wx) + (frente ? 12 + r2 * 16 : 4 + r2 * 8);
-    let h = frente ? 10 + r1 * 24 : 12 + r1 * r1 * 44;
+    if (frente && r1 < .3) continue;
+    const base = GROUND + relevo(wx) + (frente ? 4 + r2 * 12 : 4 + r2 * 8);
+    let h = frente ? 16 + r1 * 26 : 12 + r1 * r1 * 44;   // frente: alta o bastante para cobrir os pés
     h *= .45 + .55 * (.5 + .5 * Math.sin(wx * .011 + 2 * Math.sin(wx * .0037)));   // touceiras e clareiras
     const vento = Math.sin(time * 1.6 + wx * .017) * .6 + Math.sin(time * .7 + wx * .006) * .4;
     const inc = (r3 - .5) * h * .45 + vento * h * (frente ? .16 : .26);
