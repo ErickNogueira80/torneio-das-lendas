@@ -12,11 +12,13 @@ window.INIMIGOS = {
     resist: { agua: 1.5, fogo: 0, terra: 1, ar: 1.2, espada: 1 } },
   // pasto (fase da Vaca): besouro que anda pelo chão e pombo bravo que voa em volta (desenhados pelo
   // jogo até chegar a arte do PixelLab em inimigos/besouro e inimigos/pombo)
-  // besouro grande (2026-11-20, "paz e amor"): não ataca; encostar ou bater nele deixa o herói com 1 de vida.
-  // Mais alto que o pulo. Mato alto em toda a área dele: escondido no mato, o besouro passa na frente.
+  // besouro grande (2026-11-20, "paz e amor"): não ataca; encostar deixa o herói com 1 de vida; bater nele
+  // provoca uma investida (1 de vida) e bater de novo, uma investida mortal. Mais alto que o pulo.
+  // Um trecho de mato alto no caminho de cada besouro (moita: [x, largura]): escondido, ele passa na frente.
   besouro: { nome: 'Besouro-chifrudo', mov: 'patrulha', paz: true, w: 130, h: 140, dano: 0, xp: 0, sprite: 'inimigos/besouro', luz: 0,
     resist: { agua: 1, fogo: 1.2, terra: 0.8, ar: 1, espada: 1 } },
-  pombo: { nome: 'Pombo bravo', mov: 'voo', w: 26, h: 22, dano: 6, xp: 14, sprite: 'inimigos/pombo', luz: 0,
+  // pombo (2026-11-20): mesma regra do besouro (não ataca; encostar = 1 de vida; bater = investida)
+  pombo: { nome: 'Pombo bravo', mov: 'voo', paz: true, w: 26, h: 22, dano: 0, xp: 0, sprite: 'inimigos/pombo', luz: 0,
     resist: { agua: 1, fogo: 1, terra: 1, ar: 1.3, espada: 1 } },
   // guardião de sala secreta: parece um baú; acorda quando o herói chega perto e pula atrás dele.
   // Vencido, solta o prêmio da sala (sala.guardiao.premio). Cada sala pode ter um guardião diferente.
@@ -198,11 +200,12 @@ window.FASES = {
     perigos: [],   // cardos retirados (Erick, 2026-11-20): o pasto é "paz e amor"
     controles: [80, 4250, 8300],
     inimigos: [
-      // besouros grandes, cada um no seu trecho de mato alto (fora das raízes e longe dos buracos)
-      { tipo: 'besouro', x: 1945, x1: 1945, x2: 2060, vel: 35, vida: 999 },
-      { tipo: 'besouro', x: 4230, x1: 4030, x2: 4290, vel: 40, vida: 999 },
-      { tipo: 'besouro', x: 6302, x1: 6302, x2: 6400, vel: 35, vida: 999 },
-      { tipo: 'besouro', x: 8340, x1: 8340, x2: 8460, vel: 35, vida: 999 },
+      // besouros grandes: caminho longo (longe dos buracos, passando pelas raízes) e um trecho de mato no meio
+      { tipo: 'besouro', x: 1700, x1: 1350, x2: 2040, vel: 55, vida: 999, moita: [1940, 120] },
+      { tipo: 'besouro', x: 2900, x1: 2540, x2: 3540, vel: 55, vida: 999, moita: [3060, 130] },
+      { tipo: 'besouro', x: 4600, x1: 4030, x2: 4940, vel: 60, vida: 999, moita: [4100, 120] },
+      { tipo: 'besouro', x: 5800, x1: 5450, x2: 6370, vel: 60, vida: 999, moita: [6290, 120] },
+      { tipo: 'besouro', x: 7950, x1: 7820, x2: 8400, vel: 55, vida: 999, moita: [8310, 120] },
       { tipo: 'pombo', x: 1150, y: 300, vida: 10, t: 0 },
       { tipo: 'pombo', x: 2350, y: 240, vida: 12, t: 2 },
       { tipo: 'pombo', x: 3850, y: 260, vida: 12, t: 4 },

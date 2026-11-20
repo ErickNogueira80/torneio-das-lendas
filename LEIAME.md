@@ -601,19 +601,30 @@ recorte em magenta `#FF00FF`, porque o recorte verde apaga o verde da arte.
     IA). A camada da frente nasce na linha dos pés (base `GROUND + 4..16`), tem 16 a 42 px e um fio a
     cada 4 px, para cobrir as botas do herói e dos inimigos como no Planet of Lana.
     O capim que balança não nasce em cima das raízes das árvores (`naRaiz`, pedido do Erick).
-  - **Besouro grande e mato alto ("paz e amor", 2026-11-20, pedido do Erick):** o besouro-chifrudo
-    não ataca. Encostar nele deixa o herói com **1 de vida** (não mata; o empurrão nunca joga no buraco)
-    e bater nele (espada ou poder) não o fere: ele **revida** e deixa com 1 de vida, mesmo com o herói
-    escondido. É mais alto que o pulo (caixa 130 x 140; a área de toque sobe 200 px para não passar
-    pulando). Desenho provisório em pixel (`quadroBesouroGrande`, 26 x 24 ampliado 6x) até a arte da
-    IA (prompt novo na seção 4.12 de `04-prompts-sprites.md`). São 4 besouros com trechos maiores e
-    longe dos buracos (x1–x2: 1945–2060, 4030–4290, 6302–6400, 8340–8460; fora das raízes).
-    **Sem cardos** no pasto (`perigos: []`, Erick, 2026-11-20).
-    **Mato alto:** em toda a área de cada besouro (`MOITAS`, sai de x1 - 40 até x2 + largura + 40),
-    desenhado pelo código (`drawMoitas`, ~80 px, alto por igual e caindo nas pontas). No chão e com o
-    centro dentro do mato, o herói fica escondido (`escondido()`, sem aviso na tela): o besouro passa
-    **na frente** do mato (`drawEnemies(true)` depois de `drawMoitas`) sem empurrar, e pombos também
-    não ferem. Pular ou sair do mato acaba o esconderijo.
+  - **Besouro e pombo "paz e amor" (2026-11-20, pedido do Erick):** não atacam. Encostar deixa o
+    herói com **1 de vida** (não mata; o empurrão nunca joga no buraco). Bater neles (espada ou poder)
+    não os fere: eles ficam bravos, piscam e dão uma **investida** (`investida`/`golpeInvestida`; o
+    besouro corre de cabeça baixa pelo caminho dele, o pombo mergulha no herói) que deixa com 1 de
+    vida; bater **de novo** (no mesmo bicho) e a investida **mata**. A investida acerta mesmo com o
+    herói escondido. Ao renascer, os bichos se acalmam. Testado com um roteiro no navegador sem tela
+    (1ª investida: 1 de vida; 2ª: morte, nos dois bichos).
+    **Besouro:** mais alto que o pulo (caixa 130 x 140); desenho provisório (`quadroBesouroGrande`,
+    26 x 24 ampliado 6x) até a arte do PixelLab (prompt com animações `andar`, `preparar` e
+    `investida` na seção 4.12 de `04-prompts-sprites.md`). 5 besouros com **caminho longo**, a
+    130 px dos buracos e passando por cima das raízes (x1–x2: 1350–2040, 2540–3540, 4030–4940,
+    5450–6370, 7820–8400), vel. 55–60.
+    **Mato alto:** um trecho pequeno no caminho de cada besouro (`moita: [x, largura]` no besouro,
+    120–130 px: 1940, 3060, 4100, 6290, 8310), fora das raízes, desenhado pelo código (`drawMoitas`,
+    ~80 px). No chão e com o centro dentro do mato, o herói fica escondido (`escondido()`, sem aviso
+    na tela) e o besouro passa **na frente** do mato (`drawEnemies(true)` depois de `drawMoitas`).
+    **Sem cardos** no pasto (`perigos: []`).
+  - **Árvores (2026-11-20):** a copa passou a ser desenhada **depois da raiz** (a imagem da raiz traz
+    o pé do tronco, que ficava por cima das folhas) e os galhos por cima da copa (camadas: tronco →
+    piso → raiz → copa → galhos). Cada árvore varia a copa: até três imagens (`arvore_copa`,
+    `arvore_copa2`, `arvore_copa3`; a ferramenta aceita os nomes com número), espelhada nas árvores
+    pares, tamanho 0,9–1,08 e tom mais verde ou mais dourado. Galho novo e copas 2 e 3: prompts
+    "Árvores, versão 2" na seção 4.12. O baú em cima de galho acompanha o caimento do galho
+    (`caiGalho`, vale também para o Boitatá).
   - **Correções (2026-11-20):** o campo pintado acabava antes do pé da tela e aparecia uma linha
     marrom do fundo (agora há um fundo `#13282b` embaixo da imagem); os buracos viraram valas escuras
     desde a beirada, com as duas beiradas do campo arredondadas e quebradas (`beira` no `piso`, iguais

@@ -293,6 +293,7 @@ function respawn() {
   Object.assign(player, { x: CHECKS[checkpoint], y: GROUND - 44, vx: 0, vy: 0, inv: 1.2, poison: 0, face: 1, swordT: 0 });
   player.hp = maxHp(); player.pe = maxPe();
   shots = []; fireballs = [];
+  for (const e of enemies) if (e.T.paz) { e.golpes = 0; e.carga = null; }   // depois de cair, os bichos do pasto se acalmam
   if (bossActive && !bossDefeated) { bossActive = false; boss = null; }
   camX = clamp(player.x - W * 0.4, 0, LEVEL_END - W); camY = 0;
 }
@@ -318,6 +319,42 @@ function umDeVida(srcX, txt) {
   if (!chaoEm(player.x + player.w / 2 + player.vx * .45)) player.vx = 0;   // o empurrão nunca joga no buraco
   floatText(player.x - 30, player.y - 10, txt, '#ffb36b');
   burst(player.x + 14, player.y + 20, 14, ['#ffb36b', '#ffe0b0'], 180, .5); shake = .35;
+}
+// investida (besouro e pombo do pasto): se prepara (pisca), avança no herói e volta ao caminho
+function investida(e, dt) {
+  const c = e.carga; c.t += dt;
+  const pcx = player.x + player.w / 2, pcy = player.y + player.h / 2, ex = e.x + e.w / 2, ey = e.y + e.h / 2;
+  const voa = e.T.mov !== 'patrulha';
+  if (c.fase === 'prepara') {
+    if (Math.floor(c.t * 12) % 2 === 0) e.flash = .04;
+    if (!voa) e.vx = (Math.sign(pcx - ex) || 1) * Math.abs(e.vx);   // vira para o herói
+    if (c.t > .55) {
+      c.fase = 'vai'; c.t = 0; shake = Math.max(shake, .15);
+      if (voa) { const dx = pcx - ex, dy = pcy - ey, d = Math.hypot(dx, dy) || 1; c.vx = dx / d * 520; c.vy = dy / d * 520; }
+      else c.dir = Math.sign(pcx - ex) || 1;
+    }
+  } else if (c.fase === 'vai') {
+    if (voa) { e.x += c.vx * dt; e.y += c.vy * dt; if (c.t > 1.1 || e.y + e.h > GROUND - 4) { c.fase = 'volta'; c.t = 0; } }
+    else {
+      e.x += c.dir * 560 * dt;
+      if (Math.random() < .6) burst(e.x + e.w / 2 - c.dir * e.w * .4, GROUND - 4, 1, ['#6b5446', '#3d2f27'], 80, .4, 200, 3);
+      if (e.x <= e.x1 || e.x >= e.x2 || c.t > 1.2) { e.x = clamp(e.x, e.x1, e.x2); e.carga = null; }
+    }
+  } else if (c.fase === 'volta') {   // pombo volta a rodear o lugar dele
+    const tx = e.bx + Math.sin(e.t * .8) * 90, ty = e.by + Math.sin(e.t * 2.1) * 35, k = Math.min(1, dt * 3);
+    e.x += (tx - e.x) * k; e.y += (ty - e.y) * k;
+    if (Math.hypot(tx - e.x, ty - e.y) < 4 || c.t > 3) e.carga = null;
+  }
+}
+function golpeInvestida(e) {
+  const c = e.carga; if (c.acertou || state !== 'play') return;
+  c.acertou = true;
+  const nome = e.tipo === 'pombo' ? 'pombo' : 'besouro';
+  if (c.mata) {
+    player.hp = 0; floatText(player.x - 30, player.y - 10, 'Investida do ' + nome + '!', '#ff7b6b');
+    burst(player.x + 14, player.y + 20, 24, ['#ff7b6b', '#ffd0c8'], 220, .7); shake = .5; die();
+  } else { player.inv = 0; umDeVida(e.x + e.w / 2, 'Investida do ' + nome + '!'); }
+  if (e.T.mov === 'patrulha') e.carga = null; else { c.fase = 'volta'; c.t = 0; }
 }
 function hurtPlayer(dmg, srcX, poison = 0) {
   if (player.inv > 0 || state !== 'play') return;
@@ -2166,9 +2203,13 @@ function updatePlayer(dt) {
 
 function damageEnemy(e, dmg, kind) {
   if (e.dead) return;   // já derrotado (ex.: golpe durante a tela de subir de nível)
-  if (e.T.paz) {   // forte demais: não sente o golpe e revida (mesmo com o herói escondido)
-    floatText(e.x + e.w / 2 - 20, e.y - 8, 'nada!', '#fff'); e.flash = .12;
-    umDeVida(e.x + e.w / 2, 'O besouro revidou!'); return;
+  if (e.T.paz) {   // forte demais: não sente o golpe e revida com uma investida (1 de vida; atacou de novo = morte)
+    e.golpes = (e.golpes || 0) + 1; e.flash = .12;
+    const mata = e.golpes >= 2, nome = e.tipo === 'pombo' ? 'O pombo' : 'O besouro';
+    floatText(e.x + e.w / 2 - 50, e.y - 12, mata ? nome + ' perdeu a paciência!' : nome + ' ficou bravo!', '#ff9a7a');
+    if (!e.carga || e.carga.fase !== 'vai') e.carga = { fase: 'prepara', t: 0, mata };
+    else e.carga.mata = e.carga.mata || mata;
+    return;
   }
   const res = resistOf(e.T.resist, kind);
   if (res === 0) { floatText(e.x, e.y - 8, 'imune!', '#ffb36b'); return; }
@@ -2232,14 +2273,18 @@ function update(dt) {
 
   for (const e of enemies) {
     e.flash = Math.max(0, e.flash - dt);
-    if (e.T.mov === 'patrulha') {
+    if (e.carga) investida(e, dt);
+    else if (e.T.mov === 'patrulha') {
       e.x += e.vx * dt;
       if (e.x < e.x1) { e.x = e.x1; e.vx = Math.abs(e.vx); }
       if (e.x > e.x2) { e.x = e.x2; e.vx = -Math.abs(e.vx); }
     } else if (e.T.mov === 'mimico') atualizarMimico(e, dt);
     else { e.t += dt; e.x = e.bx + Math.sin(e.t * .8) * 90; e.y = e.by + Math.sin(e.t * 2.1) * 35; }
-    if (e.T.paz) {   // não ataca; só empurra quem encosta (pular não passa: o chifre alcança o alto)
-      if (!escondido() && overlap(player, { x: e.x + 6, y: e.y - 200, w: e.w - 12, h: e.h + 200 })) umDeVida(e.x + e.w / 2, 'O besouro te empurrou!');
+    if (e.T.paz) {   // não ataca; encostar deixa com 1 de vida; a investida só vem se for atacado
+      if (overlap(player, e)) {
+        if (e.carga && e.carga.fase === 'vai') golpeInvestida(e);
+        else if (!e.carga && !escondido()) umDeVida(e.x + e.w / 2, e.tipo === 'pombo' ? 'O pombo te derrubou!' : 'O besouro te empurrou!');
+      }
     } else if (overlap(player, e) && e.estado !== 'dorme') hurtPlayer(e.T.dano, e.x + e.w / 2);
   }
   enemies = enemies.filter(e => !e.dead);
@@ -3068,7 +3113,7 @@ function drawCapim(frente) {
 }
 // moitas de capim denso (pasto, 2026-11-20): cobrem o herói quase inteiro. Parado dentro de uma moita,
 // no chão, ele fica escondido e os inimigos não o ferem (ver escondido()).
-const MOITAS = FASE.inimigos.filter(d => INIMIGOS[d.tipo].paz).map(d => ({ x: d.x1 - 40, w: d.x2 - d.x1 + INIMIGOS[d.tipo].w + 80 }));
+const MOITAS = FASE.inimigos.filter(d => d.moita).map(d => ({ x: d.moita[0], w: d.moita[1] }));   // [x, largura]
 let moitaCv = null;
 function escondido() {
   const p = player; if (!p.onGround) return false;
@@ -3348,9 +3393,11 @@ function caminhoFrente(x) {
 function pecasArvore() {
   const F = FASE.fundo, t = layer(F, 'arvore_tronco'), g = layer(F, 'arvore_galho');
   const im = (SPR[F] && SPR[F].imgs) || {};   // raiz e copa chegam depois às vezes: espera todas (senão a árvore fica sem raiz)
-  if (['arvore_tronco', 'arvore_galho', 'arvore_raiz', 'arvore_copa'].some(k => im[k] && !im[k].complete)) return null;
+  const COPAS = ['arvore_copa', 'arvore_copa2', 'arvore_copa3'];   // mais de uma copa: cada árvore usa uma
+  if (['arvore_tronco', 'arvore_galho', 'arvore_raiz', ...COPAS].some(k => im[k] && !im[k].complete)) return null;
   const meta = (SPR[F] && SPR[F].meta) || {};
-  return t && g ? { t, g, r: layer(F, 'arvore_raiz'), copa: layer(F, 'arvore_copa'), meta } : null;
+  const copas = COPAS.map(k => layer(F, k)).filter(Boolean);
+  return t && g ? { t, g, r: layer(F, 'arvore_raiz'), copa: copas[0] || null, copas, meta } : null;
 }
 function arvores() {
   const pecas = pecasArvore();
@@ -3381,11 +3428,23 @@ function arvores() {
       ctx2.imageSmoothingEnabled = false;
       const { t, g: gal, r: raiz, meta } = pecas, th = t.naturalHeight * z;
       for (let y = pe - th; y > -th; y -= th) ctx2.drawImage(t, Math.round(tx - tw / 2 - x0), Math.round(y), tw, th + 1);
-      if (pecas.copa) {   // copa do pasto (2026-11-20): acima do galho mais alto; o tronco termina dentro dela
-        const cw = pecas.copa.naturalWidth * z, ch = pecas.copa.naturalHeight * z;
+      let copaInfo = null, cg = null, gctx = ctx2;
+      if (pecas.copa) {   // copa do pasto (2026-11-20): acima do galho mais alto; o tronco termina dentro dela.
+        // Desenhada depois da raiz (a raiz traz o pé do tronco, que antes ficava por cima das folhas).
+        // Variação por árvore: qual copa, espelhada, tamanho e tom (mais verde ou mais dourada).
+        const img = pecas.copas[gi % pecas.copas.length], esc = [1, .9, 1.08, .95][gi % 4];
+        const cw = Math.round(img.naturalWidth * z * esc), ch = Math.round(img.naturalHeight * z * esc);
         const cy = Math.round(Math.min(...g.map(p => p.y)) + 16 - ch);   // o galho mais alto sai de dentro das folhas
         ctx2.clearRect(Math.floor(tx - tw - x0), 0, Math.ceil(tw * 2), Math.max(0, cy + ch * .45));
-        ctx2.drawImage(pecas.copa, Math.round(tx - cw / 2 - x0), cy, cw, ch);
+        const cc = document.createElement('canvas'); cc.width = cw; cc.height = ch;
+        const k2 = cc.getContext('2d'); k2.imageSmoothingEnabled = false;
+        if (gi % 2) { k2.translate(cw, 0); k2.scale(-1, 1); }
+        k2.drawImage(img, 0, 0, cw, ch); k2.setTransform(1, 0, 0, 1, 0, 0);
+        const tom = [null, 'rgba(70,125,45,.22)', 'rgba(215,150,55,.16)'][gi % 3];
+        if (tom) { k2.globalCompositeOperation = 'source-atop'; k2.fillStyle = tom; k2.fillRect(0, 0, cw, ch); }
+        copaInfo = { c: cc, x: Math.round(tx - cw / 2), y: cy };
+        cg = document.createElement('canvas'); cg.width = c.width; cg.height = c.height;   // galhos: por cima da copa
+        gctx = cg.getContext('2d'); gctx.imageSmoothingEnabled = false;
       }
       const gh = gal.naturalHeight * z, topo = ((meta.arvore_galho && meta.arvore_galho.topo) || 0) * z;
       for (const pl of g) {
@@ -3400,7 +3459,7 @@ function arvores() {
         for (let sx = 0; sx < L; sx += 4) {
           const k = daDireita ? sx / L : 1 - sx / L;                       // 0 no tronco, 1 na ponta
           const dy = Math.round((cai * k * k + Math.sin(k * 7 + fase) * 1.6 * k) / 2) * 2;
-          ctx2.drawImage(rasc, sx, 0, 4, gh, Math.round(ini - x0) + sx, y + dy, 4, gh);
+          gctx.drawImage(rasc, sx, 0, 4, gh, Math.round(ini - x0) + sx, y + dy, 4, gh);
           perfilGalho.set(Math.floor((ini + sx) / 4) * 4 + '|' + pl.y, dy);
         }
       }
@@ -3410,7 +3469,7 @@ function arvores() {
         const rw = raiz.naturalWidth * z, rh = raiz.naturalHeight * z, cx = (meta.arvore_raiz && meta.arvore_raiz.centro) || .5;
         raizFrente = { img: raiz, x: Math.round(tx - rw * cx), y: (PASTO ? GROUND + 34 : H + 6) - rh, w: rw, h: rh };
       }
-      return { c, x0, raizFrente };
+      return { c, x0, raizFrente, copa: copaInfo, galhos: cg };
     }
     // tronco: fica um pouco mais fino para cima, bordas tortas, sulcos verticais, rachaduras em brasa
     for (let y = 0; y < pe; y += B) {
@@ -3492,13 +3551,13 @@ function relevo(x) {
 // baú em pixel art (blocos de 2 px): madeira, cintas douradas e fechadura; aberto mostra o ouro
 function drawBaus() {
   for (const b of baus) {
-    const x = Math.round(b.x - camX - 13), y = Math.round(b.y + relevoDe(b) - 18);
+    const x = Math.round(b.x - camX - 13), y = Math.round(b.y + relevoDe(b) + caiGalho(b) - 16);
     if (x < -40 || x > W + 40) continue;
     const R = (dx, dy, w, h, c) => { ctx.fillStyle = c; ctx.fillRect(x + dx, y + dy, w, h); };
     const imF = layer('objetos/bau', 'fechado'), imA = layer('objetos/bau', 'aberto');
     if (imF) {   // arte da IA (fechado; aberto se existir, senão o fechado com o brilho do tesouro)
       const im = b.aberto && imA ? imA : imF, z = 2, w = im.naturalWidth * z, h = im.naturalHeight * z;
-      const bx = Math.round(b.x - camX - w / 2), by = Math.round(b.y + relevoDe(b) + 2 - h);
+      const bx = Math.round(b.x - camX - w / 2), by = Math.round(b.y + relevoDe(b) + caiGalho(b) + 4 - h);
       if (b.aberto && !imA) {
         const g = ctx.createRadialGradient(bx + w / 2, by + 4, 2, bx + w / 2, by + 4, 40);
         g.addColorStop(0, 'rgba(255,230,140,.85)'); g.addColorStop(1, 'rgba(255,200,80,0)');
@@ -3523,6 +3582,7 @@ function drawBaus() {
   }
 }
 const relevoDe = b => (Math.abs(b.y - GROUND) < 2 ? relevo(b.x) : 0);
+const caiGalho = b => perfilGalho.get(Math.floor(b.x / 4) * 4 + '|' + b.y) || 0;   // baú em cima de galho: desce com ele
 
 function drawWorld() {
   const C = FASE.cores, chao = layer(FASE.fundo, 'chao');
@@ -3544,6 +3604,11 @@ function drawWorld() {
     const x = Math.round(rz.x - camX); if (x > W || x + rz.w < 0) continue;
     ctx.imageSmoothingEnabled = false; ctx.drawImage(rz.img, x, rz.y, rz.w, rz.h); ctx.imageSmoothingEnabled = true;
   }
+  if (AR) for (const t of AR) if (t.copa) {   // copa depois da raiz (o pé do tronco entra por baixo das folhas)
+    const x = Math.round(t.copa.x - camX); if (x > W || x + t.copa.c.width < 0) continue;
+    ctx.drawImage(t.copa.c, x, t.copa.y);
+  }
+  if (AR) for (const t of AR) if (t.galhos) { const x = Math.round(t.x0 - camX); if (x < W && x + t.galhos.width > 0) ctx.drawImage(t.galhos, x, 0); }
   drawCapim(false);
   for (const s of SOLIDS) {
     if (P && s.y >= GROUND - 1) continue;

@@ -596,7 +596,7 @@ def preparar_peca_arvore(nome: str, im: Image.Image, info: dict, tam: dict | Non
         larg = float(np.median((a > 0).sum(axis=1)))
         f = TL / max(1.0, larg)
         info["tronco"] = True
-    elif nome == "arvore_copa":
+    elif nome.startswith("arvore_copa"):
         # tira o toco de tronco embaixo da copa (linhas bem mais estreitas que a copa)
         im = cortar(im)
         a = np.asarray(im)[:, :, 3]; h, w = a.shape
@@ -645,7 +645,7 @@ def preparar_fundo(pasta: Path, ajustes: dict) -> dict | None:
     camadas, metas, info = {}, {}, {}
     for arq in sorted(pasta.iterdir()):
         nome = arq.stem.lower()
-        if arq.suffix.lower() not in EXTS or nome not in FUNDO_ALTURA:
+        if arq.suffix.lower() not in EXTS or re.sub(r"\d+$", "", nome) not in FUNDO_ALTURA:
             continue
         im = Image.open(arq)
         aj = ajustes.get(f"{chave}/{nome}", {})
@@ -677,7 +677,7 @@ def preparar_fundo(pasta: Path, ajustes: dict) -> dict | None:
             if meta:
                 metas[nome] = meta
         else:
-            alvo = FUNDO_ALTURA[nome]
+            alvo = FUNDO_ALTURA[re.sub(r"\d+$", "", nome)]
             largura = max(1, round(im.width * alvo / im.height))
         im = pixelizar(im, largura, alvo, int(aj.get("cores", FUNDO_CORES)))
         if nome.startswith("arvore_") and not fundo_verde_arvore(arq):
@@ -686,7 +686,7 @@ def preparar_fundo(pasta: Path, ajustes: dict) -> dict | None:
             a = np.asarray(im).astype(np.int32)
             exc = np.maximum(0, a[:, :, 2] - a[:, :, 1])
             a[:, :, 0] = np.maximum(0, a[:, :, 0] - exc); a[:, :, 2] -= exc
-            if nome == "arvore_copa":   # folhas opacas (sem ver o tronco através delas)
+            if nome.startswith("arvore_copa"):   # folhas opacas (sem ver o tronco através delas)
                 a[:, :, 3] = np.where(a[:, :, 3] > 90, 255, 0)
             im = Image.fromarray(a.astype(np.uint8), "RGBA")
         saida = DESTINO / chave / f"{nome}.png"

@@ -1062,6 +1062,50 @@ center with dark shaded leaves so no wood is visible. Plain solid #FF00FF magent
 Dicas: se o Gemini puser chão ou céu atrás, peça "only the object on a flat magenta background,
 nothing else". Se o galho vier com folhas por cima, mande assim mesmo: o Claude corta.
 
+**Árvores, versão 2 (2026-11-20): galho mais natural e mais de um tipo de copa.** O Erick achou o
+galho esquisito (parece um tronco reto com a ponta serrada) e as copas das árvores do fundo mais
+bonitas que a copa da plataforma. O jogo já aceita até três copas (`arvore_copa`, `arvore_copa2`,
+`arvore_copa3`): cada árvore usa uma, e o jogo ainda espelha, muda o tamanho e o tom de cada
+uma. Anexar no Gemini o tronco (`arvore_tronco.jpg`) e a imagem do fundo `perto.jpg` (árvores
+do fundo, para copiar o estilo). Salvar em `img/sprites/fundos/vaca/` com esses nomes.
+
+**`arvore_galho`** v2 (4:1; anexar o tronco)
+
+```
+Create an image. One thick living branch of the same tree (same bark and colors as the attached
+trunk), growing from the left edge of the image to the right. It starts thick at the left and
+gets gradually thinner toward the right, with a gentle natural curve and slightly irregular
+bark, and it ends in a tapered tip that splits into two or three small twigs covered by a
+generous cluster of leaves (same leaf style as the trees in the attached background). The TOP
+edge of the branch must stay smooth and nearly flat, like a walkable ledge, with nothing sticking
+up above it except the leaf cluster at the very tip. A few small leaves and twigs hang BELOW the
+branch. No sawn or cut ends. Side view, plain solid #FF00FF magenta background, no shadow, no
+text. Painterly 2D game art style. Very wide image, aspect ratio 4:1.
+```
+
+**`arvore_copa2`** (3:2; anexar o tronco e o `perto.jpg`)
+
+```
+Create an image. A leafy tree crown in the same style as the round trees in the attached
+background image (same rounded leaf clumps, same soft sunset light from the right), but bigger
+and seen up close: a TALL OVAL canopy, a bit taller than wide, made of large rounded leaf clumps,
+fresh green with golden highlights on the top-right and deep blue-green shadows at the bottom.
+NO trunk and NO branches visible: the underside is a continuous mass of shaded leaves (the game
+draws the trunk entering from below). Plain solid #FF00FF magenta background, no shadow, no
+text. Painterly 2D game art style. Aspect ratio 3:2.
+```
+
+**`arvore_copa3`** (3:2; anexar o tronco e o `perto.jpg`)
+
+```
+Create an image. A leafy tree crown in the same style as the trees in the attached background
+image, seen up close: a WIDE UMBRELLA-SHAPED canopy, much wider than tall, with an uneven top
+made of three or four big rounded leaf clumps, olive and autumn-yellow leaves lit by the warm
+sunset on the right, darker shaded leaves underneath. NO trunk and NO branches visible: the
+underside is a continuous mass of shaded leaves. Plain solid #FF00FF magenta background, no
+shadow, no text. Painterly 2D game art style. Aspect ratio 3:2.
+```
+
 **Chão do pasto, versões para testar no laboratório (2026-11-20).** Testar em
 `jogo/laboratorio/pasto.html` ("Chão (textura)") antes de salvar. A que for escolhida vai para
 `img/sprites/fundos/vaca/chao.jpg`.
@@ -1137,17 +1181,29 @@ laterais (a ferramenta mistura as bordas). Nada disso precisou de imagem nova.
 **3. Inimigos (PixelLab, Sidescroller, East, 32 px).** Pastas `img/sprites/inimigos/besouro/`
 (animação `andar`) e `img/sprites/inimigos/pombo/` (animação `voar`).
 
-**Besouro grande (2026-11-20, substitui o prompt pequeno):** o besouro passou a ser enorme (no jogo
-ocupa ~156 x 144 px, mais alto que o pulo do herói, 136 px) e é "paz e amor": não ataca, só anda no
-mato alto. Gerar em 64 px ou mais (ou 32 px e o jogo amplia), quadrado, com o chifre de cima subindo
-alto para a silhueta ficar mais alta que larga.
+**Besouro grande (2026-11-20, substitui o prompt pequeno):** o besouro é enorme (no jogo ocupa
+~156 x 144 px, mais alto que o pulo do herói, 136 px) e "paz e amor": anda devagar num caminho
+longo e não ataca. Se o herói bater nele, ele se prepara e dá uma **investida** (corre de cabeça
+baixa com o chifre para a frente). No PixelLab: Sidescroller, East, **64 px** (o jogo amplia),
+personagem mais alto que largo por causa do chifre de cima. Animações: `andar` (passos lentos e
+pesados), `preparar` (abaixa a cabeça e raspa a pata, 3–4 quadros) e `investida` (corrida rápida,
+4–6 quadros). Pasta `img/sprites/inimigos/besouro/`.
 
 ```
-A giant hercules beetle, calm and majestic, much taller than a person: shiny dark blue-black shell
-with a light blue highlight, a long curved horn rising high from the thorax and a smaller horn on
-the head, small yellow eyes, six sturdy legs, slow walking pose. Side view, 16-bit pixel art,
-black outline, transparent background.
+A giant hercules beetle, calm and majestic, much taller than a person: a big round shiny dark
+blue-black shell with a light blue highlight, a long curved horn rising high from the thorax and
+curving forward, a smaller upturned horn on the head, small kind yellow eyes, six sturdy legs.
+Gentle giant, not angry. Side view facing right, 16-bit pixel art, black outline, transparent
+background.
 ```
+
+Animação `preparar`: "the beetle lowers its head and horns, scrapes the ground with a front leg,
+ready to charge". Animação `investida`: "the beetle charges forward fast, head down, horns
+pointing forward, legs running".
+
+**Pombo (2026-11-20):** mesma regra do besouro (não ataca; encostar deixa com 1 de vida; se
+apanhar, dá uma investida em mergulho). Animações `voar` e `investida` ("the pigeon dives fast
+forward, wings folded back, beak first").
 
 ```
 An angry grey city pigeon enemy: grey body, iridescent green and purple neck, orange eye with an
