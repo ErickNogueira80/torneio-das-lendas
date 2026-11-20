@@ -1230,6 +1230,127 @@ round lights (red, yellow, green, blue, purple) around the rim, a green glow und
 view, 16-bit detailed pixel art, black outline, transparent background.
 ```
 
+## 4.13 Kit do pasto no estilo Magibot (Gemini) — 2026-11-20
+
+O Erick escolheu o estilo do Magibot para o jogo (em pixel art): fundo claro e enevoado num tom só, o
+plano do jogo com cor forte, chão em **barranco** (topo de musgo e capim visto um pouco de cima, onde
+se pisa, e a frente de terra em sombra), plataformas que fazem parte do cenário e silhuetas pretas na
+frente. No pasto: **sem tijolos e sem raios de sol**; plataformas de fazenda (feno, cerca, carroça,
+tronco, pedra). O piso é plano (o herói anda reto). Esboço feito por código: tela de teste
+`?fase=vaca&limpo`, tecla 7.
+
+**Regras para todas as peças:** anexar o `perto.jpg` (para nascer na mesma paleta e luz do fundo);
+vista de lado, **um pouco de cima** (o topo aparece como uma faixa onde se pisa); topo **plano**;
+fundo magenta liso #FF00FF; sem sombra no chão, sem texto. Salvar em `img/sprites/fundos/vaca/`
+com o nome indicado (JPG ou PNG). A ferramenta tira o magenta e reduz para pixel art.
+
+**`bloco_chao`** (chão que se repete; 4:1)
+
+```
+Create an image. A long flat ground bank for a 2D side-scrolling platformer, seen from the side
+and slightly from above. The TOP is a flat strip of lush green grass and moss with tiny
+wildflowers, seen slightly from above, where the character walks. Moss and grass hang over the
+front edge in soft drips. Below it, the FRONT FACE of the bank: dark earth in shadow, warm purple-
+brown, with vertical streaks, tangled thin roots, patches of moss and a few half-buried small
+stones; it gets darker toward the bottom and fades to almost black. No bricks, no carved stones.
+The left and right edges must match so it repeats seamlessly. Stylized hand-painted 2D platformer
+art, chunky simple shapes, soft painterly gradients, warm late-afternoon light from the right,
+same colors and light as the attached image. Plain solid #FF00FF magenta background above the
+grass. Very wide image, aspect ratio 4:1.
+```
+
+**`bloco_beirada`** (ponta do barranco na beira de um buraco; o jogo espelha para o outro lado; 1:1)
+
+```
+Create an image. The RIGHT END of the same grassy earth bank as the attached image, where the
+ground ends at a pit: the grass top curves down over a rounded edge, moss and roots hang over the
+corner, and the earth face turns slightly inward and gets darker toward the bottom. The left side
+of the image continues the flat bank (it will join the repeating ground). Stylized hand-painted 2D
+platformer art, chunky simple shapes, soft painterly gradients, warm late-afternoon light from the
+right, same colors and light as the attached image. Plain solid #FF00FF magenta background on the
+right and above. Square image, aspect ratio 1:1.
+```
+
+**`feno`** (um fardo de feno para subir; 4:3)
+
+```
+Create an image. One big rectangular hay bale lying on the ground, seen from the side and slightly
+from above so the flat top is visible (the character stands on it). Golden straw with darker
+shaded sides, two tight twine bands, a few loose straws sticking out, a little moss and grass at
+the base. Stylized hand-painted 2D platformer art, chunky simple shapes, soft painterly gradients,
+warm late-afternoon light from the right, same colors and light as the attached image. Plain solid
+#FF00FF magenta background, no shadow. Aspect ratio 4:3.
+```
+
+**`feno_pilha`** (pilha de feno em degraus: dois embaixo, um em cima; 4:3)
+
+```
+Create an image. A stack of three rectangular hay bales like steps: two bales side by side on the
+ground and one bale on top of them, shifted to the right, so the character can climb. Seen from
+the side and slightly from above, flat tops visible. Golden straw, twine bands, loose straws, a
+little grass at the base. Stylized hand-painted 2D platformer art, chunky simple shapes, soft
+painterly gradients, warm late-afternoon light from the right, same colors and light as the
+attached image. Plain solid #FF00FF magenta background, no shadow. Aspect ratio 4:3.
+```
+
+**`cerca`** (trecho de cerca de madeira que se repete; o herói pode andar no topo; 3:1)
+
+```
+Create an image. A section of old rustic wooden pasture fence: thick weathered posts and two
+chunky horizontal rails, the TOP rail is wide and flat like a beam the character can walk on. Some
+moss and grass around the posts at the bottom. Seen from the side, slightly from above. The left
+and right edges must match so it repeats seamlessly. Stylized hand-painted 2D platformer art,
+chunky simple shapes, soft painterly gradients, warm late-afternoon light from the right, same
+colors and light as the attached image. Plain solid #FF00FF magenta background, no shadow. Wide
+image, aspect ratio 3:1.
+```
+
+**`carroca`** (carroça velha de feno; a caçamba é plataforma; 3:2)
+
+```
+Create an image. An old abandoned wooden farm cart full of hay, seen from the side and slightly
+from above: big wooden wheels (one a bit tilted), a flat wooden bed with a heap of hay on top, a
+long wooden pole resting on the ground, moss and grass growing around the wheels. Stylized hand-
+painted 2D platformer art, chunky simple shapes, soft painterly gradients, warm late-afternoon
+light from the right, same colors and light as the attached image. Plain solid #FF00FF magenta
+background, no shadow. Aspect ratio 3:2.
+```
+
+**`tronco_caido`** (tronco caído coberto de musgo, topo plano; 3:1)
+
+```
+Create an image. A big fallen tree trunk lying on the ground, seen from the side and slightly from
+above, thick and slightly curved, with a flat mossy top the character can walk on, bark with deep
+grooves, a broken end on the left and a few roots on the right, ferns and grass growing around it.
+Stylized hand-painted 2D platformer art, chunky simple shapes, soft painterly gradients, warm
+late-afternoon light from the right, same colors and light as the attached image. Plain solid
+#FF00FF magenta background, no shadow. Wide image, aspect ratio 3:1.
+```
+
+**`pedra`** (pedra grande com topo plano e musgo; 4:3)
+
+```
+Create an image. A big rounded boulder sitting in the grass, seen from the side and slightly from
+above, with a flat mossy top the character can stand on, warm grey-purple stone with soft
+painterly shading, a few cracks, moss and small flowers at the base. Stylized hand-painted 2D
+platformer art, chunky simple shapes, soft painterly gradients, warm late-afternoon light from the
+right, same colors and light as the attached image. Plain solid #FF00FF magenta background, no
+shadow. Aspect ratio 4:3.
+```
+
+**`cipos`** (silhuetas pretas da frente da câmera; 2:1)
+
+```
+Create an image. Pure black silhouettes for the foreground of a 2D game, very close to the camera:
+on the top, two or three thick twisted tree branches and vines hanging down from above with a few
+leaves; on the bottom, a few clumps of tall grass and fern silhouettes. Everything is solid flat
+black (#000000) with no details, soft organic shapes like in a modern indie platformer. Plain
+solid #FF00FF magenta background everywhere else. Wide image, aspect ratio 2:1.
+```
+
+Quando chegarem, o Claude registra as peças na ferramenta (alturas e recorte), troca o esboço do
+código pelo `bloco_chao`/`bloco_beirada` e monta as plataformas na tela de teste.
+
 ## 5. Ficha dos 3 heróis com constelação (para a Milena)
 
 O humano já está definido (o 4º jogador, sem constelação). Antes das imagens de cada herói dos

@@ -659,7 +659,11 @@ recorte em magenta `#FF00FF`, porque o recorte verde apaga o verde da arte.
     (`drawBlocosAltos`, desenhados antes do chão). Fundo claro e enevoado num tom quente só, raios de
     sol, cipós pretos na frente (`drawCipos`, paralaxe 1,3) e uma sombra embaixo no lugar da faixa
     preta. A tela `?limpo` agora tem um buraco (1600–1740) e três blocos (900, 2300, 2460).
-    Próximo passo: kit de artes no Gemini nesse estilo (bloco de chão, beiradas, plataformas, cipós).
+    Refino (2026-11-20, Erick): **piso plano** no pasto (`relevo` = 0, o herói anda reto), frente do
+    barranco de **terra** com estrias, musgo e pedrinhas (sem tijolos, é pasto) e **sem raios de sol**.
+    Plataformas: objetos de fazenda (feno, cerca, carroça, tronco caído, pedra). Kit de prompts do
+    Gemini na seção 4.13 de `04-prompts-sprites.md` (`bloco_chao`, `bloco_beirada`, `feno`,
+    `feno_pilha`, `cerca`, `carroca`, `tronco_caido`, `pedra`, `cipos`).
     **Tela de teste:** `?fase=vaca&limpo` tira bichos, árvores, buracos, baús e perigos (só o chão e
     o herói), para acertar o piso e a transição com o fundo.
   - **Correções (2026-11-20):** o campo pintado acabava antes do pé da tela e aparecia uma linha

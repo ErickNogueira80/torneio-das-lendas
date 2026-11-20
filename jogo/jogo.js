@@ -3316,7 +3316,7 @@ const ESTILOS = [
   ['luz', 'Luz forte (Sky Dust): cena escura, sol que pinta tudo'],
   ['faixa', 'Faixa de jogo (img4): chão simples de tufos, fundo enevoado'],
   ['calcada', 'Calçada (Afterimage): caminho de pedra no prado, raios de luz'],
-  ['magibot', 'Magibot: blocos de musgo e terra, fundo enevoado, cipós na frente'],
+  ['magibot', 'Magibot: barranco de musgo e terra, fundo enevoado, cipós na frente'],
 ];
 let ESTILO = ESTILOS.some(e => e[0] === params.get('estilo')) ? params.get('estilo') : params.has('limpo') ? 'magibot' : 'prado', estiloAviso = 3;
 // Desenha um bloco (chão ou bloco alto) em pixel de 2 px: g = contexto, (x, yTopo) = onde se pisa,
@@ -3338,16 +3338,18 @@ function blocoMagibot(g, x0, yT, w, fundo, bordaE, bordaD, seed) {
   let gr = g.createLinearGradient(0, yT + 10, 0, fundo);
   gr.addColorStop(0, '#5a3c42'); gr.addColorStop(.35, '#3a2630'); gr.addColorStop(1, '#0d080b');
   g.fillStyle = gr; g.fillRect(x0, yT, w, fundo - yT);
-  // pedras encaixadas (fileiras desencontradas)
-  for (let fy = yT + 18, f = 0; fy < fundo; fy += 24, f++) {
-    for (let fx = x0 - (f % 2) * 22; fx < x0 + w;) {
-      const lw = 30 + Math.floor(hashC(fx * .17 + f * 7 + seed) * 4) * 8;
-      const esc = clamp((fy - yT) / (fundo - yT), 0, 1);
-      g.fillStyle = `rgba(110,78,86,${.55 * (1 - esc)})`; g.fillRect(q(fx + 2), q(fy + 2), lw - 4, 2);          // luz no alto da pedra
-      g.fillStyle = `rgba(20,12,16,${.8 - .3 * esc})`; g.fillRect(q(fx), q(fy), lw, 2); g.fillRect(q(fx + lw - 2), q(fy), 2, 22);   // juntas
-      if (hashC(fx * .53 + fy) > .72) { g.fillStyle = 'rgba(20,12,16,.6)'; g.fillRect(q(fx + 8), q(fy + 8), 10, 2); g.fillRect(q(fx + 16), q(fy + 10), 2, 6); }   // entalhe
-      fx += lw;
-    }
+  // terra do barranco (sem tijolos: é pasto): estrias verticais, manchas de musgo e pedrinhas soltas
+  for (let x = x0; x < x0 + w; x += 2) {
+    const k = hashC(x * .37 + seed), comp = 20 + k * 70, y1 = yT + 14 + hashC(x * .11 + seed) * 30;
+    if (k > .55) { g.fillStyle = k > .85 ? 'rgba(110,74,80,.45)' : 'rgba(18,10,14,.4)'; g.fillRect(x, q(y1), 2, q(comp)); }
+  }
+  for (let i = 0; i < w / 40; i++) {   // manchas de musgo grudadas na terra
+    const mx = x0 + hashC(i * 2.3 + seed) * w, my = yT + 24 + hashC(i * 3.7 + seed) * 50, r = 6 + hashC(i * 5.1) * 10;
+    for (let dy = -r; dy <= r; dy += 2) { const hw = q(Math.sqrt(Math.max(0, r * r - dy * dy)) * 1.6); g.fillStyle = dy < 0 ? 'rgba(92,120,52,.55)' : 'rgba(60,84,40,.5)'; g.fillRect(q(mx - hw), q(my + dy), hw * 2, 2); }
+  }
+  for (let i = 0; i < w / 30; i++) {   // pedrinhas meio enterradas
+    const px = q(x0 + hashC(i * 7.7 + seed) * w), py = q(yT + 30 + hashC(i * 1.3 + seed) * 70), pw = q(6 + hashC(i) * 10);
+    g.fillStyle = 'rgba(120,96,100,.55)'; g.fillRect(px, py, pw, 2); g.fillStyle = 'rgba(70,52,58,.6)'; g.fillRect(px, py + 2, pw, 4);
   }
   // raízes finas descendo pela frente
   for (let x = x0 + 20; x < x0 + w - 20; x += 70 + hashC(x * .7 + seed) * 90) {
@@ -3461,15 +3463,7 @@ function posEstilo() {   // efeito sobre a cena inteira (depois do mundo, antes 
     g = c.createLinearGradient(0, 0, W * .5, H * .4);
     g.addColorStop(0, 'rgba(90,150,255,.22)'); g.addColorStop(1, 'rgba(90,150,255,0)');
     c.fillStyle = g; c.fillRect(0, 0, W, H);
-  } else if (ESTILO === 'magibot') {
-    c.globalCompositeOperation = 'screen';
-    for (let i = 0; i < 3; i++) {   // raios de sol vindos do alto à direita
-      const x = ((i * 360 + 300 - camX * .1) % (W + 500) + W + 500) % (W + 500) - 150, l = 70 + i * 30;
-      const g = c.createLinearGradient(0, 0, 0, GROUND + 20);
-      g.addColorStop(0, 'rgba(255,225,170,0)'); g.addColorStop(.2, 'rgba(255,225,170,.1)'); g.addColorStop(1, 'rgba(255,225,170,0)');
-      c.fillStyle = g; c.beginPath(); c.moveTo(x, 0); c.lineTo(x + l, 0); c.lineTo(x + l - 220, GROUND + 20); c.lineTo(x - 220, GROUND + 20); c.closePath(); c.fill();
-    }
-    c.globalCompositeOperation = 'source-over';
+  } else if (ESTILO === 'magibot') {   // pasto aberto: sem raios de sol (Erick); só os cipós na frente
     drawCipos();
   } else if (ESTILO === 'calcada') {   // raios de luz em diagonal
     c.globalCompositeOperation = 'screen';
@@ -3786,6 +3780,7 @@ function deslocDesenho(cx, noChao, plat, plano) {
   return { dy: fr + rel, esc: 1 + .08 * k };
 }
 function relevo(x) {
+  if (PASTO) return 0;   // pasto: piso plano, o herói anda reto (Erick, 2026-11-20)
   const P = pisoPronto; if (!P) return 0;
   const y = P.topos.get(Math.floor(x / 4) * 4);
   return y === undefined ? 0 : clamp(y - GROUND, -14, 10);
