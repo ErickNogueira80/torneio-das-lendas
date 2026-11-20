@@ -28,6 +28,8 @@
 <script>
   // mostra na tela qualquer erro do jogo (no celular não há console para ver)
   window.mostrarErro = function (e, arq, linha) {
+    // erro de extensão do navegador (chrome-extension://, moz-extension://...) não é do jogo: ignora
+    if (/-extension:\/\//.test(String(arq || '') + ' ' + String((e && e.stack) || ''))) return;
     var d = document.getElementById('erro'); if (!d || d.dataset.ok) return; d.dataset.ok = 1;
     var msg = (e && e.message) || String(e), pilha = (e && e.stack) || ((arq || '').split('/').pop() + ':' + linha);
     d.textContent = 'Erro no jogo: ' + msg + '  |  ' + String(pilha).split('\n').slice(0, 3).join(' / ') + '  |  ' + navigator.userAgent;
@@ -37,10 +39,10 @@
   window.addEventListener('unhandledrejection', function (ev) { window.mostrarErro(ev.reason); });
 </script>
 <!-- ?v= muda a cada publicação, para o celular não misturar arquivos novos com antigos do cache -->
-<script src="dados/herois.js?v=campo2"></script>
-<script src="dados/fases.js?v=campo2"></script>
-<script src="dados/mapa.js?v=campo2"></script>
-<script src="dados/bestiario.js?v=campo2"></script>
-<script src="jogo.js?v=campo2"></script>
+<script src="dados/herois.js?v=campo3"></script>
+<script src="dados/fases.js?v=campo3"></script>
+<script src="dados/mapa.js?v=campo3"></script>
+<script src="dados/bestiario.js?v=campo3"></script>
+<script src="jogo.js?v=campo3"></script>
 </body>
 </html>
