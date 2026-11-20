@@ -644,6 +644,13 @@ recorte em magenta `#FF00FF`, porque o recorte verde apaga o verde da arte.
     mantendo a textura e o escurecimento de cima para baixo). Com o prado, o capim que balança sai.
     A faixa da frente ficou **preta** (pedido do Erick). Correção junto: o piso era montado antes de
     a lista de imagens chegar e caía no capim desenhado pelo código (`SPRITES_PRONTOS`).
+    **Estilos para comparar (2026-11-20, referências do Erick: Cast n Chill, Summer House, Sky Dust,
+    img4 e Afterimage):** no pasto, as teclas **1 a 6** (ou `?estilo=`) trocam: 1 `prado` (hoje),
+    2 `quadro` (um tom lilás por cima de tudo e névoa entre os planos), 3 `chapado` (a cena inteira
+    reduzida a 20 cores tiradas do céu, do fundo e do prado, mais vivas), 4 `luz` (cena escurecida e
+    o sol pintando tudo), 5 `faixa` (chão simples de tufos de folhas e corpo escuro, fundo num tom só e
+    apagado) e 6 `calcada` (caminho de lajes de pedra no prado e raios de luz). `posEstilo()` aplica os
+    efeitos depois do mundo e antes da HUD; o nome do estilo aparece no alto. É só para escolher.
     **Tela de teste:** `?fase=vaca&limpo` tira bichos, árvores, buracos, baús e perigos (só o chão e
     o herói), para acertar o piso e a transição com o fundo.
   - **Correções (2026-11-20):** o campo pintado acabava antes do pé da tela e aparecia uma linha

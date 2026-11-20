@@ -157,6 +157,7 @@ addEventListener('keydown', e => {
   if (e.repeat) return;
   keys[e.code] = true;
   if (state !== 'play') { menuKey(e.code); return; }
+  if (PASTO && /^Digit[1-6]$/.test(e.code)) trocarEstilo(+e.code[5] - 1);   // teste de estilos (2026-11-20)
   if (JUMP_KEYS.includes(e.code)) jumpPressed = true;
   if (SWORD_KEYS.includes(e.code)) swordPressed = true;
   if (POWER_KEYS.includes(e.code)) powerPressed = true;
@@ -3294,6 +3295,90 @@ let groundPattern = null;
 // o desenho sobe e desce uns pixels em volta dela. Por quadro, o jogo só copia o pedaço visível.
 const PISO_TOPO = GROUND - (PASTO ? 96 : 26);   // pasto: o prado começa 80 px acima dos pés
 let pisoPronto = null;
+// ---------- estilos de teste do pasto (2026-11-20, referências do Erick) ----------
+// Teclas 1 a 6 (ou ?estilo=) trocam o jeito de juntar fundo e chão, para comparar andando:
+const ESTILOS = [
+  ['prado', 'Hoje: prado pintado'],
+  ['quadro', 'Quadro (Cast n Chill): um tom só e névoa entre os planos'],
+  ['chapado', 'Chapado (Summer House): poucas cores, todas iguais'],
+  ['luz', 'Luz forte (Sky Dust): cena escura, sol que pinta tudo'],
+  ['faixa', 'Faixa de jogo (img4): chão simples de tufos, fundo enevoado'],
+  ['calcada', 'Calçada (Afterimage): caminho de pedra no prado, raios de luz'],
+];
+let ESTILO = ESTILOS.some(e => e[0] === params.get('estilo')) ? params.get('estilo') : 'prado', estiloAviso = 3;
+function trocarEstilo(i) { ESTILO = ESTILOS[i][0]; pisoPronto = null; estiloAviso = 3; }
+let lutChapado = null;
+function paletaChapada() {   // as cores mais usadas no céu, no fundo e no prado, um pouco mais vivas
+  if (!layer(FASE.fundo, 'perto') || !layer(FASE.fundo, 'prado')) return null;   // espera as imagens
+  const conta = new Map();
+  for (const n of ['ceu', 'longe', 'perto', 'prado']) {
+    const im = layer(FASE.fundo, n); if (!im) continue;
+    const c = document.createElement('canvas'); c.width = im.naturalWidth; c.height = im.naturalHeight;
+    const g = c.getContext('2d'); g.drawImage(im, 0, 0);
+    const a = g.getImageData(0, 0, c.width, c.height).data;
+    for (let i = 0; i < a.length; i += 4) {
+      if (a[i + 3] < 200) continue;
+      const k = (a[i] >> 4) << 8 | (a[i + 1] >> 4) << 4 | (a[i + 2] >> 4);
+      const v = conta.get(k) || [0, 0, 0, 0]; v[0] += a[i]; v[1] += a[i + 1]; v[2] += a[i + 2]; v[3]++; conta.set(k, v);
+    }
+  }
+  const pal = [...conta.values()].sort((p, q) => q[3] - p[3]).slice(0, 18).map(v => {
+    const r = v[0] / v[3], g = v[1] / v[3], b = v[2] / v[3], m = (r + g + b) / 3, k = 1.3;
+    return [r, g, b].map(c => clamp(m + (c - m) * k, 0, 255));
+  });
+  pal.push([10, 8, 14], [245, 236, 220]);
+  const lut = new Uint8Array(32768 * 3);
+  for (let i = 0; i < 32768; i++) {
+    const r = (i >> 10) * 8 + 4, g = (i >> 5 & 31) * 8 + 4, b = (i & 31) * 8 + 4;
+    let m = pal[0], md = 1e9;
+    for (const p of pal) { const d = 2 * (p[0] - r) ** 2 + 4 * (p[1] - g) ** 2 + 3 * (p[2] - b) ** 2; if (d < md) { md = d; m = p; } }
+    lut[i * 3] = m[0]; lut[i * 3 + 1] = m[1]; lut[i * 3 + 2] = m[2];
+  }
+  return lut;
+}
+function posEstilo() {   // efeito sobre a cena inteira (depois do mundo, antes da HUD)
+  if (!PASTO) return;
+  const c = ctx; c.save();
+  if (ESTILO === 'quadro') {
+    c.globalCompositeOperation = 'multiply'; c.fillStyle = 'rgba(232,212,240,.85)'; c.fillRect(0, 0, W, H);
+    c.globalCompositeOperation = 'screen'; c.fillStyle = 'rgba(70,50,90,.28)'; c.fillRect(0, 0, W, H);
+    c.globalCompositeOperation = 'source-over';
+    let g = c.createLinearGradient(0, GROUND - 170, 0, GROUND - 20);
+    g.addColorStop(0, 'rgba(235,205,235,0)'); g.addColorStop(.6, 'rgba(235,205,235,.32)'); g.addColorStop(1, 'rgba(235,205,235,0)');
+    c.fillStyle = g; c.fillRect(0, GROUND - 170, W, 150);
+  } else if (ESTILO === 'chapado' && !HD && mundoCtx) {
+    if (!lutChapado) lutChapado = paletaChapada();
+    if (lutChapado) {
+    const d = mundoCtx.getImageData(0, 0, W, H), a = d.data, L = lutChapado;
+    for (let i = 0; i < a.length; i += 4) { const k = ((a[i] >> 3) << 10 | (a[i + 1] >> 3) << 5 | (a[i + 2] >> 3)) * 3; a[i] = L[k]; a[i + 1] = L[k + 1]; a[i + 2] = L[k + 2]; }
+    mundoCtx.putImageData(d, 0, 0);
+    }
+  } else if (ESTILO === 'luz') {
+    c.globalCompositeOperation = 'multiply'; c.fillStyle = 'rgba(80,55,125,.62)'; c.fillRect(0, 0, W, H);
+    c.globalCompositeOperation = 'screen';
+    let g = c.createRadialGradient(W * .8, H * .57, 10, W * .8, H * .57, W * .75);
+    g.addColorStop(0, 'rgba(255,175,90,.85)'); g.addColorStop(.35, 'rgba(255,120,80,.35)'); g.addColorStop(1, 'rgba(255,90,90,0)');
+    c.fillStyle = g; c.fillRect(0, 0, W, H);
+    g = c.createLinearGradient(0, 0, W * .5, H * .4);
+    g.addColorStop(0, 'rgba(90,150,255,.22)'); g.addColorStop(1, 'rgba(90,150,255,0)');
+    c.fillStyle = g; c.fillRect(0, 0, W, H);
+  } else if (ESTILO === 'calcada') {   // raios de luz em diagonal
+    c.globalCompositeOperation = 'screen';
+    for (let i = 0; i < 4; i++) {
+      const x = ((i * 290 + 120 - camX * .15) % (W + 400) + W + 400) % (W + 400) - 200, l = 50 + i * 18;
+      const g = c.createLinearGradient(0, 0, 0, GROUND);
+      g.addColorStop(0, 'rgba(255,236,190,0)'); g.addColorStop(.25, 'rgba(255,236,190,.09)'); g.addColorStop(1, 'rgba(255,236,190,0)');
+      c.fillStyle = g; c.beginPath(); c.moveTo(x, 0); c.lineTo(x + l, 0); c.lineTo(x + l - 160, GROUND); c.lineTo(x - 160, GROUND); c.closePath(); c.fill();
+    }
+  }
+  c.restore();
+  if (estiloAviso > 0 || params.has('limpo')) {   // nome do estilo no alto (some sozinho fora da tela de teste)
+    const i = ESTILOS.findIndex(e => e[0] === ESTILO), t = (i + 1) + ' · ' + ESTILOS[i][1] + '   (teclas 1 a 6)';
+    c.save(); c.font = 'bold 15px system-ui, sans-serif'; c.textAlign = 'center';
+    const w = c.measureText(t).width + 24; c.fillStyle = 'rgba(0,0,0,.55)'; c.fillRect(W / 2 - w / 2, 96, w, 26);
+    c.fillStyle = '#ffe9b0'; c.fillText(t, W / 2, 114); c.restore();
+  }
+}
 function piso() {
   if (pisoPronto) return pisoPronto;
   if (typeof document === 'undefined') return null;
@@ -3329,6 +3414,20 @@ function piso() {
       if (borda < 14) y += (14 - borda) * (14 - borda) / 14;
       ys.push(Math.round(y / B) * B);
     }
+    if (PASTO && ESTILO === 'faixa') {   // faixa de jogo: tufos de folhas no topo e corpo que escurece até o preto
+      const yT = GROUND - PISO_TOPO, gr = g.createLinearGradient(0, yT, 0, alt);
+      gr.addColorStop(0, '#2c4424'); gr.addColorStop(.35, '#16220f'); gr.addColorStop(1, '#040604');
+      g.fillStyle = gr; g.fillRect(s.x, yT + 2, s.w, alt);
+      const bola = (cx, cy, r, cor) => { g.fillStyle = cor; for (let dy = -r; dy <= r; dy += 2) { const hw = Math.round(Math.sqrt(Math.max(0, r * r - dy * dy)) / 2) * 2; g.fillRect(Math.round(cx / 2) * 2 - hw, Math.round((cy + dy) / 2) * 2, hw * 2, 2); } };
+      for (let x = s.x + 4; x < s.x + s.w - 4; x += 12) bola(x, yT + 2, 9 + hashC(x * .37) * 6, '#263c20');                       // fileira de trás
+      for (let x = s.x + 8; x < s.x + s.w - 8; x += 17) {                                                                  // fileira da frente
+        const r = 8 + hashC(x * .71) * 6, cy = yT + 7;
+        bola(x, cy, r, '#34502a'); bola(x - r * .2, cy - r * .3, r * .66, '#4f7234'); bola(x - r * .35, cy - r * .5, r * .3, '#7a9a44');
+      }
+      for (let i = 0; i < s.w / 3; i++) { const x = s.x + hashC(i * 1.7 + s.x) * s.w, y = yT + 10 + hashC(i * 3.1) * 40; g.fillStyle = hashC(i * 5.3) < .5 ? '#22341b' : '#0f170b'; g.fillRect(Math.round(x / 2) * 2, Math.round(y / 2) * 2, 2, 2); }
+      ys.forEach((y, i) => topos.set(s.x + i * 4, PISO_TOPO + base + y));
+      continue;
+    }
     if (PASTO) {   // campo: começa 40 px acima da linha dos pés e desce até a faixa preta; sem borda nem crosta
       // beiradas do buraco arredondadas e quebradas (iguais dos dois lados), não um corte reto
       const tp = (prado ? GROUND - 80 : capimArte ? GROUND - 50 : GROUND - 40) - PISO_TOPO, R0 = 40;
@@ -3341,6 +3440,17 @@ function piso() {
       g.fillStyle = '#13282b'; g.fillRect(s.x, GROUND - PISO_TOPO, s.w, alt);   // fundo do campo, embaixo da imagem
       g.translate(0, (prado ? GROUND - 80 : capimArte ? GROUND - 50 : GROUND - 40) - PISO_TOPO); g.scale(z, z);   // pintado: corpo do capim 16 px acima dos pés
       g.fillStyle = pat; g.fillRect(s.x / z - 4, 0, s.w / z + 8, chao.height); g.restore();
+      if (ESTILO === 'calcada') {   // caminho de lajes de pedra onde se pisa; o prado fica atrás e embaixo
+        const y0 = GROUND - PISO_TOPO - 2;
+        for (let x = s.x; x < s.x + s.w;) {
+          const lw = 34 + Math.floor(hashC(x * .13) * 4) * 8, k = hashC(x * .29);
+          g.fillStyle = k < .33 ? '#8a8172' : k < .66 ? '#7f776a' : '#948a79'; g.fillRect(x, y0, lw - 2, 22);
+          g.fillStyle = '#bcb19c'; g.fillRect(x, y0, lw - 2, 2); g.fillStyle = '#a69c88'; g.fillRect(x, y0 + 2, lw - 2, 2);
+          g.fillStyle = '#5b5449'; g.fillRect(x, y0 + 18, lw - 2, 4); g.fillStyle = '#3a352e'; g.fillRect(x + lw - 2, y0, 2, 22);
+          if (k > .7) { g.fillStyle = '#5d7a34'; g.fillRect(x + 6, y0, 8, 2); g.fillRect(x + 8, y0 - 2, 4, 2); }   // musgo
+          x += lw;
+        }
+      }
       ys.forEach((y, i) => topos.set(s.x + i * 4, PISO_TOPO + base + y));
       continue;
     }
@@ -3609,6 +3719,10 @@ function drawWorld() {
     const gr = ctx.createLinearGradient(0, 180, 0, GROUND + 20);
     gr.addColorStop(0, 'rgba(255,196,160,0)'); gr.addColorStop(.6, 'rgba(255,190,150,.16)'); gr.addColorStop(1, 'rgba(255,200,150,.30)');
     ctx.fillStyle = gr; ctx.fillRect(0, 180, W, GROUND + 20 - 180);
+    if (ESTILO === 'faixa') {   // fundo num tom só, mais apagado: o chão de jogo se destaca
+      ctx.save(); ctx.globalCompositeOperation = 'multiply'; ctx.fillStyle = 'rgba(150,140,190,1)'; ctx.fillRect(0, 0, W, H);
+      ctx.globalCompositeOperation = 'source-over'; ctx.fillStyle = 'rgba(150,130,180,.22)'; ctx.fillRect(0, 0, W, H); ctx.restore();
+    }
   }
   if (AR) for (const t of AR) { const x = Math.round(t.x0 - camX); if (x < W && x + t.c.width > 0) ctx.drawImage(t.c, x, 0); }
   const P = piso();
@@ -4548,6 +4662,8 @@ function draw() {
   medir('frente', drawFrente);
   ctx.restore();
   medir('luz', drawLuz);
+  if (estiloAviso > 0) estiloAviso -= 1 / 60;
+  posEstilo();
   if (!HD) {
     ctx = tela;
     ctx.imageSmoothingEnabled = false; ctx.drawImage(mundoCv, 0, 0, W, H); ctx.imageSmoothingEnabled = true;
