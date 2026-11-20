@@ -65,21 +65,30 @@ FUNDO_PIXEL = 2
 FUNDO_ALTURA = {"ceu": 270, "longe": 180, "perto": 210, "chao": 128,
                 # peças das árvores-plataforma (tela = o dobro): tronco que se repete na vertical,
                 # raiz da base e galho horizontal com o topo reto (onde se pisa)
-                "arvore_tronco": 150, "arvore_raiz": 40, "arvore_galho": 14}
+                "arvore_tronco": 150, "arvore_raiz": 40, "arvore_galho": 14,
+                # copa (pasto, 2026-11-20): só as folhas, o tronco do jogo entra por baixo
+                "arvore_copa": 0}
 # As peças da árvore são escaladas pela medida que importa para o encaixe (em px da arte):
 TRONCO_LARGURA = 40   # largura do tronco
 GALHO_ESPESSURA = 12  # espessura do galho (o topo dele é onde se pisa)
+COPA_LARGURA = 190    # largura da copa (380 px na tela, como a copa desenhada pelo jogo)
 FUNDO_CORES = 32   # cores por camada (paleta limitada, cara de 16 bits)
 
 
-def remover_fundo(img: Image.Image) -> Image.Image:
-    """Devolve RGBA sem o fundo de cor lisa (detectado pelas bordas)."""
+def remover_fundo(img: Image.Image, so_topo: bool = False) -> Image.Image:
+    """Devolve RGBA sem o fundo de cor lisa (detectado pelas bordas). so_topo: camadas de morros; se
+    as 4 bordas derem uma cor diferente da borda de cima (paisagem demais embaixo e nos lados, como
+    no pasto), vale a cor de cima."""
     img = img.convert("RGBA")
     a = np.asarray(img).astype(np.float32)
     borda = np.concatenate([a[0], a[-1], a[:, 0], a[:, -1]])
     if np.median(borda[:, 3]) < 20:          # já é transparente
         return img
     cor = np.median(borda[:, :3], axis=0)
+    if so_topo:
+        topo = np.median(a[0][:, :3], axis=0)
+        if np.sqrt(((topo - cor) ** 2).sum()) > 60:
+            cor = topo
     dist = np.sqrt(((a[:, :, :3] - cor) ** 2).sum(axis=2))
     t0, t1 = 38.0, 95.0
     alfa = np.clip((dist - t0) / (t1 - t0), 0, 1)
@@ -90,8 +99,29 @@ def remover_fundo(img: Image.Image) -> Image.Image:
         limite = a[:, :, outros].max(axis=2)
         semi = alfa < 0.98
         a[:, :, canal] = np.where(semi, np.minimum(a[:, :, canal], limite), a[:, :, canal])
+    # fundo magenta (arte com verde): tira o rosa das bordas suaves e das beiradas
+    if cor[0] > 150 and cor[2] > 150 and cor[1] < 100:
+        rb = np.minimum(a[:, :, 0], a[:, :, 2]); exc = np.maximum(0, rb - a[:, :, 1] - 10)
+        borda_viz = alfa < 0.98
+        viz = np.zeros_like(borda_viz)                          # pixels opacos colados no fundo
+        for dy, dx in ((1, 0), (-1, 0), (0, 1), (0, -1), (2, 0), (-2, 0), (0, 2), (0, -2)):
+            viz |= np.roll(np.roll(alfa < .5, dy, 0), dx, 1)
+        sel = borda_viz | viz
+        a[:, :, 0] = np.where(sel, a[:, :, 0] - exc, a[:, :, 0])
+        a[:, :, 2] = np.where(sel, a[:, :, 2] - exc, a[:, :, 2])
     a[:, :, 3] = alfa * 255
     return Image.fromarray(a.clip(0, 255).astype(np.uint8), "RGBA")
+
+
+def emendar(im: Image.Image, frac: float = .12) -> Image.Image:
+    """Faz a camada emendar na horizontal: as últimas colunas se misturam com as primeiras
+    (a imagem perde essa faixa; a borda direita passa a continuar na esquerda)."""
+    a = np.asarray(im.convert("RGBA")).astype(np.float32)
+    w = a.shape[1]; k = max(2, int(w * frac))
+    out = a[:, k:].copy()
+    t = np.linspace(0, 1, k)[None, :, None]
+    out[:, -k:] = a[:, w - k:] * (1 - t) + a[:, :k] * t
+    return Image.fromarray(out.clip(0, 255).astype(np.uint8), "RGBA")
 
 
 def cortar(img: Image.Image) -> Image.Image:
@@ -561,6 +591,32 @@ def preparar_peca_arvore(nome: str, im: Image.Image, info: dict) -> tuple[Image.
         larg = float(np.median((a > 0).sum(axis=1)))
         f = TRONCO_LARGURA / max(1.0, larg)
         info["tronco"] = True
+    elif nome == "arvore_copa":
+        # tira o toco de tronco embaixo da copa (linhas bem mais estreitas que a copa)
+        im = cortar(im)
+        a = np.asarray(im)[:, :, 3]; h, w = a.shape
+        larg = (a > 25).sum(axis=1)
+        fim = h
+        while fim > h // 2 and larg[fim - 1] < larg.max() * .3:
+            fim -= 1
+        im = cortar(im.crop((0, 0, w, fim)))
+        # o toco que sobra entre as folhas de baixo: apaga o trecho estreito no meio, linha a linha
+        # (o tronco do jogo entra por trás da copa)
+        arr = np.asarray(im).copy(); h, w = arr.shape[:2]; meio = w // 2
+        for y in range(h - 1, int(h * .6), -1):
+            op = arr[y, :, 3] > 25
+            if not op[meio]:
+                continue
+            l = meio
+            while l > 0 and op[l - 1]: l -= 1
+            r = meio
+            while r < w - 1 and op[r + 1]: r += 1
+            if r - l + 1 > w * .12:
+                break   # chegou nas folhas
+            arr[y, l:r + 1, 3] = 0
+        im = Image.fromarray(arr, "RGBA")
+        a = np.asarray(im)[:, :, 3]; h, w = a.shape
+        f = COPA_LARGURA / max(1.0, w)
     else:  # raiz: o tronco no alto da raiz tem de ter a largura do tronco
         im = cortar(im)
         a = np.asarray(im)[:, :, 3]; h, w = a.shape
@@ -571,6 +627,12 @@ def preparar_peca_arvore(nome: str, im: Image.Image, info: dict) -> tuple[Image.
         cols = np.where((faixa > 0).any(axis=0))[0]
         meta["centro"] = round(float(cols.mean()) / w, 3) if len(cols) else .5
     return im, max(1, round(w * f)), max(1, round(h * f)), meta
+
+
+def fundo_verde_arvore(arq: Path) -> bool:
+    """A peça foi gerada com recorte verde (floresta) e não magenta (pasto)?"""
+    rgb = np.asarray(Image.open(arq).convert("RGB"))
+    return int(np.argmax(np.median(rgb[0], axis=0))) == 1
 
 
 def preparar_fundo(pasta: Path, ajustes: dict) -> dict | None:
@@ -586,9 +648,15 @@ def preparar_fundo(pasta: Path, ajustes: dict) -> dict | None:
             im = im.crop((0, round(im.height * float(aj["corteTopo"])), im.width, im.height))
         transparente = nome in ("longe", "perto") or nome.startswith("arvore_")
         if transparente:
-            borda = np.concatenate([np.asarray(im.convert("RGB"))[0], np.asarray(im.convert("RGB"))[:, 0]])
+            camada = nome in ("longe", "perto")   # paisagem embaixo: a cor do fundo vem do topo
+            rgb = np.asarray(im.convert("RGB"))
+            borda = np.concatenate([rgb[0], rgb[:, 0]])
             fundo_verde = int(np.argmax(np.median(borda, axis=0))) == 1
-            im = remover_fundo(im)
+            if camada and int(np.argmax(np.median(rgb[0], axis=0))) != 1:
+                fundo_verde = False   # recorte magenta (pasto): o verde é da arte
+            im = remover_fundo(im, so_topo=camada)
+            if camada and aj.get("emendar"):   # camada que não emendou bem nas laterais
+                im = emendar(im, float(aj["emendar"]))
             if fundo_verde:   # tira o halo verde que sobra nas bordas (o fundo verde exige arte sem verde)
                 a = np.asarray(im).copy()
                 a[:, :, 1] = np.minimum(a[:, :, 1], np.maximum(a[:, :, 0], a[:, :, 2]))
@@ -607,6 +675,15 @@ def preparar_fundo(pasta: Path, ajustes: dict) -> dict | None:
             alvo = FUNDO_ALTURA[nome]
             largura = max(1, round(im.width * alvo / im.height))
         im = pixelizar(im, largura, alvo, int(aj.get("cores", FUNDO_CORES)))
+        if nome.startswith("arvore_") and not fundo_verde_arvore(arq):
+            # peças da árvore com recorte magenta: casca e folhas não têm roxo, então qualquer tom
+            # arroxeado que sobrou é resto do fundo (contorno e buracos da copa)
+            a = np.asarray(im).astype(np.int32)
+            exc = np.maximum(0, a[:, :, 2] - a[:, :, 1])
+            a[:, :, 0] = np.maximum(0, a[:, :, 0] - exc); a[:, :, 2] -= exc
+            if nome == "arvore_copa":   # folhas opacas (sem ver o tronco através delas)
+                a[:, :, 3] = np.where(a[:, :, 3] > 90, 255, 0)
+            im = Image.fromarray(a.astype(np.uint8), "RGBA")
         saida = DESTINO / chave / f"{nome}.png"
         saida.parent.mkdir(parents=True, exist_ok=True)
         im.save(saida, optimize=True)

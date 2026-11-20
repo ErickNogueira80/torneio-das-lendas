@@ -75,5 +75,14 @@
    4,
    5
   ]
+ },
+ "fundos/vaca/chao": {
+  "corteTopo": 0.29
+ },
+ "fundos/vaca/perto": {
+  "emendar": 0.12
+ },
+ "fundos/vaca/longe": {
+  "emendar": 0.12
  }
 }

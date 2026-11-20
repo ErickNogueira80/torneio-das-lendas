@@ -162,6 +162,41 @@ img/sprites/fundos/boitata/ceu.png, longe.png, perto.png, chao.png
 Depois é só me avisar (ou rodar `python ferramentas/preparar_sprites.py` e publicar). Não precisa
 gerar tudo de uma vez: cada item que chega já aparece no jogo.
 
+## Kit de arte de uma fase (padrão desde o Boitatá, registrado em 2026-11-20)
+
+Toda fase nova recebe o mesmo kit da floresta do Boitatá, para ter o mesmo nível de arte. O Claude
+escreve os prompts (uma seção por fase neste arquivo); o Erick gera e salva; o Claude roda a
+ferramenta, confere no jogo, ajusta e publica.
+
+| Peça | IA | Formato | Salvar em `img/sprites/...` |
+|---|---|---|---|
+| Céu | Gemini | 16:9 | `fundos/<fase>/ceu` |
+| Morros distantes | Gemini | 21:9, fundo de chroma | `fundos/<fase>/longe` |
+| Cenário de perto | Gemini | 21:9, fundo de chroma | `fundos/<fase>/perto` |
+| Chão (textura) | Gemini | 1:1 | `fundos/<fase>/chao` |
+| Árvore: tronco, raiz, galho (e copa, se tiver) | Gemini | 1:3, 2:1, 4:1 (3:2) | `fundos/<fase>/arvore_*` |
+| Chefe | PixelLab (Sidescroller, East) | animações em folha | `chefes/<chefe>/` |
+| Inimigos | PixelLab (Sidescroller, East, 32 px) | animações em folha | `inimigos/<nome>/` |
+| Prêmio do chefe | PixelLab ou Gemini | 64×64 | `objetos/pingente/<fase>.png` |
+
+**Regras que fizeram a floresta dar certo:**
+
+1. **Peças paradas no Gemini, em estilo pintado.** A ferramenta transforma em pixel art (cada pixel
+   da arte vira 2×2 na tela, até 32 cores). Não precisa pedir pixel art ao Gemini.
+2. **Personagens e animações no PixelLab**, sempre Sidescroller, direção East.
+3. **Cada camada é uma imagem separada**, emendando nas laterais (o jogo repete na horizontal). Se a
+   emenda não ficar perfeita, mande assim mesmo: o Claude ajusta.
+4. **Cor do fundo de recorte (chroma):** verde-limão `#00FF00`, **exceto quando a arte tem verde**
+   (pasto, folhas, capim): aí magenta `#FF00FF`. Com fundo verde, a ferramenta apaga todo o verde
+   que sobra na imagem (bom para a floresta queimada, péssimo para o pasto).
+5. **Começar pelo céu e usar a pintura do local** (`web/locais/NN-....jpg`) como referência de cores.
+   Depois, anexar o céu aprovado em cada camada seguinte ("same palette and light as the attached
+   image"), e anexar o tronco aprovado na raiz, no galho e na copa ("same bark, same colors").
+6. **Uma conversa nova no Gemini quando ele começar a errar**, anexando de novo as referências.
+7. **Originais em JPG servem** (é o que o Gemini baixa). O nome do arquivo é o da tabela, em
+   minúsculas, sem acento.
+8. Mandar ao Claude assim que cada peça for salva: ela já entra no lugar do desenho do jogo.
+
 ---
 
 ## 1. O herói: "o humano"
@@ -914,23 +949,116 @@ tips). Calm and stubborn expression. Side view, 16-bit detailed pixel art, black
 transparent background.
 ```
 
-**2. Fundo do pasto (Gemini, 4 imagens).** Mesmo esquema da floresta (seção 4): salvar em
-`img/sprites/fundos/vaca/` como `ceu.png`, `longe.png`, `perto.png` e `chao.png`. Começo comum:
+**2. Fundo do pasto (Gemini, 4 camadas).** Refeito em 2026-11-20 no padrão do kit (acima): os morros
+e o capim são verdes, então o recorte é em **magenta**. Ordem: **céu primeiro**, com a pintura
+`web/locais/08-o-pasto-da-vaca-e-o-ovni.jpg` anexada; depois `longe` e `perto` com o céu aprovado
+anexado; depois o chão. Salvar em `img/sprites/fundos/vaca/`.
+
+**`fundos/vaca/ceu`** (16:9; anexar a pintura do local)
 
 ```
-Create an image. 2D side-scrolling game background layer, peaceful green pasture at sunset,
-purple and orange sky, painterly style matching a fantasy RPG, seamless horizontally tileable
-(the left and right edges must match), no characters, no animals, no text.
+Create an image. 2D side-scrolling game background layer, peaceful countryside pasture at
+sunset, warm purple, pink and orange light, painterly style matching a fantasy RPG, seamless
+horizontally tileable (the left and right edges must match), no characters, no animals, no text.
+Use the colors and mood of the attached painting.
+Wide 16:9 image. Only the SKY: sunset gradient from deep purple at the top through pink to warm
+orange and golden yellow near the horizon, a big soft sun low near the horizon in the right
+third of the image, long thin pink and orange clouds lit from below, a few faint first stars at
+the very top. No ground, no hills, no trees.
 ```
 
-- `ceu` (16:9): `Only the SKY: sunset gradient from deep purple at the top to warm orange and
-  yellow near the horizon, a big low sun, long pink and orange clouds. No ground, no trees.`
-- `longe` (21:9): `Only DISTANT rolling purple-blue hills and soft green hills with small round
-  trees, flat bottom edge, on a plain solid #00FF00 green background (the sky area must be pure green).`
-- `perto` (21:9): `Only CLOSER green meadow hills with a few round leafy trees and an old wooden
-  fence, sparse with big gaps, flat bottom edge, on a plain solid #00FF00 green background.`
-- `chao` (1:1): `Square 1:1 seamless tileable texture of brown soil with small pebbles and roots,
-  seen from the side, the top edge covered by a strip of bright green grass.`
+**`fundos/vaca/longe`** (21:9; anexar o céu aprovado)
+
+```
+Create an image. 2D side-scrolling game background layer, peaceful countryside pasture at
+sunset, warm purple, pink and orange light, painterly style matching a fantasy RPG, seamless
+horizontally tileable (the left and right edges must match), no characters, no animals, no text.
+Same palette and light as the attached sky.
+Very wide 21:9 image. Only DISTANT rolling hills in two rows: far misty purple-blue hills, and in
+front of them soft dark green hills with small round trees in silhouette, a warm orange rim of
+sunset light on the hilltops, flat bottom edge, on a plain solid #FF00FF magenta background (the
+sky area must be pure magenta).
+```
+
+**`fundos/vaca/perto`** (21:9; anexar o céu aprovado)
+
+```
+Create an image. 2D side-scrolling game background layer, peaceful countryside pasture at
+sunset, warm purple, pink and orange light, painterly style matching a fantasy RPG, seamless
+horizontally tileable (the left and right edges must match), no characters, no animals, no text.
+Same palette and light as the attached sky.
+Very wide 21:9 image. Only CLOSER green meadow hills with a few big round leafy trees, tall
+grass tufts, small wildflowers and an old crooked wooden fence, sparse with big gaps, warm
+sunset light coming from the right, flat bottom edge, on a plain solid #FF00FF magenta
+background (the sky area must be pure magenta).
+```
+
+**`fundos/vaca/chao`** (1:1)
+
+```
+Create an image. 2D side-scrolling game background layer, peaceful countryside pasture at
+sunset, painterly style matching a fantasy RPG, no characters, no text.
+Square 1:1 seamless tileable texture of rich brown soil with small pebbles and thin roots, seen
+from the side like a cut through the ground, the top edge covered by a strip of bright green
+grass with a few tiny wildflowers. Warm sunset tones.
+```
+
+**2b. Árvores do pasto (Gemini, 4 peças).** Mesmo sistema da floresta (seção 4.1): o jogo monta
+cada árvore com tronco, raiz e galhos; no pasto entra também a **copa** redonda (peça nova: o
+Claude liga no motor e na ferramenta quando chegar). Fundo **magenta**. Gerar o tronco primeiro e
+anexá-lo nas outras três. Salvar em `img/sprites/fundos/vaca/`.
+
+**`arvore_tronco`** (1:3)
+
+```
+Create an image. A straight vertical section of a big old living tree trunk from a peaceful
+countryside pasture, warm brown bark with deep vertical grooves, a few knots and small patches of
+moss, warm orange sunset light on the right side. Only the middle of the trunk: no roots, no
+branches, no leaves, no top. The top and bottom edges must match so the image can be repeated
+vertically (seamless vertical tile). Side view, straight and centered, plain solid #FF00FF
+magenta background on both sides, no shadow, no text. Painterly 2D game art style. Tall portrait
+image, aspect ratio 1:3.
+```
+
+**`arvore_raiz`** (2:1; anexar o tronco)
+
+```
+Create an image. The base of the same big living tree trunk (same bark, same colors as the
+attached trunk) with thick roots spreading to both sides and gripping the ground, a little moss
+and a few grass blades between the roots. The trunk is cut straight at the top (it continues
+upward in the game) and has the same width as the trunk section. Side view, centered, plain
+solid #FF00FF magenta background, no ground, no shadow, no text. Painterly 2D game art style.
+Wide image, aspect ratio 2:1.
+```
+
+**`arvore_galho`** (4:1; anexar o tronco)
+
+```
+Create an image. One thick horizontal branch of the same living tree (same bark, same colors as
+the attached trunk), growing from the left edge of the image to the right, where it ends in a
+rounded tip with a small cluster of green leaves. The TOP of the branch must be flat and straight
+like a walkable ledge, with nothing sticking up above it. A few small leaf clusters and twigs
+only BELOW the branch. Side view, plain solid #FF00FF magenta background, no shadow, no text.
+Painterly 2D game art style. Very wide image, aspect ratio 4:1.
+```
+
+**`arvore_copa`** (3:2; anexar o tronco)
+
+```
+Create an image. The round leafy crown of the same tree (same colors as the attached trunk),
+seen from the side: a big full cloud-like canopy made of clustered round leaf clumps, dark green
+in the shadows, bright yellow-green where the warm sunset light hits the top-right, a few small
+gaps. At the bottom center, a short piece of the trunk enters the canopy, cut straight at the
+bottom. Plain solid #FF00FF magenta background, no shadow, no text. Painterly 2D game art style.
+Wide image, aspect ratio 3:2.
+```
+
+Dicas: se o Gemini puser chão ou céu atrás, peça "only the object on a flat magenta background,
+nothing else". Se o galho vier com folhas por cima, mande assim mesmo: o Claude corta.
+
+**Feito em 2026-11-20:** as 8 peças acima foram geradas de primeira com estes prompts e estão no
+jogo. O chão veio com céu e capim pintados em cima (a ferramenta corta) e o perto não emendava nas
+laterais (a ferramenta mistura as bordas). Nada disso precisou de imagem nova.
 
 **3. Inimigos (PixelLab, Sidescroller, East, 32 px).** Pastas `img/sprites/inimigos/besouro/`
 (animação `andar`) e `img/sprites/inimigos/pombo/` (animação `voar`).

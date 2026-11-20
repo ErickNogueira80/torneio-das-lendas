@@ -3134,7 +3134,7 @@ function caminhoFrente(x) {
 function pecasArvore() {
   const F = FASE.fundo, t = layer(F, 'arvore_tronco'), g = layer(F, 'arvore_galho');
   const meta = (SPR[F] && SPR[F].meta) || {};
-  return t && g ? { t, g, r: layer(F, 'arvore_raiz'), meta } : null;
+  return t && g ? { t, g, r: layer(F, 'arvore_raiz'), copa: layer(F, 'arvore_copa'), meta } : null;
 }
 function arvores() {
   const pecas = pecasArvore();
@@ -3165,6 +3165,12 @@ function arvores() {
       ctx2.imageSmoothingEnabled = false;
       const { t, g: gal, r: raiz, meta } = pecas, th = t.naturalHeight * z;
       for (let y = pe - th; y > -th; y -= th) ctx2.drawImage(t, Math.round(tx - tw / 2 - x0), Math.round(y), tw, th + 1);
+      if (pecas.copa) {   // copa do pasto (2026-11-20): acima do galho mais alto; o tronco termina dentro dela
+        const cw = pecas.copa.naturalWidth * z, ch = pecas.copa.naturalHeight * z;
+        const cy = Math.round(Math.min(...g.map(p => p.y)) - 24 - ch);
+        ctx2.clearRect(Math.floor(tx - tw - x0), 0, Math.ceil(tw * 2), Math.max(0, cy + ch * .45));
+        ctx2.drawImage(pecas.copa, Math.round(tx - cw / 2 - x0), cy, cw, ch);
+      }
       const gh = gal.naturalHeight * z, topo = ((meta.arvore_galho && meta.arvore_galho.topo) || 0) * z;
       for (const pl of g) {
         const daDireita = pl.x > tx, ini = daDireita ? tx + tw * .35 : pl.x, fim = daDireita ? pl.x + pl.w : tx - tw * .35, L = Math.round(fim - ini);

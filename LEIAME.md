@@ -500,8 +500,8 @@ Vaca: `?fase=vaca&play&boss&x=8800` (luta; `&cansaco=90` quase caindo de cansaç
 quase sem PS), `?fase=vaca&play&x=5750` (árvore do baú), `?fase=vaca&demo&cansaco=96` (vence sozinho).
 
 **Em aberto (a decidir ou esperando arte):**
-- Arte da fase da Vaca (prompts 4.12): a Vaca no PixelLab, o fundo do pasto no Gemini, besouro,
-  pombo e a dog tag. Quando chegar, o Claude liga as folhas no jogo.
+- Arte da fase da Vaca (prompts 4.12): fundo do pasto e árvores **prontos** (2026-11-20); faltam a
+  Vaca, o besouro, o pombo e a dog tag no PixelLab. Quando chegar, o Claude liga as folhas no jogo.
 - Fase da Vaca sem sala secreta (a próxima pode ter os cogumelos verdes ou vermelhos e outro
   guardião). Equilíbrio da luta a testar no celular (PS 220, cansaço 4 + 4 por ataque).
 - Arte do Mímico no PixelLab (prompt 4.9): hoje é o baú cortado na tampa.
@@ -525,6 +525,24 @@ Imagem opaca (fundo pintado): a pasta entra em `OBJETO_OPACO` na ferramenta. JPG
 "transparente" desenhado (Gemini): tirar o fundo antes (ver "Pingente com arte").
 Prompts em `04-prompts-sprites.md`. Peças paradas: Gemini (a ferramenta pixeliza). Animações e
 personagens: PixelLab (vista Sidescroller, direção East).
+**Kit de arte de uma fase (2026-11-20, Erick):** toda fase nova recebe o mesmo kit do Boitatá
+(céu, longe, perto, chão, peças da árvore, chefe, inimigos, prêmio), descrito em "Kit de arte de uma
+fase" no `04-prompts-sprites.md`. O Claude escreve os prompts, o Erick gera e salva em
+`img/sprites/...`, o Claude roda a ferramenta, confere e publica. Arte com verde (pasto, folhas) usa
+recorte em magenta `#FF00FF`, porque o recorte verde apaga o verde da arte.
+**Arte do pasto em uso (2026-11-20):** as 8 peças do Gemini (`ceu`, `longe`, `perto`, `chao`,
+`arvore_tronco`, `arvore_raiz`, `arvore_galho`, `arvore_copa`) em `img/sprites/fundos/vaca/`
+(originais JPG fora do git). O que mudou para elas:
+- Ferramenta: nas camadas `longe`/`perto`, se as 4 bordas não derem a cor do fundo (paisagem demais
+  embaixo e nos lados), vale a cor da borda de cima; fundo magenta não apaga o verde da arte; o rosa
+  das beiradas sai (despill do magenta) e, nas peças da árvore com recorte magenta, qualquer tom
+  arroxeado restante. Ajuste novo `emendar` (fração da largura, no `ajustes.json`): mistura as laterais
+  da camada para o encaixe não aparecer (usado em `fundos/vaca/longe` e `perto`, 0,12). O chão do
+  pasto corta o céu e o capim pintados (`corteTopo` 0,29): o capim de cima é o do jogo.
+- Copa (`arvore_copa`, peça nova): a ferramenta tira o toco de tronco de baixo, deixa as folhas
+  opacas e reduz para 190 px de largura (380 na tela). O jogo põe a copa 24 px acima do galho mais
+  alto da árvore e corta o tronco dentro dela. O Boitatá não muda (sem copa).
+- Sol do céu: `luaNoCeu: [0.80, 0.57]` na fase (a luz do fim de tarde vem dele).
 
 **Próximos passos possíveis:**
 - Heróis de Áries (Água), Sagitário (Fogo) e Capricórnio (Terra): a Milena preenche a ficha

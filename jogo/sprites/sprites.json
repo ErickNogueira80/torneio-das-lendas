@@ -848,6 +848,29 @@
   },
   "ver": "7025f296"
  },
+ "fundos/vaca": {
+  "tipo": "fundo",
+  "pixel": 2,
+  "camadas": {
+   "arvore_copa": "fundos/vaca/arvore_copa.png",
+   "arvore_galho": "fundos/vaca/arvore_galho.png",
+   "arvore_raiz": "fundos/vaca/arvore_raiz.png",
+   "arvore_tronco": "fundos/vaca/arvore_tronco.png",
+   "ceu": "fundos/vaca/ceu.png",
+   "chao": "fundos/vaca/chao.png",
+   "longe": "fundos/vaca/longe.png",
+   "perto": "fundos/vaca/perto.png"
+  },
+  "meta": {
+   "arvore_galho": {
+    "topo": 11.0
+   },
+   "arvore_raiz": {
+    "centro": 0.481
+   }
+  },
+  "ver": "2aaaa9f2"
+ },
  "objetos/altar": {
   "tipo": "objeto",
   "pixel": 2,

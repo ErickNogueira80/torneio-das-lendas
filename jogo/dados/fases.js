@@ -165,6 +165,7 @@ window.FASES = {
       pasto: ['#4a7034', '#6a9a46', '#5a8a3c', '#34522a'], folhaLuz: '#a3b84a', cerca: '#4a3424',
       chao: '#5e412c', chaoTopo: '#8cc152' },
     fundo: 'fundos/vaca',
+    luaNoCeu: [0.80, 0.57],   // o sol baixo na imagem do céu (a luz do fim de tarde vem dele)
 
     fim: 9600,
     // 7 trechos de chão e 6 buracos (110 a 130 px): o pasto é mais aberto que a floresta
