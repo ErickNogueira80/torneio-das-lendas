@@ -12,7 +12,9 @@ window.INIMIGOS = {
     resist: { agua: 1.5, fogo: 0, terra: 1, ar: 1.2, espada: 1 } },
   // pasto (fase da Vaca): besouro que anda pelo chão e pombo bravo que voa em volta (desenhados pelo
   // jogo até chegar a arte do PixelLab em inimigos/besouro e inimigos/pombo)
-  besouro: { nome: 'Besouro-chifrudo', mov: 'patrulha', w: 30, h: 22, dano: 8, xp: 10, sprite: 'inimigos/besouro', luz: 0,
+  // besouro grande (2026-11-20, "paz e amor"): não ataca; encostar ou bater nele deixa o herói com 1 de vida.
+  // Mais alto que o pulo. Mato alto em toda a área dele: escondido no mato, o besouro passa na frente.
+  besouro: { nome: 'Besouro-chifrudo', mov: 'patrulha', paz: true, w: 130, h: 140, dano: 0, xp: 0, sprite: 'inimigos/besouro', luz: 0,
     resist: { agua: 1, fogo: 1.2, terra: 0.8, ar: 1, espada: 1 } },
   pombo: { nome: 'Pombo bravo', mov: 'voo', w: 26, h: 22, dano: 6, xp: 14, sprite: 'inimigos/pombo', luz: 0,
     resist: { agua: 1, fogo: 1, terra: 1, ar: 1.3, espada: 1 } },
@@ -192,23 +194,19 @@ window.FASES = {
     baus: [
       { x: 5960, y: 185, xp: 45, cura: true, texto: 'Baú escondido! +45 XP e vida cheia' },
     ],
-    // moitas de capim denso (2026-11-20): parado dentro, no chão, o herói fica escondido e não leva dano
-    moitas: [{ x: 1240, w: 110 }, { x: 2140, w: 110 }, { x: 4000, w: 120 }, { x: 6420, w: 110 }, { x: 7715, w: 105 }],
     perigoTipo: 'cardo',   // cardos espinhentos (machucam como o chão em chamas)
     perigos: [
-      { x: 900, w: 80 }, { x: 2000, w: 90 }, { x: 3000, w: 80 }, { x: 3600, w: 90 },
-      { x: 5000, w: 80 }, { x: 6300, w: 90 }, { x: 7400, w: 80 },
+      { x: 900, w: 80 }, { x: 1905, w: 80 }, { x: 3000, w: 80 }, { x: 3600, w: 90 },
+      { x: 5000, w: 80 }, { x: 6270, w: 70 }, { x: 7400, w: 80 },
     ],
     controles: [80, 4250, 8300],
     inimigos: [
-      { tipo: 'besouro', x: 800, x1: 700, x2: 1050, vel: 55, vida: 18 },
-      { tipo: 'besouro', x: 1400, x1: 1260, x2: 1900, vel: 65, vida: 18 },
-      { tipo: 'besouro', x: 2700, x1: 2460, x2: 2950, vel: 70, vida: 20 },
-      { tipo: 'besouro', x: 3400, x1: 3100, x2: 3560, vel: 75, vida: 22 },
-      { tipo: 'besouro', x: 4500, x1: 4320, x2: 4950, vel: 80, vida: 22 },
-      { tipo: 'besouro', x: 5600, x1: 5400, x2: 6250, vel: 85, vida: 24 },
-      { tipo: 'besouro', x: 7000, x1: 6800, x2: 7350, vel: 90, vida: 25 },
-      { tipo: 'besouro', x: 7900, x1: 7750, x2: 8200, vel: 95, vida: 26 },
+      // besouros grandes, cada um no seu trecho de mato alto (fora das raízes, cardos e buracos)
+      { tipo: 'besouro', x: 1265, x1: 1265, x2: 1300, vel: 30, vida: 999 },
+      { tipo: 'besouro', x: 2035, x1: 2035, x2: 2125, vel: 35, vida: 999 },
+      { tipo: 'besouro', x: 4070, x1: 3970, x2: 4070, vel: 35, vida: 999 },
+      { tipo: 'besouro', x: 6385, x1: 6385, x2: 6455, vel: 35, vida: 999 },
+      { tipo: 'besouro', x: 8460, x1: 8380, x2: 8460, vel: 35, vida: 999 },
       { tipo: 'pombo', x: 1150, y: 300, vida: 10, t: 0 },
       { tipo: 'pombo', x: 2350, y: 240, vida: 12, t: 2 },
       { tipo: 'pombo', x: 3850, y: 260, vida: 12, t: 4 },

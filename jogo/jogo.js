@@ -310,6 +310,15 @@ const GOLD = ['#fff6d0', '#ffe28a', '#f5c542', '#d9a52e'];
 const OURO = CHEFE_CFG.corPremio === 'ouro';   // prêmio dourado (a dog tag da Vaca)
 function floatText(x, y, txt, c = '#fff') { texts.push({ x, y, txt, c, life: 1 }); }
 
+// besouro grande do pasto (paz e amor): encostar nele, ou bater nele, deixa o herói com 1 de vida
+function umDeVida(srcX, txt) {
+  if (player.inv > 0 || state !== 'play') return;
+  player.hp = Math.min(player.hp, 1); player.inv = 1.4;
+  player.vx = (player.x + player.w / 2 < srcX ? -1 : 1) * 300; player.vy = -340;
+  if (!chaoEm(player.x + player.w / 2 + player.vx * .45)) player.vx = 0;   // o empurrão nunca joga no buraco
+  floatText(player.x - 30, player.y - 10, txt, '#ffb36b');
+  burst(player.x + 14, player.y + 20, 14, ['#ffb36b', '#ffe0b0'], 180, .5); shake = .35;
+}
 function hurtPlayer(dmg, srcX, poison = 0) {
   if (player.inv > 0 || state !== 'play') return;
   if (typeof escondido === 'function' && escondido()) return;   // dentro da moita os inimigos não o acham
@@ -2157,6 +2166,10 @@ function updatePlayer(dt) {
 
 function damageEnemy(e, dmg, kind) {
   if (e.dead) return;   // já derrotado (ex.: golpe durante a tela de subir de nível)
+  if (e.T.paz) {   // forte demais: não sente o golpe e revida (mesmo com o herói escondido)
+    floatText(e.x + e.w / 2 - 20, e.y - 8, 'nada!', '#fff'); e.flash = .12;
+    umDeVida(e.x + e.w / 2, 'O besouro revidou!'); return;
+  }
   const res = resistOf(e.T.resist, kind);
   if (res === 0) { floatText(e.x, e.y - 8, 'imune!', '#ffb36b'); return; }
   if (e.estado === 'dorme') { e.estado = 'acorda'; e.t = 0; }   // bater no mímico dormindo o acorda
@@ -2225,7 +2238,9 @@ function update(dt) {
       if (e.x > e.x2) { e.x = e.x2; e.vx = -Math.abs(e.vx); }
     } else if (e.T.mov === 'mimico') atualizarMimico(e, dt);
     else { e.t += dt; e.x = e.bx + Math.sin(e.t * .8) * 90; e.y = e.by + Math.sin(e.t * 2.1) * 35; }
-    if (overlap(player, e) && e.estado !== 'dorme') hurtPlayer(e.T.dano, e.x + e.w / 2);
+    if (e.T.paz) {   // não ataca; só empurra quem encosta (pular não passa: o chifre alcança o alto)
+      if (!escondido() && overlap(player, { x: e.x + 6, y: e.y - 200, w: e.w - 12, h: e.h + 200 })) umDeVida(e.x + e.w / 2, 'O besouro te empurrou!');
+    } else if (overlap(player, e) && e.estado !== 'dorme') hurtPlayer(e.T.dano, e.x + e.w / 2);
   }
   enemies = enemies.filter(e => !e.dead);
 
@@ -2807,7 +2822,7 @@ function drawFrente() {
   // primeiro plano em pixel (blocos de 4 px): moitas escuras embaixo e cipós pendurados no alto
   const par = 1.3, B = 4;
   ctx.fillStyle = PASTO ? '#0b160a' : '#08040b';
-  if (PASTO) { drawMoitas(); drawCapim(true); drawCrista(); return; }   // pasto: capim na frente dos pés e a faixa preta
+  if (PASTO) { drawMoitas(); drawEnemies(true); drawCapim(true); drawCrista(); return; }   // o besouro passa na frente do mato alto   // pasto: capim na frente dos pés e a faixa preta
   const bola = (cx, cy, r) => { for (let dy = -r; dy < r; dy += B) { const hw = Math.round(Math.sqrt(r * r - dy * dy) / B) * B; ctx.fillRect(cx - hw, cy + dy, hw * 2, B); } };
   for (const f of FRENTE) {
     const x = Math.round((f.x - camX * par) / B) * B; if (x < -120 || x > W + 120) continue;
@@ -3053,8 +3068,8 @@ function drawCapim(frente) {
 }
 // moitas de capim denso (pasto, 2026-11-20): cobrem o herói quase inteiro. Parado dentro de uma moita,
 // no chão, ele fica escondido e os inimigos não o ferem (ver escondido()).
-const MOITAS = (FASE.moitas || []).map(m => ({ x: m.x, w: m.w }));
-let moitaCv = null, avisoMoita = false;
+const MOITAS = FASE.inimigos.filter(d => INIMIGOS[d.tipo].paz).map(d => ({ x: d.x1 - 40, w: d.x2 - d.x1 + INIMIGOS[d.tipo].w + 80 }));
+let moitaCv = null;
 function escondido() {
   const p = player; if (!p.onGround) return false;
   const cx = p.x + p.w / 2;
@@ -3072,7 +3087,7 @@ function drawMoitas() {
     for (let c = 0; c < 3; c++) {   // três camadas: fundo escuro, meio, frente iluminada
       for (let wx = m.x - 10 + c; wx < m.x + m.w + 10; wx += 2) {
         const t = (wx - m.x + 10) / (m.w + 20), r1 = hashC(wx * 2.3 + c * 31), r2 = hashC(wx * 4.7 + c * 13);
-        const domo = Math.pow(Math.max(0, Math.sin(Math.PI * t)), .45);
+        const borda = Math.min(wx - (m.x - 10), m.x + m.w + 10 - wx) / 36, domo = Math.sqrt(clamp(borda, 0, 1));   // alto por igual, cai só nas pontas
         let h = (60 + 22 * r1) * domo * (1 - c * .1); if (h < 6) continue;
         const vento = Math.sin(time * 1.4 + wx * .03 + c) * .6 + Math.sin(time * .6 + wx * .011) * .4;
         let inc = (r2 - .5) * h * .5 + vento * h * .14;
@@ -3090,9 +3105,6 @@ function drawMoitas() {
   }
   if (!algo) return;
   ctx.imageSmoothingEnabled = false; ctx.drawImage(moitaCv, 0, 0, W, H); ctx.imageSmoothingEnabled = true;
-  const esc = escondido() && state === 'play';
-  if (esc && !avisoMoita) floatText(player.x - 10, player.y - 16, 'escondido', '#c3e88a');
-  avisoMoita = esc;
 }
 // faixa preta da frente (crista): morrinho de capim e samambaias bem perto da câmera, que esconde onde
 // o chão "acabaria". Montada uma vez para a fase inteira (paralaxe 1,25), em meia resolução.
@@ -3189,6 +3201,18 @@ function quadroBesouro(f) {
     pxLinha(g, [[16, 5], [18, 2], [19, 1]], 1, '#c9a060');              // chifre
   }, '#0c0e16');
 }
+function quadroBesouroGrande(f) {   // 26 x 24, desenhado 6x (156 x 144): o pulo do herói (136 px) não passa por cima
+  return pxCache('besouroG|' + f, 26, 24, g => {
+    for (let i = 0; i < 3; i++) { const d = (i + f) % 2 ? 1 : -1; pxLinha(g, [[5 + i * 5, 18], [4 + i * 5 + d, 21], [5 + i * 5 + d * 2, 23]], 1, '#141826'); }   // patas
+    pxElipse(g, 10, 15, 9, 6, '#2a3350'); pxElipse(g, 9, 13, 7, 3, '#34406a');
+    pxRet(g, 4, 11, 6, 1, '#7a8cc0'); pxRet(g, 3, 12, 3, 1, '#56679a'); pxRet(g, 10, 9, 1, 12, '#161b2c');   // brilho e divisão das asas
+    pxElipse(g, 18, 13, 4, 4, '#1e2540'); pxRet(g, 17, 10, 3, 1, '#4a5a8a');                                   // tórax
+    pxLinha(g, [[18, 10], [19, 6], [21, 3], [24, 1], [25, 2]], 2, '#2a2f44');                                  // chifre de cima
+    pxLinha(g, [[19, 7], [21, 4]], 1, '#6a7cb0');
+    pxElipse(g, 22, 16, 2, 2, '#1c2238'); pxRet(g, 22, 15, 1, 1, '#ffd34a');                                   // cabeça e olho
+    pxLinha(g, [[23, 16], [25, 13], [25, 10], [24, 8]], 1, '#c9a060');                                         // chifre de baixo
+  }, '#0c0e16');
+}
 // cardos (perigo do pasto no lugar do chão em chamas): moita de folhas com espinhos e flores roxas
 function quadroCardo(w) {
   return pxCache('cardo|' + w, Math.round(w / 2) + 4, 26, g => {
@@ -3245,6 +3269,7 @@ function piso() {
     }
     if (PASTO) {   // campo: começa 40 px acima da linha dos pés e desce até a faixa preta; sem borda nem crosta
       g.save(); g.beginPath(); g.rect(s.x, 0, s.w, alt); g.clip();
+      g.fillStyle = '#13282b'; g.fillRect(s.x, GROUND - PISO_TOPO, s.w, alt);   // fundo do campo, embaixo da imagem
       g.translate(0, (capimArte ? GROUND - 50 : GROUND - 40) - PISO_TOPO); g.scale(z, z);   // pintado: corpo do capim 16 px acima dos pés
       g.fillStyle = pat; g.fillRect(s.x / z - 4, 0, s.w / z + 8, chao.height); g.restore();
       ys.forEach((y, i) => topos.set(s.x + i * 4, PISO_TOPO + base + y));
@@ -3282,9 +3307,9 @@ function piso() {
     for (let i = 0; i + 1 < chaos.length; i++) {
       const x0 = chaos[i].x + chaos[i].w, x1 = chaos[i + 1].x;
       if (x1 - x0 < 8) continue;
-      const gr = g.createLinearGradient(0, base + 12, 0, alt);
-      gr.addColorStop(0, 'rgba(36,51,26,0)'); gr.addColorStop(.3, '#141f0e'); gr.addColorStop(1, '#070b05');
-      g.fillStyle = gr; g.fillRect(x0, base + 12, x1 - x0, alt);
+      const gr = g.createLinearGradient(0, base - 30, 0, alt);   // vala escura (Erick, 2026-11-20)
+      gr.addColorStop(0, 'rgba(14,22,12,0)'); gr.addColorStop(.3, 'rgba(14,22,12,.9)'); gr.addColorStop(.42, '#0b130a'); gr.addColorStop(.5, '#070b06'); gr.addColorStop(1, '#030503');
+      g.fillStyle = gr; g.fillRect(x0, base - 30, x1 - x0, alt);
     }
     g.restore();
   }
@@ -3315,6 +3340,8 @@ function caminhoFrente(x) {
 }
 function pecasArvore() {
   const F = FASE.fundo, t = layer(F, 'arvore_tronco'), g = layer(F, 'arvore_galho');
+  const im = (SPR[F] && SPR[F].imgs) || {};   // raiz e copa chegam depois às vezes: espera todas (senão a árvore fica sem raiz)
+  if (['arvore_tronco', 'arvore_galho', 'arvore_raiz', 'arvore_copa'].some(k => im[k] && !im[k].complete)) return null;
   const meta = (SPR[F] && SPR[F].meta) || {};
   return t && g ? { t, g, r: layer(F, 'arvore_raiz'), copa: layer(F, 'arvore_copa'), meta } : null;
 }
@@ -3973,9 +4000,10 @@ function drawDrops() {
     ctx.restore();
   }
 }
-function drawEnemies() {
+function drawEnemies(frente = false) {
   for (const e of enemies) {
-    const x = e.x - camX; if (x < -60 || x > W + 60) continue;
+    if (!!e.T.paz !== frente) continue;   // besouro grande: desenhado depois do mato alto (drawFrente)
+    const x = e.x - camX; if (x < -e.w - 60 || x > W + 60) continue;
     if (x > 0 && x < W && e.estado !== 'dorme') encontrar(e.tipo);   // o mímico dormindo ainda é "um baú"
     const anda = e.T.mov === 'patrulha' && e.y + e.h >= GROUND - 2;
     const dE = anda ? deslocDesenho(e.x + e.w / 2, true, null, 1).dy : 0;
@@ -3991,8 +4019,8 @@ function drawEnemies() {
       const lx = e.vx > 0 ? 3 : -3;
       ctx.beginPath(); ctx.arc(x + 9 + lx, e.y + 14, 2.6, 0, Math.PI * 2); ctx.arc(x + 17 + lx, e.y + 14, 2.6, 0, Math.PI * 2); ctx.fill();
     } else if (e.tipo === 'pombo' || e.tipo === 'besouro') {   // pasto: desenho em pixel (até chegar a arte)
-      const pombo = e.tipo === 'pombo', fr = pombo ? quadroPombo(Math.floor(time * 8 + e.x) % 2) : quadroBesouro(Math.floor(time * 7) % 2);
-      const face = pombo ? (player.x > e.x ? 1 : -1) : (e.vx > 0 ? 1 : -1), w = fr.width * 2, h = fr.height * 2;
+      const pombo = e.tipo === 'pombo', fr = pombo ? quadroPombo(Math.floor(time * 8 + e.x) % 2) : quadroBesouroGrande(Math.floor(time * 4) % 2);
+      const esc = pombo ? 2 : 6, face = pombo ? (player.x > e.x ? 1 : -1) : (e.vx > 0 ? 1 : -1), w = fr.width * esc, h = fr.height * esc;
       ctx.save(); ctx.translate(Math.round(x + e.w / 2), Math.round(e.y + e.h + (pombo ? 4 : 2))); ctx.scale(face, 1);
       ctx.imageSmoothingEnabled = false; ctx.drawImage(fr, -w / 2, -h, w, h); ctx.imageSmoothingEnabled = true; ctx.restore();
     } else {
@@ -4006,7 +4034,7 @@ function drawEnemies() {
       ctx.fillStyle = '#fff1c2'; ctx.beginPath(); ctx.arc(cx, cy, 6, 0, Math.PI * 2); ctx.fill();
     }
     if (e.flash > 0) { ctx.fillStyle = 'rgba(255,255,255,.6)'; ctx.fillRect(x - 4, e.y - 10, e.w + 8, e.h + 10); }
-    if (e.hp < e.max) {
+    if (e.hp < e.max && !e.T.paz) {
       ctx.fillStyle = 'rgba(0,0,0,.6)'; ctx.fillRect(x, e.y - 14, e.w, 4);
       ctx.fillStyle = '#ffb36b'; ctx.fillRect(x, e.y - 14, e.w * e.hp / e.max, 4);
     }

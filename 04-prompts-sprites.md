@@ -1137,10 +1137,16 @@ laterais (a ferramenta mistura as bordas). Nada disso precisou de imagem nova.
 **3. Inimigos (PixelLab, Sidescroller, East, 32 px).** Pastas `img/sprites/inimigos/besouro/`
 (animação `andar`) e `img/sprites/inimigos/pombo/` (animação `voar`).
 
+**Besouro grande (2026-11-20, substitui o prompt pequeno):** o besouro passou a ser enorme (no jogo
+ocupa ~156 x 144 px, mais alto que o pulo do herói, 136 px) e é "paz e amor": não ataca, só anda no
+mato alto. Gerar em 64 px ou mais (ou 32 px e o jogo amplia), quadrado, com o chifre de cima subindo
+alto para a silhueta ficar mais alta que larga.
+
 ```
-A rhinoceros beetle enemy: shiny dark blue-black shell with a light blue highlight, one curved
-horn on the head, small yellow eyes, six short legs. Side view, 16-bit pixel art, black outline,
-transparent background.
+A giant hercules beetle, calm and majestic, much taller than a person: shiny dark blue-black shell
+with a light blue highlight, a long curved horn rising high from the thorax and a smaller horn on
+the head, small yellow eyes, six sturdy legs, slow walking pose. Side view, 16-bit pixel art,
+black outline, transparent background.
 ```
 
 ```

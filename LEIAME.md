@@ -601,12 +601,22 @@ recorte em magenta `#FF00FF`, porque o recorte verde apaga o verde da arte.
     IA). A camada da frente nasce na linha dos pés (base `GROUND + 4..16`), tem 16 a 42 px e um fio a
     cada 4 px, para cobrir as botas do herói e dos inimigos como no Planet of Lana.
     O capim que balança não nasce em cima das raízes das árvores (`naRaiz`, pedido do Erick).
-  - **Moitas para se esconder (2026-11-20):** tufos de capim denso (`moitas` na ficha da fase vaca:
-    x 1240, 2140, 4000, 6420 e 7715, 105 a 120 px) desenhados pelo código na frente do herói
-    (`drawMoitas`, três camadas, até ~80 px, cobrem o herói quase inteiro; o capim se afasta quando ele
-    anda). No chão e com o centro dentro da moita, o herói fica **escondido** (`escondido()`): aparece
-    "escondido" e `hurtPlayer` não tira vida. Pular ou sair da moita acaba o esconderijo. Fora das
-    raízes, buracos, cardos, checkpoints e da arena do chefe.
+  - **Besouro grande e mato alto ("paz e amor", 2026-11-20, pedido do Erick):** o besouro-chifrudo
+    não ataca. Encostar nele deixa o herói com **1 de vida** (não mata; o empurrão nunca joga no buraco)
+    e bater nele (espada ou poder) não o fere: ele **revida** e deixa com 1 de vida, mesmo com o herói
+    escondido. É mais alto que o pulo (caixa 130 x 140; a área de toque sobe 200 px para não passar
+    pulando). Desenho provisório em pixel (`quadroBesouroGrande`, 26 x 24 ampliado 6x) até a arte da
+    IA (prompt novo na seção 4.12 de `04-prompts-sprites.md`). São 5 besouros (x 1265, 2035, 3970,
+    6385, 8380, cada um num trecho sem raiz, cardo ou buraco; cardos de 2000 e 6300 recuados).
+    **Mato alto:** em toda a área de cada besouro (`MOITAS`, sai de x1 - 40 até x2 + largura + 40),
+    desenhado pelo código (`drawMoitas`, ~80 px, alto por igual e caindo nas pontas). No chão e com o
+    centro dentro do mato, o herói fica escondido (`escondido()`, sem aviso na tela): o besouro passa
+    **na frente** do mato (`drawEnemies(true)` depois de `drawMoitas`) sem empurrar, e pombos também
+    não ferem. Pular ou sair do mato acaba o esconderijo.
+  - **Correções (2026-11-20):** o campo pintado acabava antes do pé da tela e aparecia uma linha
+    marrom do fundo (agora há um fundo `#13282b` embaixo da imagem); os buracos viraram valas escuras
+    desde a beirada; a árvore às vezes ficava sem raiz porque era montada antes de a imagem da raiz
+    carregar (`pecasArvore` agora espera todas as peças).
 
 **Próximos passos possíveis:**
 - Heróis de Áries (Água), Sagitário (Fogo) e Capricórnio (Terra): a Milena preenche a ficha
