@@ -606,8 +606,9 @@ recorte em magenta `#FF00FF`, porque o recorte verde apaga o verde da arte.
     e bater nele (espada ou poder) não o fere: ele **revida** e deixa com 1 de vida, mesmo com o herói
     escondido. É mais alto que o pulo (caixa 130 x 140; a área de toque sobe 200 px para não passar
     pulando). Desenho provisório em pixel (`quadroBesouroGrande`, 26 x 24 ampliado 6x) até a arte da
-    IA (prompt novo na seção 4.12 de `04-prompts-sprites.md`). São 5 besouros (x 1265, 2035, 3970,
-    6385, 8380, cada um num trecho sem raiz, cardo ou buraco; cardos de 2000 e 6300 recuados).
+    IA (prompt novo na seção 4.12 de `04-prompts-sprites.md`). São 4 besouros com trechos maiores e
+    longe dos buracos (x1–x2: 1945–2060, 4030–4290, 6302–6400, 8340–8460; fora das raízes).
+    **Sem cardos** no pasto (`perigos: []`, Erick, 2026-11-20).
     **Mato alto:** em toda a área de cada besouro (`MOITAS`, sai de x1 - 40 até x2 + largura + 40),
     desenhado pelo código (`drawMoitas`, ~80 px, alto por igual e caindo nas pontas). No chão e com o
     centro dentro do mato, o herói fica escondido (`escondido()`, sem aviso na tela): o besouro passa
@@ -615,7 +616,8 @@ recorte em magenta `#FF00FF`, porque o recorte verde apaga o verde da arte.
     não ferem. Pular ou sair do mato acaba o esconderijo.
   - **Correções (2026-11-20):** o campo pintado acabava antes do pé da tela e aparecia uma linha
     marrom do fundo (agora há um fundo `#13282b` embaixo da imagem); os buracos viraram valas escuras
-    desde a beirada; a árvore às vezes ficava sem raiz porque era montada antes de a imagem da raiz
+    desde a beirada, com as duas beiradas do campo arredondadas e quebradas (`beira` no `piso`, iguais
+    dos dois lados; a vala passa 40 px por trás delas); a árvore às vezes ficava sem raiz porque era montada antes de a imagem da raiz
     carregar (`pecasArvore` agora espera todas as peças).
 
 **Próximos passos possíveis:**

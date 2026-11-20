@@ -3035,7 +3035,7 @@ function texturaCampo() {
 // Desenhado em meia resolução (cada pixel vira 2x2, como a arte da fase).
 const hashC = n => { const v = Math.sin(n * 12.9898 + 78.233) * 43758.5453; return v - Math.floor(v); };
 let capimCv = null;
-function chaoEm(x) { return SOLIDS.some(s => s.y >= GROUND - 1 && x >= s.x + 6 && x <= s.x + s.w - 6); }
+function chaoEm(x) { return SOLIDS.some(s => s.y >= GROUND - 1 && x >= s.x + 18 && x <= s.x + s.w - 18); }
 function naRaiz(x) {   // o capim que balança não nasce em cima da raiz da árvore (Erick, 2026-11-20)
   const AR = arvoresProntas; if (!AR) return false;
   return AR.some(t => t.raizFrente && x > t.raizFrente.x + t.raizFrente.w * .06 && x < t.raizFrente.x + t.raizFrente.w * .94);
@@ -3268,7 +3268,14 @@ function piso() {
       ys.push(Math.round(y / B) * B);
     }
     if (PASTO) {   // campo: começa 40 px acima da linha dos pés e desce até a faixa preta; sem borda nem crosta
-      g.save(); g.beginPath(); g.rect(s.x, 0, s.w, alt); g.clip();
+      // beiradas do buraco arredondadas e quebradas (iguais dos dois lados), não um corte reto
+      const tp = (capimArte ? GROUND - 50 : GROUND - 40) - PISO_TOPO, R0 = 40;
+      const beira = (y, k) => { const d = Math.max(0, y - tp), o = d < R0 ? R0 - Math.sqrt(Math.max(0, R0 * R0 - (R0 - d) * (R0 - d))) : 0;
+        return Math.round((o * .8 + d * .12 + 5 + Math.sin(d * .13 + k * 2.1) * 5 + hashC(Math.floor(y / 2) * 7.3 + k) * 7) / 2) * 2; };
+      g.save(); g.beginPath(); g.moveTo(s.x + beira(tp, 1), 0);
+      for (let y = tp; y < alt; y += 2) { g.lineTo(s.x + beira(y, 1), y); g.lineTo(s.x + beira(y, 1), y + 2); }
+      for (let y = alt - 2; y >= tp; y -= 2) { g.lineTo(s.x + s.w - beira(y, 2), y + 2); g.lineTo(s.x + s.w - beira(y, 2), y); }
+      g.lineTo(s.x + s.w - beira(tp, 2), 0); g.closePath(); g.clip();
       g.fillStyle = '#13282b'; g.fillRect(s.x, GROUND - PISO_TOPO, s.w, alt);   // fundo do campo, embaixo da imagem
       g.translate(0, (capimArte ? GROUND - 50 : GROUND - 40) - PISO_TOPO); g.scale(z, z);   // pintado: corpo do capim 16 px acima dos pés
       g.fillStyle = pat; g.fillRect(s.x / z - 4, 0, s.w / z + 8, chao.height); g.restore();
@@ -3309,7 +3316,7 @@ function piso() {
       if (x1 - x0 < 8) continue;
       const gr = g.createLinearGradient(0, base - 30, 0, alt);   // vala escura (Erick, 2026-11-20)
       gr.addColorStop(0, 'rgba(14,22,12,0)'); gr.addColorStop(.3, 'rgba(14,22,12,.9)'); gr.addColorStop(.42, '#0b130a'); gr.addColorStop(.5, '#070b06'); gr.addColorStop(1, '#030503');
-      g.fillStyle = gr; g.fillRect(x0, base - 30, x1 - x0, alt);
+      g.fillStyle = gr; g.fillRect(x0 - 40, base - 30, x1 - x0 + 80, alt);   // passa por trás das beiradas recortadas
     }
     g.restore();
   }

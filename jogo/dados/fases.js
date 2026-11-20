@@ -194,19 +194,15 @@ window.FASES = {
     baus: [
       { x: 5960, y: 185, xp: 45, cura: true, texto: 'Baú escondido! +45 XP e vida cheia' },
     ],
-    perigoTipo: 'cardo',   // cardos espinhentos (machucam como o chão em chamas)
-    perigos: [
-      { x: 900, w: 80 }, { x: 1905, w: 80 }, { x: 3000, w: 80 }, { x: 3600, w: 90 },
-      { x: 5000, w: 80 }, { x: 6270, w: 70 }, { x: 7400, w: 80 },
-    ],
+    perigoTipo: 'cardo',
+    perigos: [],   // cardos retirados (Erick, 2026-11-20): o pasto é "paz e amor"
     controles: [80, 4250, 8300],
     inimigos: [
-      // besouros grandes, cada um no seu trecho de mato alto (fora das raízes, cardos e buracos)
-      { tipo: 'besouro', x: 1265, x1: 1265, x2: 1300, vel: 30, vida: 999 },
-      { tipo: 'besouro', x: 2035, x1: 2035, x2: 2125, vel: 35, vida: 999 },
-      { tipo: 'besouro', x: 4070, x1: 3970, x2: 4070, vel: 35, vida: 999 },
-      { tipo: 'besouro', x: 6385, x1: 6385, x2: 6455, vel: 35, vida: 999 },
-      { tipo: 'besouro', x: 8460, x1: 8380, x2: 8460, vel: 35, vida: 999 },
+      // besouros grandes, cada um no seu trecho de mato alto (fora das raízes e longe dos buracos)
+      { tipo: 'besouro', x: 1945, x1: 1945, x2: 2060, vel: 35, vida: 999 },
+      { tipo: 'besouro', x: 4230, x1: 4030, x2: 4290, vel: 40, vida: 999 },
+      { tipo: 'besouro', x: 6302, x1: 6302, x2: 6400, vel: 35, vida: 999 },
+      { tipo: 'besouro', x: 8340, x1: 8340, x2: 8460, vel: 35, vida: 999 },
       { tipo: 'pombo', x: 1150, y: 300, vida: 10, t: 0 },
       { tipo: 'pombo', x: 2350, y: 240, vida: 12, t: 2 },
       { tipo: 'pombo', x: 3850, y: 260, vida: 12, t: 4 },
