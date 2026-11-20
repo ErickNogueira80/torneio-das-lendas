@@ -572,6 +572,12 @@ recorte em magenta `#FF00FF`, porque o recorte verde apaga o verde da arte.
   da câmera (paralaxe 1,45). Opção "Capim liso" para comparar sem pixel. Peças novas do Gemini para
   substituir o rascunho: `fundos/vaca/capim` e `fundos/vaca/frente` (prompts na seção 4.12). Ainda
   não está no jogo: espera o Erick aprovar no laboratório.
+  - **Piso refeito (2026-11-20, foco do Erick):** em três partes, como nas referências: campo
+    visto um pouco de cima (começa 20 px acima da linha dos pés; textura de pinceladas deitadas pelo
+    vento, clara em cima e azul-escura embaixo, sem terra), capim que balança na frente dos pés e uma
+    **faixa preta** (crista de capim perto da câmera, paralaxe 1,25, altura ajustável) que esconde
+    onde o chão acabaria. Limite: abaixo da linha dos pés só há 80 px de tela; se o Erick quiser o
+    campo maior, a linha do chão do pasto precisa subir.
 
 **Próximos passos possíveis:**
 - Heróis de Áries (Água), Sagitário (Fogo) e Capricórnio (Terra): a Milena preenche a ficha

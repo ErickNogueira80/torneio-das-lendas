@@ -1091,21 +1091,26 @@ pebbles and grass roots fading into darker earth at the bottom. No sky, no horiz
 **Campo aberto: capim alto e folhagem da frente (2026-11-20, pedido do Erick).** O Erick quer o
 pasto com cara de campo pintado e cheio de profundidade: capim alto balançando que cobre os pés dos
 heróis, chão que some no escuro (sem corte de terra), ar quente entre os planos e silhuetas escuras
-de plantas na frente da câmera. O laboratório tem um rascunho disso ("Ver o campo aberto"). As duas
-peças abaixo trocam o rascunho por arte de verdade; testar em "Capim alto (faixa)" e "Folhagem da
+de plantas na frente da câmera. O laboratório tem um rascunho disso ("Ver o campo aberto"). Como o piso é feito (análise
+das referências do Erick): (1) o campo é visto um pouco de cima, então o herói pisa *dentro* do capim
+e não na beirada de um bloco; (2) o capim é claro em cima e escurece para baixo, sem terra; (3) uma
+faixa preta de capim e plantas, bem perto da câmera, passa na frente e esconde onde o chão "acabaria".
+As duas peças abaixo trocam o rascunho por arte de verdade; testar em "Capim alto (faixa)" e "Folhagem da
 frente" (coluna da direita). Anexar o céu e o `perto` aprovados.
 
-- `fundos/vaca/capim` (4:1, magenta): a faixa de capim que fica na linha do chão.
+- `fundos/vaca/capim` (4:1, magenta): o campo inteiro, da ponta do capim até a sombra de baixo. É o
+  piso: não tem corte de terra, o capim só vai escurecendo até encontrar a faixa preta da frente.
 
 ```
 Create an image. 2D side-scrolling game layer, peaceful countryside pasture at sunset, painterly
 style matching a fantasy RPG, same palette and light as the attached images, no characters, no text.
-Very wide 4:1 image, seamless horizontally tileable (left and right edges must match). A long strip
-of tall wild meadow grass seen from the side at eye level: hundreds of thin grass blades of
-different heights bending slightly to the right in the wind, some taller clumps and some lower
-gaps, dark green at the roots, fresh green in the middle, warm golden sunset light on the tips, a
-few tiny white, yellow and purple wildflowers. The bottom quarter is dense dark green grass that
-fills the whole width (flat bottom edge). Above the grass, plain solid #FF00FF magenta background.
+Very wide 4:1 image, seamless horizontally tileable (left and right edges must match). A wide band
+of a tall wild grass meadow seen from the side and slightly from above, painted with visible brush
+strokes: thousands of long grass blades all leaning to the right in the wind, bright yellow-green
+and golden where the sunset light hits the top part of the field, a few lighter strands catching
+the light, gradually darker green toward the bottom and finally deep blue-green shadow at the very
+bottom edge. NO soil, NO dirt, NO cut through the ground: only grass from top to bottom. The top
+edge is ragged with individual blades against a plain solid #FF00FF magenta background.
 ```
 
 - `fundos/vaca/frente` (21:9, magenta): plantas escuras e desfocadas bem perto da câmera.
