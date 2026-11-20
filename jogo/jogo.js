@@ -42,7 +42,10 @@ const PODER_ID = HEROI.poder, PODER = PODERES[PODER_ID];
 const FASE_ID = FASES[params.get('fase')] ? params.get('fase') : 'boitata';
 if (params.has('limpo')) {   // teste (2026-11-20): só o chão e o herói, para acertar o piso e a transição com o fundo
   const F0 = FASES[FASE_ID];
-  FASES[FASE_ID] = { ...F0, inimigos: [], plataformas: [], baus: [], perigos: [], sala: null, solidos: [{ x: -300, y: 460, w: F0.fim + 600, h: 140 }] };
+  FASES[FASE_ID] = { ...F0, inimigos: [], plataformas: [], baus: [], perigos: [], sala: null, solidos: [
+    { x: -300, y: 460, w: 1900, h: 140 }, { x: 1740, y: 460, w: F0.fim - 1440, h: 140 },   // um buraco em 1600–1740
+    { x: 900, y: 360, w: 220, h: 100 }, { x: 2300, y: 390, w: 160, h: 70 }, { x: 2460, y: 330, w: 180, h: 130 },   // blocos para subir
+  ] };
 }
 const FASE = FASES[FASE_ID];
 const GROUND = 460;
@@ -157,7 +160,7 @@ addEventListener('keydown', e => {
   if (e.repeat) return;
   keys[e.code] = true;
   if (state !== 'play') { menuKey(e.code); return; }
-  if (PASTO && /^Digit[1-6]$/.test(e.code)) trocarEstilo(+e.code[5] - 1);   // teste de estilos (2026-11-20)
+  if (PASTO && /^Digit[1-7]$/.test(e.code)) trocarEstilo(+e.code[5] - 1);   // teste de estilos (2026-11-20)
   if (JUMP_KEYS.includes(e.code)) jumpPressed = true;
   if (SWORD_KEYS.includes(e.code)) swordPressed = true;
   if (POWER_KEYS.includes(e.code)) powerPressed = true;
@@ -2873,7 +2876,16 @@ function drawFrente() {
   // primeiro plano em pixel (blocos de 4 px): moitas escuras embaixo e cipós pendurados no alto
   const par = 1.3, B = 4;
   ctx.fillStyle = PASTO ? '#0b160a' : '#08040b';
-  if (PASTO) { drawMoitas(); drawEnemies(true); drawCapim(true); drawCrista(); return; }   // o besouro passa na frente do mato alto   // pasto: capim na frente dos pés e a faixa preta
+  if (PASTO) {
+    drawMoitas(); drawEnemies(true); drawCapim(true);
+    if (ESTILO !== 'magibot') drawCrista();
+    else {   // Magibot: no lugar da faixa preta, só uma sombra embaixo (a frente de pedra dos blocos aparece)
+      const g = ctx.createLinearGradient(0, H - 70, 0, H);
+      g.addColorStop(0, 'rgba(6,3,6,0)'); g.addColorStop(1, 'rgba(6,3,6,.85)');
+      ctx.fillStyle = g; ctx.fillRect(0, H - 70, W, 70);
+    }
+    return;
+  }   // o besouro passa na frente do mato alto   // pasto: capim na frente dos pés e a faixa preta
   const bola = (cx, cy, r) => { for (let dy = -r; dy < r; dy += B) { const hw = Math.round(Math.sqrt(r * r - dy * dy) / B) * B; ctx.fillRect(cx - hw, cy + dy, hw * 2, B); } };
   for (const f of FRENTE) {
     const x = Math.round((f.x - camX * par) / B) * B; if (x < -120 || x > W + 120) continue;
@@ -3304,8 +3316,95 @@ const ESTILOS = [
   ['luz', 'Luz forte (Sky Dust): cena escura, sol que pinta tudo'],
   ['faixa', 'Faixa de jogo (img4): chão simples de tufos, fundo enevoado'],
   ['calcada', 'Calçada (Afterimage): caminho de pedra no prado, raios de luz'],
+  ['magibot', 'Magibot: blocos de musgo e terra, fundo enevoado, cipós na frente'],
 ];
-let ESTILO = ESTILOS.some(e => e[0] === params.get('estilo')) ? params.get('estilo') : 'prado', estiloAviso = 3;
+let ESTILO = ESTILOS.some(e => e[0] === params.get('estilo')) ? params.get('estilo') : params.has('limpo') ? 'magibot' : 'prado', estiloAviso = 3;
+// Desenha um bloco (chão ou bloco alto) em pixel de 2 px: g = contexto, (x, yTopo) = onde se pisa,
+// w = largura, fundo = até onde vai a frente, bordaE/bordaD = pontas arredondadas (buraco ou bloco solto)
+function blocoMagibot(g, x0, yT, w, fundo, bordaE, bordaD, seed) {
+  const q = v => Math.round(v / 2) * 2, R = 14;
+  const recuo = (y, lado) => {   // pontas: canto de cima arredondado e a frente entrando um pouco
+    if (!(lado ? bordaD : bordaE)) return 0;
+    const d = y - (yT - 8);
+    const canto = d < R ? R - Math.sqrt(Math.max(0, R * R - (R - d) * (R - d))) : 0;
+    return q(canto + Math.max(0, d) * .1 + hashC(Math.floor(y / 4) * 3.1 + seed + lado) * 4);
+  };
+  g.save(); g.beginPath();
+  g.moveTo(x0 + recuo(yT - 8, 0), yT - 8);
+  for (let y = yT - 8; y <= fundo; y += 2) g.lineTo(x0 + recuo(y, 0), y);
+  for (let y = fundo; y >= yT - 8; y -= 2) g.lineTo(x0 + w - recuo(y, 1), y);
+  g.closePath(); g.clip();
+  // frente: terra arroxeada na sombra do fim de tarde
+  let gr = g.createLinearGradient(0, yT + 10, 0, fundo);
+  gr.addColorStop(0, '#5a3c42'); gr.addColorStop(.35, '#3a2630'); gr.addColorStop(1, '#0d080b');
+  g.fillStyle = gr; g.fillRect(x0, yT, w, fundo - yT);
+  // pedras encaixadas (fileiras desencontradas)
+  for (let fy = yT + 18, f = 0; fy < fundo; fy += 24, f++) {
+    for (let fx = x0 - (f % 2) * 22; fx < x0 + w;) {
+      const lw = 30 + Math.floor(hashC(fx * .17 + f * 7 + seed) * 4) * 8;
+      const esc = clamp((fy - yT) / (fundo - yT), 0, 1);
+      g.fillStyle = `rgba(110,78,86,${.55 * (1 - esc)})`; g.fillRect(q(fx + 2), q(fy + 2), lw - 4, 2);          // luz no alto da pedra
+      g.fillStyle = `rgba(20,12,16,${.8 - .3 * esc})`; g.fillRect(q(fx), q(fy), lw, 2); g.fillRect(q(fx + lw - 2), q(fy), 2, 22);   // juntas
+      if (hashC(fx * .53 + fy) > .72) { g.fillStyle = 'rgba(20,12,16,.6)'; g.fillRect(q(fx + 8), q(fy + 8), 10, 2); g.fillRect(q(fx + 16), q(fy + 10), 2, 6); }   // entalhe
+      fx += lw;
+    }
+  }
+  // raízes finas descendo pela frente
+  for (let x = x0 + 20; x < x0 + w - 20; x += 70 + hashC(x * .7 + seed) * 90) {
+    let rx = x; g.fillStyle = '#2a1a1f';
+    for (let y = yT + 12; y < yT + 40 + hashC(x) * 40; y += 2) { rx += Math.round((hashC(y * .3 + x) - .5) * 2); g.fillRect(q(rx), y, 2, 2); }
+  }
+  // topo visto um pouco de cima (onde se pisa) e musgo escorrendo pela borda
+  gr = g.createLinearGradient(0, yT - 8, 0, yT + 14);
+  gr.addColorStop(0, '#a6bd52'); gr.addColorStop(.45, '#7d9b3e'); gr.addColorStop(1, '#4f6e2f');
+  g.fillStyle = gr; g.fillRect(x0, yT - 8, w, 22);
+  for (let x = x0; x < x0 + w; x += 2) {
+    const h = q(2 + hashC(x * .23 + seed) * 6 + (hashC(Math.floor(x / 14) + seed) > .7 ? 10 + hashC(x) * 12 : 0));
+    g.fillStyle = '#4f6e2f'; g.fillRect(x, yT + 14, 2, h);
+    g.fillStyle = '#34501f'; g.fillRect(x, yT + 14 + h, 2, 2);
+  }
+  for (let i = 0; i < w / 5; i++) {   // manchas de luz e sombra no topo
+    const x = q(x0 + hashC(i * 1.9 + seed) * w), y = q(yT - 6 + hashC(i * 2.7 + seed) * 18);
+    g.fillStyle = ['#c3d567', '#94b04a', '#5f7f34'][(hashC(i * 4.1) * 3) | 0]; g.fillRect(x, y, 4, 2);
+  }
+  g.restore();
+  for (let x = x0 + 4; x < x0 + w - 4; x += 3) {   // capim saindo do topo (fora do recorte)
+    const r1 = hashC(x * .91 + seed); if (r1 < .45) continue;
+    const h = q(2 + r1 * r1 * 10), lean = hashC(x * 1.3) > .5 ? 2 : 0;
+    g.fillStyle = r1 > .9 ? '#d8e083' : '#9fbb4e'; g.fillRect(q(x), yT - 8 - h, 2, h); if (lean) g.fillRect(q(x) + 2, yT - 8 - h, 2, 2);
+    if (r1 > .985) { g.fillStyle = ['#ffffff', '#f3dd6a', '#c49cff'][(hashC(x) * 3) | 0]; g.fillRect(q(x), yT - 10 - h, 2, 2); }
+  }
+}
+const blocosCache = new Map();
+function drawBlocosAltos() {   // blocos acima do chão (Magibot): desenhados antes do chão, que cobre o pé deles
+  for (const s of SOLIDS) {
+    if (s.y >= GROUND - 1) continue;
+    const x = Math.round(s.x - camX); if (x > W + 20 || x + s.w < -20) continue;
+    let c = blocosCache.get(s);
+    if (!c) {
+      c = document.createElement('canvas'); c.width = s.w + 20; c.height = GROUND + 40 - s.y + 30;
+      blocoMagibot(c.getContext('2d'), 10, 30, s.w, c.height, true, true, s.x * .01);
+      blocosCache.set(s, c);
+    }
+    ctx.drawImage(c, x - 10, s.y - 30);
+  }
+}
+// cipós e galhos pretos na frente da câmera (Magibot), presos no alto da tela
+function drawCipos() {
+  const par = 1.3, c = ctx; c.save(); c.fillStyle = c.strokeStyle = '#040305'; c.lineCap = 'round';
+  for (let k = Math.floor(camX * par / 760) - 1; k <= Math.floor((camX * par + W) / 760) + 1; k++) {
+    const r = mulberry(900 + k), bx = k * 760 + r() * 300 - camX * par;
+    if (r() < .3) continue;
+    const comp = 120 + r() * 200, larg = 6 + r() * 8, curva = (r() - .5) * 160;
+    c.lineWidth = larg; c.beginPath(); c.moveTo(bx - 60, -20);
+    c.bezierCurveTo(bx + curva, comp * .4, bx - curva * .6, comp * .8, bx + curva * .3, comp); c.stroke();
+    for (let i = 0; i < 5; i++) {   // folhas penduradas
+      const t = .3 + i * .15, lx = bx + curva * .3 * t + (r() - .5) * 30, ly = comp * t;
+      c.beginPath(); c.ellipse(lx, ly, 5 + r() * 6, 2 + r() * 3, r() * 3, 0, Math.PI * 2); c.fill();
+    }
+  }
+  c.restore();
+}
 function trocarEstilo(i) { ESTILO = ESTILOS[i][0]; pisoPronto = null; estiloAviso = 3; }
 let lutChapado = null;
 function paletaChapada() {   // as cores mais usadas no céu, no fundo e no prado, um pouco mais vivas
@@ -3362,6 +3461,16 @@ function posEstilo() {   // efeito sobre a cena inteira (depois do mundo, antes 
     g = c.createLinearGradient(0, 0, W * .5, H * .4);
     g.addColorStop(0, 'rgba(90,150,255,.22)'); g.addColorStop(1, 'rgba(90,150,255,0)');
     c.fillStyle = g; c.fillRect(0, 0, W, H);
+  } else if (ESTILO === 'magibot') {
+    c.globalCompositeOperation = 'screen';
+    for (let i = 0; i < 3; i++) {   // raios de sol vindos do alto à direita
+      const x = ((i * 360 + 300 - camX * .1) % (W + 500) + W + 500) % (W + 500) - 150, l = 70 + i * 30;
+      const g = c.createLinearGradient(0, 0, 0, GROUND + 20);
+      g.addColorStop(0, 'rgba(255,225,170,0)'); g.addColorStop(.2, 'rgba(255,225,170,.1)'); g.addColorStop(1, 'rgba(255,225,170,0)');
+      c.fillStyle = g; c.beginPath(); c.moveTo(x, 0); c.lineTo(x + l, 0); c.lineTo(x + l - 220, GROUND + 20); c.lineTo(x - 220, GROUND + 20); c.closePath(); c.fill();
+    }
+    c.globalCompositeOperation = 'source-over';
+    drawCipos();
   } else if (ESTILO === 'calcada') {   // raios de luz em diagonal
     c.globalCompositeOperation = 'screen';
     for (let i = 0; i < 4; i++) {
@@ -3373,7 +3482,7 @@ function posEstilo() {   // efeito sobre a cena inteira (depois do mundo, antes 
   }
   c.restore();
   if (estiloAviso > 0 || params.has('limpo')) {   // nome do estilo no alto (some sozinho fora da tela de teste)
-    const i = ESTILOS.findIndex(e => e[0] === ESTILO), t = (i + 1) + ' · ' + ESTILOS[i][1] + '   (teclas 1 a 6)';
+    const i = ESTILOS.findIndex(e => e[0] === ESTILO), t = (i + 1) + ' · ' + ESTILOS[i][1] + '   (teclas 1 a 7)';
     c.save(); c.font = 'bold 15px system-ui, sans-serif'; c.textAlign = 'center';
     const w = c.measureText(t).width + 24; c.fillStyle = 'rgba(0,0,0,.55)'; c.fillRect(W / 2 - w / 2, 96, w, 26);
     c.fillStyle = '#ffe9b0'; c.fillText(t, W / 2, 114); c.restore();
@@ -3413,6 +3522,13 @@ function piso() {
       const borda = Math.min(x - s.x, s.x + s.w - x);              // beirada quebrada no buraco
       if (borda < 14) y += (14 - borda) * (14 - borda) / 14;
       ys.push(Math.round(y / B) * B);
+    }
+    if (PASTO && ESTILO === 'magibot') {
+      const chaos = SOLIDS.filter(o => o.y >= GROUND - 1);
+      const bE = chaos.some(o => o !== s && Math.abs(o.x + o.w - s.x) < 300 && o.x < s.x), bD = chaos.some(o => o !== s && o.x > s.x && o.x - (s.x + s.w) < 300);
+      blocoMagibot(g, s.x, GROUND - PISO_TOPO, s.w, alt, bE, bD, s.x * .013);
+      ys.forEach((y, i) => topos.set(s.x + i * 4, PISO_TOPO + base + y));
+      continue;
     }
     if (PASTO && ESTILO === 'faixa') {   // faixa de jogo: tufos de folhas no topo e corpo que escurece até o preto
       const yT = GROUND - PISO_TOPO, gr = g.createLinearGradient(0, yT, 0, alt);
@@ -3719,12 +3835,20 @@ function drawWorld() {
     const gr = ctx.createLinearGradient(0, 180, 0, GROUND + 20);
     gr.addColorStop(0, 'rgba(255,196,160,0)'); gr.addColorStop(.6, 'rgba(255,190,150,.16)'); gr.addColorStop(1, 'rgba(255,200,150,.30)');
     ctx.fillStyle = gr; ctx.fillRect(0, 180, W, GROUND + 20 - 180);
+    if (ESTILO === 'magibot') {   // fundo claro e enevoado, num tom quente só: o plano do jogo se destaca
+      ctx.save(); ctx.globalCompositeOperation = 'multiply'; ctx.fillStyle = 'rgba(235,190,200,1)'; ctx.fillRect(0, 0, W, H);
+      ctx.globalCompositeOperation = 'source-over';
+      const nv = ctx.createLinearGradient(0, 120, 0, GROUND + 10);
+      nv.addColorStop(0, 'rgba(255,200,180,.18)'); nv.addColorStop(1, 'rgba(255,205,175,.5)');
+      ctx.fillStyle = nv; ctx.fillRect(0, 0, W, GROUND + 10); ctx.restore();
+    }
     if (ESTILO === 'faixa') {   // fundo num tom só, mais apagado: o chão de jogo se destaca
       ctx.save(); ctx.globalCompositeOperation = 'multiply'; ctx.fillStyle = 'rgba(150,140,190,1)'; ctx.fillRect(0, 0, W, H);
       ctx.globalCompositeOperation = 'source-over'; ctx.fillStyle = 'rgba(150,130,180,.22)'; ctx.fillRect(0, 0, W, H); ctx.restore();
     }
   }
   if (AR) for (const t of AR) { const x = Math.round(t.x0 - camX); if (x < W && x + t.c.width > 0) ctx.drawImage(t.c, x, 0); }
+  if (PASTO && ESTILO === 'magibot') drawBlocosAltos();
   const P = piso();
   if (P) {
     const sx = clamp(Math.round(camX), 0, P.c.width - W);
@@ -3743,6 +3867,7 @@ function drawWorld() {
   drawCapim(false);
   for (const s of SOLIDS) {
     if (P && s.y >= GROUND - 1) continue;
+    if (PASTO && ESTILO === 'magibot') continue;   // blocos altos já desenhados (drawBlocosAltos)
     const x = s.x - camX; if (x > W || x + s.w < 0) continue;
     if (groundPattern) {
       const z = fundoPixel() || 1;   // o ladrilho em pixel art é guardado pequeno e ampliado aqui

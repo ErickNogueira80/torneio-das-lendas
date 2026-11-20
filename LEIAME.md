@@ -651,6 +651,15 @@ recorte em magenta `#FF00FF`, porque o recorte verde apaga o verde da arte.
     o sol pintando tudo), 5 `faixa` (chão simples de tufos de folhas e corpo escuro, fundo num tom só e
     apagado) e 6 `calcada` (caminho de lajes de pedra no prado e raios de luz). `posEstilo()` aplica os
     efeitos depois do mundo e antes da HUD; o nome do estilo aparece no alto. É só para escolher.
+    **Estilo Magibot (2026-11-20, escolha do Erick: "acho que descobri o estilo que quero seguir"),
+    em pixel art:** tecla **7** (`magibot`, padrão da tela `?limpo`). Chão em blocos desenhados pelo
+    código (`blocoMagibot`): topo de musgo visto um pouco de cima (onde se pisa), musgo escorrendo
+    pela borda, capim e florzinhas saindo do topo, frente de terra arroxeada com pedras encaixadas,
+    entalhes e raízes, pontas arredondadas nos buracos. Blocos altos para subir são sólidos comuns
+    (`drawBlocosAltos`, desenhados antes do chão). Fundo claro e enevoado num tom quente só, raios de
+    sol, cipós pretos na frente (`drawCipos`, paralaxe 1,3) e uma sombra embaixo no lugar da faixa
+    preta. A tela `?limpo` agora tem um buraco (1600–1740) e três blocos (900, 2300, 2460).
+    Próximo passo: kit de artes no Gemini nesse estilo (bloco de chão, beiradas, plataformas, cipós).
     **Tela de teste:** `?fase=vaca&limpo` tira bichos, árvores, buracos, baús e perigos (só o chão e
     o herói), para acertar o piso e a transição com o fundo.
   - **Correções (2026-11-20):** o campo pintado acabava antes do pé da tela e aparecia uma linha
