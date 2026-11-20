@@ -1113,17 +1113,19 @@ bottom edge. NO soil, NO dirt, NO cut through the ground: only grass from top to
 edge is ragged with individual blades against a plain solid #FF00FF magenta background.
 ```
 
-- `fundos/vaca/frente` (21:9, magenta): plantas escuras e desfocadas bem perto da câmera.
+- `fundos/vaca/frente` (4:1, magenta): a faixa preta da frente. No jogo ela é baixa (uns 26 px da
+  tela, mais as pontas do capim e uma samambaia de vez em quando), para não esconder o herói.
 
 ```
 Create an image. 2D side-scrolling game foreground layer, peaceful countryside pasture at sunset,
 painterly style matching a fantasy RPG, no characters, no text.
-Very wide 21:9 image, seamless horizontally tileable (left and right edges must match). Only plants
-very close to the camera along the bottom edge, as dark silhouettes (very dark blue-green, almost
-black, a thin warm rim light on some edges, slightly out of focus): big fern fronds, tall thick grass
-blades and a few wild leaves, grouped in two or three clumps of different heights (the tallest
-reaching about half of the image height) with low gaps between them. The plants touch the bottom
-edge. Everything else is plain solid #FF00FF magenta background.
+Very wide 4:1 image, seamless horizontally tileable (left and right edges must match). Only a LOW
+strip of grass very close to the camera along the bottom edge, as a dark silhouette (very dark
+blue-green, almost black), slightly out of focus: a gently rolling mound of thick grass whose top
+edge is made of many individual grass blades of different heights leaning in the wind, with a
+thin cool blue-green rim light along the top edge, and only two or three small fern fronds or
+taller grass tufts sticking up a little higher. The dark mound fills the bottom third of the image
+and touches the bottom edge. Everything above it is plain solid #FF00FF magenta background.
 ```
 
 **Feito em 2026-11-20:** as 8 peças acima foram geradas de primeira com estes prompts e estão no
