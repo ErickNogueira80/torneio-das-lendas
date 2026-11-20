@@ -600,6 +600,13 @@ recorte em magenta `#FF00FF`, porque o recorte verde apaga o verde da arte.
   - **Capim na frente dos pés (2026-11-20):** o capim que balança é do código (não precisa de arte da
     IA). A camada da frente nasce na linha dos pés (base `GROUND + 4..16`), tem 16 a 42 px e um fio a
     cada 4 px, para cobrir as botas do herói e dos inimigos como no Planet of Lana.
+    O capim que balança não nasce em cima das raízes das árvores (`naRaiz`, pedido do Erick).
+  - **Moitas para se esconder (2026-11-20):** tufos de capim denso (`moitas` na ficha da fase vaca:
+    x 1240, 2140, 4000, 6420 e 7715, 105 a 120 px) desenhados pelo código na frente do herói
+    (`drawMoitas`, três camadas, até ~80 px, cobrem o herói quase inteiro; o capim se afasta quando ele
+    anda). No chão e com o centro dentro da moita, o herói fica **escondido** (`escondido()`): aparece
+    "escondido" e `hurtPlayer` não tira vida. Pular ou sair da moita acaba o esconderijo. Fora das
+    raízes, buracos, cardos, checkpoints e da arena do chefe.
 
 **Próximos passos possíveis:**
 - Heróis de Áries (Água), Sagitário (Fogo) e Capricórnio (Terra): a Milena preenche a ficha

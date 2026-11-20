@@ -192,6 +192,8 @@ window.FASES = {
     baus: [
       { x: 5960, y: 185, xp: 45, cura: true, texto: 'Baú escondido! +45 XP e vida cheia' },
     ],
+    // moitas de capim denso (2026-11-20): parado dentro, no chão, o herói fica escondido e não leva dano
+    moitas: [{ x: 1240, w: 110 }, { x: 2140, w: 110 }, { x: 4000, w: 120 }, { x: 6420, w: 110 }, { x: 7715, w: 105 }],
     perigoTipo: 'cardo',   // cardos espinhentos (machucam como o chão em chamas)
     perigos: [
       { x: 900, w: 80 }, { x: 2000, w: 90 }, { x: 3000, w: 80 }, { x: 3600, w: 90 },

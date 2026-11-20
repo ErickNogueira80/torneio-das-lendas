@@ -312,6 +312,7 @@ function floatText(x, y, txt, c = '#fff') { texts.push({ x, y, txt, c, life: 1 }
 
 function hurtPlayer(dmg, srcX, poison = 0) {
   if (player.inv > 0 || state !== 'play') return;
+  if (typeof escondido === 'function' && escondido()) return;   // dentro da moita os inimigos não o acham
   player.hp -= dmg;
   player.inv = 1;
   player.vx = (player.x + player.w / 2 < srcX ? -1 : 1) * 320;
@@ -2806,7 +2807,7 @@ function drawFrente() {
   // primeiro plano em pixel (blocos de 4 px): moitas escuras embaixo e cipós pendurados no alto
   const par = 1.3, B = 4;
   ctx.fillStyle = PASTO ? '#0b160a' : '#08040b';
-  if (PASTO) { drawCapim(true); drawCrista(); return; }   // pasto: capim na frente dos pés e a faixa preta
+  if (PASTO) { drawMoitas(); drawCapim(true); drawCrista(); return; }   // pasto: capim na frente dos pés e a faixa preta
   const bola = (cx, cy, r) => { for (let dy = -r; dy < r; dy += B) { const hw = Math.round(Math.sqrt(r * r - dy * dy) / B) * B; ctx.fillRect(cx - hw, cy + dy, hw * 2, B); } };
   for (const f of FRENTE) {
     const x = Math.round((f.x - camX * par) / B) * B; if (x < -120 || x > W + 120) continue;
@@ -3020,6 +3021,10 @@ function texturaCampo() {
 const hashC = n => { const v = Math.sin(n * 12.9898 + 78.233) * 43758.5453; return v - Math.floor(v); };
 let capimCv = null;
 function chaoEm(x) { return SOLIDS.some(s => s.y >= GROUND - 1 && x >= s.x + 6 && x <= s.x + s.w - 6); }
+function naRaiz(x) {   // o capim que balança não nasce em cima da raiz da árvore (Erick, 2026-11-20)
+  const AR = arvoresProntas; if (!AR) return false;
+  return AR.some(t => t.raizFrente && x > t.raizFrente.x + t.raizFrente.w * .06 && x < t.raizFrente.x + t.raizFrente.w * .94);
+}
 function drawCapim(frente) {
   if (!PASTO || typeof document === 'undefined') return;
   if (!capimCv) { capimCv = document.createElement('canvas'); capimCv.width = W / 2; capimCv.height = H / 2; }
@@ -3027,7 +3032,7 @@ function drawCapim(frente) {
   const passo = frente ? 4 : 3;
   const PAL = frente ? ['#4f8436', '#6c9e3e', '#8fbb4a', '#c8dc72'] : ['#6f9e3c', '#8fb948', '#b0cf58', '#dfe88e'];
   for (let wx = Math.floor((camX - 40) / passo) * passo; wx < camX + W + 40; wx += passo) {
-    if (!chaoEm(wx)) continue;
+    if (!chaoEm(wx) || naRaiz(wx)) continue;
     const r1 = hashC(wx * 1.7 + (frente ? 99 : 0)), r2 = hashC(wx * 3.1 + 7), r3 = hashC(wx * 5.3 + 3);
     if (frente && r1 < .3) continue;
     const base = GROUND + relevo(wx) + (frente ? 4 + r2 * 12 : 4 + r2 * 8);
@@ -3045,6 +3050,49 @@ function drawCapim(frente) {
     if (!frente && r1 > .965) { gl.fillStyle = ['#ffffff', '#f3dd6a', '#c49cff'][(r3 * 3) | 0]; gl.fillRect(Math.round(bx + ii) - 1, Math.round(by - hh) - 1, 2, 2); }
   }
   ctx.imageSmoothingEnabled = false; ctx.drawImage(capimCv, 0, 0, W, H); ctx.imageSmoothingEnabled = true;
+}
+// moitas de capim denso (pasto, 2026-11-20): cobrem o herói quase inteiro. Parado dentro de uma moita,
+// no chão, ele fica escondido e os inimigos não o ferem (ver escondido()).
+const MOITAS = (FASE.moitas || []).map(m => ({ x: m.x, w: m.w }));
+let moitaCv = null, avisoMoita = false;
+function escondido() {
+  const p = player; if (!p.onGround) return false;
+  const cx = p.x + p.w / 2;
+  return MOITAS.some(m => cx > m.x + 14 && cx < m.x + m.w - 14);
+}
+function drawMoitas() {
+  if (!MOITAS.length || typeof document === 'undefined') return;
+  if (!moitaCv) { moitaCv = document.createElement('canvas'); moitaCv.width = W / 2; moitaCv.height = H / 2; }
+  const gl = moitaCv.getContext('2d'); let algo = false;
+  gl.clearRect(0, 0, W / 2, H / 2);
+  const pcx = player.x + player.w / 2;
+  const CAM = [['#1f3d1f', '#2c5326', '#3f6e2e', '#5e8d3a'], ['#2f5a26', '#467a32', '#64983e', '#93bb4c'], ['#3f6e2e', '#5e8d3a', '#86b048', '#c3d96a']];
+  for (const m of MOITAS) {
+    if (m.x + m.w < camX - 40 || m.x > camX + W + 40) continue; algo = true;
+    for (let c = 0; c < 3; c++) {   // três camadas: fundo escuro, meio, frente iluminada
+      for (let wx = m.x - 10 + c; wx < m.x + m.w + 10; wx += 2) {
+        const t = (wx - m.x + 10) / (m.w + 20), r1 = hashC(wx * 2.3 + c * 31), r2 = hashC(wx * 4.7 + c * 13);
+        const domo = Math.pow(Math.max(0, Math.sin(Math.PI * t)), .45);
+        let h = (60 + 22 * r1) * domo * (1 - c * .1); if (h < 6) continue;
+        const vento = Math.sin(time * 1.4 + wx * .03 + c) * .6 + Math.sin(time * .6 + wx * .011) * .4;
+        let inc = (r2 - .5) * h * .5 + vento * h * .14;
+        const d = wx - pcx;   // o herói afasta o capim de leve ao passar
+        if (Math.abs(d) < 26 && player.vx !== 0) inc += Math.sign(d || 1) * (26 - Math.abs(d)) * .35;
+        const base = GROUND + 10 + r2 * 6, P = CAM[c];
+        const bx = (wx - camX) / 2, by = base / 2, hh = h / 2, ii = inc / 2, n = Math.ceil(hh) + 1;
+        for (let k = 0; k <= n; k++) {
+          const q = k / n;
+          gl.fillStyle = q > .82 ? P[3] : q > .5 ? P[2] : q > .2 ? P[1] : P[0];
+          gl.fillRect(Math.round(bx + ii * q * q), Math.round(by - hh * q), q < .55 ? 2 : 1, 1);
+        }
+      }
+    }
+  }
+  if (!algo) return;
+  ctx.imageSmoothingEnabled = false; ctx.drawImage(moitaCv, 0, 0, W, H); ctx.imageSmoothingEnabled = true;
+  const esc = escondido() && state === 'play';
+  if (esc && !avisoMoita) floatText(player.x - 10, player.y - 16, 'escondido', '#c3e88a');
+  avisoMoita = esc;
 }
 // faixa preta da frente (crista): morrinho de capim e samambaias bem perto da câmera, que esconde onde
 // o chão "acabaria". Montada uma vez para a fase inteira (paralaxe 1,25), em meia resolução.
