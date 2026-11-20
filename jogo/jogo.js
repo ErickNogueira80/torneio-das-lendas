@@ -3040,6 +3040,24 @@ function drawFundoPasto() {
 }
 // textura de terra do pasto (no lugar da imagem fundos/<fase>/chao)
 let chaoGeradoPronto = null;
+// gramado do pasto (2026-11-20, pedido do Erick): o chão é o próprio campo, que continua o gramado do
+// fundo, e não uma faixa de terra vista em corte. Ladrilho de 64 px da arte, que emenda nos 4 lados.
+let gramadoPronto = null;
+function gramado() {
+  if (gramadoPronto) return gramadoPronto;
+  const N = 64, c = document.createElement('canvas'); c.width = N; c.height = N;
+  const g = c.getContext('2d'), r = mulberry(17), P = (x, y, cor) => { g.fillStyle = cor; g.fillRect(((x % N) + N) % N, ((y % N) + N) % N, 1, 1); };
+  g.fillStyle = '#34531f'; g.fillRect(0, 0, N, N);
+  const verdes = ['#2a4519', '#2f4d1c', '#3d6326', '#46702b', '#527d31'];
+  for (let i = 0; i < 420; i++) {   // folhas de capim: risquinhos verticais um pouco tortos
+    const x = r() * N | 0, y = r() * N | 0, h = 3 + (r() * 6 | 0), lado = r() < .5 ? -1 : 1, cor = verdes[(r() * verdes.length) | 0];
+    for (let k = 0; k < h; k++) P(x + (k > h * .6 ? lado : 0), y - k, cor);
+  }
+  for (let i = 0; i < 70; i++) P(r() * N | 0, r() * N | 0, '#6e9638');      // pontas com luz
+  for (let i = 0; i < 18; i++) P(r() * N | 0, r() * N | 0, '#a8b84a');      // luz do pôr do sol
+  for (let i = 0; i < 4; i++) { const x = r() * N | 0, y = r() * N | 0, cor = ['#f0e070', '#e8d8ff', '#ffffff', '#c58cff'][i]; P(x, y, cor); P(x + 1, y, cor); P(x, y - 1, cor); }
+  return (gramadoPronto = c);
+}
 function chaoGerado() {
   if (!PASTO || typeof document === 'undefined') return null;
   if (chaoGeradoPronto) return chaoGeradoPronto;
@@ -3098,8 +3116,9 @@ const PISO_TOPO = GROUND - 26;
 let pisoPronto = null;
 function piso() {
   if (pisoPronto) return pisoPronto;
-  const chao = layer(FASE.fundo, 'chao') || chaoGerado();
-  if (!chao || typeof document === 'undefined') return null;
+  if (typeof document === 'undefined') return null;
+  const chao = PASTO ? gramado() : layer(FASE.fundo, 'chao') || chaoGerado();
+  if (!chao) return null;
   // cores da crosta: terra queimada (Boitatá) ou capim (pasto)
   const PC = PASTO ? { c1: '#8cc152', c2: '#a5d364', esc: '#4e8a30', deg: '#3f7027', sombra: 'rgba(20,12,6,.5)', pedra: '#3e2a1a', brasa: null, tufo: ['#3f7a2a', '#5e9e3a', '#7cbf4a'] }
     : { c1: '#5a4036', c2: '#7a5644', esc: '#3a2a26', deg: '#4a352d', sombra: 'rgba(10,5,8,.6)', pedra: '#2a1c1a', brasa: 'rgba(255,120,40,.8)', tufo: ['#140a10'] };
@@ -3132,7 +3151,13 @@ function piso() {
       const x = s.x + i * 4, yy = base + y;
       topos.set(x, PISO_TOPO + yy);
       const dy = i > 0 ? ys[i] - ys[i - 1] : 0;   // degrau: lateral do degrau também ganha crosta
-      const cap = PASTO ? 2 : 0;   // no pasto o capim é mais grosso
+      if (PASTO) {   // gramado: só pontas de capim na borda de cima, com a luz do fim de tarde
+        g.fillStyle = i % 3 ? '#4a7430' : '#5f8a36'; g.fillRect(x, yy, 4, 2);
+        g.fillStyle = r() < .5 ? '#6e9638' : '#46702b'; g.fillRect(x + (r() * 3 | 0), yy - 2, 1, 2 + (r() * 3 | 0));
+        if (r() < .25) { g.fillStyle = '#a8b84a'; g.fillRect(x + 2, yy - 2, 1, 1); }
+        return;
+      }
+      const cap = 0;
       g.fillStyle = i % 7 === 3 ? PC.c2 : PC.c1; g.fillRect(x, yy, 4, 2 + cap);                 // crosta clara
       g.fillStyle = PC.esc; g.fillRect(x, yy + 2 + cap, 4, 2 + cap);                             // crosta escura
       if (dy) { g.fillStyle = PC.deg; g.fillRect(x, Math.min(yy, yy - dy), 2, Math.abs(dy) + 2); }
@@ -3153,6 +3178,24 @@ function piso() {
       else if (t < .26) { g.fillRect(x, yy - 2, 22, 2); g.fillRect(x + 14, yy - 6, 2, 4); }
       else { const n = 2 + (r() * 5 | 0), h = 4 + r() * 9; for (let i = 0; i < n; i++) g.fillRect(Math.round(x + i * 3), Math.round(yy - h + ((i * 7) % 5)), 2, Math.round(h - ((i * 7) % 5))); }
     }
+  }
+  if (PASTO) {   // buracos: valas escuras entre os trechos de gramado
+    const chaos = SOLIDS.filter(s => s.y >= GROUND - 1).sort((a, b) => a.x - b.x);
+    g.save(); g.globalCompositeOperation = 'destination-over';
+    for (let i = 0; i + 1 < chaos.length; i++) {
+      const x0 = chaos[i].x + chaos[i].w - 6, x1 = chaos[i + 1].x + 6;
+      if (x1 - x0 < 8) continue;
+      const gr = g.createLinearGradient(0, base + 6, 0, alt);
+      gr.addColorStop(0, '#24331a'); gr.addColorStop(.3, '#141f0e'); gr.addColorStop(1, '#070b05');
+      g.fillStyle = gr; g.fillRect(x0, base + 6, x1 - x0, alt);
+    }
+    g.restore();
+  }
+  if (PASTO) {   // o gramado escurece para baixo (vai para perto da tela, na sombra)
+    g.save(); g.globalCompositeOperation = 'source-atop';
+    const gr = g.createLinearGradient(0, base, 0, alt);
+    gr.addColorStop(0, 'rgba(12,24,8,0)'); gr.addColorStop(.35, 'rgba(12,24,8,.15)'); gr.addColorStop(1, 'rgba(8,16,6,.6)');
+    g.fillStyle = gr; g.fillRect(0, 0, larg, alt); g.restore();
   }
   return (pisoPronto = { c, topos });
 }
