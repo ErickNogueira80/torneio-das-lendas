@@ -47,6 +47,14 @@
     <button id="bNeblina">Neblina quente entre os planos</button>
     <button id="bSilhueta">Faixa preta na frente</button>
     <button id="bSuave">Capim liso (sem pixel)</button>
+    <h2>Harmonia com o fundo</h2>
+    <button id="bHarmTudo">Ver A + B + C juntos (lado a lado)</button>
+    <button id="bHarmCores">A · Cores do fundo no chão</button>
+    <button id="bHarmLuz">B · Uma luz para tudo</button>
+    <button id="bHarmTransicao">C · Faixa de transição</button>
+    <button id="bHarmTextura">Extra · Chão com a pintura do fundo</button>
+    <button id="bFrentePreta">Faixa da frente preta</button>
+    <button id="bDividir">Comparar lado a lado (hoje × novo)</button>
     <h2>Mato</h2>
     <button id="bMato">Mato alto no chão</button>
     <button id="bFrente">Touceiras na frente da tela</button>
@@ -72,6 +80,7 @@
     <label><span>Copa sobe/desce: <b id="vCopaY"></b></span><input type="range" id="sCopaY" min="-120" max="120" step="2"></label>
     <label><span>Raiz enterrada (px): <b id="vRaizY"></b></span><input type="range" id="sRaizY" min="-30" max="120" step="2"></label>
     <label><span>Altura da faixa preta: <b id="vCrista"></b></span><input type="range" id="sCrista" min="10" max="120" step="2"></label>
+    <label><span>B · Força da luz: <b id="vLuz"></b></span><input type="range" id="sLuz" min="0.1" max="1" step="0.05"></label>
     <label><span>Chão escurece embaixo: <b id="vEscuro"></b></span><input type="range" id="sEscuro" min="0" max="0.9" step="0.05"></label>
     <h2>Testar imagem do Gemini</h2>
     <p class="dica">Escolha a imagem como ela veio do Gemini (JPG ou PNG). O laboratório tira o fundo magenta ou verde e reduz para pixel art, como a ferramenta faz.</p>
@@ -98,16 +107,23 @@ const W = 960, H = 540, GROUND = 460, Z = 2;
 const cv = document.getElementById('tela'), ctx = cv.getContext('2d');
 const BASE = '../sprites/';
 const ORIG = {}, TESTE = {};
-const peca = n => TESTE[n] || ORIG[n];
+const peca0 = n => TESTE[n] || ORIG[n];
+let frentePretaCache = null;
+const peca = n => {   // "faixa da frente preta": a mesma imagem, tingida de quase preto
+  const im = peca0(n);
+  if (n !== 'frente' || !im || !E.frentePreta) return im;
+  if (!frentePretaCache || frentePretaCache.de !== im) frentePretaCache = { de: im, c: tom(im, '3,4,6', .82) };
+  return frentePretaCache.c;
+};
 const ALTURA = { ceu: 270, longe: 180, perto: 210, chao: 128, capim: 80, frente: 70 };   // px da arte, como a ferramenta
 
 // ---------- estado ----------
-const EXTRA = { vento: true, neblina: false, silhueta: false, suave: false, crista: 26 };
-const NO_JOGO = { chao: 'campo', borda: 'nenhuma', raiz: 'frente', tronco: 1, copa: 1, copaY: -6, raizY: 34, escuro: 0.5, mato: false, frente: false, buraco: true, vento: true, neblina: true, silhueta: true, suave: false, crista: 26 };   // escolha do Erick (2026-11-20), já no jogo
+const EXTRA = { vento: true, neblina: false, silhueta: false, suave: false, crista: 26, harmCores: false, harmLuz: false, harmTransicao: false, harmTextura: false, frentePreta: false, dividir: false, luz: 0.6 };
+const NO_JOGO = { chao: 'campo', borda: 'nenhuma', raiz: 'frente', tronco: 1, copa: 1, copaY: -6, raizY: 34, escuro: 0.5, mato: false, frente: false, buraco: true, vento: true, neblina: true, silhueta: true, suave: false, crista: 26, harmCores: false, harmLuz: false, harmTransicao: false, harmTextura: false, frentePreta: false, dividir: false, luz: 0.6 };   // escolha do Erick (2026-11-20), já no jogo
 const ANTES = { chao: 'terra', borda: 'crosta', raiz: 'atras', tronco: 0.87, copa: 0.95, copaY: 0, raizY: 18, escuro: 0, mato: true, frente: true, buraco: false, ...EXTRA };
 // campo aberto (Erick, 2026-11-20): capim alto que cobre os pés, chão que escurece sem corte de terra,
 // neblina entre os planos e folhagem escura na frente da câmera
-const CAMPO = { chao: 'campo', borda: 'nenhuma', raiz: 'frente', tronco: 1, copa: 1, copaY: -6, raizY: 34, escuro: 0.5, mato: false, frente: false, buraco: true, vento: true, neblina: true, silhueta: true, suave: false, crista: 26 };
+const CAMPO = { chao: 'campo', borda: 'nenhuma', raiz: 'frente', tronco: 1, copa: 1, copaY: -6, raizY: 34, escuro: 0.5, mato: false, frente: false, buraco: true, vento: true, neblina: true, silhueta: true, suave: false, crista: 26, harmCores: false, harmLuz: false, harmTransicao: false, harmTextura: false, frentePreta: false, dividir: false, luz: 0.6 };
 let E = { ...NO_JOGO }, camX = 200;
 
 // ---------- utilidades ----------
@@ -203,6 +219,90 @@ function quadroMato(v, escuro) {
   const out = escuro ? c : contorno(c, '#0e1a0a'); MATO_CACHE.set(k, out); return out;
 }
 
+// ---------- harmonia com o fundo (2026-11-20) ----------
+// A: as cores do chão viram as cores mais usadas na pintura do fundo (perto + longe)
+let paletaFundo = null;
+function paleta() {
+  if (paletaFundo) return paletaFundo;
+  const conta = new Map();
+  for (const im of [peca0('perto'), peca0('longe')]) {
+    if (!im) continue;
+    const c = tela(im.width, im.height), g = c.getContext('2d'); g.drawImage(im, 0, 0);
+    const a = g.getImageData(0, 0, c.width, c.height).data;
+    for (let i = 0; i < a.length; i += 4) {
+      if (a[i + 3] < 200) continue;
+      const k = (a[i] >> 3) << 10 | (a[i + 1] >> 3) << 5 | (a[i + 2] >> 3);
+      const v = conta.get(k) || [0, 0, 0, 0]; v[0] += a[i]; v[1] += a[i + 1]; v[2] += a[i + 2]; v[3]++; conta.set(k, v);
+    }
+  }
+  paletaFundo = [...conta.values()].sort((p, q) => q[3] - p[3]).slice(0, 48).map(v => [v[0] / v[3], v[1] / v[3], v[2] / v[3]]);
+  return paletaFundo;
+}
+function maisPerto(r, g, b) {
+  let m = null, md = 1e9;
+  for (const p of paleta()) { const d = 2 * (p[0] - r) ** 2 + 4 * (p[1] - g) ** 2 + 3 * (p[2] - b) ** 2; if (d < md) { md = d; m = p; } }
+  return m || [r, g, b];
+}
+const cacheCor = new Map();
+function corDoFundo(hex) {
+  if (!cacheCor.has(hex)) { const n = parseInt(hex.slice(1), 16), p = maisPerto(n >> 16, n >> 8 & 255, n & 255); cacheCor.set(hex, `rgb(${p.map(Math.round).join(',')})`); }
+  return cacheCor.get(hex);
+}
+const cacheRemap = new Map();
+function remapear(img) {
+  if (cacheRemap.has(img)) return cacheRemap.get(img);
+  const c = tela(img.width, img.height), g = c.getContext('2d'); g.drawImage(img, 0, 0);
+  const d = g.getImageData(0, 0, c.width, c.height), a = d.data;
+  for (let i = 0; i < a.length; i += 4) { if (!a[i + 3]) continue; const p = maisPerto(a[i], a[i + 1], a[i + 2]); a[i] = p[0]; a[i + 1] = p[1]; a[i + 2] = p[2]; }
+  g.putImageData(d, 0, 0); cacheRemap.set(img, c); return c;
+}
+// Extra: o chão feito com a própria pintura do fundo (o prado da base da imagem "perto"), escurecendo embaixo
+let texFundo = null;
+function texturaDoFundo(perto) {
+  if (texFundo && texFundo.de === perto) return texFundo.c;
+  const w = perto.width, hh = perto.height, faixa = 56, c = tela(w, 80), g = c.getContext('2d');
+  g.drawImage(perto, 0, hh - faixa, w, faixa, 0, 0, w, faixa);
+  g.drawImage(perto, 0, hh - 24, w, 24, 0, faixa, w, 24);
+  const gr = g.createLinearGradient(0, 0, 0, 80);
+  gr.addColorStop(0, 'rgba(8,20,22,0)'); gr.addColorStop(.45, 'rgba(8,20,22,.15)'); gr.addColorStop(1, 'rgba(8,20,22,.8)');
+  g.globalCompositeOperation = 'source-atop'; g.fillStyle = gr; g.fillRect(0, 0, w, 80);
+  texFundo = { de: perto, c }; return c;
+}
+// C: faixa de transição entre o morro e o campo, feita do prado da base do fundo, com o topo recortado em capim
+let faixaTrans = null;
+function desenharTransicao(perto) {
+  if (!faixaTrans || faixaTrans.de !== perto) {
+    const w = perto.width, h = 46, c = tela(w, h), g = c.getContext('2d');
+    g.drawImage(perto, 0, perto.height - 52, w, h, 0, 0, w, h);
+    const d = g.getImageData(0, 0, w, h), a = d.data;
+    for (let x = 0; x < w; x++) {
+      const corte = 4 + hash(x * 1.3) * 9 + (Math.sin(x * .09) * .5 + .5) * 8;
+      for (let y = 0; y < corte && y < h; y++) a[(y * w + x) * 4 + 3] = 0;
+    }
+    g.putImageData(d, 0, 0);
+    faixaTrans = { de: perto, c: tom(c, '255,190,150', .16) };
+  }
+  ctx.imageSmoothingEnabled = false;
+  desenharFaixa(faixaTrans.c, .8, GROUND - 26, faixaTrans.c.height * Z);
+}
+// B: uma luz só para a cena toda (sol da direita, tom de fim de tarde, névoa no alto do campo, cantos escuros)
+function luzUnica() {
+  ctx.save();
+  const sx = W * .8, sy = H * .57, f = E.luz ?? .6;
+  let g = ctx.createRadialGradient(sx, sy, 30, sx, sy, W);
+  g.addColorStop(0, `rgba(255,165,90,${.8 * f})`); g.addColorStop(.45, `rgba(255,140,100,${.35 * f})`); g.addColorStop(1, `rgba(110,60,130,${.2 * f})`);
+  ctx.globalCompositeOperation = 'soft-light'; ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  ctx.globalCompositeOperation = 'multiply'; ctx.fillStyle = `rgba(255,214,196,${.75 * f})`; ctx.fillRect(0, 0, W, H);
+  ctx.globalCompositeOperation = 'source-over';
+  g = ctx.createLinearGradient(0, GROUND - 80, 0, GROUND + 30);
+  g.addColorStop(0, 'rgba(255,190,150,0)'); g.addColorStop(.55, 'rgba(255,185,150,.2)'); g.addColorStop(1, 'rgba(255,185,150,0)');
+  ctx.fillStyle = g; ctx.fillRect(0, GROUND - 80, W, 110);
+  g = ctx.createRadialGradient(W / 2, H * .45, H * .4, W / 2, H * .45, W * .72);
+  g.addColorStop(0, 'rgba(20,8,24,0)'); g.addColorStop(1, `rgba(20,8,24,${.65 * f})`);
+  ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  ctx.restore();
+}
+
 // ---------- campo aberto: capim alto e folhagem da frente ----------
 const hash = n => { const v = Math.sin(n * 12.9898 + 78.233) * 43758.5453; return v - Math.floor(v); };
 const GL = tela(W / 2, H / 2), gl = GL.getContext('2d');   // meia resolução: cada pixel vira 2x2, como a arte do jogo
@@ -212,7 +312,8 @@ function subirMeia() { ctx.imageSmoothingEnabled = !!E.suave; ctx.drawImage(GL, 
 function desenharCapim(frente) {
   gl.clearRect(0, 0, GL.width, GL.height);
   const passo = frente ? 6 : 3;
-  const PAL = frente ? ['#4f8436', '#6c9e3e', '#8fbb4a', '#c8dc72'] : ['#6f9e3c', '#8fb948', '#b0cf58', '#dfe88e'];
+  const PAL0 = frente ? ['#4f8436', '#6c9e3e', '#8fbb4a', '#c8dc72'] : ['#6f9e3c', '#8fb948', '#b0cf58', '#dfe88e'];
+  const PAL = E.harmCores ? PAL0.map(corDoFundo) : PAL0;
   for (let wx = Math.floor((camX - 40) / passo) * passo; wx < camX + W + 40; wx += passo) {
     if (!solidoEm(wx)) continue;
     const r1 = hash(wx * 1.7 + (frente ? 99 : 0)), r2 = hash(wx * 3.1 + 7), r3 = hash(wx * 5.3 + 3);
@@ -224,7 +325,7 @@ function desenharCapim(frente) {
     const vento = E.vento ? Math.sin(tempo * 1.6 + wx * .017) * .6 + Math.sin(tempo * .7 + wx * .006) * .4 : 0;
     const inc = (r3 - .5) * h * .45 + vento * h * (frente ? .16 : .26);
     const bx = (wx - camX) / 2, by = base / 2, hh = h / 2, ii = inc / 2, n = Math.ceil(hh) + 1;
-    const ponta = !frente && r2 > .82 ? '#d8c36a' : PAL[3];   // luz do pôr do sol na ponta de algumas
+    const ponta = !frente && r2 > .82 ? (E.harmCores ? corDoFundo('#d8c36a') : '#d8c36a') : PAL[3];   // luz do pôr do sol na ponta de algumas
     for (let k = 0; k <= n; k++) {
       const t = k / n;
       gl.fillStyle = t > .78 ? ponta : t > .45 ? PAL[2] : t > .18 ? PAL[1] : PAL[0];
@@ -349,9 +450,12 @@ function desenharChao() {
     const x0 = Math.max(s.x, Math.floor((camX - 8) / 4) * 4), x1 = Math.min(s.x + s.w, camX + W + 8);
     if (x1 <= x0) continue;
     if (E.chao === 'campo') {   // o campo começa acima da linha dos pés e desce até a crista
-      const arte = peca('capim'), tile = arte || texturaCampo(), pt = ctx.createPattern(tile, 'repeat-x');
+      const arte = peca('capim');
+      let tile = E.harmTextura && peca('perto') ? texturaDoFundo(peca('perto')) : arte || texturaCampo();
+      if (E.harmCores) tile = remapear(tile);
+      const pt = ctx.createPattern(tile, 'repeat-x');
       ctx.save(); ctx.beginPath(); ctx.rect(s.x - camX, 0, s.w, H); ctx.clip();
-      ctx.translate(-camX, arte ? GROUND - 50 : GROUND - 40); ctx.scale(Z, Z); ctx.fillStyle = pt; ctx.fillRect(x0 / Z - 4, 0, (x1 - x0) / Z + 8, tile.height); ctx.restore();
+      ctx.translate(-camX, arte || E.harmTextura ? GROUND - 50 : GROUND - 40); ctx.scale(Z, Z); ctx.fillStyle = pt; ctx.fillRect(x0 / Z - 4, 0, (x1 - x0) / Z + 8, tile.height); ctx.restore();
       continue;
     }
     ctx.save(); ctx.beginPath(); ctx.moveTo(x0 - camX, H);
@@ -443,7 +547,20 @@ function faixasProntas() {
   return faixaCache;
 }
 
+// lado a lado: a metade esquerda é como está no jogo, a direita com as opções de harmonia ligadas
+const BUF = tela(W, H), bufg = BUF.getContext('2d');
 function desenhar() {
+  if (!E.dividir) return cena();
+  const salvo = E;
+  E = { ...salvo, harmCores: false, harmLuz: false, harmTransicao: false, harmTextura: false, frentePreta: false };
+  cena(); bufg.clearRect(0, 0, W, H); bufg.drawImage(cv, 0, 0);
+  E = salvo; cena();
+  ctx.drawImage(BUF, 0, 0, W / 2, H, 0, 0, W / 2, H);
+  ctx.fillStyle = '#f0c674'; ctx.fillRect(W / 2 - 1, 0, 2, H);
+  ctx.font = 'bold 15px system-ui'; ctx.fillStyle = 'rgba(0,0,0,.55)'; ctx.fillRect(8, 8, 62, 24); ctx.fillRect(W / 2 + 8, 8, 70, 24);
+  ctx.fillStyle = '#fff'; ctx.fillText('Hoje', 18, 25); ctx.fillText('Novo', W / 2 + 20, 25);
+}
+function cena() {
   ctx.imageSmoothingEnabled = false;
   ctx.fillStyle = '#2e2450'; ctx.fillRect(0, 0, W, H);
   const ceu = peca('ceu');
@@ -456,6 +573,7 @@ function desenhar() {
     ctx.fillStyle = fog; ctx.fillRect(0, 300, W, H - 300);
   }
   if (perto) { desenharFaixa(F.perto2, .55, GROUND + 6, 360, .37); desenharFaixa(perto, .55, GROUND + 10, 430); }
+  if (E.harmTransicao && perto) desenharTransicao(perto);
   if (E.neblina) {   // ar quente entre o fundo e a área do jogo (dá profundidade)
     const gr = ctx.createLinearGradient(0, 180, 0, GROUND + 20);
     gr.addColorStop(0, 'rgba(255,196,160,0)'); gr.addColorStop(.6, 'rgba(255,190,150,.16)'); gr.addColorStop(1, 'rgba(255,200,150,.30)');
@@ -472,6 +590,7 @@ function desenhar() {
   if (campo) desenharCapim(true);
   if (E.frente) desenharMato(FRENTE, true);
   if (E.silhueta) desenharFolhagem();
+  if (E.harmLuz) luzUnica();
 
   // luz do fim de tarde (escuridão 0,3 da fase, sem as luzes de cada coisa)
   ctx.fillStyle = 'rgba(10,6,20,.18)'; ctx.fillRect(0, 0, W, H);
@@ -491,10 +610,12 @@ for (const [id, [chave, lista]] of Object.entries(OPCOES)) {
     b.dataset.chave = chave; b.dataset.v = v; g.appendChild(b); botoes.push(b);
   }
 }
-const liga = { bMato: 'mato', bFrente: 'frente', bBuraco: 'buraco', bVento: 'vento', bNeblina: 'neblina', bSilhueta: 'silhueta', bSuave: 'suave' };
+const liga = { bMato: 'mato', bFrente: 'frente', bBuraco: 'buraco', bVento: 'vento', bNeblina: 'neblina', bSilhueta: 'silhueta', bSuave: 'suave',
+  bHarmCores: 'harmCores', bHarmLuz: 'harmLuz', bHarmTransicao: 'harmTransicao', bHarmTextura: 'harmTextura', bFrentePreta: 'frentePreta', bDividir: 'dividir' };
+document.getElementById('bHarmTudo').onclick = () => { E = { ...NO_JOGO, harmCores: true, harmLuz: true, harmTransicao: true, frentePreta: true, dividir: true }; atualizar(); };
 document.getElementById('bCampo').onclick = () => { E = { ...CAMPO }; atualizar(); };
 for (const [id, chave] of Object.entries(liga)) document.getElementById(id).onclick = () => { E[chave] = !E[chave]; atualizar(); };
-const sliders = { sTronco: 'tronco', sCopa: 'copa', sCopaY: 'copaY', sRaizY: 'raizY', sEscuro: 'escuro', sCrista: 'crista' };
+const sliders = { sTronco: 'tronco', sCopa: 'copa', sCopaY: 'copaY', sRaizY: 'raizY', sEscuro: 'escuro', sCrista: 'crista', sLuz: 'luz' };
 for (const [id, chave] of Object.entries(sliders)) document.getElementById(id).oninput = e => { E[chave] = +e.target.value; atualizar(); };
 document.getElementById('bPadrao').onclick = () => { E = { ...NO_JOGO }; atualizar(); };
 document.getElementById('bAntes').onclick = () => { E = { ...ANTES }; atualizar(); };
@@ -536,6 +657,7 @@ cv.addEventListener('pointerup', () => { arrasto = null; cv.style.cursor = 'grab
   heroi = await carregar(`${BASE}herois/humano.png?v=${v}`);
   const q = new URLSearchParams(location.search);   // ?campo&x=200 abre direto no campo aberto
   if (q.has('campo')) E = { ...CAMPO };
+  if (q.has('harmonia')) E = { ...NO_JOGO, harmCores: true, harmLuz: true, harmTransicao: true, frentePreta: true, dividir: true };
   if (q.has('x')) camX = +q.get('x');
   atualizar();
   requestAnimationFrame(animar);
