@@ -564,6 +564,16 @@ recorte em magenta `#FF00FF`, porque o recorte verde apaga o verde da arte.
   a raiz fica enterrada, escurecimento do chão, mato e valas. Testa imagens do Gemini antes de salvar
   (tira o fundo magenta ou verde e reduz para pixel art como a ferramenta). "Copiar ajustes" gera o
   texto com as escolhas para o Claude levar ao jogo.
+  - **Harmonia com o fundo (2026-11-20):** o Erick achou que fundo e chão "parecem coisas
+    diferentes". Seção "Harmonia com o fundo" no laboratório (`?harmonia` abre lado a lado, hoje ×
+    novo): **A** cores do fundo no chão (o campo e o capim que balança trocam as cores pelas 48 mais
+    usadas em `perto` + `longe`); **B** uma luz para tudo (sol quente da direita, tom de fim de
+    tarde, névoa no alto do campo e cantos escuros; controle "Força da luz"); **C** faixa de
+    transição (o prado da base de `perto`, com o topo recortado em capim, entre o morro e o campo,
+    paralaxe 0,8); **Extra** chão feito com a pintura do fundo; e a faixa da frente preta (pedido
+    do Erick). Se não bastar: refazer o `capim` no Gemini anexando o fundo (opção D). Plataformas:
+    o Erick escolheu objetos do pasto (feno, cerca, carroça) + uma árvore inteira pintada para o baú;
+    gerar essas artes anexando o fundo, depois de decidir a harmonia.
 - **Campo aberto (2026-11-20, pedido do Erick):** o Erick não gostou nem da terra em corte nem do
   gramado e quer o pasto como um campo pintado com profundidade (referência dele: um jogo de
   plataforma pintado à mão, com capim alto e folhagem escura em primeiro plano). O laboratório ganhou
