@@ -563,6 +563,15 @@ recorte em magenta `#FF00FF`, porque o recorte verde apaga o verde da arte.
   a raiz fica enterrada, escurecimento do chão, mato e valas. Testa imagens do Gemini antes de salvar
   (tira o fundo magenta ou verde e reduz para pixel art como a ferramenta). "Copiar ajustes" gera o
   texto com as escolhas para o Claude levar ao jogo.
+- **Campo aberto (2026-11-20, pedido do Erick):** o Erick não gostou nem da terra em corte nem do
+  gramado e quer o pasto como um campo pintado com profundidade (referência dele: um jogo de
+  plataforma pintado à mão, com capim alto e folhagem escura em primeiro plano). O laboratório ganhou
+  o modo "Ver o campo aberto" (`?campo` no link): chão sem corte que escurece para baixo, capim alto
+  em duas camadas (uma atrás e outra na frente dos heróis, cobrindo os pés) balançando no vento,
+  neblina quente entre o fundo e a área do jogo e silhuetas escuras de samambaia e capim na frente
+  da câmera (paralaxe 1,45). Opção "Capim liso" para comparar sem pixel. Peças novas do Gemini para
+  substituir o rascunho: `fundos/vaca/capim` e `fundos/vaca/frente` (prompts na seção 4.12). Ainda
+  não está no jogo: espera o Erick aprovar no laboratório.
 
 **Próximos passos possíveis:**
 - Heróis de Áries (Água), Sagitário (Fogo) e Capricórnio (Terra): a Milena preenche a ficha

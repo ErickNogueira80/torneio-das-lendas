@@ -41,6 +41,12 @@
     <div class="grupo" id="gBorda"></div>
     <h2>Raiz da árvore</h2>
     <div class="grupo" id="gRaiz"></div>
+    <h2>Campo aberto (novo)</h2>
+    <button id="bCampo">Ver o campo aberto</button>
+    <button id="bVento">Vento no capim</button>
+    <button id="bNeblina">Neblina quente entre os planos</button>
+    <button id="bSilhueta">Folhagem escura na frente</button>
+    <button id="bSuave">Capim liso (sem pixel)</button>
     <h2>Mato</h2>
     <button id="bMato">Mato alto no chão</button>
     <button id="bFrente">Touceiras na frente da tela</button>
@@ -68,6 +74,8 @@
     <label><span>Chão escurece embaixo: <b id="vEscuro"></b></span><input type="range" id="sEscuro" min="0" max="0.9" step="0.05"></label>
     <h2>Testar imagem do Gemini</h2>
     <p class="dica">Escolha a imagem como ela veio do Gemini (JPG ou PNG). O laboratório tira o fundo magenta ou verde e reduz para pixel art, como a ferramenta faz.</p>
+    <label><b>Capim alto (faixa)</b><input type="file" accept="image/*" data-peca="capim"></label>
+    <label><b>Folhagem da frente</b><input type="file" accept="image/*" data-peca="frente"></label>
     <label><b>Chão (textura)</b><input type="file" accept="image/*" data-peca="chao"></label>
     <label><b>Copa</b><input type="file" accept="image/*" data-peca="arvore_copa"></label>
     <label><b>Tronco</b><input type="file" accept="image/*" data-peca="arvore_tronco"></label>
@@ -90,11 +98,15 @@ const cv = document.getElementById('tela'), ctx = cv.getContext('2d');
 const BASE = '../sprites/';
 const ORIG = {}, TESTE = {};
 const peca = n => TESTE[n] || ORIG[n];
-const ALTURA = { ceu: 270, longe: 180, perto: 210, chao: 128 };   // px da arte, como a ferramenta
+const ALTURA = { ceu: 270, longe: 180, perto: 210, chao: 128, capim: 48, frente: 150 };   // px da arte, como a ferramenta
 
 // ---------- estado ----------
-const NO_JOGO = { chao: 'gramado', borda: 'pontas', raiz: 'atras', tronco: 1, copa: 1, copaY: 0, raizY: 18, escuro: 0.6, mato: true, frente: true, buraco: true };
-const ANTES = { chao: 'terra', borda: 'crosta', raiz: 'atras', tronco: 1, copa: 1, copaY: 0, raizY: 18, escuro: 0, mato: true, frente: true, buraco: false };
+const EXTRA = { vento: true, neblina: false, silhueta: false, suave: false };
+const NO_JOGO = { chao: 'gramado', borda: 'pontas', raiz: 'atras', tronco: 1, copa: 1, copaY: 0, raizY: 18, escuro: 0.6, mato: true, frente: true, buraco: true, ...EXTRA };
+const ANTES = { chao: 'terra', borda: 'crosta', raiz: 'atras', tronco: 1, copa: 1, copaY: 0, raizY: 18, escuro: 0, mato: true, frente: true, buraco: false, ...EXTRA };
+// campo aberto (Erick, 2026-11-20): capim alto que cobre os pés, chão que escurece sem corte de terra,
+// neblina entre os planos e folhagem escura na frente da câmera
+const CAMPO = { chao: 'campo', borda: 'nenhuma', raiz: 'atras', tronco: 1.15, copa: 1.05, copaY: -6, raizY: 34, escuro: 0.5, mato: false, frente: false, buraco: true, vento: true, neblina: true, silhueta: true, suave: false };
 let E = { ...NO_JOGO }, camX = 200;
 
 // ---------- utilidades ----------
@@ -190,6 +202,77 @@ function quadroMato(v, escuro) {
   const out = escuro ? c : contorno(c, '#0e1a0a'); MATO_CACHE.set(k, out); return out;
 }
 
+// ---------- campo aberto: capim alto e folhagem da frente ----------
+const hash = n => { const v = Math.sin(n * 12.9898 + 78.233) * 43758.5453; return v - Math.floor(v); };
+const GL = tela(W / 2, H / 2), gl = GL.getContext('2d');   // meia resolução: cada pixel vira 2x2, como a arte do jogo
+let tempo = 0;
+function solidoEm(x) { return SOLIDOS.find(s => x >= s.x + 6 && x <= s.x + s.w - 6); }
+function subirMeia() { ctx.imageSmoothingEnabled = !!E.suave; ctx.drawImage(GL, 0, 0, W, H); ctx.imageSmoothingEnabled = false; }
+function desenharCapim(frente) {
+  gl.clearRect(0, 0, GL.width, GL.height);
+  const passo = frente ? 4 : 2;
+  const PAL = frente ? ['#0d1a0c', '#16290f', '#24401a', '#3b5c24'] : ['#1d3618', '#2f5222', '#4a7a30', '#86ad45'];
+  for (let wx = Math.floor((camX - 40) / passo) * passo; wx < camX + W + 40; wx += passo) {
+    if (!solidoEm(wx)) continue;
+    const r1 = hash(wx * 1.7 + (frente ? 99 : 0)), r2 = hash(wx * 3.1 + 7), r3 = hash(wx * 5.3 + 3);
+    if (frente && r1 < .3) continue;
+    const topo = GROUND + (TOPO.get(Math.round(wx / 4) * 4) || 0);
+    const base = topo + (frente ? 12 + r2 * 16 : 4 + r2 * 8);
+    let h = frente ? 10 + r1 * 24 : 12 + r1 * r1 * 44;
+    h *= .45 + .55 * (.5 + .5 * Math.sin(wx * .011 + 2 * Math.sin(wx * .0037)));   // touceiras e clareiras
+    const vento = E.vento ? Math.sin(tempo * 1.6 + wx * .017) * .6 + Math.sin(tempo * .7 + wx * .006) * .4 : 0;
+    const inc = (r3 - .5) * h * .45 + vento * h * (frente ? .16 : .26);
+    const bx = (wx - camX) / 2, by = base / 2, hh = h / 2, ii = inc / 2, n = Math.ceil(hh) + 1;
+    const ponta = !frente && r2 > .82 ? '#d8c36a' : PAL[3];   // luz do pôr do sol na ponta de algumas
+    for (let k = 0; k <= n; k++) {
+      const t = k / n;
+      gl.fillStyle = t > .78 ? ponta : t > .45 ? PAL[2] : t > .18 ? PAL[1] : PAL[0];
+      gl.fillRect(Math.round(bx + ii * t * t), Math.round(by - hh * t), t < .3 && frente ? 2 : 1, 1);
+    }
+    if (!frente && r1 > .965) { gl.fillStyle = ['#ffffff', '#f3dd6a', '#c49cff'][(r3 * 3) | 0]; gl.fillRect(Math.round(bx + ii) - 1, Math.round(by - hh) - 1, 2, 2); }
+  }
+  subirMeia();
+}
+const FOLHAS = [];
+function folhagem(seed, w, h) {   // samambaias e lâminas grossas de capim em silhueta, desenhadas uma vez
+  const c = tela(w, h), g = c.getContext('2d'), r = mulberry(seed);
+  g.fillStyle = g.strokeStyle = '#060d08'; g.lineCap = 'round';
+  const ramos = 5 + (r() * 4 | 0);
+  for (let f = 0; f < ramos; f++) {
+    let a = -Math.PI / 2 + (r() - .5) * 1.9, x = w / 2 + (r() - .5) * w * .35, y = h + 6;
+    const len = h * (.4 + r() * .5), curva = (r() - .5) * 2.2, passos = 70, samambaia = r() < .65;
+    for (let i = 0; i < passos; i++) {
+      const t = i / passos, x0 = x, y0 = y; a += curva / passos; x += Math.cos(a) * len / passos; y += Math.sin(a) * len / passos;
+      g.lineWidth = samambaia ? (1 - t) * 6 + 2 : (1 - t) * 11 + 1;   // sem samambaia: lâmina grossa de capim g.beginPath(); g.moveTo(x0, y0); g.lineTo(x, y); g.stroke();
+      if (samambaia && i % 3 === 0 && t > .05) {
+        const tam = (1 - t) * h * .11 + 5;
+        for (const lado of [-1, 1]) { g.save(); g.translate(x, y); g.rotate(a + lado * (1.25 - t * .4)); g.beginPath(); g.ellipse(tam * .85, 0, tam, Math.max(2.5, tam * .28), 0, 0, 7); g.fill(); g.restore(); }
+      }
+    }
+  }
+  return c;
+}
+const SILH = [{ x: -120, v: 0, k: 1.35 }, { x: 1150, v: 1, k: 1.05, esp: true }, { x: 1750, v: 2, k: 1.4 }, { x: 2650, v: 3, k: 1.2, esp: true }, { x: 3350, v: 0, k: 1.35 }, { x: 4150, v: 2, k: 1.15, esp: true }];
+function desenharFolhagem() {
+  if (!FOLHAS.length) for (let v = 0; v < 4; v++) FOLHAS.push(folhagem(70 + v * 13, 300, 330));
+  gl.clearRect(0, 0, GL.width, GL.height);
+  const par = 1.45;
+  // faixa escura de capim colada embaixo
+  for (let wx = Math.floor(camX * par / 6) * 6 - 60; wx < camX * par + W + 60; wx += 6) {
+    const r1 = hash(wx * .7 + 5), h = 14 + r1 * 40 * (.5 + .5 * Math.sin(wx * .02)), sw = E.vento ? Math.sin(tempo * 1.3 + wx * .02) * h * .15 : 0;
+    const bx = (wx - camX * par) / 2, n = Math.ceil(h / 2);
+    gl.fillStyle = '#060d08';
+    for (let k = 0; k <= n; k++) { const t = k / n; gl.fillRect(Math.round(bx + sw / 2 * t * t), Math.round(H / 2 + 2 - h / 2 * t), t < .5 ? 2 : 1, 1); }
+  }
+  for (const s of SILH) {
+    const im = FOLHAS[s.v], w = im.width * s.k / 2, h = im.height * s.k / 2;
+    const x = (s.x - camX * par) / 2 + (E.vento ? Math.sin(tempo * .8 + s.x) * 2 : 0);
+    if (x < -w || x > W / 2) continue;
+    gl.save(); gl.translate(x + (s.esp ? w : 0), H / 2 - h + 22); if (s.esp) gl.scale(-1, 1); gl.drawImage(im, 0, 0, w, h); gl.restore();
+  }
+  subirMeia();
+}
+
 // ---------- a cena ----------
 const FIM = 2600;
 const SOLIDOS = [{ x: -400, w: 1700 }, { x: 1420, w: 1600 }];   // um buraco de 120 px em 1300
@@ -221,7 +304,7 @@ function perfil() {   // topo ondulado do chão (como o piso do jogo)
 const TOPO = perfil();
 
 function desenharChao() {
-  const tex = E.chao === 'imagem' && TESTE.chao ? TESTE.chao : E.chao === 'terra' ? peca('chao') : gramado();
+  const tex = E.chao === 'imagem' && TESTE.chao ? TESTE.chao : E.chao === 'terra' ? peca('chao') : E.chao === 'campo' ? null : gramado();
   const pat = tex && ctx.createPattern(tex, 'repeat');
   const r = mulberry(5);
   if (E.buraco) {   // valas escuras entre os trechos
@@ -238,6 +321,11 @@ function desenharChao() {
     ctx.save(); ctx.beginPath(); ctx.moveTo(x0 - camX, H);
     for (let x = x0 - ((x0 - s.x) % 4); x <= x1; x += 4) { const y = GROUND + (TOPO.get(x) || 0); ctx.lineTo(x - camX, y); ctx.lineTo(x + 4 - camX, y); }
     ctx.lineTo(x1 - camX, H); ctx.closePath(); ctx.clip();
+    if (E.chao === 'campo') {   // sem corte de terra: o campo some no escuro
+      const gr = ctx.createLinearGradient(0, GROUND - 10, 0, H);
+      gr.addColorStop(0, '#3a6429'); gr.addColorStop(.18, '#22421b'); gr.addColorStop(.5, '#10220e'); gr.addColorStop(1, '#060c05');
+      ctx.fillStyle = gr; ctx.fillRect(x0 - camX, GROUND - 40, x1 - x0, H);
+    }
     if (pat) { ctx.translate(-camX, GROUND - 6); ctx.scale(Z, Z); ctx.fillStyle = pat; ctx.fillRect((x0 - 8) / Z, -40, (x1 - x0 + 16) / Z, H); ctx.setTransform(1, 0, 0, 1, 0, 0); }
     if (E.escuro > 0) {
       const gr = ctx.createLinearGradient(0, GROUND, 0, H);
@@ -259,7 +347,7 @@ function desenharChao() {
       }
     }
     // tufos de capim com florzinhas (o jogo põe por cima da borda)
-    if (E.borda !== 'nenhuma') for (let x = s.x + 10; x < s.x + s.w - 10; x += 14 + r() * 34) {
+    if (E.borda !== 'nenhuma' && E.chao !== 'campo') for (let x = s.x + 10; x < s.x + s.w - 10; x += 14 + r() * 34) {
       const sx = x - camX, n = 3 + (r() * 4 | 0), t = r(); if (sx < -20 || sx > W + 20) { for (let i = 0; i < n * 2 + 1; i++) r(); continue; }
       const yy = GROUND + (TOPO.get(Math.round(x / 4) * 4) || 0);
       for (let i = 0; i < n; i++) { ctx.fillStyle = ['#3f7a2a', '#5e9e3a', '#7cbf4a'][(r() * 3) | 0]; const h = 4 + (r() * 8 | 0); ctx.fillRect(Math.round(sx + i * 2), yy - h + 2, 2, h); }
@@ -332,20 +420,31 @@ function desenhar() {
     ctx.fillStyle = fog; ctx.fillRect(0, 300, W, H - 300);
   }
   if (perto) { desenharFaixa(F.perto2, .55, GROUND + 6, 360, .37); desenharFaixa(perto, .55, GROUND + 10, 430); }
+  if (E.neblina) {   // ar quente entre o fundo e a área do jogo (dá profundidade)
+    const gr = ctx.createLinearGradient(0, 180, 0, GROUND + 20);
+    gr.addColorStop(0, 'rgba(255,196,160,0)'); gr.addColorStop(.6, 'rgba(255,190,150,.16)'); gr.addColorStop(1, 'rgba(255,200,150,.30)');
+    ctx.fillStyle = gr; ctx.fillRect(0, 180, W, GROUND + 20 - 180);
+  }
   desenharArvore('tras');
   desenharChao();
   desenharArvore('frente');
+  const campo = E.chao === 'campo';
+  if (campo) desenharCapim(false);
   if (E.mato) desenharMato(MATO, false);
   desenharHeroi(330, GROUND + (TOPO.get(328) || 0));
   desenharHeroi(PLATS[0].x + 60, PLATS[0].y);
+  if (campo) desenharCapim(true);
+  if (TESTE.capim) desenharFaixa(TESTE.capim, 1, GROUND + 16, ALTURA.capim * Z);
   if (E.frente) desenharMato(FRENTE, true);
+  if (E.silhueta) desenharFolhagem();
+  if (TESTE.frente) desenharFaixa(TESTE.frente, 1.45, H + 10, ALTURA.frente * Z);
   // luz do fim de tarde (escuridão 0,3 da fase, sem as luzes de cada coisa)
   ctx.fillStyle = 'rgba(10,6,20,.18)'; ctx.fillRect(0, 0, W, H);
 }
 
 // ---------- controles ----------
 const OPCOES = {
-  gChao: ['chao', [['terra', 'Terra em corte (antes)'], ['gramado', 'Gramado (atual)'], ['imagem', 'Imagem do Gemini (direita)']]],
+  gChao: ['chao', [['terra', 'Terra em corte (antes)'], ['gramado', 'Gramado (atual)'], ['campo', 'Campo de capim alto (novo)'], ['imagem', 'Imagem do Gemini (direita)']]],
   gBorda: ['borda', [['crosta', 'Faixa verde-clara (antes)'], ['pontas', 'Pontas de capim (atual)'], ['nenhuma', 'Sem borda']]],
   gRaiz: ['raiz', [['atras', 'Atrás do chão'], ['frente', 'Na frente do chão']]],
 };
@@ -357,7 +456,8 @@ for (const [id, [chave, lista]] of Object.entries(OPCOES)) {
     b.dataset.chave = chave; b.dataset.v = v; g.appendChild(b); botoes.push(b);
   }
 }
-const liga = { bMato: 'mato', bFrente: 'frente', bBuraco: 'buraco' };
+const liga = { bMato: 'mato', bFrente: 'frente', bBuraco: 'buraco', bVento: 'vento', bNeblina: 'neblina', bSilhueta: 'silhueta', bSuave: 'suave' };
+document.getElementById('bCampo').onclick = () => { E = { ...CAMPO }; atualizar(); };
 for (const [id, chave] of Object.entries(liga)) document.getElementById(id).onclick = () => { E[chave] = !E[chave]; atualizar(); };
 const sliders = { sTronco: 'tronco', sCopa: 'copa', sCopaY: 'copaY', sRaizY: 'raizY', sEscuro: 'escuro' };
 for (const [id, chave] of Object.entries(sliders)) document.getElementById(id).oninput = e => { E[chave] = +e.target.value; atualizar(); };
@@ -385,6 +485,9 @@ function atualizar() {
   desenhar();
 }
 // arrastar para andar pela cena
+// vento: redesenha sozinho enquanto estiver ligado
+let ultimo = 0;
+function animar(ts) { tempo = ts / 1000; if (E.vento && ts - ultimo > 33) { ultimo = ts; desenhar(); } requestAnimationFrame(animar); }
 let arrasto = null;
 cv.addEventListener('pointerdown', e => { arrasto = { x: e.clientX, cam: camX }; cv.setPointerCapture(e.pointerId); cv.style.cursor = 'grabbing'; });
 cv.addEventListener('pointermove', e => { if (!arrasto) return; const k = W / cv.getBoundingClientRect().width; camX = clamp(arrasto.cam - (e.clientX - arrasto.x) * k, 0, FIM - W); desenhar(); });
@@ -396,7 +499,11 @@ cv.addEventListener('pointerup', () => { arrasto = null; cv.style.cursor = 'grab
   const v = Date.now();
   await Promise.all(nomes.map(async n => { ORIG[n] = await carregar(`${BASE}fundos/vaca/${n}.png?v=${v}`); }));
   heroi = await carregar(`${BASE}herois/humano.png?v=${v}`);
+  const q = new URLSearchParams(location.search);   // ?campo&x=200 abre direto no campo aberto
+  if (q.has('campo')) E = { ...CAMPO };
+  if (q.has('x')) camX = +q.get('x');
   atualizar();
+  requestAnimationFrame(animar);
 })();
 </script>
 </body>

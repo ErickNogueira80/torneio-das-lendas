@@ -1088,6 +1088,39 @@ wildflowers, warm sunset light on the grass; below it rich dark brown soil with 
 pebbles and grass roots fading into darker earth at the bottom. No sky, no horizon above the grass.
 ```
 
+**Campo aberto: capim alto e folhagem da frente (2026-11-20, pedido do Erick).** O Erick quer o
+pasto com cara de campo pintado e cheio de profundidade: capim alto balançando que cobre os pés dos
+heróis, chão que some no escuro (sem corte de terra), ar quente entre os planos e silhuetas escuras
+de plantas na frente da câmera. O laboratório tem um rascunho disso ("Ver o campo aberto"). As duas
+peças abaixo trocam o rascunho por arte de verdade; testar em "Capim alto (faixa)" e "Folhagem da
+frente" (coluna da direita). Anexar o céu e o `perto` aprovados.
+
+- `fundos/vaca/capim` (4:1, magenta): a faixa de capim que fica na linha do chão.
+
+```
+Create an image. 2D side-scrolling game layer, peaceful countryside pasture at sunset, painterly
+style matching a fantasy RPG, same palette and light as the attached images, no characters, no text.
+Very wide 4:1 image, seamless horizontally tileable (left and right edges must match). A long strip
+of tall wild meadow grass seen from the side at eye level: hundreds of thin grass blades of
+different heights bending slightly to the right in the wind, some taller clumps and some lower
+gaps, dark green at the roots, fresh green in the middle, warm golden sunset light on the tips, a
+few tiny white, yellow and purple wildflowers. The bottom quarter is dense dark green grass that
+fills the whole width (flat bottom edge). Above the grass, plain solid #FF00FF magenta background.
+```
+
+- `fundos/vaca/frente` (21:9, magenta): plantas escuras e desfocadas bem perto da câmera.
+
+```
+Create an image. 2D side-scrolling game foreground layer, peaceful countryside pasture at sunset,
+painterly style matching a fantasy RPG, no characters, no text.
+Very wide 21:9 image, seamless horizontally tileable (left and right edges must match). Only plants
+very close to the camera along the bottom edge, as dark silhouettes (very dark blue-green, almost
+black, a thin warm rim light on some edges, slightly out of focus): big fern fronds, tall thick grass
+blades and a few wild leaves, grouped in two or three clumps of different heights (the tallest
+reaching about half of the image height) with low gaps between them. The plants touch the bottom
+edge. Everything else is plain solid #FF00FF magenta background.
+```
+
 **Feito em 2026-11-20:** as 8 peças acima foram geradas de primeira com estes prompts e estão no
 jogo. O chão veio com céu e capim pintados em cima (a ferramenta corta) e o perto não emendava nas
 laterais (a ferramenta mistura as bordas). Nada disso precisou de imagem nova.
