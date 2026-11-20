@@ -2802,14 +2802,62 @@ function drawChao() {
     for (let i = 0; i < t.n; i++) ctx.fillRect(x + i * 3, GROUND - t.h + ((i * 7) % 5), 2, t.h - ((i * 7) % 5));
   }
 }
+// mato alto do pasto (2026-11-20): touceiras de capim no chão (atrás do herói) e no primeiro plano
+// (no lugar das moitas pretas). Pixel art feita pelo jogo, 6 variações.
+const MATO = [], MATO_FRENTE = [];
+if (PASTO) { const r = mulberry(23);
+  for (let x = 150; x < LEVEL_END; x += 260 + r() * 520) {
+    const noChao = SOLIDS.some(s => s.y >= GROUND - 1 && x - 30 >= s.x && x + 60 <= s.x + s.w);
+    if (noChao) MATO.push({ x, v: (r() * 6) | 0, esp: r() < .5 });
+  }
+  for (let x = 0; x < 14000; x += 340 + r() * 600) MATO_FRENTE.push({ x, v: (r() * 6) | 0, esp: r() < .5 }); }
+function quadroMato(v, escuro) {
+  const P = escuro ? ['#0c1609', '#132410', '#1c3316', '#28441c', '#3a5a26', '#5a6e2c']
+    : ['#1a3014', '#25441a', '#33601f', '#4a7d2a', '#86a83a', '#d8c070'];
+  return pxCache('mato' + v + (escuro ? 'e' : ''), 50, 52, g => {
+    const r = mulberry(300 + v), n = 15 + (r() * 7 | 0);
+    const folhas = Array.from({ length: n }, (_, i) => ({ x: 6 + r() * 38, h: 18 + r() * 32, curva: (r() - .5) * 18, cam: i < n * .4 ? 0 : i < n * .75 ? 1 : 2 }));
+    folhas.sort((a, b) => a.cam - b.cam);
+    for (const f of folhas) {
+      const cor = P[f.cam + 1], pts = [];
+      for (let k = 0; k <= 8; k++) { const t = k / 8; pts.push([f.x + f.curva * t * t, 51 - f.h * t]); }
+      pxLinha(g, pts.slice(0, 6), 2, cor); pxLinha(g, pts.slice(5), 1, cor);
+      const [tx, ty] = pts[8];
+      pxRet(g, tx, ty, 1, 2, f.cam === 2 ? P[4] : P[3]);              // ponta clara (luz do fim de tarde)
+      if (f.cam === 2 && r() < .3) { pxRet(g, tx - 1, ty - 2, 2, 3, P[5]); }   // espiga
+    }
+    pxRet(g, 4, 49, 42, 3, P[0]);   // base
+  }, escuro ? null : '#0e1a0a');
+}
+function drawMato() {
+  if (!PASTO) return;
+  ctx.imageSmoothingEnabled = false;
+  for (const m of MATO) {
+    const x = Math.round(m.x - camX); if (x < -110 || x > W + 10) continue;
+    const im = quadroMato(m.v, false), y = GROUND + 8 - im.height * 2;
+    if (m.esp) { ctx.save(); ctx.translate(x + im.width * 2, y); ctx.scale(-1, 1); ctx.drawImage(im, 0, 0, im.width * 2, im.height * 2); ctx.restore(); }
+    else ctx.drawImage(im, x, y, im.width * 2, im.height * 2);
+  }
+  ctx.imageSmoothingEnabled = true;
+}
 function drawFrente() {
   // primeiro plano em pixel (blocos de 4 px): moitas escuras embaixo e cipós pendurados no alto
   const par = 1.3, B = 4;
   ctx.fillStyle = PASTO ? '#0b160a' : '#08040b';
+  if (PASTO) {   // pasto: touceiras escuras de capim no primeiro plano, em vez das moitas pretas
+    ctx.imageSmoothingEnabled = false;
+    for (const m of MATO_FRENTE) {
+      const x = Math.round(m.x - camX * par); if (x < -130 || x > W + 10) continue;
+      const im = quadroMato(m.v, true), k = 2.4, y = H + 14 - im.height * k;
+      if (m.esp) { ctx.save(); ctx.translate(x + im.width * k, y); ctx.scale(-1, 1); ctx.drawImage(im, 0, 0, im.width * k, im.height * k); ctx.restore(); }
+      else ctx.drawImage(im, x, y, im.width * k, im.height * k);
+    }
+    ctx.imageSmoothingEnabled = true;
+  }
   const bola = (cx, cy, r) => { for (let dy = -r; dy < r; dy += B) { const hw = Math.round(Math.sqrt(r * r - dy * dy) / B) * B; ctx.fillRect(cx - hw, cy + dy, hw * 2, B); } };
   for (const f of FRENTE) {
     const x = Math.round((f.x - camX * par) / B) * B; if (x < -120 || x > W + 120) continue;
-    if (f.tipo === 'moita') for (const [dx, r] of f.bolas) bola(x + Math.round(dx / B) * B, H + 6, Math.round(r / B) * B);
+    if (f.tipo === 'moita' && !PASTO) for (const [dx, r] of f.bolas) bola(x + Math.round(dx / B) * B, H + 6, Math.round(r / B) * B);
     else if (!PASTO) for (const [dx, len] of f.fios) {
       const fx = x + Math.round(dx / B) * B;
       for (let y = 0; y < len; y += B) ctx.fillRect(fx + (Math.floor(y / 24) % 2 ? B : 0), y, B, B);
@@ -3122,7 +3170,7 @@ const perfilGalho = new Map();   // 'x|y da plataforma' -> quanto o galho desce 
 // e passam por cima das raízes, na frente do tronco (só no desenho; a física não muda)
 const FRENTE_MAX = 44;
 function caminhoFrente(x) {
-  const AR = arvoresProntas; if (!AR) return 0;
+  const AR = arvoresProntas; if (!AR || PASTO) return 0;   // no pasto a raiz fica no chão
   let m = 0;
   for (const t of AR) {
     const rz = t.raizFrente; if (!rz) continue;
@@ -3155,7 +3203,7 @@ function arvores() {
     if (g.length === 2) { const a = g[0].x + g[0].w, b = g[1].x; tx = (a + b) / 2; tw = clamp(b - a + 40, 64, 104); }
     else { tx = g[0].x + g[0].w + 18; tw = 66; }
     if (pecas) tw = pecas.t.naturalWidth * z;
-    const copa = PASTO ? 150 : 0;   // a copa do pasto é mais larga que os galhos
+    const copa = PASTO ? 200 : 0;   // a copa do pasto é mais larga que os galhos
     const x0 = Math.floor(Math.min(...g.map(p => p.x), tx - tw - copa) - 40), x1 = Math.ceil(Math.max(...g.map(p => p.x + p.w), tx + tw + copa) + 40);
     const c = document.createElement('canvas'); c.width = x1 - x0; c.height = H;
     const ctx2 = c.getContext('2d'), R2 = (x, y, w, h, cor) => { ctx2.fillStyle = cor; ctx2.fillRect(q(x - x0), q(y), Math.max(B, q(w)), Math.max(B, q(h))); };
@@ -3165,9 +3213,13 @@ function arvores() {
       ctx2.imageSmoothingEnabled = false;
       const { t, g: gal, r: raiz, meta } = pecas, th = t.naturalHeight * z;
       for (let y = pe - th; y > -th; y -= th) ctx2.drawImage(t, Math.round(tx - tw / 2 - x0), Math.round(y), tw, th + 1);
+      if (PASTO && raiz && sobreChao) {   // pasto: a raiz faz parte da árvore (atrás da copa; o chão cobre a base)
+        const rw = raiz.naturalWidth * z, rh = raiz.naturalHeight * z, cx = (meta.arvore_raiz && meta.arvore_raiz.centro) || .5;
+        ctx2.drawImage(raiz, Math.round(tx - rw * cx - x0), GROUND + 18 - rh, rw, rh);
+      }
       if (pecas.copa) {   // copa do pasto (2026-11-20): acima do galho mais alto; o tronco termina dentro dela
         const cw = pecas.copa.naturalWidth * z, ch = pecas.copa.naturalHeight * z;
-        const cy = Math.round(Math.min(...g.map(p => p.y)) - 24 - ch);
+        const cy = Math.round(Math.min(...g.map(p => p.y)) + 22 - ch);   // o galho mais alto sai de dentro das folhas
         ctx2.clearRect(Math.floor(tx - tw - x0), 0, Math.ceil(tw * 2), Math.max(0, cy + ch * .45));
         ctx2.drawImage(pecas.copa, Math.round(tx - cw / 2 - x0), cy, cw, ch);
       }
@@ -3190,7 +3242,7 @@ function arvores() {
       }
       // raiz em 2,5D: desenhada depois do piso, descendo pela frente do chão em direção à tela
       let raizFrente = null;
-      if (raiz && sobreChao) {
+      if (raiz && sobreChao && !PASTO) {
         const rw = raiz.naturalWidth * z, rh = raiz.naturalHeight * z, cx = (meta.arvore_raiz && meta.arvore_raiz.centro) || .5;
         raizFrente = { img: raiz, x: Math.round(tx - rw * cx), y: H + 6 - rh, w: rw, h: rh };
       }
@@ -3323,6 +3375,7 @@ function drawWorld() {
     const x = Math.round(rz.x - camX); if (x > W || x + rz.w < 0) continue;
     ctx.imageSmoothingEnabled = false; ctx.drawImage(rz.img, x, rz.y, rz.w, rz.h); ctx.imageSmoothingEnabled = true;
   }
+  drawMato();
   for (const s of SOLIDS) {
     if (P && s.y >= GROUND - 1) continue;
     const x = s.x - camX; if (x > W || x + s.w < 0) continue;

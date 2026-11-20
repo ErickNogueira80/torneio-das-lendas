@@ -1048,10 +1048,16 @@ Painterly 2D game art style. Very wide image, aspect ratio 4:1.
 Create an image. The round leafy crown of the same tree (same colors as the attached trunk),
 seen from the side: a big full cloud-like canopy made of clustered round leaf clumps, dark green
 in the shadows, bright yellow-green where the warm sunset light hits the top-right, a few small
-gaps. At the bottom center, a short piece of the trunk enters the canopy, cut straight at the
-bottom. Plain solid #FF00FF magenta background, no shadow, no text. Painterly 2D game art style.
-Wide image, aspect ratio 3:2.
+gaps. NO trunk and NO branches visible anywhere: the underside of the canopy is a continuous
+mass of leaves, darker and shaded at the bottom center (the game draws the trunk entering from
+below, behind the leaves). Plain solid #FF00FF magenta background, no shadow, no text. Painterly
+2D game art style. Wide image, aspect ratio 3:2.
 ```
+
+(Versão de 2026-11-20: a primeira pedia um toco de tronco embaixo, e o tronco pintado dentro da copa
+ficava mais fino que o do jogo. Para trocar só a copa, anexe a copa atual e use: "Same canopy as the
+attached image, same colors, light and shape, but remove the trunk completely: fill the bottom
+center with dark shaded leaves so no wood is visible. Plain solid #FF00FF magenta background.")
 
 Dicas: se o Gemini puser chão ou céu atrás, peça "only the object on a flat magenta background,
 nothing else". Se o galho vier com folhas por cima, mande assim mesmo: o Claude corta.

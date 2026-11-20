@@ -567,8 +567,11 @@ def _colunas(alfa: np.ndarray):
     return topo, fundo
 
 
-def preparar_peca_arvore(nome: str, im: Image.Image, info: dict) -> tuple[Image.Image, int, int, dict]:
-    """Mede e escala as peças da árvore para encaixarem. Devolve (imagem, largura, altura, meta)."""
+def preparar_peca_arvore(nome: str, im: Image.Image, info: dict, tam: dict | None = None) -> tuple[Image.Image, int, int, dict]:
+    """Mede e escala as peças da árvore para encaixarem. Devolve (imagem, largura, altura, meta).
+    tam: tamanhos da fase (ajuste "fundos/<fase>/arvore": tronco, galho e copa, em px da arte)."""
+    tam = tam or {}
+    TL = float(tam.get("tronco", TRONCO_LARGURA)); GE = float(tam.get("galho", GALHO_ESPESSURA))
     a = np.asarray(im)[:, :, 3]
     h, w = a.shape
     meta = {}
@@ -583,13 +586,13 @@ def preparar_peca_arvore(nome: str, im: Image.Image, info: dict) -> tuple[Image.
         topo, fundo = _colunas(a)
         meio = slice(int(w * .2), int(w * .7))
         t_med = float(np.median(topo[meio])); esp = float(np.median(fundo[meio] - topo[meio]))
-        f = GALHO_ESPESSURA / max(1.0, esp)
+        f = GE / max(1.0, esp)
         meta["topo"] = round(t_med * f, 1)                  # onde fica o topo do galho, em px da arte
     elif nome == "arvore_tronco":
         im = cortar(im)
         a = np.asarray(im)[:, :, 3]; h, w = a.shape
         larg = float(np.median((a > 0).sum(axis=1)))
-        f = TRONCO_LARGURA / max(1.0, larg)
+        f = TL / max(1.0, larg)
         info["tronco"] = True
     elif nome == "arvore_copa":
         # tira o toco de tronco embaixo da copa (linhas bem mais estreitas que a copa)
@@ -616,13 +619,13 @@ def preparar_peca_arvore(nome: str, im: Image.Image, info: dict) -> tuple[Image.
             arr[y, l:r + 1, 3] = 0
         im = Image.fromarray(arr, "RGBA")
         a = np.asarray(im)[:, :, 3]; h, w = a.shape
-        f = COPA_LARGURA / max(1.0, w)
+        f = float(tam.get("copa", COPA_LARGURA)) / max(1.0, w)
     else:  # raiz: o tronco no alto da raiz tem de ter a largura do tronco
         im = cortar(im)
         a = np.asarray(im)[:, :, 3]; h, w = a.shape
         faixa = a[: max(2, int(h * .06))]
         larg = float(np.median((faixa > 0).sum(axis=1)))
-        f = TRONCO_LARGURA / max(1.0, larg)
+        f = TL / max(1.0, larg)
         # onde está o centro do tronco na raiz (fração da largura)
         cols = np.where((faixa > 0).any(axis=0))[0]
         meta["centro"] = round(float(cols.mean()) / w, 3) if len(cols) else .5
@@ -668,7 +671,7 @@ def preparar_fundo(pasta: Path, ajustes: dict) -> dict | None:
         else:
             im = im.convert("RGB")
         if nome.startswith("arvore_"):
-            im, largura, alvo, meta = preparar_peca_arvore(nome, im, info)
+            im, largura, alvo, meta = preparar_peca_arvore(nome, im, info, ajustes.get(f"{chave}/arvore"))
             if meta:
                 metas[nome] = meta
         else:

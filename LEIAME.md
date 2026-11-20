@@ -543,6 +543,14 @@ recorte em magenta `#FF00FF`, porque o recorte verde apaga o verde da arte.
   opacas e reduz para 190 px de largura (380 na tela). O jogo põe a copa 24 px acima do galho mais
   alto da árvore e corta o tronco dentro dela. O Boitatá não muda (sem copa).
 - Sol do céu: `luaNoCeu: [0.80, 0.57]` na fase (a luz do fim de tarde vem dele).
+- **Ajustes do Erick (2026-11-20, 2ª rodada):** copa nova sem tronco (prompt atualizado na 4.12).
+  Árvores maiores: ajuste `fundos/vaca/arvore` no `ajustes.json` (`tronco` 56, `galho` 15, `copa` 260
+  px da arte; sem ele vale o padrão 40/12/190, o do Boitatá). No pasto a raiz faz parte da árvore
+  (desenhada atrás da copa, com a base 18 px abaixo do chão, que a cobre) e não há o caminho 2,5D
+  pela frente do tronco; a copa fica 22 px abaixo do galho mais alto (o galho sai das folhas).
+- **Mato alto (2026-11-20):** no pasto, touceiras de capim em pixel art feitas pelo jogo
+  (`quadroMato`, 6 variações): no chão a cada 260 a 780 px (atrás do herói e dos inimigos, só em chão
+  firme) e, no primeiro plano, touceiras escuras no lugar das moitas pretas (que continuam no Boitatá).
 
 **Próximos passos possíveis:**
 - Heróis de Áries (Água), Sagitário (Fogo) e Capricórnio (Terra): a Milena preenche a ficha
