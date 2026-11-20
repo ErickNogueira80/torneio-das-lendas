@@ -40,11 +40,34 @@ const HEROI_ID = HEROIS[params.get('heroi')] ? params.get('heroi') : 'humano';
 const HEROI = HEROIS[HEROI_ID];
 const PODER_ID = HEROI.poder, PODER = PODERES[PODER_ID];
 const FASE_ID = FASES[params.get('fase')] ? params.get('fase') : 'boitata';
+// Objetos-plataforma do pasto (kit no estilo Magibot, 2026-11-20): w x h em px da arte (a tela é o dobro)
+// e onde se pisa ([x0, x1, y] em px da arte, medidos no perfil de cima de cada imagem). Se a ferramenta
+// gerar a imagem com outro tamanho, medir de novo. São plataformas de mão única: o herói passa na frente
+// andando e só fica em cima se pular (Erick: "se quiser passar por baixo, tem que ser uma opção").
+const OBJETOS_PASTO = {
+  feno: { w: 62, h: 40, pisos: [[4, 58, 10]] },
+  feno_pilha: { w: 108, h: 75, pisos: [[2, 23, 50], [25, 50, 29], [52, 102, 8]] },
+  cerca: { w: 190, h: 45, pisos: [[0, 190, 10]] },
+  carroca: { w: 144, h: 70, pisos: [[15, 85, 9]] },
+  tronco_caido: { w: 121, h: 40, pisos: [[20, 106, 8]] },
+  pedra: { w: 103, h: 55, pisos: [[24, 78, 6]] },
+};
+const OBJ_BASE = 10;   // o pé do objeto (o capim da base) fica 10 px abaixo da linha dos pés
+function platsDosObjetos(objs) {
+  const out = [];
+  for (const o of objs) {
+    const O = OBJETOS_PASTO[o.tipo]; if (!O) continue;
+    const topo = 460 + OBJ_BASE - O.h * 2;
+    for (const [a, b, y] of O.pisos) out.push({ x: o.x + a * 2, y: topo + y * 2, w: (b - a) * 2, obj: true });
+  }
+  return out;
+}
 if (params.has('limpo')) {   // teste (2026-11-20): só o chão e o herói, para acertar o piso e a transição com o fundo
   const F0 = FASES[FASE_ID];
-  FASES[FASE_ID] = { ...F0, inimigos: [], plataformas: [], baus: [], perigos: [], sala: null, solidos: [
+  const objetos = [{ tipo: 'feno', x: 500 }, { tipo: 'cerca', x: 900 }, { tipo: 'feno_pilha', x: 2000 },
+    { tipo: 'carroca', x: 2500 }, { tipo: 'tronco_caido', x: 3100 }, { tipo: 'pedra', x: 3600 }];
+  FASES[FASE_ID] = { ...F0, inimigos: [], baus: [], perigos: [], sala: null, objetos, plataformas: platsDosObjetos(objetos), solidos: [
     { x: -300, y: 460, w: 1900, h: 140 }, { x: 1740, y: 460, w: F0.fim - 1440, h: 140 },   // um buraco em 1600–1740
-    { x: 900, y: 360, w: 220, h: 100 }, { x: 2300, y: 390, w: 160, h: 70 }, { x: 2460, y: 330, w: 180, h: 130 },   // blocos para subir
   ] };
 }
 const FASE = FASES[FASE_ID];
@@ -3377,6 +3400,13 @@ function blocoMagibot(g, x0, yT, w, fundo, bordaE, bordaD, seed) {
     if (r1 > .985) { g.fillStyle = ['#ffffff', '#f3dd6a', '#c49cff'][(hashC(x) * 3) | 0]; g.fillRect(q(x), yT - 10 - h, 2, 2); }
   }
 }
+function drawObjetos() {
+  for (const o of FASE.objetos || []) {
+    const im = layer(FASE.fundo, o.tipo); if (!im) continue;
+    const w = im.naturalWidth * 2, h = im.naturalHeight * 2, x = Math.round(o.x - camX); if (x > W || x + w < 0) continue;
+    ctx.imageSmoothingEnabled = false; ctx.drawImage(im, x, GROUND + OBJ_BASE - h, w, h); ctx.imageSmoothingEnabled = true;
+  }
+}
 const blocosCache = new Map();
 function drawBlocosAltos() {   // blocos acima do chão (Magibot): desenhados antes do chão, que cobre o pé deles
   for (const s of SOLIDS) {
@@ -3464,7 +3494,19 @@ function posEstilo() {   // efeito sobre a cena inteira (depois do mundo, antes 
     g.addColorStop(0, 'rgba(90,150,255,.22)'); g.addColorStop(1, 'rgba(90,150,255,0)');
     c.fillStyle = g; c.fillRect(0, 0, W, H);
   } else if (ESTILO === 'magibot') {   // pasto aberto: sem raios de sol (Erick); só os cipós na frente
-    drawCipos();
+    const cp = layer(FASE.fundo, 'cipos');
+    if (cp) {   // silhuetas pintadas, repetidas, mais rápidas que o cenário (paralaxe 1,3)
+      // metade de cima (galhos e cipós) presa no alto; metade de baixo (samambaias) baixinha, na terra
+      const cw = cp.naturalWidth, meio = Math.round(cp.naturalHeight * .5);
+      const faixa = (sy, sh, esc, par, y) => {
+        const w = cw * esc, h = sh * esc;
+        for (let x = -(((camX * par) % w) + w) % w; x < W; x += w) c.drawImage(cp, 0, sy, cw, sh, Math.round(x), Math.round(y(h)), Math.ceil(w), Math.ceil(h));
+      };
+      c.imageSmoothingEnabled = false;
+      faixa(0, meio, 1.1, 1.25, () => 0);
+      faixa(meio, cp.naturalHeight - meio, .62, 1.45, h => H - h);
+      c.imageSmoothingEnabled = true;
+    } else drawCipos();
   } else if (ESTILO === 'calcada') {   // raios de luz em diagonal
     c.globalCompositeOperation = 'screen';
     for (let i = 0; i < 4; i++) {
@@ -3488,6 +3530,7 @@ function piso() {
   if (PASTO && !(SPR[FASE.fundo] && SPR[FASE.fundo].imgs) && !SPRITES_PRONTOS) return null;   // espera a lista de imagens (senão monta o chão sem a arte)
   const pradoImg = PASTO && SPR[FASE.fundo] && SPR[FASE.fundo].imgs && SPR[FASE.fundo].imgs.prado;
   if (pradoImg && !pradoImg.complete) return null;   // espera o prado carregar
+  if (PASTO && SPR[FASE.fundo] && SPR[FASE.fundo].imgs && ['bloco_chao', 'bloco_beirada'].some(k => SPR[FASE.fundo].imgs[k] && !SPR[FASE.fundo].imgs[k].complete)) return null;   // barranco pintado
   const prado = PASTO && layer(FASE.fundo, 'prado');   // prado no estilo do fundo (2026-11-20): substitui o capim
   const capimArte = PASTO && (prado || layer(FASE.fundo, 'capim'));   // campo pintado (Gemini) ou o desenhado pelo jogo
   const capimImg = PASTO && SPR[FASE.fundo] && SPR[FASE.fundo].imgs && SPR[FASE.fundo].imgs.capim;
@@ -3520,7 +3563,18 @@ function piso() {
     if (PASTO && ESTILO === 'magibot') {
       const chaos = SOLIDS.filter(o => o.y >= GROUND - 1);
       const bE = chaos.some(o => o !== s && Math.abs(o.x + o.w - s.x) < 300 && o.x < s.x), bD = chaos.some(o => o !== s && o.x > s.x && o.x - (s.x + s.w) < 300);
-      blocoMagibot(g, s.x, GROUND - PISO_TOPO, s.w, alt, bE, bD, s.x * .013);
+      const bc = layer(FASE.fundo, 'bloco_chao'), bb = layer(FASE.fundo, 'bloco_beirada');
+      if (bc) {   // barranco pintado: o topo de capim fica 12 px acima dos pés; pontas nos buracos
+        // o meio da faixa de capim (linha 17 da arte) fica na linha dos pés; a ponta é um close (capim 3x mais
+        // grosso), por isso entra pela metade do tamanho, com o capim no mesmo lugar
+        const topo = GROUND - 34 - PISO_TOPO, bw = bb ? bb.naturalWidth : 0, bh = bb ? bb.naturalHeight : 0, topoB = GROUND - 17 - PISO_TOPO;
+        const x0 = s.x + (bE && bb ? bw * .5 : 0), x1 = s.x + s.w - (bD && bb ? bw * .5 : 0);
+        g.save(); g.beginPath(); g.rect(x0, 0, x1 - x0, alt); g.clip();
+        g.fillStyle = '#0d080b'; g.fillRect(x0, topo + 190, x1 - x0, alt);
+        g.translate(0, topo); g.scale(2, 2); g.fillStyle = g.createPattern(bc, 'repeat-x'); g.fillRect(x0 / 2 - 2, 0, (x1 - x0) / 2 + 4, bc.naturalHeight); g.restore();
+        if (bb && bD) g.drawImage(bb, s.x + s.w - bw + 4, topoB, bw, bh);
+        if (bb && bE) { g.save(); g.translate(s.x + bw - 4, topoB); g.scale(-1, 1); g.drawImage(bb, 0, 0, bw, bh); g.restore(); }
+      } else blocoMagibot(g, s.x, GROUND - PISO_TOPO, s.w, alt, bE, bD, s.x * .013);
       ys.forEach((y, i) => topos.set(s.x + i * 4, PISO_TOPO + base + y));
       continue;
     }
@@ -3596,9 +3650,10 @@ function piso() {
     for (let i = 0; i + 1 < chaos.length; i++) {
       const x0 = chaos[i].x + chaos[i].w, x1 = chaos[i + 1].x;
       if (x1 - x0 < 8) continue;
-      const gr = g.createLinearGradient(0, base - 30, 0, alt);   // vala escura (Erick, 2026-11-20)
+      const v0 = ESTILO === 'magibot' ? base - 4 : base - 30;
+      const gr = g.createLinearGradient(0, v0, 0, alt);   // vala escura (Erick, 2026-11-20)
       gr.addColorStop(0, 'rgba(14,22,12,0)'); gr.addColorStop(.3, 'rgba(14,22,12,.9)'); gr.addColorStop(.42, '#0b130a'); gr.addColorStop(.5, '#070b06'); gr.addColorStop(1, '#030503');
-      g.fillStyle = gr; g.fillRect(x0 - 40, base - 30, x1 - x0 + 80, alt);   // passa por trás das beiradas recortadas
+      g.fillStyle = gr; g.fillRect(x0 - 40, v0, x1 - x0 + 80, alt);   // passa por trás das beiradas recortadas
     }
     g.restore();
   }
@@ -3640,7 +3695,7 @@ function arvores() {
   const pecas = pecasArvore();
   if (arvoresProntas && (arvoresProntas.comImagem || !pecas)) return arvoresProntas;
   if (typeof document === 'undefined') return null;
-  const lista = [...PLATS].sort((a, b) => a.x - b.x), grupos = [];
+  const lista = PLATS.filter(p => !p.obj).sort((a, b) => a.x - b.x), grupos = [];   // objetos do pasto não viram árvore
   for (const pl of lista) {
     const g = grupos[grupos.length - 1], ult = g && g[g.length - 1];
     if (ult && pl.x - (ult.x + ult.w) < 130 && g.length < 2) g.push(pl); else grupos.push([pl]);
@@ -3859,6 +3914,7 @@ function drawWorld() {
     ctx.drawImage(t.copa.c, x, t.copa.y);
   }
   if (AR) for (const t of AR) if (t.galhos) { const x = Math.round(t.x0 - camX); if (x < W && x + t.galhos.width > 0) ctx.drawImage(t.galhos, x, 0); }
+  drawObjetos();
   drawCapim(false);
   for (const s of SOLIDS) {
     if (P && s.y >= GROUND - 1) continue;
@@ -3878,6 +3934,7 @@ function drawWorld() {
     for (let i = 0; i < s.w; i += 37) { const ex = x + i + ((i * 13) % 20); if ((i / 37 | 0) % 3 === 0) ctx.fillRect(ex, s.y + 6 + (i % 7), 3, 2); }
   }
   if (!AR) for (const p of PLATS) {
+    if (p.obj) continue;   // objeto do pasto: desenhado em drawObjetos
     const x = p.x - camX; if (x > W || x + p.w < 0) continue;
     ctx.fillStyle = '#3a2418'; roundRect(x, p.y, p.w, 16, 8); ctx.fill();
     ctx.fillStyle = '#1e120c'; roundRect(x, p.y + 9, p.w, 7, 4); ctx.fill();

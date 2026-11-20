@@ -856,13 +856,22 @@
    "arvore_galho": "fundos/vaca/arvore_galho.png",
    "arvore_raiz": "fundos/vaca/arvore_raiz.png",
    "arvore_tronco": "fundos/vaca/arvore_tronco.png",
+   "bloco_beirada": "fundos/vaca/bloco_beirada.png",
+   "bloco_chao": "fundos/vaca/bloco_chao.png",
    "capim": "fundos/vaca/capim.png",
+   "carroca": "fundos/vaca/carroca.png",
+   "cerca": "fundos/vaca/cerca.png",
    "ceu": "fundos/vaca/ceu.png",
    "chao": "fundos/vaca/chao.png",
+   "cipos": "fundos/vaca/cipos.png",
+   "feno": "fundos/vaca/feno.png",
+   "feno_pilha": "fundos/vaca/feno_pilha.png",
    "frente": "fundos/vaca/frente.png",
    "longe": "fundos/vaca/longe.png",
+   "pedra": "fundos/vaca/pedra.png",
    "perto": "fundos/vaca/perto.png",
-   "prado": "fundos/vaca/prado.png"
+   "prado": "fundos/vaca/prado.png",
+   "tronco_caido": "fundos/vaca/tronco_caido.png"
   },
   "meta": {
    "arvore_galho": {
@@ -872,7 +881,7 @@
     "centro": 0.481
    }
   },
-  "ver": "8a482e9f"
+  "ver": "a638cb72"
  },
  "objetos/altar": {
   "tipo": "objeto",

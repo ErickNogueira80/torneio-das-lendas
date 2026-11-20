@@ -101,5 +101,27 @@
   "cores": 48,
   "aplainar": 1.0,
   "tirarClaros": 200
+ },
+ "fundos/vaca/bloco_chao": {
+  "emendar": 0.1
+ },
+ "fundos/vaca/cerca": {
+  "chave": [
+   254,
+   1,
+   249
+  ],
+  "corteBaixo": 0.2,
+  "semRoxo": true
+ },
+ "fundos/vaca/cipos": {
+  "chave": [
+   253,
+   0,
+   248
+  ]
+ },
+ "fundos/vaca/carroca": {
+  "corteBaixo": 0.1
  }
 }

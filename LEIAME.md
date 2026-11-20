@@ -664,6 +664,17 @@ recorte em magenta `#FF00FF`, porque o recorte verde apaga o verde da arte.
     Plataformas: objetos de fazenda (feno, cerca, carroça, tronco caído, pedra). Kit de prompts do
     Gemini na seção 4.13 de `04-prompts-sprites.md` (`bloco_chao`, `bloco_beirada`, `feno`,
     `feno_pilha`, `cerca`, `carroca`, `tronco_caido`, `pedra`, `cipos`).
+    **Kit no jogo (2026-11-20):** as 9 imagens do Erick processadas (`FUNDO_ALTURA` e `RECORTADAS` na
+    ferramenta; ajustes: `bloco_chao` emendar 0,1; `cerca` chave magenta, `corteBaixo` 0,2 e `semRoxo`;
+    `cipos` chave magenta; `carroca` `corteBaixo` 0,1; opções novas `chave`, `corteBaixo` e `semRoxo`).
+    Chão: `bloco_chao` repetido, meio da faixa de capim na linha dos pés; `bloco_beirada` nas pontas
+    dos buracos pela metade do tamanho (é um close; espelhada no lado esquerdo); vala escura só abaixo
+    do chão. **Objetos são plataformas de mão única** (`OBJETOS_PASTO`: tamanho em px da arte e onde
+    se pisa, medidos no perfil de cima; `platsDosObjetos`; `obj: true` não vira árvore): o herói passa
+    na frente andando e só fica em cima se pular (Erick: "se quiser passar por baixo, tem que ser uma
+    opção"). Cipós: metade de cima no alto (paralaxe 1,25) e samambaias baixinhas embaixo (1,45).
+    Tela `?limpo`: feno 500, cerca 900, buraco 1600–1740, pilha de feno 2000, carroça 2500, tronco
+    3100, pedra 3600. Se uma imagem for regerada com outro tamanho, medir os pisos de novo.
     **Tela de teste:** `?fase=vaca&limpo` tira bichos, árvores, buracos, baús e perigos (só o chão e
     o herói), para acertar o piso e a transição com o fundo.
   - **Correções (2026-11-20):** o campo pintado acabava antes do pé da tela e aparecia uma linha

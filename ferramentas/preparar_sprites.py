@@ -71,7 +71,13 @@ FUNDO_ALTURA = {"ceu": 270, "longe": 180, "perto": 210, "chao": 128,
                 # campo aberto do pasto (2026-11-20): o campo pintado (piso) e a faixa preta da frente
                 "capim": 80, "frente": 70,
                 # prado pintado no estilo do fundo (2026-11-20): o chão do pasto, com perspectiva
-                "prado": 120}
+                "prado": 120,
+                # kit do pasto no estilo Magibot (2026-11-20): barranco que se repete, ponta do barranco,
+                # silhuetas da frente (tela inteira) e objetos-plataforma (altura do objeto recortado)
+                "bloco_chao": 100, "bloco_beirada": 100, "cipos": 270,
+                "feno": 40, "feno_pilha": 75, "cerca": 45, "carroca": 70, "tronco_caido": 40, "pedra": 55}
+# peças recortadas no conteúdo (a altura de FUNDO_ALTURA é a do objeto, não a da imagem)
+RECORTADAS = {"bloco_beirada", "feno", "feno_pilha", "cerca", "carroca", "tronco_caido", "pedra"}
 # As peças da árvore são escaladas pela medida que importa para o encaixe (em px da arte):
 TRONCO_LARGURA = 40   # largura do tronco
 GALHO_ESPESSURA = 12  # espessura do galho (o topo dele é onde se pisa)
@@ -79,7 +85,7 @@ COPA_LARGURA = 190    # largura da copa (380 px na tela, como a copa desenhada p
 FUNDO_CORES = 32   # cores por camada (paleta limitada, cara de 16 bits)
 
 
-def remover_fundo(img: Image.Image, so_topo: bool = False) -> Image.Image:
+def remover_fundo(img: Image.Image, so_topo: bool = False, chave=None) -> Image.Image:
     """Devolve RGBA sem o fundo de cor lisa (detectado pelas bordas). so_topo: camadas de morros; se
     as 4 bordas derem uma cor diferente da borda de cima (paisagem demais embaixo e nos lados, como
     no pasto), vale a cor de cima."""
@@ -89,7 +95,9 @@ def remover_fundo(img: Image.Image, so_topo: bool = False) -> Image.Image:
     if np.median(borda[:, 3]) < 20:          # já é transparente
         return img
     cor = np.median(borda[:, :3], axis=0)
-    if so_topo:
+    if chave is not None:   # cor do fundo informada no ajuste (ex.: silhueta preta encostada nas bordas)
+        cor = np.array(chave, dtype=np.float32)
+    elif so_topo:
         topo = np.median(a[0][:, :3], axis=0)
         if np.sqrt(((topo - cor) ** 2).sum()) > 60:
             cor = topo
@@ -689,17 +697,25 @@ def preparar_fundo(pasta: Path, ajustes: dict) -> dict | None:
         aj = ajustes.get(f"{chave}/{nome}", {})
         if aj.get("corteTopo"):            # ex.: tirar a crosta clara de cima do chão
             im = im.crop((0, round(im.height * float(aj["corteTopo"])), im.width, im.height))
-        transparente = nome in ("longe", "perto", "capim", "frente", "prado") or nome.startswith("arvore_")
+        if aj.get("corteBaixo"):           # ex.: faixa de chão que o Gemini pôs embaixo do objeto
+            im = im.crop((0, 0, im.width, round(im.height * (1 - float(aj["corteBaixo"])))))
+        transparente = nome in ("longe", "perto", "capim", "frente", "prado", "bloco_chao", "cipos") or nome in RECORTADAS or nome.startswith("arvore_")
         if transparente:
-            camada = nome in ("longe", "perto", "capim", "frente", "prado")   # paisagem embaixo: a cor do fundo vem do topo
+            camada = nome in ("longe", "perto", "capim", "frente", "prado", "bloco_chao", "bloco_beirada")   # paisagem embaixo: a cor do fundo vem do topo
             rgb = np.asarray(im.convert("RGB"))
             borda = np.concatenate([rgb[0], rgb[:, 0]])
             fundo_verde = int(np.argmax(np.median(borda, axis=0))) == 1
             if camada and int(np.argmax(np.median(rgb[0], axis=0))) != 1:
                 fundo_verde = False   # recorte magenta (pasto): o verde é da arte
-            im = remover_fundo(im, so_topo=camada)
+            im = remover_fundo(im, so_topo=camada, chave=aj.get("chave"))
             if camada and aj.get("emendar"):   # camada que não emendou bem nas laterais
                 im = emendar(im, float(aj["emendar"]))
+            if aj.get("semRoxo"):   # restos do magenta misturado com sombra (roxo escuro): transparentes
+                arr = np.asarray(im).copy(); r, g_, b = (arr[:, :, i].astype(int) for i in range(3))
+                arr[:, :, 3] = np.where((r > g_ + 45) & (b > g_ + 45), 0, arr[:, :, 3])
+                im = Image.fromarray(arr, "RGBA")
+            if nome in RECORTADAS:   # objeto: só o conteúdo (sem a sobra de fundo em volta)
+                im = cortar(im)
             if aj.get("tirarClaros"):   # fundo claro (branco): limpa o fio que sobra na borda
                 im = tirar_claros(im, int(aj["tirarClaros"]))
             if aj.get("aplainar"):   # luz igual de um lado ao outro (a camada se repete)
