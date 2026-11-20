@@ -40,6 +40,10 @@ const HEROI_ID = HEROIS[params.get('heroi')] ? params.get('heroi') : 'humano';
 const HEROI = HEROIS[HEROI_ID];
 const PODER_ID = HEROI.poder, PODER = PODERES[PODER_ID];
 const FASE_ID = FASES[params.get('fase')] ? params.get('fase') : 'boitata';
+if (params.has('limpo')) {   // teste (2026-11-20): só o chão e o herói, para acertar o piso e a transição com o fundo
+  const F0 = FASES[FASE_ID];
+  FASES[FASE_ID] = { ...F0, inimigos: [], plataformas: [], baus: [], perigos: [], sala: null, solidos: [{ x: -300, y: 460, w: F0.fim + 600, h: 140 }] };
+}
 const FASE = FASES[FASE_ID];
 const GROUND = 460;
 const SOLIDS = FASE.solidos, PLATS = FASE.plataformas, CHECKS = FASE.controles, ARENA = FASE.arena;
@@ -124,7 +128,8 @@ async function loadSprites() {
 const ready = im => im && im.complete && im.naturalWidth > 0;
 function sprite(key) { const s = SPR[key]; return s && s.image && ready(s.image) ? s : null; }
 function layer(key, name) { const s = SPR[key]; return s && s.imgs && ready(s.imgs[name]) ? s.imgs[name] : null; }
-loadSprites();
+let SPRITES_PRONTOS = false;   // a lista de imagens já chegou (ou não vai chegar)
+loadSprites().finally(() => { SPRITES_PRONTOS = true; });
 
 // desenha um quadro de personagem com os pés em (x, y); face = 1 direita, -1 esquerda
 const ANIM_RESERVA = { correr: ['parado'], cair: ['pular', 'parado'], pular: ['parado'], espada: ['parado'], poder: ['espada', 'parado'], dano: ['parado'], morrer: ['dano', 'parado'], andar: ['parado'], voar: ['parado'] };
@@ -3086,7 +3091,7 @@ function naRaiz(x) {   // o capim que balança não nasce em cima da raiz da ár
   return AR.some(t => t.raizFrente && x > t.raizFrente.x + t.raizFrente.w * .06 && x < t.raizFrente.x + t.raizFrente.w * .94);
 }
 function drawCapim(frente) {
-  if (!PASTO || typeof document === 'undefined') return;
+  if (!PASTO || typeof document === 'undefined' || layer(FASE.fundo, 'prado')) return;
   if (!capimCv) { capimCv = document.createElement('canvas'); capimCv.width = W / 2; capimCv.height = H / 2; }
   const gl = capimCv.getContext('2d'); gl.clearRect(0, 0, W / 2, H / 2);
   const passo = frente ? 4 : 3;
@@ -3198,8 +3203,16 @@ function crista() {
   return (cristaPronta = { c, topoTela });
 }
 const FRENTE_CORPO = .57;   // na imagem fundos/vaca/frente, onde a faixa escura fica cheia (fração da altura)
+let frentePreta = null;
 function drawCrista() {
-  const arte = layer(FASE.fundo, 'frente');
+  const arte0 = layer(FASE.fundo, 'frente');
+  if (arte0 && !frentePreta) {   // a faixa da frente tingida de quase preto (Erick, 2026-11-20: "essa parte azul pode deixar preta")
+    frentePreta = document.createElement('canvas'); frentePreta.width = arte0.naturalWidth; frentePreta.height = arte0.naturalHeight;
+    const g = frentePreta.getContext('2d'); g.drawImage(arte0, 0, 0);
+    g.globalCompositeOperation = 'source-atop'; g.fillStyle = 'rgba(3,4,6,.85)'; g.fillRect(0, 0, frentePreta.width, frentePreta.height);
+    frentePreta.naturalWidth = frentePreta.width; frentePreta.naturalHeight = frentePreta.height;
+  }
+  const arte = arte0 && frentePreta;
   if (arte) {   // faixa preta pintada (Gemini), repetida na horizontal
     const w = arte.naturalWidth * 2, h = arte.naturalHeight * 2, y = Math.round(H - CRISTA - h * FRENTE_CORPO);
     ctx.imageSmoothingEnabled = false;
@@ -3279,12 +3292,16 @@ let groundPattern = null;
 // O chão da fase inteira vira uma imagem pronta: topo ondulado em degraus de pixel, beiradas
 // quebradas nos buracos, crosta clara, tufos, pedras e galhos. A física continua reta (GROUND);
 // o desenho sobe e desce uns pixels em volta dela. Por quadro, o jogo só copia o pedaço visível.
-const PISO_TOPO = GROUND - (PASTO ? 56 : 26);   // o campo do pasto começa mais acima (lâminas de capim)
+const PISO_TOPO = GROUND - (PASTO ? 96 : 26);   // pasto: o prado começa 80 px acima dos pés
 let pisoPronto = null;
 function piso() {
   if (pisoPronto) return pisoPronto;
   if (typeof document === 'undefined') return null;
-  const capimArte = PASTO && layer(FASE.fundo, 'capim');   // campo pintado (Gemini) ou o desenhado pelo jogo
+  if (PASTO && !(SPR[FASE.fundo] && SPR[FASE.fundo].imgs) && !SPRITES_PRONTOS) return null;   // espera a lista de imagens (senão monta o chão sem a arte)
+  const pradoImg = PASTO && SPR[FASE.fundo] && SPR[FASE.fundo].imgs && SPR[FASE.fundo].imgs.prado;
+  if (pradoImg && !pradoImg.complete) return null;   // espera o prado carregar
+  const prado = PASTO && layer(FASE.fundo, 'prado');   // prado no estilo do fundo (2026-11-20): substitui o capim
+  const capimArte = PASTO && (prado || layer(FASE.fundo, 'capim'));   // campo pintado (Gemini) ou o desenhado pelo jogo
   const capimImg = PASTO && SPR[FASE.fundo] && SPR[FASE.fundo].imgs && SPR[FASE.fundo].imgs.capim;
   if (capimImg && !capimArte && !capimImg.complete) return null;   // espera a imagem do campo carregar
   const chao = PASTO ? capimArte || texturaCampo() : layer(FASE.fundo, 'chao') || chaoGerado();
@@ -3314,7 +3331,7 @@ function piso() {
     }
     if (PASTO) {   // campo: começa 40 px acima da linha dos pés e desce até a faixa preta; sem borda nem crosta
       // beiradas do buraco arredondadas e quebradas (iguais dos dois lados), não um corte reto
-      const tp = (capimArte ? GROUND - 50 : GROUND - 40) - PISO_TOPO, R0 = 40;
+      const tp = (prado ? GROUND - 80 : capimArte ? GROUND - 50 : GROUND - 40) - PISO_TOPO, R0 = 40;
       const beira = (y, k) => { const d = Math.max(0, y - tp), o = d < R0 ? R0 - Math.sqrt(Math.max(0, R0 * R0 - (R0 - d) * (R0 - d))) : 0;
         return Math.round((o * .8 + d * .12 + 5 + Math.sin(d * .13 + k * 2.1) * 5 + hashC(Math.floor(y / 2) * 7.3 + k) * 7) / 2) * 2; };
       g.save(); g.beginPath(); g.moveTo(s.x + beira(tp, 1), 0);
@@ -3322,7 +3339,7 @@ function piso() {
       for (let y = alt - 2; y >= tp; y -= 2) { g.lineTo(s.x + s.w - beira(y, 2), y + 2); g.lineTo(s.x + s.w - beira(y, 2), y); }
       g.lineTo(s.x + s.w - beira(tp, 2), 0); g.closePath(); g.clip();
       g.fillStyle = '#13282b'; g.fillRect(s.x, GROUND - PISO_TOPO, s.w, alt);   // fundo do campo, embaixo da imagem
-      g.translate(0, (capimArte ? GROUND - 50 : GROUND - 40) - PISO_TOPO); g.scale(z, z);   // pintado: corpo do capim 16 px acima dos pés
+      g.translate(0, (prado ? GROUND - 80 : capimArte ? GROUND - 50 : GROUND - 40) - PISO_TOPO); g.scale(z, z);   // pintado: corpo do capim 16 px acima dos pés
       g.fillStyle = pat; g.fillRect(s.x / z - 4, 0, s.w / z + 8, chao.height); g.restore();
       ys.forEach((y, i) => topos.set(s.x + i * 4, PISO_TOPO + base + y));
       continue;

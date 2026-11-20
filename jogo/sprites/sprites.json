@@ -861,7 +861,8 @@
    "chao": "fundos/vaca/chao.png",
    "frente": "fundos/vaca/frente.png",
    "longe": "fundos/vaca/longe.png",
-   "perto": "fundos/vaca/perto.png"
+   "perto": "fundos/vaca/perto.png",
+   "prado": "fundos/vaca/prado.png"
   },
   "meta": {
    "arvore_galho": {
@@ -871,7 +872,7 @@
     "centro": 0.481
    }
   },
-  "ver": "6e09db3e"
+  "ver": "8a482e9f"
  },
  "objetos/altar": {
   "tipo": "objeto",

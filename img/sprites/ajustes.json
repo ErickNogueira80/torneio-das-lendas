@@ -85,11 +85,21 @@
  "fundos/vaca/longe": {
   "emendar": 0.12
  },
- "fundos/vaca/capim": {"emendar": 0.12},
- "fundos/vaca/frente": {"emendar": 0.12},
+ "fundos/vaca/capim": {
+  "emendar": 0.12
+ },
+ "fundos/vaca/frente": {
+  "emendar": 0.12
+ },
  "fundos/vaca/arvore": {
   "tronco": 64,
   "galho": 15,
   "copa": 273
+ },
+ "fundos/vaca/prado": {
+  "emendar": 0.12,
+  "cores": 48,
+  "aplainar": 1.0,
+  "tirarClaros": 200
  }
 }

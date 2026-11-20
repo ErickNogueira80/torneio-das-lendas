@@ -69,7 +69,9 @@ FUNDO_ALTURA = {"ceu": 270, "longe": 180, "perto": 210, "chao": 128,
                 # copa (pasto, 2026-11-20): só as folhas, o tronco do jogo entra por baixo
                 "arvore_copa": 0,
                 # campo aberto do pasto (2026-11-20): o campo pintado (piso) e a faixa preta da frente
-                "capim": 80, "frente": 70}
+                "capim": 80, "frente": 70,
+                # prado pintado no estilo do fundo (2026-11-20): o chão do pasto, com perspectiva
+                "prado": 120}
 # As peças da árvore são escaladas pela medida que importa para o encaixe (em px da arte):
 TRONCO_LARGURA = 40   # largura do tronco
 GALHO_ESPESSURA = 12  # espessura do galho (o topo dele é onde se pisa)
@@ -113,6 +115,42 @@ def remover_fundo(img: Image.Image, so_topo: bool = False) -> Image.Image:
         a[:, :, 2] = np.where(sel, a[:, :, 2] - exc, a[:, :, 2])
     a[:, :, 3] = alfa * 255
     return Image.fromarray(a.clip(0, 255).astype(np.uint8), "RGBA")
+
+
+def aplainar_luz(im: Image.Image, forca: float = 1.0) -> Image.Image:
+    """Tira a variação de luz da esquerda para a direita (ex.: um lado alaranjado pelo sol), mantendo
+    a textura e o escurecimento de cima para baixo: cada linha perde a média "borrada" na horizontal
+    e ganha a média da linha. forca 1 = tudo plano; 0,5 = pela metade. A camada se repete, então o
+    borrão dá a volta nas bordas."""
+    a = np.asarray(im.convert("RGBA")).astype(np.float32)
+    h, w = a.shape[:2]
+    rgb, al = a[:, :, :3], a[:, :, 3:4] / 255.0
+    r = max(4, w // 6)
+    pad = np.concatenate([rgb[:, -r:], rgb, rgb[:, :r]], axis=1) * np.concatenate([al[:, -r:], al, al[:, :r]], axis=1)
+    pa = np.concatenate([al[:, -r:], al, al[:, :r]], axis=1)
+    cs = np.cumsum(np.pad(pad, ((0, 0), (1, 0), (0, 0))), axis=1)
+    ca = np.cumsum(np.pad(pa, ((0, 0), (1, 0), (0, 0))), axis=1)
+    soma = cs[:, 2 * r + 1:2 * r + 1 + w] - cs[:, :w]
+    peso = ca[:, 2 * r + 1:2 * r + 1 + w] - ca[:, :w]
+    borrao = soma / np.maximum(peso, 1e-3)
+    media = (rgb * al).sum(axis=1, keepdims=True) / np.maximum(al.sum(axis=1, keepdims=True), 1e-3)
+    novo = rgb + forca * (media - borrao)
+    a[:, :, :3] = np.clip(novo, 0, 255)
+    return Image.fromarray(a.astype(np.uint8), "RGBA")
+
+
+def tirar_claros(im: Image.Image, limite: int = 205) -> Image.Image:
+    """Apaga os pixels quase brancos que sobram do fundo claro na borda de cima."""
+    a = np.asarray(im.convert("RGBA")).copy()
+    claro = a[:, :, :3].min(axis=2) > limite
+    # perto da borda recortada, o capim misturado com o fundo claro também sai (o fio bege)
+    vazio = a[:, :, 3] < 20
+    perto = vazio.copy()
+    for _ in range(10):
+        perto = perto | np.roll(perto, 1, 0) | np.roll(perto, -1, 0) | np.roll(perto, 1, 1) | np.roll(perto, -1, 1)
+    misturado = perto & (a[:, :, :3].min(axis=2) > limite * .6)
+    a[:, :, 3] = np.where(claro | misturado, 0, a[:, :, 3])
+    return Image.fromarray(a, "RGBA")
 
 
 def emendar(im: Image.Image, frac: float = .12) -> Image.Image:
@@ -651,9 +689,9 @@ def preparar_fundo(pasta: Path, ajustes: dict) -> dict | None:
         aj = ajustes.get(f"{chave}/{nome}", {})
         if aj.get("corteTopo"):            # ex.: tirar a crosta clara de cima do chão
             im = im.crop((0, round(im.height * float(aj["corteTopo"])), im.width, im.height))
-        transparente = nome in ("longe", "perto", "capim", "frente") or nome.startswith("arvore_")
+        transparente = nome in ("longe", "perto", "capim", "frente", "prado") or nome.startswith("arvore_")
         if transparente:
-            camada = nome in ("longe", "perto", "capim", "frente")   # paisagem embaixo: a cor do fundo vem do topo
+            camada = nome in ("longe", "perto", "capim", "frente", "prado")   # paisagem embaixo: a cor do fundo vem do topo
             rgb = np.asarray(im.convert("RGB"))
             borda = np.concatenate([rgb[0], rgb[:, 0]])
             fundo_verde = int(np.argmax(np.median(borda, axis=0))) == 1
@@ -662,6 +700,10 @@ def preparar_fundo(pasta: Path, ajustes: dict) -> dict | None:
             im = remover_fundo(im, so_topo=camada)
             if camada and aj.get("emendar"):   # camada que não emendou bem nas laterais
                 im = emendar(im, float(aj["emendar"]))
+            if aj.get("tirarClaros"):   # fundo claro (branco): limpa o fio que sobra na borda
+                im = tirar_claros(im, int(aj["tirarClaros"]))
+            if aj.get("aplainar"):   # luz igual de um lado ao outro (a camada se repete)
+                im = aplainar_luz(im, float(aj["aplainar"]))
             if fundo_verde:   # tira o halo verde que sobra nas bordas (o fundo verde exige arte sem verde)
                 a = np.asarray(im).copy()
                 a[:, :, 1] = np.minimum(a[:, :, 1], np.maximum(a[:, :, 0], a[:, :, 2]))

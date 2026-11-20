@@ -635,6 +635,17 @@ recorte em magenta `#FF00FF`, porque o recorte verde apaga o verde da arte.
     pares, tamanho 0,9–1,08 e tom mais verde ou mais dourado. Galho novo e copas 2 e 3: prompts
     "Árvores, versão 2" na seção 4.12. O baú em cima de galho acompanha o caimento do galho
     (`caiGalho`, vale também para o Boitatá).
+  - **Prado no estilo do fundo (2026-11-20, em teste):** o Erick gerou no Gemini um prado plano no
+    estilo do `perto` (`img/sprites/fundos/vaca/prado.jpg`, cópia de `Gemini_Generated_Image_ilqb…`).
+    Vira o chão do pasto (`prado`, 120 px de arte, 852 x 240 na tela, começa 80 px acima dos pés;
+    `PISO_TOPO` do pasto = `GROUND - 96`). Ajustes na ferramenta: `emendar` 0,12, 48 cores,
+    `tirarClaros` 200 (tira o fio bege que sobrava do fundo branco perto da borda) e `aplainar` 1
+    (`aplainar_luz`: tira a mancha alaranjada de um lado, que repetia a cada 852 px como um holofote,
+    mantendo a textura e o escurecimento de cima para baixo). Com o prado, o capim que balança sai.
+    A faixa da frente ficou **preta** (pedido do Erick). Correção junto: o piso era montado antes de
+    a lista de imagens chegar e caía no capim desenhado pelo código (`SPRITES_PRONTOS`).
+    **Tela de teste:** `?fase=vaca&limpo` tira bichos, árvores, buracos, baús e perigos (só o chão e
+    o herói), para acertar o piso e a transição com o fundo.
   - **Correções (2026-11-20):** o campo pintado acabava antes do pé da tela e aparecia uma linha
     marrom do fundo (agora há um fundo `#13282b` embaixo da imagem); os buracos viraram valas escuras
     desde a beirada, com as duas beiradas do campo arredondadas e quebradas (`beira` no `piso`, iguais
