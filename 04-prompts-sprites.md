@@ -1062,6 +1062,32 @@ center with dark shaded leaves so no wood is visible. Plain solid #FF00FF magent
 Dicas: se o Gemini puser chão ou céu atrás, peça "only the object on a flat magenta background,
 nothing else". Se o galho vier com folhas por cima, mande assim mesmo: o Claude corta.
 
+**Chão do pasto, versões para testar no laboratório (2026-11-20).** Testar em
+`jogo/laboratorio/pasto.html` ("Chão (textura)") antes de salvar. A que for escolhida vai para
+`img/sprites/fundos/vaca/chao.jpg`.
+
+- Gramado visto de cima e de lado (o chão é o próprio campo):
+
+```
+Create an image. 2D side-scrolling game ground texture, peaceful countryside pasture at sunset,
+painterly style matching a fantasy RPG, no characters, no text.
+Square 1:1 seamless tileable texture (all four edges must match) of a dense green meadow seen
+from the side at ground level: layers of grass blades of different greens, darker and shaded
+toward the bottom, a few tiny wildflowers (white, yellow, purple), small clover leaves, warm
+golden sunset light touching the grass tips. No soil visible, no sky, no horizon.
+```
+
+- Terra com capim por cima, mais rica que a primeira (o corte do chão, como antes):
+
+```
+Create an image. 2D side-scrolling game ground texture, peaceful countryside pasture at sunset,
+painterly style matching a fantasy RPG, no characters, no text.
+Square 1:1 seamless tileable texture (left and right edges must match) of the ground seen from
+the side: the top quarter is thick green grass with blades hanging over the edge and a few tiny
+wildflowers, warm sunset light on the grass; below it rich dark brown soil with small roots,
+pebbles and grass roots fading into darker earth at the bottom. No sky, no horizon above the grass.
+```
+
 **Feito em 2026-11-20:** as 8 peças acima foram geradas de primeira com estes prompts e estão no
 jogo. O chão veio com céu e capim pintados em cima (a ferramenta corta) e o perto não emendava nas
 laterais (a ferramenta mistura as bordas). Nada disso precisou de imagem nova.

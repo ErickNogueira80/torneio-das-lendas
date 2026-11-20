@@ -1,0 +1,403 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Laboratório do pasto</title>
+<style>
+  :root { --fundo: #0e0a10; --painel: #1a1420; --texto: #efe6d8; --fraco: #a99a8a; --ouro: #f0c674; --borda: #3a2c3a; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--fundo); color: var(--texto); font: 14px/1.4 system-ui, sans-serif; }
+  .app { display: grid; grid-template-columns: 220px minmax(0, 1fr) 240px; gap: 12px; padding: 10px 12px 24px; max-width: 1700px; margin: 0 auto; align-items: start; }
+  .app > * { min-width: 0; }
+  .col { display: flex; flex-direction: column; gap: 6px; position: sticky; top: 8px; max-height: calc(100vh - 16px); overflow-y: auto; padding-right: 2px; }
+  .col h2 { font-size: 13px; margin: 8px 0 2px; color: var(--ouro); text-transform: uppercase; letter-spacing: .04em; }
+  .col button { width: 100%; text-align: left; }
+  h1 { font-size: 19px; margin: 0 0 2px; color: var(--ouro); }
+  p { margin: 2px 0 8px; color: var(--fraco); }
+  canvas { width: 100%; height: auto; display: block; background: #120c14; border: 1px solid var(--borda); border-radius: 8px; touch-action: none; image-rendering: pixelated; cursor: grab; }
+  button { background: var(--painel); color: var(--texto); border: 1px solid var(--borda); border-radius: 8px; padding: 7px 10px; font: inherit; cursor: pointer; }
+  button.ativo { background: #4a2f18; border-color: var(--ouro); color: var(--ouro); }
+  label { display: flex; flex-direction: column; font-size: 12.5px; color: var(--fraco); background: var(--painel); border: 1px solid var(--borda); border-radius: 8px; padding: 6px 8px; }
+  label b { color: var(--texto); font-weight: 600; }
+  input[type=range] { width: 100%; }
+  input[type=file] { font-size: 12px; color: var(--fraco); margin-top: 4px; width: 100%; }
+  textarea { width: 100%; height: 120px; background: #120c14; color: var(--texto); border: 1px solid var(--borda); border-radius: 8px; font: 12px/1.3 ui-monospace, monospace; padding: 8px; margin-top: 8px; }
+  .dica { font-size: 12.5px; color: var(--fraco); margin-top: 8px; }
+  .grupo { display: flex; flex-direction: column; gap: 6px; }
+  @media (max-width: 900px) {
+    .app { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); padding: 8px; }
+    .centro { grid-column: 1 / -1; order: -1; }
+    .col { position: static; max-height: none; }
+  }
+</style>
+</head>
+<body>
+<main class="app">
+  <aside class="col">
+    <h2>Chão</h2>
+    <div class="grupo" id="gChao"></div>
+    <h2>Borda de capim</h2>
+    <div class="grupo" id="gBorda"></div>
+    <h2>Raiz da árvore</h2>
+    <div class="grupo" id="gRaiz"></div>
+    <h2>Mato</h2>
+    <button id="bMato">Mato alto no chão</button>
+    <button id="bFrente">Touceiras na frente da tela</button>
+    <button id="bBuraco">Buraco como vala escura</button>
+    <h2>Ações</h2>
+    <button id="bPadrao">Voltar ao que está no jogo</button>
+    <button id="bAntes">Como era antes do gramado</button>
+    <button id="bCopiar">Copiar ajustes</button>
+  </aside>
+
+  <section class="centro">
+    <h1>Laboratório do pasto</h1>
+    <p>Arraste a cena para andar pelo cenário. Os botões trocam cada camada; as imagens do Gemini podem ser testadas aqui antes de salvar (coluna da direita).</p>
+    <canvas id="tela" width="960" height="540"></canvas>
+    <div class="dica" id="info"></div>
+    <textarea id="saida" readonly placeholder="Clique em Copiar ajustes e mande o texto para o Claude"></textarea>
+  </section>
+
+  <aside class="col">
+    <h2>Tamanho e posição</h2>
+    <label><span>Tronco: <b id="vTronco"></b></span><input type="range" id="sTronco" min="0.6" max="1.6" step="0.05"></label>
+    <label><span>Copa: <b id="vCopa"></b></span><input type="range" id="sCopa" min="0.6" max="1.6" step="0.05"></label>
+    <label><span>Copa sobe/desce: <b id="vCopaY"></b></span><input type="range" id="sCopaY" min="-120" max="120" step="2"></label>
+    <label><span>Raiz enterrada (px): <b id="vRaizY"></b></span><input type="range" id="sRaizY" min="-30" max="120" step="2"></label>
+    <label><span>Chão escurece embaixo: <b id="vEscuro"></b></span><input type="range" id="sEscuro" min="0" max="0.9" step="0.05"></label>
+    <h2>Testar imagem do Gemini</h2>
+    <p class="dica">Escolha a imagem como ela veio do Gemini (JPG ou PNG). O laboratório tira o fundo magenta ou verde e reduz para pixel art, como a ferramenta faz.</p>
+    <label><b>Chão (textura)</b><input type="file" accept="image/*" data-peca="chao"></label>
+    <label><b>Copa</b><input type="file" accept="image/*" data-peca="arvore_copa"></label>
+    <label><b>Tronco</b><input type="file" accept="image/*" data-peca="arvore_tronco"></label>
+    <label><b>Raiz</b><input type="file" accept="image/*" data-peca="arvore_raiz"></label>
+    <label><b>Galho</b><input type="file" accept="image/*" data-peca="arvore_galho"></label>
+    <label><b>Perto (morros com árvores)</b><input type="file" accept="image/*" data-peca="perto"></label>
+    <label><b>Longe (morros distantes)</b><input type="file" accept="image/*" data-peca="longe"></label>
+    <label><b>Céu</b><input type="file" accept="image/*" data-peca="ceu"></label>
+    <button id="bLimpar">Tirar as imagens testadas</button>
+  </aside>
+</main>
+
+<script>
+'use strict';
+// Laboratório do pasto (2026-11-20, pedido do Erick): compara variações do chão, da raiz, do tamanho
+// das árvores e do mato, e testa imagens novas do Gemini antes de salvar. Usa as mesmas imagens e as
+// mesmas regras de desenho do jogo (jogo.js: faixas, piso, arvores, quadroMato).
+const W = 960, H = 540, GROUND = 460, Z = 2;
+const cv = document.getElementById('tela'), ctx = cv.getContext('2d');
+const BASE = '../sprites/';
+const ORIG = {}, TESTE = {};
+const peca = n => TESTE[n] || ORIG[n];
+const ALTURA = { ceu: 270, longe: 180, perto: 210, chao: 128 };   // px da arte, como a ferramenta
+
+// ---------- estado ----------
+const NO_JOGO = { chao: 'gramado', borda: 'pontas', raiz: 'atras', tronco: 1, copa: 1, copaY: 0, raizY: 18, escuro: 0.6, mato: true, frente: true, buraco: true };
+const ANTES = { chao: 'terra', borda: 'crosta', raiz: 'atras', tronco: 1, copa: 1, copaY: 0, raizY: 18, escuro: 0, mato: true, frente: true, buraco: false };
+let E = { ...NO_JOGO }, camX = 200;
+
+// ---------- utilidades ----------
+function mulberry(seed) { return () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+function carregar(src) { return new Promise(ok => { const im = new Image(); im.onload = () => ok(im); im.onerror = () => ok(null); im.src = src; }); }
+function tela(w, h) { const c = document.createElement('canvas'); c.width = w; c.height = h; return c; }
+function tom(img, cor, forca) {
+  const c = tela(img.width, img.height), g = c.getContext('2d'); g.drawImage(img, 0, 0);
+  g.globalCompositeOperation = 'source-atop'; g.fillStyle = `rgba(${cor},${forca})`; g.fillRect(0, 0, c.width, c.height); return c;
+}
+
+// imagem do Gemini -> sem fundo de recorte e reduzida para a grade da pixel art
+function prepararTeste(img, nome) {
+  let c = tela(img.naturalWidth, img.naturalHeight), g = c.getContext('2d'); g.drawImage(img, 0, 0);
+  if (nome !== 'ceu' && nome !== 'chao') {
+    const d = g.getImageData(0, 0, c.width, c.height), a = d.data, w = c.width;
+    const topo = []; for (let x = 0; x < w; x += 4) topo.push([a[x * 4], a[x * 4 + 1], a[x * 4 + 2]]);
+    const med = i => topo.map(p => p[i]).sort((p, q) => p - q)[topo.length >> 1];
+    const cor = [med(0), med(1), med(2)];
+    const magenta = cor[0] > 150 && cor[2] > 150 && cor[1] < 100;
+    for (let i = 0; i < a.length; i += 4) {
+      const dist = Math.hypot(a[i] - cor[0], a[i + 1] - cor[1], a[i + 2] - cor[2]);
+      const al = clamp((dist - 38) / 57, 0, 1);
+      if (al < 1) {
+        if (magenta) { const exc = Math.max(0, Math.min(a[i], a[i + 2]) - a[i + 1]); a[i] -= exc; a[i + 2] -= exc; }
+        else a[i + 1] = Math.min(a[i + 1], Math.max(a[i], a[i + 2]));
+      }
+      a[i + 3] = al * 255;
+    }
+    g.putImageData(d, 0, 0);
+    // corta o que sobrou vazio em volta
+    const b = { x0: w, y0: c.height, x1: 0, y1: 0 };
+    for (let y = 0; y < c.height; y += 2) for (let x = 0; x < w; x += 2) if (a[(y * w + x) * 4 + 3] > 40) { b.x0 = Math.min(b.x0, x); b.x1 = Math.max(b.x1, x); b.y0 = Math.min(b.y0, y); b.y1 = Math.max(b.y1, y); }
+    if (b.x1 > b.x0) { const cc = tela(b.x1 - b.x0 + 1, b.y1 - b.y0 + 1); cc.getContext('2d').drawImage(c, -b.x0, -b.y0); c = cc; }
+  }
+  // tamanho na arte: o mesmo das peças que estão no jogo (ou a altura padrão das camadas)
+  const o = ORIG[nome];
+  let alvoW, alvoH;
+  if (ALTURA[nome]) { alvoH = ALTURA[nome]; alvoW = Math.round(c.width * alvoH / c.height); }
+  else if (nome === 'arvore_tronco') { alvoW = o ? o.width : 66; alvoH = Math.round(c.height * alvoW / c.width); }
+  else { alvoW = o ? o.width : 200; alvoH = Math.round(c.height * alvoW / c.width); }
+  const out = tela(alvoW, alvoH), go = out.getContext('2d');
+  go.imageSmoothingEnabled = true; go.imageSmoothingQuality = 'high'; go.drawImage(c, 0, 0, alvoW, alvoH);
+  const d = go.getImageData(0, 0, alvoW, alvoH);   // alfa em 0 ou 255 (pixel art)
+  for (let i = 3; i < d.data.length; i += 4) d.data[i] = d.data[i] > 110 ? 255 : 0;
+  go.putImageData(d, 0, 0);
+  return out;
+}
+
+// ---------- texturas feitas pelo laboratório (iguais às do jogo) ----------
+function pxRet(g, x, y, w, h, cor) { g.fillStyle = cor; g.fillRect(Math.round(x), Math.round(y), w, h); }
+function pxLinha(g, pts, esp, cor) {
+  g.fillStyle = cor;
+  for (let i = 0; i < pts.length - 1; i++) {
+    const [x0, y0] = pts[i], [x1, y1] = pts[i + 1], n = Math.max(1, Math.ceil(Math.max(Math.abs(x1 - x0), Math.abs(y1 - y0))));
+    for (let k = 0; k <= n; k++) g.fillRect(Math.round(x0 + (x1 - x0) * k / n - esp / 2), Math.round(y0 + (y1 - y0) * k / n - esp / 2), esp, esp);
+  }
+}
+function contorno(c, cor) {
+  const s = tela(c.width, c.height), gs = s.getContext('2d'); gs.drawImage(c, 0, 0); gs.globalCompositeOperation = 'source-in'; gs.fillStyle = cor; gs.fillRect(0, 0, c.width, c.height);
+  const out = tela(c.width, c.height), go = out.getContext('2d');
+  for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) go.drawImage(s, dx, dy);
+  go.drawImage(c, 0, 0); return out;
+}
+let gramadoPronto = null;
+function gramado() {
+  if (gramadoPronto) return gramadoPronto;
+  const N = 64, c = tela(N, N), g = c.getContext('2d'), r = mulberry(17), P = (x, y, cor) => { g.fillStyle = cor; g.fillRect(((x % N) + N) % N, ((y % N) + N) % N, 1, 1); };
+  g.fillStyle = '#34531f'; g.fillRect(0, 0, N, N);
+  const verdes = ['#2a4519', '#2f4d1c', '#3d6326', '#46702b', '#527d31'];
+  for (let i = 0; i < 420; i++) { const x = r() * N | 0, y = r() * N | 0, h = 3 + (r() * 6 | 0), lado = r() < .5 ? -1 : 1, cor = verdes[(r() * verdes.length) | 0]; for (let k = 0; k < h; k++) P(x + (k > h * .6 ? lado : 0), y - k, cor); }
+  for (let i = 0; i < 70; i++) P(r() * N | 0, r() * N | 0, '#6e9638');
+  for (let i = 0; i < 18; i++) P(r() * N | 0, r() * N | 0, '#a8b84a');
+  for (let i = 0; i < 4; i++) { const x = r() * N | 0, y = r() * N | 0, cor = ['#f0e070', '#e8d8ff', '#ffffff', '#c58cff'][i]; P(x, y, cor); P(x + 1, y, cor); P(x, y - 1, cor); }
+  return (gramadoPronto = c);
+}
+const MATO_CACHE = new Map();
+function quadroMato(v, escuro) {
+  const k = v + (escuro ? 'e' : ''); if (MATO_CACHE.has(k)) return MATO_CACHE.get(k);
+  const P = escuro ? ['#0c1609', '#132410', '#1c3316', '#28441c', '#3a5a26', '#5a6e2c'] : ['#1a3014', '#25441a', '#33601f', '#4a7d2a', '#86a83a', '#d8c070'];
+  const c = tela(50, 52), g = c.getContext('2d'), r = mulberry(300 + v), n = 15 + (r() * 7 | 0);
+  const folhas = Array.from({ length: n }, (_, i) => ({ x: 6 + r() * 38, h: 18 + r() * 32, curva: (r() - .5) * 18, cam: i < n * .4 ? 0 : i < n * .75 ? 1 : 2 }));
+  folhas.sort((a, b) => a.cam - b.cam);
+  for (const f of folhas) {
+    const cor = P[f.cam + 1], pts = [];
+    for (let j = 0; j <= 8; j++) { const t = j / 8; pts.push([f.x + f.curva * t * t, 51 - f.h * t]); }
+    pxLinha(g, pts.slice(0, 6), 2, cor); pxLinha(g, pts.slice(5), 1, cor);
+    const [tx, ty] = pts[8]; pxRet(g, tx, ty, 1, 2, f.cam === 2 ? P[4] : P[3]);
+    if (f.cam === 2 && r() < .3) pxRet(g, tx - 1, ty - 2, 2, 3, P[5]);
+  }
+  pxRet(g, 4, 49, 42, 3, P[0]);
+  const out = escuro ? c : contorno(c, '#0e1a0a'); MATO_CACHE.set(k, out); return out;
+}
+
+// ---------- a cena ----------
+const FIM = 2600;
+const SOLIDOS = [{ x: -400, w: 1700 }, { x: 1420, w: 1600 }];   // um buraco de 120 px em 1300
+const PLATS = [{ x: 450, y: 362, w: 160 }, { x: 680, y: 292, w: 140 }];
+const MATO = [{ x: 200, v: 1 }, { x: 1080, v: 3, esp: true }, { x: 1700, v: 4 }, { x: 2150, v: 0, esp: true }];
+const FRENTE = [{ x: 120, v: 2 }, { x: 820, v: 5, esp: true }, { x: 1500, v: 1 }, { x: 2300, v: 3 }];
+let heroi = null;
+
+function desenharFaixa(img, par, base, altura, desloc = 0) {
+  const w = img.width * altura / img.height;
+  let x = -((camX * par + desloc * w) % w); if (x > 0) x -= w;
+  for (; x < W; x += w) ctx.drawImage(img, Math.round(x), base - altura, Math.ceil(w) + 1, altura);
+}
+function perfil() {   // topo ondulado do chão (como o piso do jogo)
+  const r = mulberry(11), m = new Map();
+  for (const s of SOLIDOS) {
+    let deriva = 0;
+    const montes = []; for (let x = s.x + 30; x < s.x + s.w - 30; x += 60 + r() * 160) montes.push([x, 14 + r() * 40, 5 + r() * 9]);
+    for (let x = s.x; x <= s.x + s.w; x += 4) {
+      deriva = clamp(deriva + (r() - .5) * 2.4, -4, 4);
+      let y = Math.sin(x * .017) * 4.5 + Math.sin(x * .061 + 1.3) * 2.2 + deriva;
+      for (const [mx, mw, mh] of montes) { const d = Math.abs(x - mx); if (d < mw) y -= mh * (1 - (d / mw) ** 2); }
+      const borda = Math.min(x - s.x, s.x + s.w - x); if (borda < 14) y += (14 - borda) * (14 - borda) / 14;
+      m.set(x, Math.round(y / 2) * 2);
+    }
+  }
+  return m;
+}
+const TOPO = perfil();
+
+function desenharChao() {
+  const tex = E.chao === 'imagem' && TESTE.chao ? TESTE.chao : E.chao === 'terra' ? peca('chao') : gramado();
+  const pat = tex && ctx.createPattern(tex, 'repeat');
+  const r = mulberry(5);
+  if (E.buraco) {   // valas escuras entre os trechos
+    for (let i = 0; i + 1 < SOLIDOS.length; i++) {
+      const x0 = SOLIDOS[i].x + SOLIDOS[i].w - 6 - camX, x1 = SOLIDOS[i + 1].x + 6 - camX;
+      const gr = ctx.createLinearGradient(0, GROUND + 6, 0, H);
+      gr.addColorStop(0, '#24331a'); gr.addColorStop(.3, '#141f0e'); gr.addColorStop(1, '#070b05');
+      ctx.fillStyle = gr; ctx.fillRect(x0, GROUND + 6, x1 - x0, H);
+    }
+  }
+  for (const s of SOLIDOS) {
+    const x0 = Math.max(s.x, Math.floor((camX - 8) / 4) * 4), x1 = Math.min(s.x + s.w, camX + W + 8);
+    if (x1 <= x0) continue;
+    ctx.save(); ctx.beginPath(); ctx.moveTo(x0 - camX, H);
+    for (let x = x0 - ((x0 - s.x) % 4); x <= x1; x += 4) { const y = GROUND + (TOPO.get(x) || 0); ctx.lineTo(x - camX, y); ctx.lineTo(x + 4 - camX, y); }
+    ctx.lineTo(x1 - camX, H); ctx.closePath(); ctx.clip();
+    if (pat) { ctx.translate(-camX, GROUND - 6); ctx.scale(Z, Z); ctx.fillStyle = pat; ctx.fillRect((x0 - 8) / Z, -40, (x1 - x0 + 16) / Z, H); ctx.setTransform(1, 0, 0, 1, 0, 0); }
+    if (E.escuro > 0) {
+      const gr = ctx.createLinearGradient(0, GROUND, 0, H);
+      gr.addColorStop(0, 'rgba(12,24,8,0)'); gr.addColorStop(.35, `rgba(12,24,8,${E.escuro * .25})`); gr.addColorStop(1, `rgba(8,16,6,${E.escuro})`);
+      ctx.fillStyle = gr; ctx.fillRect(x0 - camX, GROUND - 40, x1 - x0, H);
+    }
+    ctx.restore();
+    // borda de cima
+    for (let x = x0 - ((x0 - s.x) % 4), i = 0; x < x1; x += 4, i++) {
+      const yy = GROUND + (TOPO.get(x) || 0), sx = x - camX, k = (x / 4) | 0;
+      if (E.borda === 'crosta') {
+        ctx.fillStyle = k % 7 === 3 ? '#a5d364' : '#8cc152'; ctx.fillRect(sx, yy, 4, 4);
+        ctx.fillStyle = '#4e8a30'; ctx.fillRect(sx, yy + 4, 4, 4);
+        ctx.fillStyle = 'rgba(20,12,6,.5)'; ctx.fillRect(sx, yy + 8, 4, 3);
+      } else if (E.borda === 'pontas') {
+        ctx.fillStyle = k % 3 ? '#4a7430' : '#5f8a36'; ctx.fillRect(sx, yy, 4, 2);
+        ctx.fillStyle = (k * 7) % 2 ? '#6e9638' : '#46702b'; ctx.fillRect(sx + (k % 3), yy - 2, 1, 2 + (k * 13) % 3);
+        if ((k * 5) % 4 === 0) { ctx.fillStyle = '#a8b84a'; ctx.fillRect(sx + 2, yy - 2, 1, 1); }
+      }
+    }
+    // tufos de capim com florzinhas (o jogo põe por cima da borda)
+    if (E.borda !== 'nenhuma') for (let x = s.x + 10; x < s.x + s.w - 10; x += 14 + r() * 34) {
+      const sx = x - camX, n = 3 + (r() * 4 | 0), t = r(); if (sx < -20 || sx > W + 20) { for (let i = 0; i < n * 2 + 1; i++) r(); continue; }
+      const yy = GROUND + (TOPO.get(Math.round(x / 4) * 4) || 0);
+      for (let i = 0; i < n; i++) { ctx.fillStyle = ['#3f7a2a', '#5e9e3a', '#7cbf4a'][(r() * 3) | 0]; const h = 4 + (r() * 8 | 0); ctx.fillRect(Math.round(sx + i * 2), yy - h + 2, 2, h); }
+      if (t < .2) { ctx.fillStyle = ['#ffe066', '#ffffff', '#c58cff'][(r() * 3) | 0]; ctx.fillRect(Math.round(sx + 2), yy - 8, 2, 2); }
+    }
+  }
+}
+
+function desenharArvore(fase) {
+  const t = peca('arvore_tronco'), gal = peca('arvore_galho'), raiz = peca('arvore_raiz'), copa = peca('arvore_copa');
+  if (!t || !gal) return;
+  const kt = Z * E.tronco, tw = t.width * kt, th = t.height * kt;
+  const tx = (PLATS[0].x + PLATS[0].w + PLATS[1].x) / 2, sx = tx - camX;
+  const raizDesenho = () => {
+    if (!raiz) return;
+    const rw = raiz.width * kt, rh = raiz.height * kt;
+    ctx.drawImage(raiz, Math.round(sx - rw * .481), GROUND + E.raizY - rh, rw, rh);
+  };
+  if (fase === 'tras') {
+    for (let y = GROUND + 8 - th; y > -th; y -= th) ctx.drawImage(t, Math.round(sx - tw / 2), Math.round(y), tw, th + 1);
+    if (E.raiz === 'atras') raizDesenho();
+    if (copa) {
+      const kc = Z * E.copa, cw = copa.width * kc, ch = copa.height * kc;
+      const cy = Math.round(Math.min(...PLATS.map(p => p.y)) + 22 - ch + E.copaY);
+      ctx.drawImage(copa, Math.round(sx - cw / 2), cy, cw, ch);
+    }
+    const gh = gal.height * Z, topo = 13.7 * Z;
+    for (const pl of PLATS) {
+      const dir = pl.x > tx, ini = dir ? tx + tw * .35 : pl.x, fim = dir ? pl.x + pl.w : tx - tw * .35, L = Math.round(fim - ini), y = Math.round(pl.y - topo);
+      ctx.save(); ctx.translate(Math.round(ini - camX) + (dir ? 0 : L), y); if (!dir) ctx.scale(-1, 1); ctx.drawImage(gal, 0, 0, L, gh); ctx.restore();
+    }
+  } else if (E.raiz === 'frente') raizDesenho();
+}
+
+function desenharMato(lista, frente) {
+  for (const m of lista) {
+    const im = quadroMato(m.v, frente), k = frente ? 2.4 : 2, par = frente ? 1.3 : 1;
+    const x = Math.round(m.x - camX * par), y = frente ? H + 14 - im.height * k : GROUND + 8 - im.height * k;
+    if (x < -150 || x > W + 10) continue;
+    if (m.esp) { ctx.save(); ctx.translate(x + im.width * k, y); ctx.scale(-1, 1); ctx.drawImage(im, 0, 0, im.width * k, im.height * k); ctx.restore(); }
+    else ctx.drawImage(im, x, y, im.width * k, im.height * k);
+  }
+}
+
+function desenharHeroi(xm, ym) {
+  if (!heroi) return;
+  const [qx, qy, qw, qh, ax, ay] = [1388, 2, 61, 53, 33.2, 53.0], k = 1.1698;
+  ctx.drawImage(heroi, qx, qy, qw, qh, Math.round(xm - camX - ax * k), Math.round(ym - ay * k), qw * k, qh * k);
+}
+
+let faixaCache = null;
+function faixasProntas() {
+  const longe = peca('longe'), perto = peca('perto');
+  const chave = [longe, perto].map(i => i && (i.src || i.width + 'x' + i.height)).join('|');
+  if (faixaCache && faixaCache.chave === chave) return faixaCache;
+  faixaCache = { chave, longe2: longe && tom(longe, '20,10,24', .35), perto2: perto && tom(perto, '26,12,22', .3) };
+  return faixaCache;
+}
+
+function desenhar() {
+  ctx.imageSmoothingEnabled = false;
+  ctx.fillStyle = '#2e2450'; ctx.fillRect(0, 0, W, H);
+  const ceu = peca('ceu');
+  if (ceu) { const k = Math.max(W / ceu.width, H / ceu.height), w = ceu.width * k, over = Math.max(0, w - W); ctx.drawImage(ceu, -over * clamp(camX / (FIM - W), 0, 1), 0, w, ceu.height * k); }
+  const F = faixasProntas(), longe = peca('longe'), perto = peca('perto');
+  if (longe) {
+    desenharFaixa(longe, .28, GROUND - 20, 330);
+    desenharFaixa(F.longe2, .28, GROUND, 400, .5);
+    const fog = ctx.createLinearGradient(0, 300, 0, H); fog.addColorStop(0, 'rgba(120,60,40,0)'); fog.addColorStop(1, 'rgba(120,60,40,.35)');
+    ctx.fillStyle = fog; ctx.fillRect(0, 300, W, H - 300);
+  }
+  if (perto) { desenharFaixa(F.perto2, .55, GROUND + 6, 360, .37); desenharFaixa(perto, .55, GROUND + 10, 430); }
+  desenharArvore('tras');
+  desenharChao();
+  desenharArvore('frente');
+  if (E.mato) desenharMato(MATO, false);
+  desenharHeroi(330, GROUND + (TOPO.get(328) || 0));
+  desenharHeroi(PLATS[0].x + 60, PLATS[0].y);
+  if (E.frente) desenharMato(FRENTE, true);
+  // luz do fim de tarde (escuridão 0,3 da fase, sem as luzes de cada coisa)
+  ctx.fillStyle = 'rgba(10,6,20,.18)'; ctx.fillRect(0, 0, W, H);
+}
+
+// ---------- controles ----------
+const OPCOES = {
+  gChao: ['chao', [['terra', 'Terra em corte (antes)'], ['gramado', 'Gramado (atual)'], ['imagem', 'Imagem do Gemini (direita)']]],
+  gBorda: ['borda', [['crosta', 'Faixa verde-clara (antes)'], ['pontas', 'Pontas de capim (atual)'], ['nenhuma', 'Sem borda']]],
+  gRaiz: ['raiz', [['atras', 'Atrás do chão'], ['frente', 'Na frente do chão']]],
+};
+const botoes = [];
+for (const [id, [chave, lista]] of Object.entries(OPCOES)) {
+  const g = document.getElementById(id);
+  for (const [v, txt] of lista) {
+    const b = document.createElement('button'); b.textContent = txt; b.onclick = () => { E[chave] = v; atualizar(); };
+    b.dataset.chave = chave; b.dataset.v = v; g.appendChild(b); botoes.push(b);
+  }
+}
+const liga = { bMato: 'mato', bFrente: 'frente', bBuraco: 'buraco' };
+for (const [id, chave] of Object.entries(liga)) document.getElementById(id).onclick = () => { E[chave] = !E[chave]; atualizar(); };
+const sliders = { sTronco: 'tronco', sCopa: 'copa', sCopaY: 'copaY', sRaizY: 'raizY', sEscuro: 'escuro' };
+for (const [id, chave] of Object.entries(sliders)) document.getElementById(id).oninput = e => { E[chave] = +e.target.value; atualizar(); };
+document.getElementById('bPadrao').onclick = () => { E = { ...NO_JOGO }; atualizar(); };
+document.getElementById('bAntes').onclick = () => { E = { ...ANTES }; atualizar(); };
+document.getElementById('bCopiar').onclick = () => {
+  const saida = document.getElementById('saida');
+  saida.value = JSON.stringify({ pasto: E, imagensTestadas: Object.keys(TESTE) }, null, 1);
+  saida.select(); try { navigator.clipboard.writeText(saida.value); } catch (e) { /* o texto fica no quadro */ }
+};
+document.getElementById('bLimpar').onclick = () => { for (const k of Object.keys(TESTE)) delete TESTE[k]; for (const i of document.querySelectorAll('input[type=file]')) i.value = ''; if (E.chao === 'imagem') E.chao = 'gramado'; atualizar(); };
+for (const inp of document.querySelectorAll('input[type=file]')) inp.onchange = async () => {
+  const f = inp.files[0]; if (!f) return;
+  const url = URL.createObjectURL(f), img = await carregar(url);
+  if (!img) return;
+  TESTE[inp.dataset.peca] = prepararTeste(img, inp.dataset.peca);
+  if (inp.dataset.peca === 'chao') E.chao = 'imagem';
+  atualizar();
+};
+function atualizar() {
+  for (const b of botoes) b.classList.toggle('ativo', E[b.dataset.chave] === b.dataset.v);
+  for (const [id, chave] of Object.entries(liga)) document.getElementById(id).classList.toggle('ativo', !!E[chave]);
+  for (const [id, chave] of Object.entries(sliders)) { document.getElementById(id).value = E[chave]; document.getElementById('v' + id.slice(1)).textContent = E[chave]; }
+  document.getElementById('info').textContent = Object.keys(TESTE).length ? 'Testando: ' + Object.keys(TESTE).join(', ') : '';
+  desenhar();
+}
+// arrastar para andar pela cena
+let arrasto = null;
+cv.addEventListener('pointerdown', e => { arrasto = { x: e.clientX, cam: camX }; cv.setPointerCapture(e.pointerId); cv.style.cursor = 'grabbing'; });
+cv.addEventListener('pointermove', e => { if (!arrasto) return; const k = W / cv.getBoundingClientRect().width; camX = clamp(arrasto.cam - (e.clientX - arrasto.x) * k, 0, FIM - W); desenhar(); });
+cv.addEventListener('pointerup', () => { arrasto = null; cv.style.cursor = 'grab'; });
+
+// ---------- carregar as imagens do jogo ----------
+(async () => {
+  const nomes = ['ceu', 'longe', 'perto', 'chao', 'arvore_tronco', 'arvore_raiz', 'arvore_galho', 'arvore_copa'];
+  const v = Date.now();
+  await Promise.all(nomes.map(async n => { ORIG[n] = await carregar(`${BASE}fundos/vaca/${n}.png?v=${v}`); }));
+  heroi = await carregar(`${BASE}herois/humano.png?v=${v}`);
+  atualizar();
+})();
+</script>
+</body>
+</html>

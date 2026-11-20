@@ -556,6 +556,13 @@ recorte em magenta `#FF00FF`, porque o recorte verde apaga o verde da arte.
   ladrilho de capim em pixel art; borda de cima só com pontas de capim, sem a crosta clara; escurece
   para baixo). Os buracos são valas escuras. A imagem `fundos/vaca/chao` (terra) ficou sem uso no
   pasto; serve de reserva se o chão em corte voltar.
+- **Laboratório do pasto (2026-11-20, pedido do Erick):** `jogo/laboratorio/pasto.html` (link:
+  https://ericknogueira80.github.io/torneio-das-lendas/jogo/laboratorio/pasto.html). Cena com as
+  camadas do pasto e uma árvore, para comparar: chão (terra em corte, gramado ou imagem testada),
+  borda de capim, raiz atrás ou na frente do chão, tamanho do tronco e da copa, altura da copa, quanto
+  a raiz fica enterrada, escurecimento do chão, mato e valas. Testa imagens do Gemini antes de salvar
+  (tira o fundo magenta ou verde e reduz para pixel art como a ferramenta). "Copiar ajustes" gera o
+  texto com as escolhas para o Claude levar ao jogo.
 
 **Próximos passos possíveis:**
 - Heróis de Áries (Água), Sagitário (Fogo) e Capricórnio (Terra): a Milena preenche a ficha
