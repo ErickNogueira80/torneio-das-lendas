@@ -85,6 +85,8 @@
  "fundos/vaca/longe": {
   "emendar": 0.12
  },
+ "fundos/vaca/capim": {"emendar": 0.12},
+ "fundos/vaca/frente": {"emendar": 0.12},
  "fundos/vaca/arvore": {
   "tronco": 64,
   "galho": 15,

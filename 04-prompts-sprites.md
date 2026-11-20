@@ -1128,6 +1128,8 @@ taller grass tufts sticking up a little higher. The dark mound fills the bottom 
 and touches the bottom edge. Everything above it is plain solid #FF00FF magenta background.
 ```
 
+**Feito em 2026-11-20:** `capim` e `frente` saíram de primeira e estão no jogo (a ferramenta emenda as laterais).
+
 **Feito em 2026-11-20:** as 8 peças acima foram geradas de primeira com estes prompts e estão no
 jogo. O chão veio com céu e capim pintados em cima (a ferramenta corta) e o perto não emendava nas
 laterais (a ferramenta mistura as bordas). Nada disso precisou de imagem nova.

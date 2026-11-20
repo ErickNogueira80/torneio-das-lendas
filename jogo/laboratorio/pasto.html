@@ -99,7 +99,7 @@ const cv = document.getElementById('tela'), ctx = cv.getContext('2d');
 const BASE = '../sprites/';
 const ORIG = {}, TESTE = {};
 const peca = n => TESTE[n] || ORIG[n];
-const ALTURA = { ceu: 270, longe: 180, perto: 210, chao: 128, capim: 48, frente: 150 };   // px da arte, como a ferramenta
+const ALTURA = { ceu: 270, longe: 180, perto: 210, chao: 128, capim: 80, frente: 70 };   // px da arte, como a ferramenta
 
 // ---------- estado ----------
 const EXTRA = { vento: true, neblina: false, silhueta: false, suave: false, crista: 26 };
@@ -255,6 +255,12 @@ function folhagem(seed, w, h) {   // samambaias e lâminas grossas de capim em s
 }
 const SILH = [{ x: -120, v: 0, k: 1.35 }, { x: 1150, v: 1, k: 1.05, esp: true }, { x: 1750, v: 2, k: 1.4 }, { x: 2650, v: 3, k: 1.2, esp: true }, { x: 3350, v: 0, k: 1.35 }, { x: 4150, v: 2, k: 1.15, esp: true }];
 function desenharFolhagem() {
+  const arte = peca('frente');
+  if (arte) {   // faixa preta pintada (como no jogo: a parte cheia fica a 57% da altura da imagem)
+    const w = arte.width * Z, h = arte.height * Z, y = Math.round(H - E.crista - h * .57);
+    for (let x = -(((camX * 1.25) % w) + w) % w; x < W; x += w) ctx.drawImage(arte, Math.round(x), y, w, h);
+    return;
+  }
   if (!FOLHAS.length) for (let v = 0; v < 4; v++) FOLHAS.push(folhagem(70 + v * 13, 300, 330));
   gl.clearRect(0, 0, GL.width, GL.height);
   const par = 1.25;
@@ -342,10 +348,10 @@ function desenharChao() {
   for (const s of SOLIDOS) {
     const x0 = Math.max(s.x, Math.floor((camX - 8) / 4) * 4), x1 = Math.min(s.x + s.w, camX + W + 8);
     if (x1 <= x0) continue;
-    if (E.chao === 'campo') {   // o campo começa 20 px acima da linha dos pés e desce até a crista
-      const tile = texturaCampo(), pt = ctx.createPattern(tile, 'repeat-x');
+    if (E.chao === 'campo') {   // o campo começa acima da linha dos pés e desce até a crista
+      const arte = peca('capim'), tile = arte || texturaCampo(), pt = ctx.createPattern(tile, 'repeat-x');
       ctx.save(); ctx.beginPath(); ctx.rect(s.x - camX, 0, s.w, H); ctx.clip();
-      ctx.translate(-camX, GROUND - 40); ctx.scale(Z, Z); ctx.fillStyle = pt; ctx.fillRect(x0 / Z - 4, 0, (x1 - x0) / Z + 8, tile.height); ctx.restore();
+      ctx.translate(-camX, arte ? GROUND - 50 : GROUND - 40); ctx.scale(Z, Z); ctx.fillStyle = pt; ctx.fillRect(x0 / Z - 4, 0, (x1 - x0) / Z + 8, tile.height); ctx.restore();
       continue;
     }
     ctx.save(); ctx.beginPath(); ctx.moveTo(x0 - camX, H);
@@ -464,10 +470,9 @@ function desenhar() {
   desenharHeroi(330, GROUND + (TOPO.get(328) || 0));
   desenharHeroi(PLATS[0].x + 60, PLATS[0].y);
   if (campo) desenharCapim(true);
-  if (TESTE.capim) desenharFaixa(TESTE.capim, 1, GROUND + 16, ALTURA.capim * Z);
   if (E.frente) desenharMato(FRENTE, true);
   if (E.silhueta) desenharFolhagem();
-  if (TESTE.frente) desenharFaixa(TESTE.frente, 1.45, H + 10, ALTURA.frente * Z);
+
   // luz do fim de tarde (escuridão 0,3 da fase, sem as luzes de cada coisa)
   ctx.fillStyle = 'rgba(10,6,20,.18)'; ctx.fillRect(0, 0, W, H);
 }
@@ -525,7 +530,7 @@ cv.addEventListener('pointerup', () => { arrasto = null; cv.style.cursor = 'grab
 
 // ---------- carregar as imagens do jogo ----------
 (async () => {
-  const nomes = ['ceu', 'longe', 'perto', 'chao', 'arvore_tronco', 'arvore_raiz', 'arvore_galho', 'arvore_copa'];
+  const nomes = ['ceu', 'longe', 'perto', 'chao', 'arvore_tronco', 'arvore_raiz', 'arvore_galho', 'arvore_copa', 'capim', 'frente'];
   const v = Date.now();
   await Promise.all(nomes.map(async n => { ORIG[n] = await carregar(`${BASE}fundos/vaca/${n}.png?v=${v}`); }));
   heroi = await carregar(`${BASE}herois/humano.png?v=${v}`);

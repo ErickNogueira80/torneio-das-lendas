@@ -856,8 +856,10 @@
    "arvore_galho": "fundos/vaca/arvore_galho.png",
    "arvore_raiz": "fundos/vaca/arvore_raiz.png",
    "arvore_tronco": "fundos/vaca/arvore_tronco.png",
+   "capim": "fundos/vaca/capim.png",
    "ceu": "fundos/vaca/ceu.png",
    "chao": "fundos/vaca/chao.png",
+   "frente": "fundos/vaca/frente.png",
    "longe": "fundos/vaca/longe.png",
    "perto": "fundos/vaca/perto.png"
   },
@@ -869,7 +871,7 @@
     "centro": 0.481
    }
   },
-  "ver": "a184196a"
+  "ver": "6e09db3e"
  },
  "objetos/altar": {
   "tipo": "objeto",

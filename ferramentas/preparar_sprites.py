@@ -67,7 +67,9 @@ FUNDO_ALTURA = {"ceu": 270, "longe": 180, "perto": 210, "chao": 128,
                 # raiz da base e galho horizontal com o topo reto (onde se pisa)
                 "arvore_tronco": 150, "arvore_raiz": 40, "arvore_galho": 14,
                 # copa (pasto, 2026-11-20): só as folhas, o tronco do jogo entra por baixo
-                "arvore_copa": 0}
+                "arvore_copa": 0,
+                # campo aberto do pasto (2026-11-20): o campo pintado (piso) e a faixa preta da frente
+                "capim": 80, "frente": 70}
 # As peças da árvore são escaladas pela medida que importa para o encaixe (em px da arte):
 TRONCO_LARGURA = 40   # largura do tronco
 GALHO_ESPESSURA = 12  # espessura do galho (o topo dele é onde se pisa)
@@ -649,9 +651,9 @@ def preparar_fundo(pasta: Path, ajustes: dict) -> dict | None:
         aj = ajustes.get(f"{chave}/{nome}", {})
         if aj.get("corteTopo"):            # ex.: tirar a crosta clara de cima do chão
             im = im.crop((0, round(im.height * float(aj["corteTopo"])), im.width, im.height))
-        transparente = nome in ("longe", "perto") or nome.startswith("arvore_")
+        transparente = nome in ("longe", "perto", "capim", "frente") or nome.startswith("arvore_")
         if transparente:
-            camada = nome in ("longe", "perto")   # paisagem embaixo: a cor do fundo vem do topo
+            camada = nome in ("longe", "perto", "capim", "frente")   # paisagem embaixo: a cor do fundo vem do topo
             rgb = np.asarray(im.convert("RGB"))
             borda = np.concatenate([rgb[0], rgb[:, 0]])
             fundo_verde = int(np.argmax(np.median(borda, axis=0))) == 1

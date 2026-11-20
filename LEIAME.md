@@ -588,6 +588,14 @@ recorte em magenta `#FF00FF`, porque o recorte verde apaga o verde da arte.
     touceiras de mato (`MATO`, `quadroMato`), substituídas pelo capim. Valas dos buracos começam
     transparentes. Próximo: trocar o capim e a faixa preta desenhados pelo código pelas peças
     pintadas `capim` e `frente` (prompts 4.12).
+  - **Campo e faixa preta pintados (2026-11-20):** o Erick gerou `capim.jpg` e `frente.jpg` (4:1,
+    magenta) de primeira com os prompts da 4.12. Ferramenta: `capim` (80 px da arte) e `frente` (70)
+    entram em `FUNDO_ALTURA` e são camadas recortadas pelo topo, com `emendar` 0,12 em
+    `ajustes.json`. Motor: o piso usa `capim` quando existe (topo da imagem 50 px acima dos pés; o
+    piso espera a imagem carregar; `PISO_TOPO` do pasto = `GROUND - 56`) e `drawCrista` usa `frente`
+    repetida (paralaxe 1,25; a parte cheia, a 57% da altura, fica 26 px acima do pé da tela). Os
+    desenhos do código (`texturaCampo`, `crista`) ficam de reserva. O capim que balança continua por
+    cima. As duas `Gemini_Generated_Image_*.jpg` da pasta são as texturas de terra antigas, sem uso.
 
 **Próximos passos possíveis:**
 - Heróis de Áries (Água), Sagitário (Fogo) e Capricórnio (Terra): a Milena preenche a ficha

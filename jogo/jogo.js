@@ -3092,7 +3092,16 @@ function crista() {
   }
   return (cristaPronta = { c, topoTela });
 }
+const FRENTE_CORPO = .57;   // na imagem fundos/vaca/frente, onde a faixa escura fica cheia (fração da altura)
 function drawCrista() {
+  const arte = layer(FASE.fundo, 'frente');
+  if (arte) {   // faixa preta pintada (Gemini), repetida na horizontal
+    const w = arte.naturalWidth * 2, h = arte.naturalHeight * 2, y = Math.round(H - CRISTA - h * FRENTE_CORPO);
+    ctx.imageSmoothingEnabled = false;
+    for (let x = -(((camX * CRISTA_PAR) % w) + w) % w; x < W; x += w) ctx.drawImage(arte, Math.round(x), y, w, h);
+    ctx.imageSmoothingEnabled = true;
+    return;
+  }
   const C = crista(); if (!C) return;
   const sx = Math.max(0, Math.round(camX * CRISTA_PAR / 2));
   ctx.imageSmoothingEnabled = false;
@@ -3153,12 +3162,15 @@ let groundPattern = null;
 // O chão da fase inteira vira uma imagem pronta: topo ondulado em degraus de pixel, beiradas
 // quebradas nos buracos, crosta clara, tufos, pedras e galhos. A física continua reta (GROUND);
 // o desenho sobe e desce uns pixels em volta dela. Por quadro, o jogo só copia o pedaço visível.
-const PISO_TOPO = GROUND - (PASTO ? 44 : 26);   // o campo do pasto começa mais acima (lâminas de capim)
+const PISO_TOPO = GROUND - (PASTO ? 56 : 26);   // o campo do pasto começa mais acima (lâminas de capim)
 let pisoPronto = null;
 function piso() {
   if (pisoPronto) return pisoPronto;
   if (typeof document === 'undefined') return null;
-  const chao = PASTO ? texturaCampo() : layer(FASE.fundo, 'chao') || chaoGerado();
+  const capimArte = PASTO && layer(FASE.fundo, 'capim');   // campo pintado (Gemini) ou o desenhado pelo jogo
+  const capimImg = PASTO && SPR[FASE.fundo] && SPR[FASE.fundo].imgs && SPR[FASE.fundo].imgs.capim;
+  if (capimImg && !capimArte && !capimImg.complete) return null;   // espera a imagem do campo carregar
+  const chao = PASTO ? capimArte || texturaCampo() : layer(FASE.fundo, 'chao') || chaoGerado();
   if (!chao) return null;
   // cores da crosta: terra queimada (Boitatá) ou capim (pasto)
   const PC = PASTO ? { c1: '#8cc152', c2: '#a5d364', esc: '#4e8a30', deg: '#3f7027', sombra: 'rgba(20,12,6,.5)', pedra: '#3e2a1a', brasa: null, tufo: ['#3f7a2a', '#5e9e3a', '#7cbf4a'] }
@@ -3185,7 +3197,8 @@ function piso() {
     }
     if (PASTO) {   // campo: começa 40 px acima da linha dos pés e desce até a faixa preta; sem borda nem crosta
       g.save(); g.beginPath(); g.rect(s.x, 0, s.w, alt); g.clip();
-      g.translate(0, GROUND - 40 - PISO_TOPO); g.scale(z, z); g.fillStyle = pat; g.fillRect(s.x / z - 4, 0, s.w / z + 8, chao.height); g.restore();
+      g.translate(0, (capimArte ? GROUND - 50 : GROUND - 40) - PISO_TOPO); g.scale(z, z);   // pintado: corpo do capim 16 px acima dos pés
+      g.fillStyle = pat; g.fillRect(s.x / z - 4, 0, s.w / z + 8, chao.height); g.restore();
       ys.forEach((y, i) => topos.set(s.x + i * 4, PISO_TOPO + base + y));
       continue;
     }
