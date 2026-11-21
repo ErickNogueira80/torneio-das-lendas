@@ -750,6 +750,19 @@ def preparar_fundo(pasta: Path, ajustes: dict) -> dict | None:
                 m |= (a[:, :, 0] > a[:, :, 1] + 50) & (a[:, :, 2] > a[:, :, 1] + 50)
             a[:, :, 0] = np.where(m, a[:, :, 0] - exc, a[:, :, 0]); a[:, :, 2] = np.where(m, a[:, :, 2] - exc, a[:, :, 2])
             im = Image.fromarray(np.clip(a, 0, 255).astype(np.uint8), "RGBA")
+            if aj.get("bordaCor"):   # a borda (N px) pega a cor de dentro: some o fio cinza que o magenta deixa na crista
+                a = np.asarray(im).astype(np.float32); op = a[:, :, 3] >= 250; den = op.copy()
+                for _ in range(int(aj["bordaCor"])):
+                    den[1:] &= op[:-1] | ~den[1:]; den = den & np.roll(op, 1, 0) & np.roll(op, -1, 0) & np.roll(op, 1, 1) & np.roll(op, -1, 1); op = den.copy()
+                cor = np.where(den[:, :, None], a[:, :, :3], 0); tem = den.copy()
+                for _ in range(int(aj["bordaCor"]) + 20):   # espalha a cor de dentro para a borda
+                    soma = np.zeros_like(cor); n = np.zeros(tem.shape, np.float32)
+                    for dy, dx in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+                        t = np.roll(np.roll(tem, dy, 0), dx, 1); soma += np.where(t[:, :, None], np.roll(np.roll(cor, dy, 0), dx, 1), 0); n += t
+                    novo = ~tem & (n > 0); cor[novo] = soma[novo] / n[novo][:, None]; tem |= novo
+                troca = ~den & (a[:, :, 3] > 0) & tem
+                a[:, :, :3][troca] = cor[troca]
+                im = Image.fromarray(a.clip(0, 255).astype(np.uint8), "RGBA")
             if aj.get("bordaDura"):   # borda firme: some o halo escuro/claro meio transparente que a arte trouxe
                 a = np.asarray(im).copy(); op = a[:, :, 3] >= 150
                 ero = op.copy(); ero[1:] &= op[:-1]; ero[:-1] &= op[1:]; ero[:, 1:] &= op[:, :-1]; ero[:, :-1] &= op[:, 1:]
