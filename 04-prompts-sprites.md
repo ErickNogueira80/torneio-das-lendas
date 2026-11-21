@@ -1351,6 +1351,30 @@ solid #FF00FF magenta background everywhere else. Wide image, aspect ratio 2:1.
 Quando chegarem, o Claude registra as peças na ferramenta (alturas e recorte), troca o esboço do
 código pelo `bloco_chao`/`bloco_beirada` e monta as plataformas na tela de teste.
 
+### 4.13.1 `bloco_chao` versão 2: gramado de pasto limpo e mais fundo — 2026-11-21
+
+O Erick achou o piso "sujo" (manchas marrons e textura de musgo no topo). Versão nova com o topo de
+**gramado de pasto**: capim curto, verde limpo, faixa vista de cima **mais funda** (cerca de um terço
+da altura). Anexar o `perto.jpg` e o `bloco_chao.jpg` atual (para manter a frente de terra e a luz).
+Salvar como `img/sprites/fundos/vaca/bloco_chao.jpg` (substitui o atual; o antigo fica no git).
+
+```
+Create an image. A long flat ground bank for a 2D side-scrolling platformer, same style, colors and
+light as the attached images. The TOP is a DEEP flat strip of clean, healthy pasture lawn seen from
+above (about one third of the image height), where the character walks: short even green grass with a
+soft painterly texture, gentle light and dark green variation, a few tiny white and yellow
+wildflowers. NO brown dirt patches, no mud, no moss blotches, no stones on the top. The front edge of
+the lawn is a soft row of grass tufts slightly hanging over. Below it, the FRONT FACE of the bank: dark
+earth in shadow, warm purple-brown, with vertical streaks and thin roots, getting darker toward the
+bottom and fading to almost black. No bricks. The left and right edges must match so it repeats
+seamlessly. Stylized hand-painted 2D platformer art, chunky simple shapes, soft painterly gradients,
+warm late-afternoon light from the right. Plain solid #FF00FF magenta background above the grass. Very
+wide image, aspect ratio 4:1.
+```
+
+Quando chegar: o Claude processa, mede de novo a faixa de capim (linhas do topo e da borda) e acerta
+`topo`/`CHAO_EXTRA` no `jogo.js` (talvez a faixa já venha funda o bastante e o `CHAO_EXTRA` vire 0).
+
 ## 5. Ficha dos 3 heróis com constelação (para a Milena)
 
 O humano já está definido (o 4º jogador, sem constelação). Antes das imagens de cada herói dos

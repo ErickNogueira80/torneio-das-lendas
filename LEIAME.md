@@ -684,7 +684,10 @@ recorte em magenta `#FF00FF`, porque o recorte verde apaga o verde da arte.
     ponta; tronco da árvore mais reto e galhos saindo do alto da tela (sem vão).
     **Piso mais largo (2026-11-21, Erick):** a faixa de capim do `bloco_chao` ganha `CHAO_EXTRA` (12)
     linhas da arte, copiadas do miolo da própria faixa e deslocadas na horizontal (`chaoLargo`); os pés
-    ficam no terço de cima da faixa (`topo = GROUND - 40`) e a frente de terra começa mais abaixo.
+    ficam no **meio** da faixa (`topo = GROUND - 52`, 2026-11-21) e a frente de terra começa mais abaixo.
+    Objetos com o pé no meio da faixa também (`OBJ_BASE` 6, sem base por objeto). O topo verde passa por
+    uma limpeza (pixels marrons viram oliva) até chegar o `bloco_chao` v2 (prompt na seção 4.13.1 de
+    `04-prompts-sprites.md`: gramado de pasto limpo e faixa mais funda).
     Tela `?limpo`: feno 500, cerca 900, buraco 1600–1740, pilha de feno 2000, carroça 2500, tronco
     3100, pedra 3600. Se uma imagem for regerada com outro tamanho, medir os pisos de novo.
     **Tela de teste:** `?fase=vaca&limpo` tira bichos, árvores, buracos, baús e perigos (só o chão e

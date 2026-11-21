@@ -45,14 +45,14 @@ const FASE_ID = FASES[params.get('fase')] ? params.get('fase') : 'boitata';
 // gerar a imagem com outro tamanho, medir de novo. São plataformas de mão única: o herói passa na frente
 // andando e só fica em cima se pular (Erick: "se quiser passar por baixo, tem que ser uma opção").
 const OBJETOS_PASTO = {
-  feno: { w: 62, h: 40, base: 18, pisos: [[2, 60, 8]] },
+  feno: { w: 62, h: 40, pisos: [[2, 60, 8]] },
   feno_pilha: { w: 108, h: 75, pisos: [[2, 23, 50], [25, 50, 29], [52, 102, 8]] },
-  cerca: { w: 106, h: 42, corte: 47, base: 16, pisos: [[0, 106, 8]] },   // só o trecho do meio (dois mourões inteiros)
+  cerca: { w: 106, h: 42, corte: 47, pisos: [[0, 106, 8]] },   // só o trecho do meio (dois mourões inteiros)
   carroca: { w: 144, h: 70, pisos: [[15, 85, 9]] },
   tronco_caido: { w: 121, h: 40, pisos: [[20, 106, 8]] },
-  pedra: { w: 103, h: 55, base: 14, pisos: [[2, 101, 4]] },   // mais larga (Erick: o herói ficava fora da pedra)
+  pedra: { w: 103, h: 55, pisos: [[2, 101, 4]] },   // mais larga (Erick: o herói ficava fora da pedra)
 };
-const OBJ_BASE = 10;   // o pé do objeto (o capim da base) fica 10 px abaixo da linha dos pés
+const OBJ_BASE = 6;   // o pé do objeto fica no meio da faixa de capim, junto da linha dos pés (Erick, 2026-11-21: centralizar)
 function platsDosObjetos(objs) {
   const out = [];
   for (const o of objs) {
@@ -3422,6 +3422,14 @@ function chaoLargo(bc) {   // bloco_chao com a faixa de capim mais funda: linhas
     g.drawImage(bc, 0, 14, w, 6, dx, 22 + i, w, 6); g.drawImage(bc, 0, 14, w, 6, dx - w, 22 + i, w, 6);
   }
   g.drawImage(bc, 0, 22, w, h - 22, 0, 22 + CHAO_EXTRA, w, h - 22);
+  // (2026-11-21, Erick: o piso parecia "sujo") na faixa de capim, os pixels marrons viram verde do pasto
+  const d = g.getImageData(0, 13, w, 9 + CHAO_EXTRA), a = d.data;   // só o topo verde (não a borda escura nem a terra)
+  for (let i = 0; i < a.length; i += 4) {
+    if (!a[i + 3]) continue;
+    const r = a[i], gg = a[i + 1], b = a[i + 2];
+    if (r > gg + 6) { const l = (r + gg + b) / 3; a[i] = Math.round(l * 1.02); a[i + 1] = Math.round(l * 1.08 + 6); a[i + 2] = Math.round(l * .6); }   // oliva quente, do tom da faixa
+  }
+  g.putImageData(d, 0, 13);
   return chaoLargoCv = cv;
 }
 const blocosCache = new Map();
@@ -3609,7 +3617,7 @@ function piso() {
         // de capim arredondado, frente de terra que recua para dentro e escurece, musgo pendurado
         // (2026-11-21, Erick: "deixa o piso mais largo") a faixa de capim ganha CHAO_EXTRA linhas da arte
         // (copiadas da própria faixa, deslocadas na horizontal para não repetir): mais chão visto de cima
-        const bcL = chaoLargo(bc), topo = GROUND - 40 - PISO_TOPO, yT = topo + 26, R = 16, x0 = s.x, x1 = s.x + s.w;
+        const bcL = chaoLargo(bc), topo = GROUND - 52 - PISO_TOPO, yT = topo + 26, R = 16, x0 = s.x, x1 = s.x + s.w;
         const rec = (y, k) => {   // quanto a ponta recua na altura y
           const d = y - yT; if (d < 0) return R;
           if (d < R) return R - Math.sqrt(R * R - (R - d) * (R - d));
