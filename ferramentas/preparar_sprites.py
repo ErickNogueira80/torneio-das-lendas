@@ -795,7 +795,8 @@ def preparar_fundo(pasta: Path, ajustes: dict) -> dict | None:
                 t = np.clip((np.arange(h) - y0) / (h - y0), 0, 1)[:, None]
                 lum = (a[:, :, 0] * 3 + a[:, :, 1] * 6 + a[:, :, 2]) / 10
                 escuro = np.clip((110 - lum) / 60, 0, 1)
-                a[:, :, 3] = (a[:, :, 3] * (1 - t * np.maximum(escuro, t))).astype(a.dtype)
+                peso = escuro * np.sqrt(t) if aj.get("baseForte") else t * escuro   # baseForte: o escuro some já no começo da faixa
+                a[:, :, 3] = (a[:, :, 3] * (1 - np.maximum(peso, t * t))).astype(a.dtype)
             im = Image.fromarray(a.astype(np.uint8), "RGBA")
         saida = DESTINO / chave / f"{nome}.png"
         saida.parent.mkdir(parents=True, exist_ok=True)

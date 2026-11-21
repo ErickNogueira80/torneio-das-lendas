@@ -140,7 +140,9 @@
   "corteBaixo": 0.1,
   "semRosa": true,
   "semPixel": true,
-  "altura": 140
+  "altura": 140,
+  "baseSuave": 0.35,
+  "baseForte": true
  },
  "fundos/vaca/tronco_caido": {
   "semRosa": true,
@@ -163,7 +165,8 @@
  "fundos/vaca/pedra": {
   "semPixel": true,
   "altura": 110,
-  "baseSuave": 0.4
+  "baseSuave": 0.55,
+  "baseForte": true
  },
  "fundos/vaca/ceu": {
   "semPixel": true,
