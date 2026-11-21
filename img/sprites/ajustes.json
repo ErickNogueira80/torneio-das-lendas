@@ -103,6 +103,7 @@
   "tirarClaros": 200
  },
  "fundos/vaca/bloco_chao": {
+  "corteTopo": 0.26,
   "emendar": 0.1
  },
  "fundos/vaca/cerca": {

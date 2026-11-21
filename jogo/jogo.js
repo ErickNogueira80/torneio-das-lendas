@@ -45,10 +45,10 @@ const FASE_ID = FASES[params.get('fase')] ? params.get('fase') : 'boitata';
 // gerar a imagem com outro tamanho, medir de novo. São plataformas de mão única: o herói passa na frente
 // andando e só fica em cima se pular (Erick: "se quiser passar por baixo, tem que ser uma opção").
 const OBJETOS_PASTO = {
-  feno: { w: 62, h: 40, pisos: [[2, 60, 8]] },
-  feno_pilha: { w: 108, h: 75, pisos: [[2, 23, 50], [25, 50, 29], [52, 102, 8]] },
+  feno: { w: 62, h: 40, base: 14, pisos: [[2, 60, 8]] },
+  feno_pilha: { w: 108, h: 75, base: 14, pisos: [[2, 23, 50], [25, 50, 29], [52, 102, 8]] },
   cerca: { w: 106, h: 42, corte: 47, pisos: [[0, 106, 8]] },   // só o trecho do meio (dois mourões inteiros)
-  carroca: { w: 144, h: 70, pisos: [[15, 85, 9]] },
+  carroca: { w: 144, h: 70, base: 22, pisos: [[15, 85, 9]] },
   tronco_caido: { w: 121, h: 40, pisos: [[20, 106, 8]] },
   pedra: { w: 103, h: 55, pisos: [[2, 101, 4]] },   // mais larga (Erick: o herói ficava fora da pedra)
 };
@@ -3410,7 +3410,7 @@ function drawObjetos() {
     ctx.imageSmoothingEnabled = false; ctx.drawImage(im, sx, 0, sw, sh, x, yB - h, w, h); ctx.imageSmoothingEnabled = true;
   }
 }
-const CHAO_EXTRA = 12;   // linhas da arte a mais na faixa de capim do bloco_chao
+const CHAO_EXTRA = 0;   // bloco_chao v2 (2026-11-21) já tem a faixa funda; o v1 usava 12   // linhas da arte a mais na faixa de capim do bloco_chao
 let chaoLargoCv = null;
 function chaoLargo(bc) {   // bloco_chao com a faixa de capim mais funda: linhas 0–21, + CHAO_EXTRA linhas da faixa, + o resto
   if (chaoLargoCv) return chaoLargoCv;
@@ -3423,6 +3423,7 @@ function chaoLargo(bc) {   // bloco_chao com a faixa de capim mais funda: linhas
   }
   g.drawImage(bc, 0, 22, w, h - 22, 0, 22 + CHAO_EXTRA, w, h - 22);
   // (2026-11-21, Erick: o piso parecia "sujo") na faixa de capim, os pixels marrons viram verde do pasto
+  if (!CHAO_EXTRA) return chaoLargoCv = cv;   // v2: gramado limpo, sem a limpeza
   const d = g.getImageData(0, 13, w, 9 + CHAO_EXTRA), a = d.data;   // só o topo verde (não a borda escura nem a terra)
   for (let i = 0; i < a.length; i += 4) {
     if (!a[i + 3]) continue;
@@ -3617,7 +3618,7 @@ function piso() {
         // de capim arredondado, frente de terra que recua para dentro e escurece, musgo pendurado
         // (2026-11-21, Erick: "deixa o piso mais largo") a faixa de capim ganha CHAO_EXTRA linhas da arte
         // (copiadas da própria faixa, deslocadas na horizontal para não repetir): mais chão visto de cima
-        const bcL = chaoLargo(bc), topo = GROUND - 52 - PISO_TOPO, yT = topo + 26, R = 16, x0 = s.x, x1 = s.x + s.w;
+        const bcL = chaoLargo(bc), topo = GROUND - 30 - PISO_TOPO, yT = topo + 4, R = 16, x0 = s.x, x1 = s.x + s.w;
         const rec = (y, k) => {   // quanto a ponta recua na altura y
           const d = y - yT; if (d < 0) return R;
           if (d < R) return R - Math.sqrt(R * R - (R - d) * (R - d));
@@ -3729,7 +3730,7 @@ function piso() {
       if (x1 - x0 < 8) continue;
       const v0 = ESTILO === 'magibot' ? base - 4 : base - 30;
       const gr = g.createLinearGradient(0, v0, 0, alt);   // vala escura (Erick, 2026-11-20)
-      gr.addColorStop(0, 'rgba(14,22,12,0)'); gr.addColorStop(.3, 'rgba(14,22,12,.9)'); gr.addColorStop(.42, '#0b130a'); gr.addColorStop(.5, '#070b06'); gr.addColorStop(1, '#030503');
+      gr.addColorStop(0, 'rgba(14,22,12,0)'); gr.addColorStop(ESTILO === 'magibot' ? .12 : .3, 'rgba(14,22,12,.95)'); gr.addColorStop(.42, '#0b130a'); gr.addColorStop(.5, '#070b06'); gr.addColorStop(1, '#030503');
       g.fillStyle = gr; g.fillRect(x0 - 40, v0, x1 - x0 + 80, alt);   // passa por trás das beiradas recortadas
     }
     g.restore();
@@ -3963,11 +3964,7 @@ function drawWorld() {
     gr.addColorStop(0, 'rgba(255,196,160,0)'); gr.addColorStop(.6, 'rgba(255,190,150,.16)'); gr.addColorStop(1, 'rgba(255,200,150,.30)');
     ctx.fillStyle = gr; ctx.fillRect(0, 180, W, GROUND + 20 - 180);
     if (ESTILO === 'magibot') {   // fundo claro e enevoado, num tom quente só: o plano do jogo se destaca
-      ctx.save(); ctx.globalCompositeOperation = 'multiply'; ctx.fillStyle = 'rgba(235,190,200,1)'; ctx.fillRect(0, 0, W, H);
-      ctx.globalCompositeOperation = 'source-over';
-      const nv = ctx.createLinearGradient(0, 120, 0, GROUND + 10);
-      nv.addColorStop(0, 'rgba(255,200,180,.18)'); nv.addColorStop(1, 'rgba(255,205,175,.5)');
-      ctx.fillStyle = nv; ctx.fillRect(0, 0, W, GROUND + 10); ctx.restore();
+      // (2026-11-21, Erick: "o fundo tá muito apagado... tira a neblina") sem véu e sem neblina
     }
     if (ESTILO === 'faixa') {   // fundo num tom só, mais apagado: o chão de jogo se destaca
       ctx.save(); ctx.globalCompositeOperation = 'multiply'; ctx.fillStyle = 'rgba(150,140,190,1)'; ctx.fillRect(0, 0, W, H);

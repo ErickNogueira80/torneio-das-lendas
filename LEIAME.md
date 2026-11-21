@@ -688,6 +688,12 @@ recorte em magenta `#FF00FF`, porque o recorte verde apaga o verde da arte.
     Objetos com o pé no meio da faixa também (`OBJ_BASE` 6, sem base por objeto). O topo verde passa por
     uma limpeza (pixels marrons viram oliva) até chegar o `bloco_chao` v2 (prompt na seção 4.13.1 de
     `04-prompts-sprites.md`: gramado de pasto limpo e faixa mais funda).
+    **`bloco_chao` v2 (2026-11-21):** gramado limpo gerado pelo Erick (ajuste `corteTopo` 0,26: a imagem
+    trazia uma segunda faixa de capim apagada em cima). A faixa já vem funda (linhas 2–28 da arte), então
+    `CHAO_EXTRA` = 0, sem a limpeza de cor, `topo = GROUND - 30` (pés no meio da faixa). Objetos mais
+    baixos: feno e pilha `base` 14, carroça 22. **Sem véu nem neblina** no estilo Magibot (o fundo fica
+    com a cor original; Erick: "o fundo tá muito apagado... tira a neblina"); a vala do buraco escurece
+    logo abaixo da linha dos pés.
     Tela `?limpo`: feno 500, cerca 900, buraco 1600–1740, pilha de feno 2000, carroça 2500, tronco
     3100, pedra 3600. Se uma imagem for regerada com outro tamanho, medir os pisos de novo.
     **Tela de teste:** `?fase=vaca&limpo` tira bichos, árvores, buracos, baús e perigos (só o chão e
