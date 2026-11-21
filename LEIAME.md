@@ -782,6 +782,9 @@ recorte em magenta `#FF00FF`, porque o recorte verde apaga o verde da arte.
     **Encostar com 1 de vida mata** (Erick, 2026-11-21, opção 2): a 1ª encostada no besouro (ou no pombo)
     deixa com 1 de vida; encostar de novo já com 1 (fora dos 1,4 s de proteção) é derrota ("O besouro te
     esmagou!"). Testado: vida cheia → 1; com 1 → tela de derrota.
+    Besouro v3 (2026-11-21): o Erick gerou no PixelLab em 172 px (o besouro ocupa 112 x 70 px, antes ~45 de
+    altura): mais detalhe e pixels menores na tela; `suavizar` 2 continua. Versões anteriores em
+    `img/sprites/inimigos/besouro/originais/` (`v2_108px`, `v3_172px` = a atual).
     **Vala de terra** no lugar do buraco preto (escolha do Erick): imagem `vala_beirada` (lado direito;
     espelhada no esquerdo) em `valaBeirada()`; o capim dela encaixa no topo do prado, a terra começa logo
     abaixo da linha dos pés, a ponta do capim passa 8 px da beira da física e a parte de dentro some aos
