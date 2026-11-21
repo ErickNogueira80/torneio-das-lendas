@@ -1641,6 +1641,56 @@ Baixar em PNG (folha ou quadros soltos, fundo transparente) e, se der, o GIF. Sa
 `img/sprites/inimigos/besouro/` como `andar_folha.png`, `preparar_folha.png`, `investida_folha.png` (ou
 como vier; a ferramenta se ajusta). Com só `andar` o jogo já troca o desenho provisório.
 
+### Sala secreta do pasto: cogumelos verdes (2026-11-21)
+
+O Erick quer a sala do pasto com **cogumelos verdes** e o **chão no mesmo padrão da superfície** (pintura lisa,
+sem pixel art). Três imagens no Gemini, uma conversa para cada; salvar nas pastas indicadas, dentro de
+`img/sprites/objetos/`. Os cogumelinhos parados e os que dançam (PixelLab) o Claude pinta de verde na
+ferramenta, sem prompt.
+
+**`fundo_sala/verdes.jpg`** (o fundo da caverna; 16:7; sem anexo)
+
+```
+Create an image. Background of a secret underground cave for a 2D side-scrolling game, wide image.
+The cave seems endless: thousands of small glowing GREEN mushrooms carpet the floor and stretch far
+into the distance; the floor rises gently toward the back, so the mushroom carpet seems to climb
+into the darkness. Near rows: bigger mushrooms with bright lime-green glowing caps and pale stems;
+far rows: tiny glowing green dots fading into a soft green-teal mist, then deep dark green and black
+at the top. A few floating glowing spores, rocky cave ceiling barely visible at the very top, thin
+roots hanging from it. Dark forest-green, teal and black palette with lime and emerald glow only (no
+blue, no purple, no orange). The bottom strip of the image is plain dark earth floor with no large
+objects in front. Painterly hand-painted 2D game art with soft visible brush strokes and rich
+detailed texture (not flat, not vector, not pixel art), like a cozy modern fantasy indie platformer.
+No characters, no text. Aspect ratio 16:7.
+```
+
+**`fundo_sala/chao_verde.jpg`** (o chão da caverna, onde o herói anda; 4:1; anexar só o prado.jpg)
+
+```
+Create an image. Use the attached image only as a reference for the painting style, the brush
+strokes and the shape of the strip (same size and framing, a long flat ground strip seen from the
+side and slightly from above). Paint instead the floor of a dark underground cave: dark brown earth
+with patches of deep green moss, small stones, thin roots and a few tiny glowing lime-green
+mushrooms; the top edge is a ragged line of moss and short dark grass where the character walks; it
+gets darker toward the bottom until almost black. Lit softly from above by a green glow, the same
+light on the left and on the right side, so the left and right edges match and it repeats
+seamlessly. No sunlight, no blue, no purple, no orange. Plain solid white background above the
+floor. Same aspect ratio as the attached image.
+```
+
+**`cogumelo_mola/verde.jpg`** (o cogumelo-mola; 1:1; sem anexo)
+
+```
+Create an image. One big bouncy mushroom for a 2D side-scrolling game, the trampoline the hero jumps
+on to get out of a secret cave. A wide, flat, soft-looking cap in glowing lime green with pale
+yellow-green spots, a little squashed like a cushion, on a short thick pale stem; the cap glows
+softly from inside. Seen exactly from the side, centered. NO ground, NO grass, NO shadow under it;
+the bottom of the stem is cut straight. Plain solid #FF00FF magenta background everywhere around it.
+Painterly hand-painted 2D game art with soft visible brush strokes and rich detailed texture (not
+flat, not vector, not pixel art), like a cozy modern fantasy indie platformer. No blue, no purple,
+no orange. No text. Aspect ratio 1:1.
+```
+
 ### Pintura do local (site e tela de título da fase)
 
 `web/locais/08-o-pasto-da-vaca-e-o-ovni.jpg` também é do pôr do sol. O prompt novo está em

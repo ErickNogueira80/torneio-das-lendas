@@ -791,6 +791,8 @@ recorte em magenta `#FF00FF`, porque o recorte verde apaga o verde da arte.
     (2250–2380), a mesma sala do Boitatá (caverna de cogumelos azuis, cogumelo-mola no meio para sair e o
     mímico guardando a lança): `sala: { x0: 1835, x1: 2795, chao: 1020, mola: 2315, guardiao: mímico }`.
     Testar com `&sala` (começa dentro) ou `&x=2300` (cai pelo buraco). Ainda não está na fase completa.
+    Próximo (Erick): sala do pasto com cogumelos verdes e chão liso como o da superfície; prompts na seção
+    4.14 de `04-prompts-sprites.md` (`fundo_sala/verdes`, `fundo_sala/chao_verde`, `cogumelo_mola/verde`).
     **Vala de terra** no lugar do buraco preto (escolha do Erick): imagem `vala_beirada` (lado direito;
     espelhada no esquerdo) em `valaBeirada()`; o capim dela encaixa no topo do prado, a terra começa logo
     abaixo da linha dos pés, a ponta do capim passa 8 px da beira da física e a parte de dentro some aos
