@@ -67,7 +67,8 @@ if (params.has('limpo')) {   // teste (2026-11-20): só o chão e o herói, para
   const objetos = [{ tipo: 'feno', x: 500 }, { tipo: 'cerca', x: 900 }, { tipo: 'feno_pilha', x: 2000 },
     { tipo: 'carroca', x: 2500 }, { tipo: 'tronco_caido', x: 3100 }, { tipo: 'pedra', x: 3600 }];
   FASES[FASE_ID] = { ...F0, inimigos: [], baus: [], perigos: [], sala: null, objetos, plataformas: platsDosObjetos(objetos), solidos: [
-    { x: -300, y: 460, w: 1900, h: 140 }, { x: 1740, y: 460, w: F0.fim - 1440, h: 140 },   // um buraco em 1600–1740
+    { x: -300, y: 460, w: 1900, h: 140 }, { x: 1740, y: 460, w: 510, h: 140 },   // buracos em 1600–1740, 2250–2380 e 4000–4120
+    { x: 2380, y: 460, w: 1620, h: 140 }, { x: 4120, y: 460, w: F0.fim - 3820, h: 140 },   // (Erick, 2026-11-21: mais 2 buracos)
   ] };
 }
 const FASE = FASES[FASE_ID];

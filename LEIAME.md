@@ -764,6 +764,9 @@ recorte em magenta `#FF00FF`, porque o recorte verde apaga o verde da arte.
     na linha dos pés ficar do tamanho do buraco (`PV`: `centro` 806,5, `abre` 58, `meio` 110; o Erick pediu
     o buraco mais largo). Com ele, a `vala_beirada` fica desligada (reserva no código) e a rampa
     (`subidaVala`) sobe 26 px (`PV.subida`): chegando na borda, o herói sobe na beirada de capim da imagem.
+    Tela `?limpo` com 3 buracos (2026-11-21, Erick): 1600–1740, 2250–2380 e 4000–4120.
+    Besouro gigante: prompt no Gemini (pintura lisa, de dia) na seção 4.14 de `04-prompts-sprites.md`;
+    duas imagens na mesma conversa (`besouro_andar` e `besouro_investida`); o jogo anima por código.
     **Vala de terra** no lugar do buraco preto (escolha do Erick): imagem `vala_beirada` (lado direito;
     espelhada no esquerdo) em `valaBeirada()`; o capim dela encaixa no topo do prado, a terra começa logo
     abaixo da linha dos pés, a ponta do capim passa 8 px da beira da física e a parte de dentro some aos

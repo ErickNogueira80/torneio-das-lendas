@@ -1609,6 +1609,40 @@ left and right edges of the image must stay exactly as in the original. Keep the
 background above the grass. Same aspect ratio as the attached image.
 ```
 
+### Besouro gigante (2026-11-21)
+
+Pintura lisa, de dia, como os objetos (o prompt antigo da seção 4.12 era do PixelLab, em pixel art). O
+Gemini não faz animação: são **duas imagens na mesma conversa** (a segunda pede "o mesmo besouro",
+sem anexo), e o jogo anima por código (passo balançando, cabeça baixa na investida). No jogo ele ocupa
+~156 x 144 px, mais alto que o pulo. Salvar em `img/sprites/inimigos/besouro/` como
+`besouro_andar.jpg` e `besouro_investida.jpg`.
+
+**1. `besouro_andar`**
+
+```
+Create an image. A giant hercules beetle for a 2D side-scrolling game, seen exactly from the side,
+facing right, standing on its six legs. A calm and majestic gentle giant, not angry: a big round
+shiny shell in deep blue-black with soft blue and green reflections where the sun hits the top, a
+long curved horn rising high from the thorax and curving forward over the head, a smaller upturned
+horn on the head, small kind yellow eyes, six sturdy dark legs with little spikes, all six legs
+clearly separated and visible. The whole beetle is taller than it is wide because of the big horn.
+NO ground, NO grass, NO shadow under it; the feet end in a straight line at the bottom. Plain solid
+#FF00FF magenta background everywhere around it. Painterly hand-painted 2D game art with soft
+visible brush strokes and rich detailed texture (not flat, not vector, not pixel art), like a cozy
+modern fantasy indie platformer. Sunny mid-afternoon: bright neutral daylight from high above, light
+highlights on the top of the shell, short cool shadows underneath. No orange, no pink, no purple, no
+golden sunset tones. No text. Square image, aspect ratio 1:1.
+```
+
+**2. `besouro_investida`** (na mesma conversa, logo depois)
+
+```
+Now the SAME beetle from the previous image, same colors, same size, same style and same magenta
+background, in a charging pose: head and both horns lowered and pointing forward, body leaning
+forward, legs in a running stride. Still seen exactly from the side, facing right. NO ground, NO
+shadow. Square image, aspect ratio 1:1.
+```
+
 ### Pintura do local (site e tela de título da fase)
 
 `web/locais/08-o-pasto-da-vaca-e-o-ovni.jpg` também é do pôr do sol. O prompt novo está em
