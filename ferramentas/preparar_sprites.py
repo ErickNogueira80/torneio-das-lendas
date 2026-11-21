@@ -826,6 +826,18 @@ def preparar_fundo(pasta: Path, ajustes: dict) -> dict | None:
                 peso = escuro * np.sqrt(t) if aj.get("baseForte") else t * escuro   # baseForte: o escuro some já no começo da faixa
                 a[:, :, 3] = (a[:, :, 3] * (1 - np.maximum(peso, t * t))).astype(a.dtype)
             im = Image.fromarray(a.astype(np.uint8), "RGBA")
+        if aj.get("casarCom"):   # (2026-11-21) o capim da peça fica com as cores do capim de outra camada (ex.: o prado)
+            ref = DESTINO / chave / f"{aj['casarCom']}.png"
+            if ref.exists():
+                r_ = np.asarray(Image.open(ref).convert("RGBA")).astype(np.float32)
+                a = np.asarray(im.convert("RGBA")).astype(np.float32)
+                verde = lambda m: (m[:, :, 3] > 200) & (m[:, :, 1] >= m[:, :, 0] * .85) & (m[:, :, 1] > m[:, :, 2])   # verde e amarelo-palha, não a terra
+                mr, ma = verde(r_), verde(a)
+                if mr.any() and ma.any():
+                    for c in range(3):
+                        sa, sr = a[:, :, c][ma], r_[:, :, c][mr]
+                        a[:, :, c] = np.where(ma, (a[:, :, c] - sa.mean()) / max(sa.std(), 1) * sr.std() + sr.mean(), a[:, :, c])
+                    im = Image.fromarray(a.clip(0, 255).astype(np.uint8), "RGBA")
         saida = DESTINO / chave / f"{nome}.png"
         saida.parent.mkdir(parents=True, exist_ok=True)
         im.save(saida, optimize=True)

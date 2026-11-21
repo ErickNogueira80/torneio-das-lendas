@@ -174,7 +174,7 @@
  },
  "fundos/vaca/pedra": {
   "semPixel": true,
-  "altura": 140,
+  "altura": 170,
   "semMagenta": 12,
   "bordaCor": 2
  },
@@ -186,6 +186,7 @@
   "semPixel": true,
   "altura": 300,
   "semMagenta": 12,
-  "bordaCor": 2
+  "bordaCor": 2,
+  "casarCom": "prado"
  }
 }

@@ -50,7 +50,7 @@ const OBJETOS_PASTO = {   // (2026-11-21) objetos de dia, sem base de capim: med
   cerca: { w: 103, h: 45, pisos: [[2, 92, 20]] },   // cerca velha e torta (2026-11-21); a tábua de cima sobe um pouco para a direita
   carroca: { w: 138, h: 70, pisos: [[10, 82, 8]] },
   tronco_caido: { w: 206, h: 65, base: 22, pisos: [[12, 160, 16]] },   // maior e mais para dentro do capim (Erick)
-  pedra: { w: 102, h: 70, base: 0, pisos: [[22, 70, 6]] },   // pedra nova, uma rocha só; maior e mais em cima do capim (Erick)
+  pedra: { w: 124, h: 85, base: 14, pisos: [[28, 86, 8]] },   // pedra nova, uma rocha só; maior e mais para dentro do capim (Erick)
 };
 const OBJ_BASE = 6;   // o pé do objeto fica no meio da faixa de capim, junto da linha dos pés (Erick, 2026-11-21: centralizar)
 function platsDosObjetos(objs) {
@@ -3442,6 +3442,24 @@ function chaoLargo(bc) {   // bloco_chao com a faixa de capim mais funda: linhas
 // além da beira da física. A ponta de dentro some aos poucos no prado (sem emenda reta).
 const VALA_RECUO = 40, VALA = { topo: 5, terra: 75, ponta: 135 };   // em px da imagem (300 de altura)
 const valaCache = new Map();
+// Rampa da vala (2026-11-21, Erick): chegando na beirada, o herói sobe no morrinho de capim dela e fica
+// no alto até a outra beirada (só no desenho; a física continua reta). Vale no ar também: o pulo sai do alto.
+const VALA_SUBIDA = 58, VALA_RAMPA = 150, VALA_ALTO = 30;
+let valasPasto = null;
+function subidaVala(x) {
+  if (!PASTO || ESTILO !== 'prado' || !layer(FASE.fundo, 'vala_beirada')) return 0;
+  if (!valasPasto) {
+    const ch = SOLIDS.filter(o => o.y >= GROUND - 1).sort((a, b) => a.x - b.x); valasPasto = [];
+    for (let i = 0; i + 1 < ch.length; i++) { const a = ch[i].x + ch[i].w, b = ch[i + 1].x; if (b - a >= 8 && b - a < 400) valasPasto.push([a, b]); }
+  }
+  for (const [a, b] of valasPasto) {
+    if (x < a - VALA_RAMPA || x > b + VALA_RAMPA) continue;
+    const d = x < a ? (a - VALA_ALTO) - x : x > b ? x - (b + VALA_ALTO) : -1;   // distância até o alto
+    if (d <= 0) return VALA_SUBIDA;
+    const t = 1 - d / (VALA_RAMPA - VALA_ALTO); return VALA_SUBIDA * t * t * (3 - 2 * t);
+  }
+  return 0;
+}
 function valaBeirada(g, im, xb, tp, espelha) {
   const k = (GROUND - PISO_TOPO + 4 - tp) / (VALA.terra - VALA.topo), w = Math.round(im.naturalWidth * k), h = Math.round(im.naturalHeight * k);
   let pc = valaCache.get(im.src + k);
@@ -3794,7 +3812,7 @@ const perfilGalho = new Map();   // 'x|y da plataforma' -> quanto o galho desce 
 // caminho pela frente das árvores: perto de uma árvore com raiz, o herói e as brasas descem na tela
 // e passam por cima das raízes, na frente do tronco (só no desenho; a física não muda)
 const FRENTE_MAX = 44;
-const FRENTE_OBJ = new Set(['pedra', 'tronco_caido', 'carroca']), FRENTE_PASTO = 30;
+const FRENTE_OBJ = new Set(['pedra', 'tronco_caido', 'carroca']), FRENTE_PASTO = 14;   // Erick: o desvio estava longe demais
 function caminhoFrente(x) {
   if (PASTO) {   // (2026-11-21, Erick) andando no chão, o herói desce na tela e passa pela frente da pedra, do tronco e da carroça
     let m = 0;
@@ -3964,7 +3982,7 @@ function deslocDesenho(cx, noChao, plat, plano) {
   if (camY > 0 && naSala(player)) return { dy: 0, esc: 1 };   // na sala secreta o piso é reto
   const fr = caminhoFrente(cx) * plano, k = fr / FRENTE_MAX;
   const rel = noChao ? relevo(cx) * (1 - k) : 0;
-  return { dy: fr + rel, esc: 1 + .08 * k };
+  return { dy: fr + rel - subidaVala(cx) * plano, esc: 1 + .08 * k };
 }
 function relevo(x) {
   if (PASTO) return 0;   // pasto: piso plano, o herói anda reto (Erick, 2026-11-20)

@@ -746,7 +746,13 @@ recorte em magenta `#FF00FF`, porque o recorte verde apaga o verde da arte.
     (`cerca.jpg`; as outras em `cerca_1.jpg` e `cerca_2.jpg`, que a ferramenta ignora).
     **Caminho pela frente dos objetos** (como na raiz da árvore): andando no chão perto da pedra, do tronco
     ou da carroça, o herói desce até 30 px na tela e passa na frente deles (`caminhoFrente`, `FRENTE_OBJ`;
-    só no desenho, a física não muda).
+    só no desenho, a física não muda). Depois o Erick achou o desvio longe demais: 14 px (`FRENTE_PASTO`).
+    Pedra ainda maior (`altura` 170) e mais para dentro do capim (`base` 14).
+    **Vala:** a beirada pega as cores do capim do prado (`casarCom: "prado"` na ferramenta: média e
+    contraste do verde e do amarelo-palha iguais aos do prado) e tem **rampa**: chegando na beirada, o
+    herói sobe no morrinho de capim dela (até 58 px na tela, `subidaVala`) e fica no alto até a outra
+    beirada; vale no ar também, então o pulo sai do alto (só no desenho, a física continua reta).
+    Testar com `&ff=90` (avança 90 quadros antes de desenhar): sem ele, o herói pisca nas capturas.
     **Vala de terra** no lugar do buraco preto (escolha do Erick): imagem `vala_beirada` (lado direito;
     espelhada no esquerdo) em `valaBeirada()`; o capim dela encaixa no topo do prado, a terra começa logo
     abaixo da linha dos pés, a ponta do capim passa 8 px da beira da física e a parte de dentro some aos
