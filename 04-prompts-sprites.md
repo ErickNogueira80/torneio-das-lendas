@@ -1461,8 +1461,7 @@ seamlessly. Plain solid #FF00FF magenta background everywhere above the hills an
 Create an image. A long flat strip of meadow ground for a 2D side-scrolling game, seen from the side
 and slightly from above, where the character walks. Thick wild grass all over with visible brush
 strokes: patches of lighter and darker green, clumps of long grass blades, little bushes and many
-tiny white, yellow, red and blue wildflowers; a few tall grass blades in the front at the bottom
-corners. The top edge is a ragged row of short grass blades. It gets a bit darker green toward the
+tiny white, yellow, red and blue wildflowers. The top edge is a ragged row of short grass blades. It gets a bit darker green toward the
 bottom. Painterly hand-painted 2D game art with soft visible brush strokes and rich detailed texture
 (not flat, not vector, not pixel art), like a cozy modern fantasy indie platformer. Sunny mid-
 afternoon: bright neutral daylight from high above, equally bright from the left edge to the right
