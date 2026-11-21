@@ -2861,7 +2861,7 @@ function faixas() {
   };
   const L = nova(parL), gl = L.getContext('2d');
   pinta(gl, longe, GROUND - 20, 330);
-  pinta(gl, tom(longe, '20,10,24', PASTO ? .6 : .35), GROUND, 400, .5);
+  if (!PASTO) pinta(gl, tom(longe, '20,10,24', .35), GROUND, 400, .5);
   const fog = gl.createLinearGradient(0, 300, 0, H);
   fog.addColorStop(0, 'rgba(120,60,40,0)'); fog.addColorStop(1, 'rgba(120,60,40,.35)');
   gl.fillStyle = fog; gl.fillRect(0, 300, L.width, H - 300);
@@ -2981,7 +2981,7 @@ function drawBackground() {
   }
   else if (longe) {
     tiled(longe, .22, GROUND - 20, 330);
-    tiled(tom(longe, '20,10,24', PASTO ? .6 : .35), .36, GROUND, 400, .5);   // segunda fileira, mais perto e mais escura
+    if (!PASTO) tiled(tom(longe, '20,10,24', .35), .36, GROUND, 400, .5);   // segunda fileira, mais perto e mais escura
   }
   else {
     ctx.fillStyle = C.morros;
