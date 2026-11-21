@@ -197,5 +197,8 @@
   "altura": 240,
   "fecharBuracos": true,
   "corteTopo": 0.4
+ },
+ "inimigos/besouro": {
+  "altura": 150
  }
 }

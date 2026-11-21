@@ -47,7 +47,7 @@ RAIZ = Path(__file__).resolve().parent.parent
 ORIGEM = RAIZ / "img" / "sprites"
 DESTINO = RAIZ / "jogo" / "sprites"
 EXTS = {".png", ".jpg", ".jpeg", ".webp"}
-ANIMS = ["parado", "correr", "pular", "cair", "espada", "poder", "dano", "morrer", "andar", "voar"]
+ANIMS = ["parado", "correr", "pular", "cair", "espada", "poder", "dano", "morrer", "andar", "voar", "preparar", "investida"]
 PIXEL_ALTURA = 62   # altura do boneco em pixel art no jogo (px da tela virtual)
 
 # altura no jogo (px da tela virtual 960x540) e altura na folha (resolução guardada)

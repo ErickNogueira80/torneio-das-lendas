@@ -767,6 +767,13 @@ recorte em magenta `#FF00FF`, porque o recorte verde apaga o verde da arte.
     Tela `?limpo` com 3 buracos (2026-11-21, Erick): 1600–1740, 2250–2380 e 4000–4120.
     Besouro gigante: no **PixelLab** (pixel art como o herói; decisão do Erick), ~80 px, East, animações
     `andar`, `preparar` e `investida` por descrição; roteiro na seção 4.14 de `04-prompts-sprites.md`.
+    **Besouro no jogo (2026-11-21):** 2ª versão do PixelLab (vista de lado; a 1ª saiu em 3/4 e foi
+    descartada). GIFs em `img/sprites/inimigos/besouro/` (`andar` 9, `preparar` 5, `investida` 7 quadros;
+    os originais com o nome do PixelLab em `originais/`); a ferramenta aceita as animações `preparar` e
+    `investida` (`ANIMS`); `altura` 150 em `ajustes.json`. No jogo: anda com `andar`; atacado, vira para o
+    herói, usa `preparar` com a cabeça inclinando e tremendo (reforço por código, a animação do PixelLab
+    mexe pouco) e `investida` na corrida. Regra igual: encostar ou a 1ª investida deixam com 1 de vida; a
+    2ª investida (bateu de novo) mata. Tela `?limpo`: um besouro perto da pedra (caminho 3150–3740).
     **Vala de terra** no lugar do buraco preto (escolha do Erick): imagem `vala_beirada` (lado direito;
     espelhada no esquerdo) em `valaBeirada()`; o capim dela encaixa no topo do prado, a terra começa logo
     abaixo da linha dos pés, a ponta do capim passa 8 px da beira da física e a parte de dentro some aos

@@ -66,7 +66,8 @@ if (params.has('limpo')) {   // teste (2026-11-20): só o chão e o herói, para
   const F0 = FASES[FASE_ID];
   const objetos = [{ tipo: 'feno', x: 500 }, { tipo: 'cerca', x: 900 }, { tipo: 'feno_pilha', x: 2000 },
     { tipo: 'carroca', x: 2500 }, { tipo: 'tronco_caido', x: 3100 }, { tipo: 'pedra', x: 3600 }];
-  FASES[FASE_ID] = { ...F0, inimigos: [], baus: [], perigos: [], sala: null, objetos, plataformas: platsDosObjetos(objetos), solidos: [
+  const inimigos = [{ tipo: 'besouro', x: 3300, x1: 3150, x2: 3740, vel: 55, vida: 999 }];   // (2026-11-21, Erick) besouro perto da pedra
+  FASES[FASE_ID] = { ...F0, inimigos, baus: [], perigos: [], sala: null, objetos, plataformas: platsDosObjetos(objetos), solidos: [
     { x: -300, y: 460, w: 1900, h: 140 }, { x: 1740, y: 460, w: 510, h: 140 },   // buracos em 1600–1740, 2250–2380 e 4000–4120
     { x: 2380, y: 460, w: 1620, h: 140 }, { x: 4120, y: 460, w: F0.fim - 3820, h: 140 },   // (Erick, 2026-11-21: mais 2 buracos)
   ] };
@@ -4568,7 +4569,12 @@ function drawEnemies(frente = false) {
     if (e.T.mov === 'mimico') drawMimico(e, x);
     else if (S) {
       const face = e.T.mov === 'patrulha' ? (e.vx > 0 ? 1 : -1) : (player.x > e.x ? 1 : -1);
-      drawFrame(S, e.T.mov === 'voo' ? 'voar' : 'andar', time * 8 + e.x * .01, x + e.w / 2, e.y + e.h + (e.T.mov === 'voo' ? 6 : 0), face);
+      // besouro (PixelLab, 2026-11-21): andar; ao ser atacado, preparar (a cabeça desce e ele treme) e investida
+      const c = e.carga, prep = c && c.fase === 'prepara', vai = c && c.fase === 'vai';
+      const anim = e.T.mov === 'voo' ? 'voar' : prep && S.quadros.preparar ? 'preparar' : vai && S.quadros.investida ? 'investida' : 'andar';
+      const tq = prep ? Math.min(c.t / .55, .99) * S.quadros.preparar.length : vai ? time * 14 : time * (e.T.mov === 'voo' ? 8 : 6) + e.x * .01;
+      const treme = prep ? Math.sin(time * 60) * 2 : 0, inclina = prep ? .1 * Math.min(1, c.t / .3) : vai ? .06 : 0;
+      drawFrame(S, anim, tq, x + e.w / 2 + treme, e.y + e.h + (e.T.mov === 'voo' ? 6 : 0), face, 1, 1, inclina);
     } else if (e.tipo === 'brasa') {
       flame(x + 13, e.y + 26, 30, 38 + Math.sin(time * 10 + e.x) * 4, time * 14 + e.x);
       ctx.fillStyle = '#2a0a04';
