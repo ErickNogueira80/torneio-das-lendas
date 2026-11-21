@@ -3688,8 +3688,9 @@ function piso() {
       for (let y = alt - 2; y >= tp; y -= 2) { g.lineTo(s.x + s.w - beira(y, 2), y + 2); g.lineTo(s.x + s.w - beira(y, 2), y); }
       g.lineTo(s.x + s.w - beira(tp, 2), 0); g.closePath(); g.clip();
       g.fillStyle = '#13282b'; g.fillRect(s.x, GROUND - PISO_TOPO, s.w, alt);   // fundo do campo, embaixo da imagem
-      g.translate(0, (prado ? GROUND - 80 : capimArte ? GROUND - 50 : GROUND - 40) - PISO_TOPO); g.scale(z, z);   // pintado: corpo do capim 16 px acima dos pés
-      g.fillStyle = pat; g.fillRect(s.x / z - 4, 0, s.w / z + 8, chao.height); g.restore();
+      g.translate(0, (prado ? GROUND - 80 : capimArte ? GROUND - 50 : GROUND - 40) - PISO_TOPO); const zc = prado ? 240 / chao.naturalHeight : z;   // prado: cobre 240 px na tela (pixel art 120 linhas no dobro; liso 240)
+      g.scale(zc, zc);   // pintado: corpo do capim 16 px acima dos pés
+      g.fillStyle = pat; g.fillRect(s.x / zc - 4, 0, s.w / zc + 8, chao.height); g.restore();
       if (ESTILO === 'calcada') {   // caminho de lajes de pedra onde se pisa; o prado fica atrás e embaixo
         const y0 = GROUND - PISO_TOPO - 2;
         for (let x = s.x; x < s.x + s.w;) {

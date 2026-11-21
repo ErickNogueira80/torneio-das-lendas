@@ -100,7 +100,9 @@
   "emendar": 0.12,
   "cores": 48,
   "aplainar": 1.0,
-  "tirarClaros": 200
+  "tirarClaros": 200,
+  "semPixel": true,
+  "altura": 240
  },
  "fundos/vaca/bloco_chao": {
   "corteTopo": 0.26,
