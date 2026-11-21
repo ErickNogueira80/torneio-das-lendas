@@ -673,6 +673,14 @@ recorte em magenta `#FF00FF`, porque o recorte verde apaga o verde da arte.
     se pisa, medidos no perfil de cima; `platsDosObjetos`; `obj: true` não vira árvore): o herói passa
     na frente andando e só fica em cima se pular (Erick: "se quiser passar por baixo, tem que ser uma
     opção"). Cipós: metade de cima no alto (paralaxe 1,25) e samambaias baixinhas embaixo (1,45).
+    **Refino 2 (2026-11-20, retorno do Erick):** pedra com piso mais largo; cerca usa só o trecho do
+    meio da imagem (`corte` em `OBJETOS_PASTO`: dois mourões inteiros, a imagem tinha emendas quebradas);
+    cada objeto tem `base` própria (afunda na faixa de capim), sombra achatada e capim na frente do pé
+    (o feno parecia flutuar); a `bloco_beirada` saiu: a ponta do barranco é o próprio `bloco_chao`
+    recortado (canto arredondado, terra que recua e escurece, musgo pendurado); os galhos dos cipós
+    saem de uma **árvore inteira** em silhueta (tronco preto até o chão, como no Magibot, de tempos em
+    tempos, com um ou dois galhos) e as samambaias viraram tufos sorteados (4 recortes, tamanho e lado
+    variados).
     Tela `?limpo`: feno 500, cerca 900, buraco 1600–1740, pilha de feno 2000, carroça 2500, tronco
     3100, pedra 3600. Se uma imagem for regerada com outro tamanho, medir os pisos de novo.
     **Tela de teste:** `?fase=vaca&limpo` tira bichos, árvores, buracos, baús e perigos (só o chão e

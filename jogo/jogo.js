@@ -45,19 +45,19 @@ const FASE_ID = FASES[params.get('fase')] ? params.get('fase') : 'boitata';
 // gerar a imagem com outro tamanho, medir de novo. São plataformas de mão única: o herói passa na frente
 // andando e só fica em cima se pular (Erick: "se quiser passar por baixo, tem que ser uma opção").
 const OBJETOS_PASTO = {
-  feno: { w: 62, h: 40, pisos: [[4, 58, 10]] },
+  feno: { w: 62, h: 40, base: 18, pisos: [[2, 60, 8]] },
   feno_pilha: { w: 108, h: 75, pisos: [[2, 23, 50], [25, 50, 29], [52, 102, 8]] },
-  cerca: { w: 190, h: 45, pisos: [[0, 190, 10]] },
+  cerca: { w: 106, h: 42, corte: 47, base: 16, pisos: [[0, 106, 8]] },   // só o trecho do meio (dois mourões inteiros)
   carroca: { w: 144, h: 70, pisos: [[15, 85, 9]] },
   tronco_caido: { w: 121, h: 40, pisos: [[20, 106, 8]] },
-  pedra: { w: 103, h: 55, pisos: [[24, 78, 6]] },
+  pedra: { w: 103, h: 55, base: 14, pisos: [[12, 90, 4]] },   // mais larga (Erick: o herói ficava fora da pedra)
 };
 const OBJ_BASE = 10;   // o pé do objeto (o capim da base) fica 10 px abaixo da linha dos pés
 function platsDosObjetos(objs) {
   const out = [];
   for (const o of objs) {
     const O = OBJETOS_PASTO[o.tipo]; if (!O) continue;
-    const topo = 460 + OBJ_BASE - O.h * 2;
+    const topo = 460 + (O.base ?? OBJ_BASE) - O.h * 2;
     for (const [a, b, y] of O.pisos) out.push({ x: o.x + a * 2, y: topo + y * 2, w: (b - a) * 2, obj: true });
   }
   return out;
@@ -3402,9 +3402,17 @@ function blocoMagibot(g, x0, yT, w, fundo, bordaE, bordaD, seed) {
 }
 function drawObjetos() {
   for (const o of FASE.objetos || []) {
-    const im = layer(FASE.fundo, o.tipo); if (!im) continue;
-    const w = im.naturalWidth * 2, h = im.naturalHeight * 2, x = Math.round(o.x - camX); if (x > W || x + w < 0) continue;
-    ctx.imageSmoothingEnabled = false; ctx.drawImage(im, x, GROUND + OBJ_BASE - h, w, h); ctx.imageSmoothingEnabled = true;
+    const im = layer(FASE.fundo, o.tipo), O = OBJETOS_PASTO[o.tipo]; if (!im || !O) continue;
+    const sx = O.corte || 0, sw = O.corte ? O.w : im.naturalWidth, sh = Math.min(O.h, im.naturalHeight);
+    const w = sw * 2, h = sh * 2, x = Math.round(o.x - camX), yB = GROUND + (O.base ?? OBJ_BASE); if (x > W || x + w < 0) continue;
+    ctx.fillStyle = 'rgba(20,12,16,.45)';   // sombra achatada no capim, em degraus de pixel
+    for (let i = 0; i < 4; i++) { const enc = (4 - i) * w * .05; ctx.fillRect(Math.round((x + enc) / 2) * 2, yB - 6 + i * 2, Math.round((w - enc * 2) / 2) * 2, 2); }
+    ctx.imageSmoothingEnabled = false; ctx.drawImage(im, sx, 0, sw, sh, x, yB - h, w, h); ctx.imageSmoothingEnabled = true;
+    for (let px = x - 6; px < x + w + 6; px += 2) {   // capim da faixa na frente do pé do objeto
+      const r = hashC(px + camX + o.x * .37); if (r < .35) continue;
+      const hh = 2 + Math.round(r * r * 5) * 2;
+      ctx.fillStyle = r > .93 ? '#9fae58' : r > .6 ? '#77833f' : '#5d6634'; ctx.fillRect(px, yB + 2 - hh, 2, hh);
+    }
   }
 }
 const blocosCache = new Map();
@@ -3497,14 +3505,35 @@ function posEstilo() {   // efeito sobre a cena inteira (depois do mundo, antes 
     const cp = layer(FASE.fundo, 'cipos');
     if (cp) {   // silhuetas pintadas, repetidas, mais rápidas que o cenário (paralaxe 1,3)
       // metade de cima (galhos e cipós) presa no alto; metade de baixo (samambaias) baixinha, na terra
-      const cw = cp.naturalWidth, meio = Math.round(cp.naturalHeight * .5);
-      const faixa = (sy, sh, esc, par, y) => {
-        const w = cw * esc, h = sh * esc;
-        for (let x = -(((camX * par) % w) + w) % w; x < W; x += w) c.drawImage(cp, 0, sy, cw, sh, Math.round(x), Math.round(y(h)), Math.ceil(w), Math.ceil(h));
+      // (2026-11-20, Erick: os galhos soltos no alto pareciam flutuar; no Magibot é uma árvore inteira) os galhos
+      // da imagem saem de um tronco preto que desce até o chão, de tempos em tempos; embaixo, tufos sorteados
+      c.imageSmoothingEnabled = false; c.fillStyle = '#000';
+      const GE = [0, 0, 262, 135], GD = [310, 0, 236, 135];   // galho que sai para a direita / para a esquerda
+      const peca = (r, x, y, esc, flip) => {
+        const [sx, sy, sw, sh] = r, w = Math.round(sw * esc), h = Math.round(sh * esc);
+        if (!flip) c.drawImage(cp, sx, sy, sw, sh, Math.round(x), Math.round(y), w, h);
+        else { c.save(); c.translate(Math.round(x) + w, Math.round(y)); c.scale(-1, 1); c.drawImage(cp, sx, sy, sw, sh, 0, 0, w, h); c.restore(); }
       };
-      c.imageSmoothingEnabled = false;
-      faixa(0, meio, 1.1, 1.25, () => 0);
-      faixa(meio, cp.naturalHeight - meio, .62, 1.45, h => H - h);
+      const PASSO = 1900, parA = 1.25;
+      for (let k = Math.floor((camX * parA - 600) / PASSO); k <= Math.floor((camX * parA + W + 600) / PASSO); k++) {
+        const r = hashC(k * 5.3 + 1.7); if (r < .25) continue;   // nem todo trecho tem árvore
+        const tx = k * PASSO + 300 + r * 900 - camX * parA, tw = 50 + Math.round(r * 26), esc = 1 + r * .25, yG = 30 + r * 30;
+        if (tx < -700 || tx > W + 700) continue;
+        c.beginPath();   // tronco: afina para cima, abre em raízes embaixo
+        for (let y = -10; y <= H; y += 4) { const a = y / H, m = tw / 2 * (1 - a * .25) + (a > .8 ? (a - .8) * 300 : 0) + Math.sin(y * .05 + k) * 3; c.lineTo(Math.round(tx + m + Math.sin(y * .021 + k) * 10), y); }
+        for (let y = H; y >= -10; y -= 4) { const a = y / H, m = tw / 2 * (1 - a * .25) + (a > .8 ? (a - .8) * 260 : 0) + Math.cos(y * .06 + k) * 3; c.lineTo(Math.round(tx - m + Math.sin(y * .021 + k) * 10), y); }
+        c.closePath(); c.fill();
+        const tipo = Math.floor(hashC(k * 2.9) * 3);   // os dois galhos, só o da direita ou só o da esquerda
+        if (tipo !== 2) peca(GE, tx - 14, yG - 41 * esc, esc, false);
+        if (tipo !== 1) peca(GD, tx + 14 - GD[2] * esc, yG - 38 * esc, esc, false);
+      }
+      const TUFOS = [[0, 140, 100, 84], [100, 140, 140, 84], [352, 140, 88, 84], [440, 140, 106, 84]];   // só a parte de cima (o morrinho preto embaixo fica fora)
+      const PT = 230, parT = 1.45;
+      for (let k = Math.floor(camX * parT / PT) - 1; k <= Math.floor((camX * parT + W) / PT) + 1; k++) {
+        const r = hashC(k * 3.1 + 9.4); if (r < .4) continue;
+        const t = TUFOS[Math.floor(hashC(k * 1.7) * 4)], esc = .55 + hashC(k * 4.3) * .4;
+        peca(t, k * PT + r * 120 - camX * parT, H - t[3] * esc + 8, esc, hashC(k * 6.1) > .5);
+      }
       c.imageSmoothingEnabled = true;
     } else drawCipos();
   } else if (ESTILO === 'calcada') {   // raios de luz em diagonal
@@ -3563,17 +3592,46 @@ function piso() {
     if (PASTO && ESTILO === 'magibot') {
       const chaos = SOLIDS.filter(o => o.y >= GROUND - 1);
       const bE = chaos.some(o => o !== s && Math.abs(o.x + o.w - s.x) < 300 && o.x < s.x), bD = chaos.some(o => o !== s && o.x > s.x && o.x - (s.x + s.w) < 300);
-      const bc = layer(FASE.fundo, 'bloco_chao'), bb = layer(FASE.fundo, 'bloco_beirada');
+      const bc = layer(FASE.fundo, 'bloco_chao');
       if (bc) {   // barranco pintado: o topo de capim fica 12 px acima dos pés; pontas nos buracos
         // o meio da faixa de capim (linha 17 da arte) fica na linha dos pés; a ponta é um close (capim 3x mais
         // grosso), por isso entra pela metade do tamanho, com o capim no mesmo lugar
-        const topo = GROUND - 34 - PISO_TOPO, bw = bb ? bb.naturalWidth : 0, bh = bb ? bb.naturalHeight : 0, topoB = GROUND - 17 - PISO_TOPO;
-        const x0 = s.x + (bE && bb ? bw * .5 : 0), x1 = s.x + s.w - (bD && bb ? bw * .5 : 0);
-        g.save(); g.beginPath(); g.rect(x0, 0, x1 - x0, alt); g.clip();
+        // (2026-11-20, Erick: a emenda com a bloco_beirada ficou ruim) a ponta sai do próprio bloco_chao: canto
+        // de capim arredondado, frente de terra que recua para dentro e escurece, musgo pendurado
+        const topo = GROUND - 34 - PISO_TOPO, yT = topo + 26, R = 16, x0 = s.x, x1 = s.x + s.w;
+        const rec = (y, k) => {   // quanto a ponta recua na altura y
+          const d = y - yT; if (d < 0) return R;
+          if (d < R) return R - Math.sqrt(R * R - (R - d) * (R - d));
+          return (d - R) * .18 + hashC(Math.floor(y / 8) * 3.7 + k) * 5;
+        };
+        const q2 = v => Math.round(v / 2) * 2;
+        g.save(); g.beginPath();
+        g.moveTo(x0 + (bE ? R : 0), topo);
+        for (let y = topo; y <= alt; y += 2) g.lineTo(q2(x1 - (bD ? rec(y, x1) : 0)), y);
+        for (let y = alt; y >= topo; y -= 2) g.lineTo(q2(x0 + (bE ? rec(y, x0) : 0)), y);
+        g.closePath(); g.clip();
         g.fillStyle = '#0d080b'; g.fillRect(x0, topo + 190, x1 - x0, alt);
-        g.translate(0, topo); g.scale(2, 2); g.fillStyle = g.createPattern(bc, 'repeat-x'); g.fillRect(x0 / 2 - 2, 0, (x1 - x0) / 2 + 4, bc.naturalHeight); g.restore();
-        if (bb && bD) g.drawImage(bb, s.x + s.w - bw + 4, topoB, bw, bh);
-        if (bb && bE) { g.save(); g.translate(s.x + bw - 4, topoB); g.scale(-1, 1); g.drawImage(bb, 0, 0, bw, bh); g.restore(); }
+        g.save(); g.translate(0, topo); g.scale(2, 2); g.fillStyle = g.createPattern(bc, 'repeat-x'); g.fillRect(x0 / 2 - 2, 0, (x1 - x0) / 2 + 4, bc.naturalHeight); g.restore();
+        for (const [lado, xb] of [[bE, x0], [bD, x1]]) {   // a terra escurece chegando na ponta
+          if (!lado) continue;
+          const dir = xb === x0 ? 1 : -1, gr = g.createLinearGradient(xb, 0, xb + dir * 70, 0);
+          gr.addColorStop(0, 'rgba(8,4,8,.85)'); gr.addColorStop(1, 'rgba(8,4,8,0)');
+          g.fillStyle = gr; g.fillRect(Math.min(xb, xb + dir * 70), yT + 30, 70, alt);
+          const gr2 = g.createLinearGradient(xb, 0, xb + dir * 26, 0);   // e o capim do canto fica na sombra
+          gr2.addColorStop(0, 'rgba(20,14,18,.55)'); gr2.addColorStop(1, 'rgba(20,14,18,0)');
+          g.fillStyle = gr2; g.fillRect(Math.min(xb, xb + dir * 26), yT - 4, 26, 34);
+        }
+        g.restore();
+        for (const [lado, xb] of [[bE, x0], [bD, x1]]) {   // musgo e raízes pendurados no canto
+          if (!lado) continue;
+          const dir = xb === x0 ? 1 : -1;
+          for (let i = 0; i < 7; i++) {
+            const r = hashC(xb * .13 + i * 7.1), y = yT + 4 + i * 5, xx = q2(xb + dir * (rec(y, xb) + 2 + r * 10));
+            const comp = 6 + Math.round(r * 9) * 2;
+            g.fillStyle = i < 3 ? (r > .5 ? '#5d6634' : '#4a5230') : '#2a1d22';
+            g.fillRect(xx, y, 2, comp); if (r > .6) g.fillRect(xx + dir * 2, y + comp - 4, 2, 4);
+          }
+        }
       } else blocoMagibot(g, s.x, GROUND - PISO_TOPO, s.w, alt, bE, bD, s.x * .013);
       ys.forEach((y, i) => topos.set(s.x + i * 4, PISO_TOPO + base + y));
       continue;
