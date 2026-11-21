@@ -2022,7 +2022,7 @@ CHEFES.vaca = (() => {
     // barra extra no HUD: o cansaço (o outro jeito de vencer)
     barraExtra: b => ({ frac: b.cansaco / 100, rotulo: 'cansaço', c1: '#9fe7ff', c2: '#2f6f9a' }),
     luzes(b) {
-      const L = b.alpha > 0 ? [[b.x, GROUND - 70 - b.sobe, 210, null]] : [];   // luz suave na vaca (o fim de tarde escurece)
+      const L = b.alpha > 0 ? [[b.x, GROUND - 70 - b.sobe, 210, null]] : [];   // luz suave na vaca (só aparece se a fase tiver escuridão)
       for (const g of b.gases) L.push([g.x, g.y, g.r * 1.5, '170,230,90']);
       if (b.ovni && b.ovni.y > -60) { L.push([b.ovni.x, b.ovni.y, 200, '150,255,170']); if (b.ovni.raio > 0) L.push([b.ovni.x, GROUND - 80, 260 * b.ovni.raio, '120,255,140']); }
       return L;
@@ -3013,8 +3013,9 @@ function drawBackground() {
 }
 
 // ---------- cenário do pasto (fase da Vaca, desenhado enquanto não há imagens em fundos/vaca) ----------
-// Fim de tarde como na pintura do local: céu roxo e laranja, sol baixo atrás dos morros, morros
-// longe, colinas verdes com árvores redondas, cercas e vaquinhas pastando ao longe. Cada camada é
+// Meio da tarde com sol (Erick, 2026-11-21; antes era o pôr do sol da pintura do local): céu azul,
+// sol alto, nuvens brancas, morros longe azulados, colinas verdes com árvores redondas, cercas e
+// vaquinhas pastando ao longe. Cada camada é
 // montada uma vez em meia resolução (pixel de 2 px) e só copiada por quadro, com paralaxe.
 let pastoPronto = null;
 const hexRgb = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
@@ -3023,7 +3024,7 @@ function fundoPasto() {
   if (typeof document === 'undefined') return null;
   const Z = 2, Hh = H / Z, alcance = Math.max(LEVEL_END, ARENA.x1) - W, C = FASE.cores, r = mulberry(23);
   const nova = (w) => { const c = document.createElement('canvas'); c.width = w; c.height = Hh; return c; };
-  // céu em faixas (degraus de cor, jeito de pixel art), estrelinhas, sol e nuvens
+  // céu em faixas (degraus de cor, jeito de pixel art), sol e nuvens (de dia não há estrelas)
   const ceu = nova(W / Z), g = ceu.getContext('2d');
   const stops = C.ceu.map(hexRgb), pos = [0, .42, .7, .86];
   for (let y = 0; y < Hh; y += 3) {
@@ -3031,10 +3032,9 @@ function fundoPasto() {
     const k = clamp((f - pos[i]) / (pos[i + 1] - pos[i]), 0, 1), a = stops[i], b = stops[i + 1];
     g.fillStyle = `rgb(${a.map((v, j) => Math.round(v + (b[j] - v) * k)).join(',')})`; g.fillRect(0, y, W / Z, 3);
   }
-  for (let i = 0; i < 40; i++) { g.fillStyle = `rgba(255,240,255,${.25 + r() * .5})`; g.fillRect(r() * W / Z | 0, r() * 70 | 0, 1, 1); }
-  const sol = [345, 160];
-  for (const [rr, cor] of [[34, 'rgba(255,200,120,.18)'], [27, 'rgba(255,210,130,.28)'], [21, '#ffd07a'], [17, '#ffe6a6']]) pxElipse(g, sol[0], sol[1], rr, rr, cor);
-  for (let i = 0; i < 9; i++) {   // nuvens compridas, com a barriga laranja do pôr do sol
+  const sol = [370, 42];   // sol alto, à direita (meio da tarde)
+  for (const [rr, cor] of [[30, 'rgba(255,255,230,.16)'], [22, 'rgba(255,255,220,.3)'], [15, '#fff6c8'], [11, '#fffdf0']]) pxElipse(g, sol[0], sol[1], rr, rr, cor);
+  for (let i = 0; i < 9; i++) {   // nuvens brancas de tarde, com a barriga levemente azulada
     const cx = r() * W / Z, cy = 22 + r() * 95, w = 30 + r() * 70;
     pxRet(g, cx - w / 2, cy, w, 4, C.nuvem[0]); pxRet(g, cx - w / 3, cy - 3, w * .55, 3, C.nuvem[0]);
     pxRet(g, cx - w / 2 + 4, cy + 4, w - 8, 2, C.nuvem[1]);
@@ -3066,7 +3066,7 @@ function fundoPasto() {
     }
     for (let x = 30; x < w; x += 60 + r() * 140) arvore(gg, x, topo(x) + 4, 2, C.pasto[2], C.pasto[3], '#3a2a1e');
   });
-  // névoa quente na base das camadas de longe
+  // névoa clara (ar do dia) na base das camadas de longe
   return (pastoPronto = { ceu, camadas, sol: [sol[0] * Z, sol[1] * Z] });
 }
 function drawFundoPasto() {
@@ -3081,13 +3081,13 @@ function drawFundoPasto() {
   }
   P.camadas.forEach(([c, par], i) => {
     ctx.drawImage(c, camX * par / 2, 0, W / 2, H / 2, 0, 0, W, H);
-    if (i === 0) {   // névoa quente entre os morros de longe e as colinas
-      const g = ctx.createLinearGradient(0, 280, 0, 420); g.addColorStop(0, 'rgba(255,170,120,0)'); g.addColorStop(1, 'rgba(255,170,120,.22)');
+    if (i === 0) {   // névoa clara e azulada entre os morros de longe e as colinas (ar do meio da tarde)
+      const g = ctx.createLinearGradient(0, 280, 0, 420); g.addColorStop(0, 'rgba(220,236,248,0)'); g.addColorStop(1, 'rgba(220,236,248,.22)');
       ctx.fillStyle = g; ctx.fillRect(0, 280, W, 140);
     }
   });
   ctx.imageSmoothingEnabled = true;
-  for (const a of ASH) {   // sementinhas e vaga-lumes subindo devagar
+  for (const a of ASH) {   // sementinhas e pólen subindo devagar no sol
     const y = ((a.y - time * a.v * .5) % H + H) % H, x = ((a.x + Math.sin(time + a.ph) * 24 - camX * .2) % W + W) % W;
     ctx.fillStyle = a.s > 2.5 ? 'rgba(255,240,150,.85)' : 'rgba(255,255,240,.45)';
     ctx.fillRect(Math.round(x), Math.round(y), 2, 2);
@@ -3096,7 +3096,7 @@ function drawFundoPasto() {
 // textura de terra do pasto (no lugar da imagem fundos/<fase>/chao)
 let chaoGeradoPronto = null;
 // campo do pasto (2026-11-20, escolhido pelo Erick no laboratório): o campo é visto um pouco de cima,
-// então não há corte de terra. Pinceladas de capim deitadas pelo vento, claras e douradas em cima,
+// então não há corte de terra. Pinceladas de capim deitadas pelo vento, claras e ensolaradas em cima,
 // escurecendo para verde-azulado embaixo, onde a faixa preta da frente (crista) passa na frente.
 // Ladrilho de 320 x 90 px da arte (emenda nas laterais); o topo é recortado em lâminas.
 let campoPronto = null;
@@ -3111,7 +3111,7 @@ function texturaCampo() {
   const P = (x, y, cor) => { g.fillStyle = cor; g.fillRect(((x % TW) + TW) % TW, y, 1, 1); };
   for (let i = 0; i < 5600; i++) {   // pinceladas deitadas para a direita (vento)
     const x = r() * TW | 0, y = TOP + 3 + r() * (TH - TOP - 3) | 0, cs = cores(y), len = 3 + r() * 7 | 0, lean = .5 + r() * .7;
-    let cor = cs[(r() * 3) | 0]; if (r() < .06 && y < TOP + 45) cor = '#eef2a8';   // fios com luz do pôr do sol
+    let cor = cs[(r() * 3) | 0]; if (r() < .06 && y < TOP + 45) cor = '#eef2a8';   // fios com o brilho do sol
     for (let k = 0; k < len; k++) P(Math.round(x + k * lean), y - k, cor);
   }
   for (let x = 0; x < TW; x++) { const h = 3 + r() * 9 | 0, lean = .3 + r() * .6, cor = ['#b7cf55', '#cfe06a', '#9fc04a', '#e3eb92'][(r() * 4) | 0]; for (let k = 0; k < h; k++) P(Math.round(x + k * lean), TOP + 3 - k, cor); }
@@ -3357,9 +3357,9 @@ function blocoMagibot(g, x0, yT, w, fundo, bordaE, bordaD, seed) {
   for (let y = yT - 8; y <= fundo; y += 2) g.lineTo(x0 + recuo(y, 0), y);
   for (let y = fundo; y >= yT - 8; y -= 2) g.lineTo(x0 + w - recuo(y, 1), y);
   g.closePath(); g.clip();
-  // frente: terra arroxeada na sombra do fim de tarde
+  // frente: terra marrom na sombra (meio da tarde; era arroxeada no fim de tarde)
   let gr = g.createLinearGradient(0, yT + 10, 0, fundo);
-  gr.addColorStop(0, '#5a3c42'); gr.addColorStop(.35, '#3a2630'); gr.addColorStop(1, '#0d080b');
+  gr.addColorStop(0, '#6a4a32'); gr.addColorStop(.35, '#432c1e'); gr.addColorStop(1, '#0e0906');
   g.fillStyle = gr; g.fillRect(x0, yT, w, fundo - yT);
   // terra do barranco (sem tijolos: é pasto): estrias verticais, manchas de musgo e pedrinhas soltas
   for (let x = x0; x < x0 + w; x += 2) {
@@ -3885,7 +3885,7 @@ function arvores() {
       for (const [bx, by, rr] of bolhas) bolha(bx, Math.min(by, fundo - rr), rr, '#2a4a24');
       for (const [bx, by, rr] of bolhas) bolha(bx - 6, Math.min(by, fundo - rr) - 8, rr * .8, '#3d6b2e');
       for (const [bx, by, rr] of bolhas) bolha(bx - 12, Math.min(by, fundo - rr) - 16, rr * .45, '#5a8f3a');
-      for (const [bx, by, rr] of bolhas.slice(0, 5)) bolha(bx + rr * .45, Math.min(by, fundo - rr) - rr * .3, rr * .22, '#a3b84a');   // luz do pôr do sol
+      for (const [bx, by, rr] of bolhas.slice(0, 5)) bolha(bx + rr * .45, Math.min(by, fundo - rr) - rr * .3, rr * .22, '#a3b84a');   // luz do sol no alto da copa
     } else
     // galhos secos no alto do tronco
     for (let i = 0; i < 3; i++) {
@@ -3977,9 +3977,9 @@ function drawWorld() {
   const C = FASE.cores, chao = layer(FASE.fundo, 'chao');
   if (chao && !groundPattern) groundPattern = ctx.createPattern(chao, 'repeat');
   const AR = arvores();
-  if (PASTO) {   // neblina quente entre o fundo e a área do jogo (profundidade)
+  if (PASTO) {   // névoa clara do dia entre o fundo e a área do jogo (profundidade); era quente no fim de tarde
     const gr = ctx.createLinearGradient(0, 180, 0, GROUND + 20);
-    gr.addColorStop(0, 'rgba(255,196,160,0)'); gr.addColorStop(.6, 'rgba(255,190,150,.16)'); gr.addColorStop(1, 'rgba(255,200,150,.30)');
+    gr.addColorStop(0, 'rgba(225,240,250,0)'); gr.addColorStop(.6, 'rgba(225,240,250,.14)'); gr.addColorStop(1, 'rgba(235,245,250,.26)');
     ctx.fillStyle = gr; ctx.fillRect(0, 180, W, GROUND + 20 - 180);
     if (ESTILO === 'magibot') {   // fundo claro e enevoado, num tom quente só: o plano do jogo se destaca
       // (2026-11-21, Erick: "o fundo tá muito apagado... tira a neblina") sem véu e sem neblina
@@ -4264,10 +4264,12 @@ function luzes() {
   return L.filter(l => l[0] > -l[2] && l[0] < W + l[2] && l[1] > -l[2] && l[1] < H + l[2]);
 }
 function drawLuz() {
-  if (ESCURO <= 0 || typeof document === 'undefined') return;
+  if (params.has('semluz') || typeof document === 'undefined') return;
+  const L = luzes();
+  if (ESCURO > 0) {   // fase de dia (escuridão 0, como o pasto) pula o escuro, mas mantém os brilhos coloridos (gás, OVNI)
   const k = .5;
   if (!luzCv) { luzCv = document.createElement('canvas'); luzCv.width = W * k; luzCv.height = H * k; luzCtx = luzCv.getContext('2d'); }
-  const c = luzCtx, L = luzes();
+  const c = luzCtx;
   c.globalCompositeOperation = 'source-over';
   c.clearRect(0, 0, luzCv.width, luzCv.height);
   c.fillStyle = `rgba(6,3,14,${ESCURO})`; c.fillRect(0, 0, luzCv.width, luzCv.height);
@@ -4278,6 +4280,7 @@ function drawLuz() {
     c.fillStyle = g; c.fillRect((x - r) * k, (y - r) * k, 2 * r * k, 2 * r * k);
   }
   ctx.drawImage(luzCv, 0, 0, W, H);
+  }
   ctx.save(); ctx.globalCompositeOperation = 'lighter';
   for (const [x, y, r, cor, forca] of L) {
     if (!cor || forca < .45) continue;   // brilho colorido só nas luzes fortes (custa caro)

@@ -10,7 +10,7 @@ window.BESTIARIO = [
     d: 'Insetos de brasa que voam em volta das árvores mortas. O abdômen brilha como carvão aceso e ilumina a noite da floresta.',
     at: ['Ferroada em brasa'] },
   { id: 'besouro', nome: 'Besouro-chifrudo', tipo: 'inimigo', sprite: 'inimigos/besouro',
-    d: 'Besouros enormes do pasto, mais altos que um pulo, com dois chifres e a carapaça brilhando ao pôr do sol. Não atacam ninguém: só andam no meio do mato alto. Quem encosta leva um empurrão que quase derruba. Quem bate leva uma investida... e quem insiste não levanta mais.',
+    d: 'Besouros enormes do pasto, mais altos que um pulo, com dois chifres e a carapaça brilhando ao sol da tarde. Não atacam ninguém: só andam no meio do mato alto. Quem encosta leva um empurrão que quase derruba. Quem bate leva uma investida... e quem insiste não levanta mais.',
     at: ['Empurrão (1 de vida)', 'Investida (1 de vida; na segunda, fatal)'] },
   { id: 'pombo', nome: 'Pombo bravo', tipo: 'inimigo', sprite: 'inimigos/pombo',
     d: 'Pombos de pescoço furta-cor que rondam o pasto. Parece que perderam as penas para alguém... e estão de mau humor por causa disso.',

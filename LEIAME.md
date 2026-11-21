@@ -433,7 +433,7 @@ Pessoal (família).
   mapa. Partiu de um rascunho que apareceu no projeto em 2026-11-15 (fora desta série de sessões, não
   commitado) com a ideia "atacar ou esperar": o rascunho não funcionava (o `jogo.js` não compilava, o
   chefe chamava funções que não existem e a fase não tinha cenário) e foi refeito no padrão do Boitatá.
-  - **Fase:** fim de tarde (escuridão 0,3), 10 telas, 3 altares (80, 4.250 e 8.300), 6 buracos de 110 a
+  - **Fase:** meio da tarde com sol (escuridão 0; era fim de tarde com 0,3 até 2026-11-21), 10 telas, 3 altares (80, 4.250 e 8.300), 6 buracos de 110 a
     130 px, 8 árvores vivas de copa redonda como plataformas, baú no galho alto (x 5.960, mesmo jeito
     do da floresta: só pulando do galho de 282), 7 **cardos** no lugar do chão em chamas
     (`perigoTipo: 'cardo'`), 8 **besouros-chifrudos** (patrulha) e 7 **pombos bravos** (voo). Sem sala
@@ -488,7 +488,7 @@ Para retomar numa sessão nova, comece por aqui (e leia as seções citadas para
 - Laboratório da cobra (`jogo/laboratorio/cobra.html`) para editar poses; "Copiar poses" gera o
   texto que vai para `chefe.esqueleto`. Poses do Erick em `jogo/laboratorio/poses/`.
 - Bestiário com ??? até o encontro e contador de derrotados; locais bloqueados sem spoiler.
-- **Fase da Vaca (2026-11-15)**, liberada no mapa: o pasto ao pôr do sol e a Ageláda (terremoto, gás
+- **Fase da Vaca (2026-11-15)**, liberada no mapa: o pasto (meio da tarde desde 2026-11-21; antes, pôr do sol) e a Ageláda (terremoto, gás
   mortal, cansaço ou PS, abdução pelo OVNI e dog tag dourada). Tudo desenhado pelo jogo até chegar a
   arte (seção "Fase da Vaca").
 
@@ -543,7 +543,8 @@ recorte em magenta `#FF00FF`, porque o recorte verde apaga o verde da arte.
 - Copa (`arvore_copa`, peça nova): a ferramenta tira o toco de tronco de baixo, deixa as folhas
   opacas e reduz para 190 px de largura (380 na tela). O jogo põe a copa 24 px acima do galho mais
   alto da árvore e corta o tronco dentro dela. O Boitatá não muda (sem copa).
-- Sol do céu: `luaNoCeu: [0.80, 0.57]` na fase (a luz do fim de tarde vem dele).
+- Sol do céu: `luaNoCeu: [0.78, 0.16]` na fase (sol alto do meio da tarde; era `[0.80, 0.57]` no
+  pôr do sol). Conferir quando chegar o `ceu` novo.
 - **Ajustes do Erick (2026-11-20, 2ª rodada):** copa nova sem tronco (prompt atualizado na 4.12).
   Árvores maiores: ajuste `fundos/vaca/arvore` no `ajustes.json` (`tronco` 56, `galho` 15, `copa` 260
   px da arte; sem ele vale o padrão 40/12/190, o do Boitatá). No pasto a raiz faz parte da árvore
@@ -734,6 +735,21 @@ recorte em magenta `#FF00FF`, porque o recorte verde apaga o verde da arte.
     3100, pedra 3600. Se uma imagem for regerada com outro tamanho, medir os pisos de novo.
     **Tela de teste:** `?fase=vaca&limpo` tira bichos, árvores, buracos, baús e perigos (só o chão e
     o herói), para acertar o piso e a transição com o fundo.
+  - **Meio da tarde (2026-11-21, pedido do Erick):** a cena da vaca passou do pôr do sol para o
+    **meio da tarde, com sol**. O caderno não diz a hora (p. 17); o pôr do sol veio do prompt da
+    pintura do local (nº 08 de `03-prompts-imagens.md`), e a cena seguinte (p. 18, a noite e o
+    pesadelo) começa "finalmente está escurecendo", então a vaca tem que ser mais cedo. No código:
+    `escuridao` 0 (`drawLuz` agora pula o escuro quando a escuridão é 0 mas mantém os brilhos
+    coloridos do gás e do OVNI; o Boitatá não muda), névoa clara e azulada no lugar da névoa quente
+    (`drawWorld` e o cenário de reserva), cenário de reserva com céu azul, sol alto e nuvens brancas
+    (`FASE.cores` e `fundoPasto`), terra do barranco de reserva em marrom (era arroxeada), sol em
+    `luaNoCeu: [0.78, 0.16]`, besouro do bestiário "brilhando ao sol da tarde". **Falta a arte:** as
+    imagens de `fundos/vaca/` (céu roxo e laranja, luz dourada da direita) e a pintura do local
+    `web/locais/08-...jpg` continuam do pôr do sol até serem refeitas com os prompts da seção **4.14**
+    de `04-prompts-sprites.md` (prioridade 1: `ceu`, `longe`, `perto`; 2: `prado`, `capim`,
+    árvores; 3: reiluminar objetos e chão se ficarem laranja). Não foi testado na tela nesta
+    sessão (só a checagem de sintaxe): conferir `?fase=vaca&play&boss&x=8800` (OVNI e gás) e o
+    pasto aberto.
   - **Correções (2026-11-20):** o campo pintado acabava antes do pé da tela e aparecia uma linha
     marrom do fundo (agora há um fundo `#13282b` embaixo da imagem); os buracos viraram valas escuras
     desde a beirada, com as duas beiradas do campo arredondadas e quebradas (`beira` no `piso`, iguais
@@ -747,6 +763,7 @@ recorte em magenta `#FF00FF`, porque o recorte verde apaga o verde da arte.
 - Próxima fase: Mula sem cabeça (ficha em `fases.js`, módulo novo em `CHEFES`, arte no Gemini e no
   PixelLab, texto da placa, ativar em `mapa.js`). A Vaca serve de modelo de fase sem imagens.
 - Pendências pequenas: tirar o disco voador do pasto na imagem do mapa (adiado).
+- **Pasto no meio da tarde:** gerar as imagens novas (seção 4.14 dos prompts), começando pelo céu.
 
 ## Futuro: Godot e lojas (estudo de 2026-11-08, nada decidido)
 

@@ -148,11 +148,12 @@ window.FASES = {
   },
 
   vaca: {
-    // O pasto da Vaca (2026-11-15): fim de tarde, 10 telas como a do Boitatá, 3 altares, árvores vivas
+    // O pasto da Vaca (2026-11-15): meio da tarde com sol (Erick, 2026-11-21: a noite e o pesadelo vêm
+    // depois, então aqui ainda é dia claro), 10 telas como a do Boitatá, 3 altares, árvores vivas
     // como plataformas, cardos no lugar do chão em chamas, besouros e pombos. Sem sala secreta por
     // enquanto. Cenário desenhado pelo jogo até chegarem as imagens de fundos/vaca (ver prompts).
     tema: 'pasto',
-    escuridao: 0.3,   // fim de tarde: um pouco escuro, o sol baixo ilumina
+    escuridao: 0,   // meio da tarde, sol alto: sem escuridão (era 0,3 no fim de tarde)
     placa: {
       titulo: 'Ageláda',
       subtitulo: 'A vaca sagrada',
@@ -164,12 +165,13 @@ window.FASES = {
     descricao: '"Em sua frente tem uma vaca com pequenas asas de pombo brancas. Ela não deixa vocês passarem. Ela muge."',
     fonte: 'do caderno da Milena, página 17',
 
-    cores: { ceu: ['#2e2450', '#7a4a7e', '#e0805a', '#f7c47a'], nuvem: ['#9a5a7e', '#f0a070'],
-      morroLonge: ['#5e4a80', '#7d64a0'], colina: ['#3b4f4c', '#55705a', '#4a6a48', '#2e423a'],
+    // meio da tarde: céu azul que clareia perto do horizonte, nuvens brancas, morros longe azulados
+    cores: { ceu: ['#3f86d6', '#6aa8e6', '#9ccbf0', '#d6ecf7'], nuvem: ['#ffffff', '#c9dcec'],
+      morroLonge: ['#7fa6b8', '#9dbccb'], colina: ['#4f7a4a', '#6a9a58', '#5a8a46', '#3a5e36'],
       pasto: ['#4a7034', '#6a9a46', '#5a8a3c', '#34522a'], folhaLuz: '#a3b84a', cerca: '#4a3424',
       chao: '#5e412c', chaoTopo: '#8cc152' },
     fundo: 'fundos/vaca',
-    luaNoCeu: [0.80, 0.57],   // o sol baixo na imagem do céu (a luz do fim de tarde vem dele)
+    luaNoCeu: [0.78, 0.16],   // o sol alto na imagem do céu (meio da tarde). Conferir quando chegar o céu novo
 
     fim: 9600,
     // 7 trechos de chão e 6 buracos (110 a 130 px): o pasto é mais aberto que a floresta

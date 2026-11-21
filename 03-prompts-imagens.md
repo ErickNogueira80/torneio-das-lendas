@@ -103,10 +103,14 @@ intensely that it is almost blinding. Mood: magical, cheerful, suspicious.
 ### 08. O pasto da vaca e o OVNI (p. 17)
 
 ```
-A huge open pasture at sunset. A cow with small white pigeon wings is being lifted into the
-sky by a green tractor beam coming from a classic flying saucer UFO above. Four adventurers
+A huge open green pasture on a bright sunny mid-afternoon, clear blue sky with a few fluffy
+white clouds, the sun high in the sky. A cow with small white pigeon wings is being lifted into
+the sky by a green tractor beam coming from a classic flying saucer UFO above. Four adventurers
 below stare in disbelief. Mood: absurd and funny, a totally random event.
 ```
+
+(2026-11-21: a primeira versão dizia *at sunset*, mas o caderno não fala a hora e a cena seguinte,
+p. 18, é o anoitecer; a vaca fica no meio da tarde. A imagem atual do site ainda é a do pôr do sol.)
 
 ### 09. A caverna à noite (p. 18)
 
