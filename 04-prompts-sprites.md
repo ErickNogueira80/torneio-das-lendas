@@ -1609,39 +1609,37 @@ left and right edges of the image must stay exactly as in the original. Keep the
 background above the grass. Same aspect ratio as the attached image.
 ```
 
-### Besouro gigante (2026-11-21)
+### Besouro gigante no PixelLab (2026-11-21)
 
-Pintura lisa, de dia, como os objetos (o prompt antigo da seção 4.12 era do PixelLab, em pixel art). O
-Gemini não faz animação: são **duas imagens na mesma conversa** (a segunda pede "o mesmo besouro",
-sem anexo), e o jogo anima por código (passo balançando, cabeça baixa na investida). No jogo ele ocupa
-~156 x 144 px, mais alto que o pulo. Salvar em `img/sprites/inimigos/besouro/` como
-`besouro_andar.jpg` e `besouro_investida.jpg`.
+O Erick quer o besouro no **PixelLab** (pixel art, como o herói; o cenário liso fica atrás). Personagem
+novo (Create Character), **vista lateral, direção East** (o jogo espelha). Tamanho: no jogo ele ocupa
+~156 x 144 px e o herói (56 px no PixelLab) aparece no dobro; para a mesma densidade de pixel, criar com
+**~80 px** (se o PixelLab não aceitar, 64 px e o jogo amplia um pouco mais). Cores de dia (o prompt antigo
+da seção 4.12 era para o fim de tarde).
 
-**1. `besouro_andar`**
-
-```
-Create an image. A giant hercules beetle for a 2D side-scrolling game, seen exactly from the side,
-facing right, standing on its six legs. A calm and majestic gentle giant, not angry: a big round
-shiny shell in deep blue-black with soft blue and green reflections where the sun hits the top, a
-long curved horn rising high from the thorax and curving forward over the head, a smaller upturned
-horn on the head, small kind yellow eyes, six sturdy dark legs with little spikes, all six legs
-clearly separated and visible. The whole beetle is taller than it is wide because of the big horn.
-NO ground, NO grass, NO shadow under it; the feet end in a straight line at the bottom. Plain solid
-#FF00FF magenta background everywhere around it. Painterly hand-painted 2D game art with soft
-visible brush strokes and rich detailed texture (not flat, not vector, not pixel art), like a cozy
-modern fantasy indie platformer. Sunny mid-afternoon: bright neutral daylight from high above, light
-highlights on the top of the shell, short cool shadows underneath. No orange, no pink, no purple, no
-golden sunset tones. No text. Square image, aspect ratio 1:1.
-```
-
-**2. `besouro_investida`** (na mesma conversa, logo depois)
+**Descrição (criação do personagem):**
 
 ```
-Now the SAME beetle from the previous image, same colors, same size, same style and same magenta
-background, in a charging pose: head and both horns lowered and pointing forward, body leaning
-forward, legs in a running stride. Still seen exactly from the side, facing right. NO ground, NO
-shadow. Square image, aspect ratio 1:1.
+Giant hercules beetle, calm and majestic gentle giant, not angry. Big round shiny shell in deep
+blue-black with soft blue and green reflections on top, a long curved horn rising high from the
+thorax and curving forward over the head, a smaller upturned horn on the head, small kind yellow
+eyes, six sturdy dark legs with little spikes, all six legs clearly visible. Taller than wide
+because of the big horn. Side view. Bright daylight colors, rich readable silhouette, 16-bit
+detailed pixel art, same style as a 56 px fantasy RPG hero.
 ```
+
+**Animações** (só East). O esqueleto pronto (*Skeleton v3*) é de gente; para o besouro usar a animação
+por descrição de texto:
+
+| Jogo | Quadros | Descrição |
+|---|---|---|
+| `andar` | 6–8 | `Walking slowly and heavily to the right, six legs moving in turn, body gently bobbing, horn steady.` |
+| `preparar` | 3–4 | `Lowering its head and horns, scraping the ground with a front leg, getting ready to charge.` |
+| `investida` | 4–6 | `Charging forward fast, head down, horns pointing forward, legs running.` |
+
+Baixar em PNG (folha ou quadros soltos, fundo transparente) e, se der, o GIF. Salvar em
+`img/sprites/inimigos/besouro/` como `andar_folha.png`, `preparar_folha.png`, `investida_folha.png` (ou
+como vier; a ferramenta se ajusta). Com só `andar` o jogo já troca o desenho provisório.
 
 ### Pintura do local (site e tela de título da fase)
 
