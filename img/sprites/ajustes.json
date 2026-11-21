@@ -80,15 +80,18 @@
   "corteTopo": 0.29
  },
  "fundos/vaca/perto": {
-  "emendar": 0.12,
   "semPixel": true,
   "altura": 430,
-  "bordaDura": true
+  "bordaDura": true,
+  "bordaCor": 3,
+  "semMagenta": 12
  },
  "fundos/vaca/longe": {
   "semPixel": true,
   "altura": 400,
-  "bordaCor": 3
+  "bordaCor": 3,
+  "semMagenta": 12,
+  "semCinza": 150
  },
  "fundos/vaca/capim": {
   "emendar": 0.12
@@ -109,7 +112,9 @@
   "aplainar": 1.0,
   "tirarClaros": 200,
   "semPixel": true,
-  "altura": 240
+  "altura": 240,
+  "fecharBuracos": true,
+  "corteTopo": 0.4
  },
  "fundos/vaca/bloco_chao": {
   "corteTopo": 0.26,

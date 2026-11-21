@@ -718,6 +718,15 @@ def preparar_fundo(pasta: Path, ajustes: dict) -> dict | None:
                 im = cortar(im)
             if aj.get("tirarClaros"):   # fundo claro (branco): limpa o fio que sobra na borda
                 im = tirar_claros(im, int(aj["tirarClaros"]))
+            if aj.get("fecharBuracos"):   # (2026-11-21) flor branca no meio do capim não é fundo: só some o que fica acima do capim
+                a = np.asarray(im).copy(); solido = a[:, :, 3] >= 128; h = a.shape[0]; n = 15
+                cheio = np.ones_like(solido)   # linha y e as n seguintes todas opacas
+                for k in range(n): cheio[:h - k] &= solido[k:]
+                cheio[h - n:] = False
+                ini = np.where(cheio.any(axis=0), cheio.argmax(axis=0), h)
+                abaixo = np.arange(h)[:, None] >= ini[None, :]
+                a[:, :, 3] = np.where(abaixo, 255, a[:, :, 3])
+                im = Image.fromarray(a, "RGBA")
             if aj.get("aplainar"):   # luz igual de um lado ao outro (a camada se repete)
                 im = aplainar_luz(im, float(aj["aplainar"]))
             if fundo_verde:   # tira o halo verde que sobra nas bordas (o fundo verde exige arte sem verde)
@@ -750,6 +759,23 @@ def preparar_fundo(pasta: Path, ajustes: dict) -> dict | None:
                 m |= (a[:, :, 0] > a[:, :, 1] + 50) & (a[:, :, 2] > a[:, :, 1] + 50)
             a[:, :, 0] = np.where(m, a[:, :, 0] - exc, a[:, :, 0]); a[:, :, 2] = np.where(m, a[:, :, 2] - exc, a[:, :, 2])
             im = Image.fromarray(np.clip(a, 0, 255).astype(np.uint8), "RGBA")
+            if aj.get("semMagenta"):   # (2026-11-21, pasto de dia: não há rosa nem roxo na arte) o que puxa para magenta é fundo
+                # pega a cor dos vizinhos (apagar deixava furinhos na beira dos morros); o alfa fica
+                a = np.asarray(im).astype(np.float32); r, g_, b = a[:, :, 0], a[:, :, 1], a[:, :, 2]; lim = int(aj["semMagenta"])
+                ruim = (r > g_ + lim) & (b > g_ + lim) & (a[:, :, 3] > 0)
+                if aj.get("semCinza"):   # morros claros: o cinza-arroxeado escuro que o magenta deixou nos vales também
+                    ruim |= (a[:, :, 3] > 0) & ((r + g_ + b) / 3 < float(aj["semCinza"])) & (g_ <= r + 8)
+                    ruim |= (a[:, :, 3] > 0) & (b > g_ + 20) & (r >= g_ - 12)   # e o lilás (magenta com o azul da névoa)
+                tem = (a[:, :, 3] > 0) & ~ruim
+                cor = np.where(tem[:, :, None], a[:, :, :3], 0)
+                for _ in range(40):
+                    if not (ruim & ~tem).any(): break
+                    soma = np.zeros_like(cor); n = np.zeros(tem.shape, np.float32)
+                    for dy, dx in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+                        t = np.roll(np.roll(tem, dy, 0), dx, 1); soma += np.where(t[:, :, None], np.roll(np.roll(cor, dy, 0), dx, 1), 0); n += t
+                    novo = ruim & ~tem & (n > 0); cor[novo] = soma[novo] / n[novo][:, None]; tem |= novo
+                a[:, :, :3] = np.where((ruim & tem)[:, :, None], cor, a[:, :, :3])
+                im = Image.fromarray(a.clip(0, 255).astype(np.uint8), "RGBA")
             if aj.get("bordaCor"):   # a borda (N px) pega a cor de dentro: some o fio cinza que o magenta deixa na crista
                 a = np.asarray(im).astype(np.float32); op = a[:, :, 3] >= 250; den = op.copy()
                 for _ in range(int(aj["bordaCor"])):

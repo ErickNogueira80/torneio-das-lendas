@@ -732,6 +732,12 @@ recorte em magenta `#FF00FF`, porque o recorte verde apaga o verde da arte.
     rodas e do lado esquerdo da pedra). O brilho de sol e os anéis de lente do lado direito do `perto`
     Meio da tarde (2026-11-21): originais do pôr do sol copiados para `img/sprites/fundos/vaca/por_do_sol/`
     (fora do git); prompts novos sem anexo na seção 4.14 de `04-prompts-sprites.md`.
+    Chegaram `ceu`, `longe`, `perto` e `prado` de dia (2026-11-21). Ajustes: `prado` com `corteTopo` 0,4
+    (a imagem veio com muito branco em cima) e `fecharBuracos` (flor branca no meio do capim não vira
+    buraco: só some o que fica acima do capim); `perto` sem `emendar` (a imagem já se repete) e com
+    `bordaCor` 3; `longe` e `perto` com `semMagenta` 12 (o que puxa para rosa pega a cor dos vizinhos) e
+    `longe` com `semCinza` 150 (cinza-arroxeado e lilás que o magenta deixou nos vales). Árvores-plataforma
+    e objetos ainda são do pôr do sol.
     estão pintados na imagem (não saem por ajuste).
     Tela `?limpo`: feno 500, cerca 900, buraco 1600–1740, pilha de feno 2000, carroça 2500, tronco
     3100, pedra 3600. Se uma imagem for regerada com outro tamanho, medir os pisos de novo.
