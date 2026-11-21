@@ -704,6 +704,10 @@ recorte em magenta `#FF00FF`, porque o recorte verde apaga o verde da arte.
     no gramado); limpeza do topo do gramado só no rosa de verdade (a anterior abria buracos); boca do
     buraco com cantos de cima em curva e lábio da frente do gramado arredondado, terra irregular; limpeza
     do rosa dos objetos mais forte (contorno em 2 passadas; `semRosa` puxa o rosado para marrom).
+    **Chão sem pixel art (2026-11-21, Erick):** `bloco_chao` trocado por uma variação nova do Gemini
+    (a anterior guardada como `bloco_chao_antigo_21-11.jpg`, fora do git) e processado **liso**: ajustes
+    `semPixel` (só reduz, sem paleta) e `altura` 200 (desenhado em 1:1; a escala no jogo é
+    `200 / naturalHeight`). O resto da tela continua em pixel art. A ponta direita ainda é amarelada.
     Tela `?limpo`: feno 500, cerca 900, buraco 1600–1740, pilha de feno 2000, carroça 2500, tronco
     3100, pedra 3600. Se uma imagem for regerada com outro tamanho, medir os pisos de novo.
     **Tela de teste:** `?fase=vaca&limpo` tira bichos, árvores, buracos, baús e perigos (só o chão e

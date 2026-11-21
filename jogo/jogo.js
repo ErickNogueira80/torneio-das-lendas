@@ -3636,7 +3636,9 @@ function piso() {
         for (let y = alt; y >= topo; y -= 2) g.lineTo(q2(x0 + (bE ? rec(y, x0) : 0)), y);
         g.closePath(); g.clip();
         g.fillStyle = '#0d080b'; g.fillRect(x0, topo + 190 + CHAO_EXTRA * 2, x1 - x0, alt);
-        g.save(); g.translate(0, topo); g.scale(2, 2); g.fillStyle = g.createPattern(bcL, 'repeat-x'); g.fillRect(x0 / 2 - 2, 0, (x1 - x0) / 2 + 4, bcL.height); g.restore();
+        const ez = 200 / bc.naturalHeight;   // a arte cobre 200 px de altura na tela (pixel art 100 linhas no dobro; lisa 200 linhas)
+        g.save(); g.translate(0, topo); g.scale(ez, ez); g.imageSmoothingEnabled = ez > 1.5 ? false : true;
+        g.fillStyle = g.createPattern(bcL, 'repeat-x'); g.fillRect(x0 / ez - 2, 0, (x1 - x0) / ez + 4, bcL.height); g.restore();
         g.globalCompositeOperation = 'source-atop';   // as sombras só pintam o que já é chão
         for (const [lado, xb] of [[bE, x0], [bD, x1]]) {   // a terra escurece chegando na ponta
           if (!lado) continue;

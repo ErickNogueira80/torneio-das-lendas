@@ -735,9 +735,12 @@ def preparar_fundo(pasta: Path, ajustes: dict) -> dict | None:
             if meta:
                 metas[nome] = meta
         else:
-            alvo = FUNDO_ALTURA[re.sub(r"\d+$", "", nome)]
+            alvo = int(aj.get("altura", FUNDO_ALTURA[re.sub(r"\d+$", "", nome)]))
             largura = max(1, round(im.width * alvo / im.height))
-        im = pixelizar(im, largura, alvo, int(aj.get("cores", FUNDO_CORES)))
+        if aj.get("semPixel"):   # pintura lisa (Erick, 2026-11-21: chão sem pixel art): só reduz, sem paleta
+            im = im.convert("RGBA").resize((largura, alvo), Image.LANCZOS)
+        else:
+            im = pixelizar(im, largura, alvo, int(aj.get("cores", FUNDO_CORES)))
         if nome.startswith("arvore_") and not fundo_verde_arvore(arq):
             # peças da árvore com recorte magenta: casca e folhas não têm roxo, então qualquer tom
             # arroxeado que sobrou é resto do fundo (contorno e buracos da copa)
