@@ -730,6 +730,8 @@ recorte em magenta `#FF00FF`, porque o recorte verde apaga o verde da arte.
     o escuro some mais rápido que o claro): pedra 0,55, carroça 0,35, tronco 0,45, feno 0,25, pilha de
     feno 0,2. Pedra e carroça com `baseForte` (o escuro já some no começo da faixa: moitas escuras das
     rodas e do lado esquerdo da pedra). O brilho de sol e os anéis de lente do lado direito do `perto`
+    Meio da tarde (2026-11-21): originais do pôr do sol copiados para `img/sprites/fundos/vaca/por_do_sol/`
+    (fora do git); prompts novos sem anexo na seção 4.14 de `04-prompts-sprites.md`.
     estão pintados na imagem (não saem por ajuste).
     Tela `?limpo`: feno 500, cerca 900, buraco 1600–1740, pilha de feno 2000, carroça 2500, tronco
     3100, pedra 3600. Se uma imagem for regerada com outro tamanho, medir os pisos de novo.

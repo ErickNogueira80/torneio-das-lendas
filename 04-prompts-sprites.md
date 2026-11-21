@@ -1385,174 +1385,100 @@ Quando chegar: o Claude processa, mede de novo a faixa de capim (linhas do topo 
 
 ## 4.14 Pasto no meio da tarde, com sol (Gemini) — 2026-11-21
 
-**Por que mudou:** o caderno não diz a hora da cena da vaca (p. 17). O pôr do sol nasceu no prompt da
-pintura do local (`03-prompts-imagens.md`, nº 08) e passou para a fase. Mas a página seguinte (p. 18,
-"A noite e o pesadelo") começa com "finalmente está escurecendo", então o pasto precisa ser **mais
-cedo: meio da tarde, sol alto, dia claro**. O Erick pediu a troca em 2026-11-21.
+**Por que mudou:** o caderno não diz a hora da cena da vaca (p. 17), e a página seguinte (p. 18, "A noite e o
+pesadelo") começa com "finalmente está escurecendo". Então o pasto é **meio da tarde, sol alto, dia claro**
+(Erick, 2026-11-21). O código já mudou (`escuridao: 0`, névoa clara, `luaNoCeu: [0.78, 0.16]`, conferir com o
+céu novo); faltam as imagens.
 
-**O que já mudou no jogo (código):** sem escuridão na fase (`escuridao: 0`; os brilhos do gás e do
-OVNI continuam), névoa clara e azulada no lugar da névoa quente, sol alto (`luaNoCeu: [0.78, 0.16]`,
-conferir com o céu novo) e o cenário de reserva (desenhado pelo jogo) em céu azul com nuvens brancas.
-As **imagens** de `img/sprites/fundos/vaca/` continuam com a luz do pôr do sol até serem refeitas.
+**Regras (Erick, 2026-11-21):**
+- **Sem anexar imagem.** Anexo puxou o tom errado mais de uma vez. Cada prompt descreve tudo por escrito e
+  repete o mesmo trecho de estilo e de luz, para as peças combinarem entre si.
+- **Luz igual da esquerda à direita, sem brilho de sol nas camadas** (o sol fica só no céu). O brilho pintado
+  no `perto` antigo e o lado amarelo do `bloco_chao` não saem por ajuste.
+- **Sem pixel art por enquanto:** as peças entram lisas (`semPixel` em `img/sprites/ajustes.json`).
+- **Backup:** os originais do pôr do sol estão em `img/sprites/fundos/vaca/por_do_sol/`. A pasta
+  `img/sprites/fundos/` **não vai para o git**: sem essa cópia, salvar por cima perde o original.
 
-**A luz do meio da tarde (vale para todas as peças):** sol alto vindo **de cima e um pouco da
-direita**, luz clara e levemente quente (amarelo-claro, nunca laranja nem rosa), sombras curtas e
-azuladas, verdes vivos e frescos, ar limpo com um pouco de névoa azul só nos morros de longe. Nada de
-roxo, rosa, laranja ou estrelas. Os prompts antigos (seções 4.12 e 4.13) dizem *sunset* ou
-*late-afternoon*: **use os desta seção no lugar**.
+**Ordem:** primeiro os quatro abaixo (céu, morros, perto, prado). Salvar com o mesmo nome em
+`img/sprites/fundos/vaca/` (JPG). Depois, com eles no jogo, o Claude manda os das árvores e, se algum objeto
+ficar alaranjado ao lado, os dos objetos.
 
-**Ordem:** céu primeiro (sem anexar a pintura do local, que é do pôr do sol); depois `longe` e `perto`
-com o céu novo anexado; depois o resto com o `perto` novo anexado. Salvar com o mesmo nome em
-`img/sprites/fundos/vaca/` (os antigos ficam no git).
-
-### Prioridade 1: o que define a hora do dia
-
-**`fundos/vaca/ceu`** (16:9)
+**`ceu`** (o céu; 16:9)
 
 ```
-Create an image. 2D side-scrolling game background layer, peaceful countryside pasture on a
-sunny mid-afternoon, painterly style matching a fantasy RPG, seamless horizontally tileable (the
-left and right edges must match), no characters, no animals, no text.
-Wide 16:9 image. Only the SKY: clear bright blue, a deeper saturated blue at the top fading to a
-soft pale blue, almost white, near the horizon. A bright white-yellow sun HIGH in the sky, in the
-upper part of the right third of the image, with a soft glow around it. A few big fluffy white
-cumulus clouds with soft light-grey and pale blue shading underneath, lit from above. No orange,
-no pink, no purple, no stars. No ground, no hills, no trees.
+Create an image. The sky layer of a 2D side-scrolling game background, sunny mid-afternoon over a
+peaceful countryside. Only SKY: clear bright blue, deeper blue at the top fading to a soft pale
+blue, almost white, near the bottom. A small bright white-yellow sun HIGH in the sky, in the upper
+part of the right third, with a small soft halo. Four or five big fluffy white cumulus clouds spread
+across the whole width, lit from above, with soft light-grey and pale blue shading underneath.
+Painterly hand-painted 2D game art with soft visible brush strokes, like a cozy modern fantasy indie
+platformer. The left and right edges must match so it repeats seamlessly. No ground, no hills, no
+trees, no birds, no orange, no pink, no purple. Wide image, aspect ratio 16:9.
 ```
 
-**`fundos/vaca/longe`** (21:9; anexar o céu novo)
+**`longe`** (morros de longe; 21:9)
 
 ```
-Create an image. 2D side-scrolling game background layer, peaceful countryside pasture on a
-sunny mid-afternoon, painterly style matching a fantasy RPG, seamless horizontally tileable (the
-left and right edges must match), no characters, no animals, no text.
-Same palette and light as the attached sky.
-Very wide 21:9 image. Only DISTANT rolling hills in two rows: far hazy blue-green hills fading
-into the pale sky, and in front of them soft green hills with small round trees, bright daylight
-from above, short soft shadows, flat bottom edge, on a plain solid #FF00FF magenta background
-(the sky area must be pure magenta). No orange or pink light.
+Create an image. The far background layer of a 2D side-scrolling game: DISTANT rolling hills of a
+peaceful countryside, in two rows. The back row: big soft hills in hazy pale blue-green, fading into
+a light blue mist at their base. The front row: lower rounded green hills with small round trees
+scattered on them, in soft muted greens slightly lighter at the hilltops. A little light blue haze
+between the rows. The bottom of the image is a flat band of dark green. The hill tops have a clean
+soft edge against the background. Painterly hand-painted 2D game art with soft visible brush strokes
+and rich detailed texture (not flat, not vector, not pixel art), like a cozy modern fantasy indie
+platformer. Sunny mid-afternoon: bright neutral daylight from high above, equally bright from the
+left edge to the right edge (no sun glow, no light rays, no lens flare, no bright or dark spot on
+either side), fresh vivid greens with light yellow-green highlights on the tops, short cool blue-
+green shadows underneath. No orange, no pink, no purple, no golden sunset tones. No characters, no
+animals, no text. The left and right edges must match so it repeats seamlessly. Plain solid #FF00FF
+magenta background everywhere above the hills (the whole sky area pure flat magenta). Very wide
+image, aspect ratio 21:9.
 ```
 
-**`fundos/vaca/perto`** (21:9; anexar o céu novo)
+**`perto`** (morros perto, árvores e cercas; 21:9)
 
 ```
-Create an image. 2D side-scrolling game background layer, peaceful countryside pasture on a
-sunny mid-afternoon, painterly style matching a fantasy RPG, seamless horizontally tileable (the
-left and right edges must match), no characters, no animals, no text.
-Same palette and light as the attached sky.
-Very wide 21:9 image. Only CLOSER green meadow hills with a few big round leafy trees, tall
-grass tufts, small wildflowers and an old crooked wooden fence, sparse with big gaps. Bright
-afternoon sunlight from above and slightly from the right: fresh vivid greens, light yellow-green
-highlights on the tops of the trees and grass, short cool blue-green shadows under the trees.
-Flat bottom edge, on a plain solid #FF00FF magenta background (the sky area must be pure
-magenta). No orange or pink light.
+Create an image. The middle background layer of a 2D side-scrolling game: CLOSER green meadow hills
+of a peaceful countryside pasture. Gentle grassy slopes across the whole width, three or four big
+round leafy trees spread far apart (one small, the others big), old crooked wooden fences with
+broken rails running along the slopes, tall grass tufts and small white, yellow and blue
+wildflowers, big empty gaps of open sky between the trees. The trees have full rounded canopies of
+clustered leaf clumps, fresh green, light yellow-green on top, cool blue-green underneath, brown
+trunks. The grass at the bottom is denser and darker green. Painterly hand-painted 2D game art with
+soft visible brush strokes and rich detailed texture (not flat, not vector, not pixel art), like a
+cozy modern fantasy indie platformer. Sunny mid-afternoon: bright neutral daylight from high above,
+equally bright from the left edge to the right edge (no sun glow, no light rays, no lens flare, no
+bright or dark spot on either side), fresh vivid greens with light yellow-green highlights on the
+tops, short cool blue-green shadows underneath. No orange, no pink, no purple, no golden sunset
+tones. No characters, no animals, no text. The left and right edges must match so it repeats
+seamlessly. Plain solid #FF00FF magenta background everywhere above the hills and around the trees
+(the whole sky area pure flat magenta, no glow on it). Very wide image, aspect ratio 21:9.
 ```
 
-### Prioridade 2: peças grandes com a luz pintada
-
-**`fundos/vaca/prado`** (o chão do pasto no estilo do fundo; 4:1; anexar o `perto` novo e o
-`prado.jpg` atual)
+**`prado`** (o chão do pasto, onde o herói anda; 4:1)
 
 ```
-Create an image. Same flat meadow strip as the second attached image, same size, shape, texture
-and brush strokes, but repainted with the light of the first attached image: bright sunny
-mid-afternoon, fresh vivid greens, light yellow-green on the grass tips, darker cool blue-green
-toward the bottom. No orange, golden or pink tones. Plain solid #FF00FF magenta background where
-the original has it. Very wide image, aspect ratio 4:1.
+Create an image. A long flat strip of meadow ground for a 2D side-scrolling game, seen from the side
+and slightly from above, where the character walks. Thick wild grass all over with visible brush
+strokes: patches of lighter and darker green, clumps of long grass blades, little bushes and many
+tiny white, yellow, red and blue wildflowers; a few tall grass blades in the front at the bottom
+corners. The top edge is a ragged row of short grass blades. It gets a bit darker green toward the
+bottom. Painterly hand-painted 2D game art with soft visible brush strokes and rich detailed texture
+(not flat, not vector, not pixel art), like a cozy modern fantasy indie platformer. Sunny mid-
+afternoon: bright neutral daylight from high above, equally bright from the left edge to the right
+edge (no sun glow, no light rays, no lens flare, no bright or dark spot on either side), fresh vivid
+greens with light yellow-green highlights on the tops, short cool blue-green shadows underneath. No
+orange, no pink, no purple, no golden sunset tones. No characters, no animals, no text. The same
+colors and light on the left side and on the right side, so the left and right edges match and it
+repeats seamlessly. Plain solid white background above the grass. Very wide image, aspect ratio 4:1.
 ```
 
-**`fundos/vaca/capim`** (4:1; anexar o céu e o `perto` novos)
-
-```
-Create an image. 2D side-scrolling game layer, peaceful countryside pasture on a sunny
-mid-afternoon, painterly style matching a fantasy RPG, same palette and light as the attached
-images, no characters, no text.
-Very wide 4:1 image, seamless horizontally tileable (left and right edges must match). A wide band
-of a tall wild grass meadow seen from the side and slightly from above, painted with visible brush
-strokes: thousands of long grass blades all leaning to the right in the wind, fresh bright green
-with light yellow-green where the sun hits the top part of the field, a few pale strands catching
-the light, gradually darker green toward the bottom and finally deep blue-green shadow at the very
-bottom edge. NO soil, NO dirt, NO cut through the ground: only grass from top to bottom. The top
-edge is ragged with individual blades against a plain solid #FF00FF magenta background.
-```
-
-**Árvores (`arvore_tronco`, `arvore_copa`, `arvore_copa2`, `arvore_copa3`).** Gerar o tronco primeiro
-e anexá-lo nas copas, junto com o `perto` novo. A `arvore_raiz` e o `arvore_galho` só precisam ser
-refeitos se ficarem laranja ao lado do tronco novo (use o prompt de "reiluminar", abaixo).
-
-`arvore_tronco` (1:3)
-
-```
-Create an image. A straight vertical section of a big old living tree trunk from a peaceful
-countryside pasture, warm brown bark with deep vertical grooves, a few knots and small patches of
-green moss, bright daylight from above and slightly from the right (a soft light stripe on the
-right side, cool shadow on the left). Only the middle of the trunk: no roots, no branches, no
-leaves, no top. The top and bottom edges must match so the image can be repeated vertically
-(seamless vertical tile). Side view, straight and centered, plain solid #FF00FF magenta background
-on both sides, no shadow, no text. Painterly 2D game art style. Tall portrait image, aspect ratio 1:3.
-```
-
-`arvore_copa` (3:2; anexar o tronco novo e o `perto` novo)
-
-```
-Create an image. The round leafy crown of the same tree (same style as the trees in the attached
-background), seen from the side: a big full cloud-like canopy made of clustered round leaf clumps,
-fresh vivid green, light yellow-green on the TOP where the high afternoon sun hits, cool deep
-blue-green in the shadows underneath, a few small gaps. NO trunk and NO branches visible anywhere:
-the underside of the canopy is a continuous mass of shaded leaves (the game draws the trunk
-entering from below). Plain solid #FF00FF magenta background, no shadow, no text. Painterly 2D game
-art style. Wide image, aspect ratio 3:2.
-```
-
-`arvore_copa2` (3:2; anexar o tronco novo e o `perto` novo)
-
-```
-Create an image. A leafy tree crown in the same style as the round trees in the attached
-background image, but bigger and seen up close: a TALL OVAL canopy, a bit taller than wide, made
-of large rounded leaf clumps, fresh green with light yellow-green highlights on the top where the
-high afternoon sun hits and cool blue-green shadows at the bottom. NO trunk and NO branches
-visible: the underside is a continuous mass of shaded leaves. Plain solid #FF00FF magenta
-background, no shadow, no text. Painterly 2D game art style. Aspect ratio 3:2.
-```
-
-`arvore_copa3` (3:2; anexar o tronco novo e o `perto` novo)
-
-```
-Create an image. A leafy tree crown in the same style as the trees in the attached background
-image, seen up close: a WIDE UMBRELLA-SHAPED canopy, much wider than tall, with an uneven top made
-of three or four big rounded leaf clumps, olive and fresh green leaves (a darker, more olive tree
-than the others), bright on top in the high afternoon sun, darker shaded leaves underneath. NO
-trunk and NO branches visible. Plain solid #FF00FF magenta background, no shadow, no text.
-Painterly 2D game art style. Aspect ratio 3:2.
-```
-
-(A `frente` é silhueta escura com um fio de luz azul-esverdeado: serve de dia, não precisa refazer.)
-
-### Prioridade 3: objetos e chão do estilo Magibot (só se ficarem laranja)
-
-`feno`, `feno_pilha`, `cerca`, `carroca`, `tronco_caido`, `pedra`, `bloco_chao`, `bloco_beirada`, `chao`,
-`arvore_raiz`, `arvore_galho`: a forma continua boa, só a luz é do pôr do sol. Em vez de gerar do zero,
-**reiluminar** cada um: anexar a peça atual (primeira imagem) e o `perto` novo (segunda) e usar:
-
-```
-Create an image. Exactly the same object as the first attached image: same shape, same size, same
-outline, same details and same framing. Only change the lighting to match the second attached
-image: bright sunny mid-afternoon, light coming from above and slightly from the right, neutral
-light yellow highlights (no orange, no pink, no purple), short cool shadows, fresh colors. Earth
-and shadowed faces in natural cool brown instead of purple-brown. Plain solid #FF00FF magenta
-background where the original has it, no shadow, no text. Same aspect ratio as the first image.
-```
-
-Se o Gemini mudar a forma, acrescente "do not redraw, only recolor the light". Se nada ficar laranja
-ao lado dos fundos novos, estas peças podem ficar como estão.
+(A `frente` é silhueta escura e serve de dia; não precisa refazer.)
 
 ### Pintura do local (site e tela de título da fase)
 
 `web/locais/08-o-pasto-da-vaca-e-o-ovni.jpg` também é do pôr do sol. O prompt novo está em
-`03-prompts-imagens.md` (nº 08). Gerar como as outras pinturas do site e salvar com o mesmo nome.
-
-**Quando chegarem:** o Claude roda a ferramenta, confere o sol do céu novo (`luaNoCeu`) e vê se o
-`prado`, as copas e os objetos combinam; o que ainda destoar entra na prioridade 3.
+`03-prompts-imagens.md` (nº 08).
 
 ## 5. Ficha dos 3 heróis com constelação (para a Milena)
 
