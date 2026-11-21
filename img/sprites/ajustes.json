@@ -199,6 +199,7 @@
   "corteTopo": 0.4
  },
  "inimigos/besouro": {
-  "altura": 150
+  "altura": 150,
+  "suavizar": 2
  }
 }

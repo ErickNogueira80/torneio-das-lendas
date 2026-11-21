@@ -256,6 +256,17 @@ def separar_folha(img: Image.Image) -> list[Image.Image]:
     return pecas
 
 
+def scale2x(im: Image.Image) -> Image.Image:
+    """Scale2x (EPX): dobra a pixel art arredondando as quinas em degrau, sem borrar."""
+    a = np.asarray(im.convert("RGBA")); c = a.view(np.uint32)[:, :, 0]
+    p = np.pad(c, 1, mode="edge"); E = p[1:-1, 1:-1]; B = p[:-2, 1:-1]; H = p[2:, 1:-1]; D = p[1:-1, :-2]; F = p[1:-1, 2:]
+    e0 = np.where((D == B) & (B != F) & (D != H), D, E); e1 = np.where((B == F) & (B != D) & (F != H), F, E)
+    e2 = np.where((D == H) & (D != B) & (H != F), D, E); e3 = np.where((H == F) & (D != H) & (B != F), F, E)
+    o = np.empty((c.shape[0] * 2, c.shape[1] * 2), np.uint32)
+    o[0::2, 0::2] = e0; o[0::2, 1::2] = e1; o[1::2, 0::2] = e2; o[1::2, 1::2] = e3
+    return Image.fromarray(o.view(np.uint8).reshape(o.shape[0], o.shape[1], 4), "RGBA")
+
+
 def preparar_pixel(grupo: str, pasta: Path, ajustes: dict, gifs: list[Path]) -> dict | None:
     """Modo pixel: quadros dos GIFs sem redimensionar, caixa e âncora comuns."""
     from PIL import ImageSequence
@@ -270,6 +281,8 @@ def preparar_pixel(grupo: str, pasta: Path, ajustes: dict, gifs: list[Path]) -> 
         anims[anim] = quadros
     if not anims:
         return None
+    for _ in range(int(ajustes.get(chave, {}).get("suavizar", 0))):   # Scale2x: dobra a resolução com bordas lisas (pixels menores na tela)
+        anims = {k: [scale2x(q) for q in v] for k, v in anims.items()}
     # caixa comum a todos os quadros
     caixas = [np.where(np.asarray(q)[:, :, 3] > 0) for qs in anims.values() for q in qs]
     caixas = [(xs.min(), ys.min(), xs.max() + 1, ys.max() + 1) for ys, xs in caixas if len(xs)]

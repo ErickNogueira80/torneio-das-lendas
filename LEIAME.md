@@ -774,6 +774,11 @@ recorte em magenta `#FF00FF`, porque o recorte verde apaga o verde da arte.
     herói, usa `preparar` com a cabeça inclinando e tremendo (reforço por código, a animação do PixelLab
     mexe pouco) e `investida` na corrida. Regra igual: encostar ou a 1ª investida deixam com 1 de vida; a
     2ª investida (bateu de novo) mata. Tela `?limpo`: um besouro perto da pedra (caminho 3150–3740).
+    Besouro com `suavizar` 2 (Scale2x duas vezes na ferramenta: a pixel art fica 4x mais fina e com as
+    quinas arredondadas; o Erick achou os pixels grandes demais ao lado do herói). Solução de verdade, se
+    quiser: gerar no PixelLab num tamanho maior (o besouro ocupa ~45 px da tela de 108).
+    Vala: cada `prado_vala` vai só até o meio do caminho para a vala vizinha (a imagem tem ~1600 px e o
+    capim das pontas cobria o buraco ao lado, 2026-11-21).
     **Vala de terra** no lugar do buraco preto (escolha do Erick): imagem `vala_beirada` (lado direito;
     espelhada no esquerdo) em `valaBeirada()`; o capim dela encaixa no topo do prado, a terra começa logo
     abaixo da linha dos pés, a ponta do capim passa 8 px da beira da física e a parte de dentro some aos

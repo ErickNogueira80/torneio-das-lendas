@@ -3782,25 +3782,33 @@ function piso() {
   const pv = PASTO && prado && layer(FASE.fundo, 'prado_vala');
   if (pv) {   // (2026-11-21) o prado com a vala pintada (Gemini), centrado em cada buraco; as pontas somem no prado normal
     const ch = SOLIDS.filter(o => o.y >= GROUND - 1).sort((a, b) => a.x - b.x), tpV = GROUND - 80 - PISO_TOPO, zv = 240 / pv.naturalHeight;
-    for (let i = 0; i + 1 < ch.length; i++) {
-      const a = ch[i].x + ch[i].w, b = ch[i + 1].x; if (b - a < 8 || b - a > 400) continue;
+    const valas = [];
+    for (let i = 0; i + 1 < ch.length; i++) { const a = ch[i].x + ch[i].w, b = ch[i + 1].x; if (b - a >= 8 && b - a <= 400) valas.push([a, b]); }
+    valas.forEach(([a, b], i) => {
       // só a faixa do meio (a vala) estica, para a abertura da imagem ficar do tamanho do buraco; o capim dos lados não deforma
       const nw = pv.naturalWidth, nh = pv.naturalHeight, mE = PV.centro - PV.meio / 2, mD = PV.centro + PV.meio / 2;
       const mid = Math.max(PV.meio * .6, PV.meio + (b - a) / zv - PV.abre), w = Math.round((nw - PV.meio + mid) * zv), h = Math.round(nh * zv);
-      const chave = 'pv' + mid; let pc = valaCache.get(chave);
+      let pc = valaCache.get('pv' + mid);
       if (!pc) {
         pc = document.createElement('canvas'); pc.width = w; pc.height = h; const q = pc.getContext('2d');
         q.imageSmoothingEnabled = true;
         q.drawImage(pv, 0, 0, mE, nh, 0, 0, mE * zv, h);
         q.drawImage(pv, mE, 0, PV.meio, nh, mE * zv, 0, mid * zv, h);
         q.drawImage(pv, mD, 0, nw - mD, nh, (mE + mid) * zv, 0, (nw - mD) * zv, h);
-        q.globalCompositeOperation = 'destination-in';
-        const gr = q.createLinearGradient(0, 0, w, 0), f = PV.fade / w;
-        gr.addColorStop(0, 'rgba(0,0,0,0)'); gr.addColorStop(f, '#000'); gr.addColorStop(1 - f, '#000'); gr.addColorStop(1, 'rgba(0,0,0,0)');
-        q.fillStyle = gr; q.fillRect(0, 0, w, h); valaCache.set(chave, pc);
+        valaCache.set('pv' + mid, pc);
       }
-      g.drawImage(pc, Math.round((a + b) / 2 - (mE + mid / 2) * zv), tpV);
-    }
+      // (2026-11-21, Erick: "sumiu um buraco") cada vala vai só até o meio do caminho para a vizinha
+      // (a imagem é larga e o capim das pontas cobria o buraco ao lado); a ponta some no prado normal
+      const cx = (a + b) / 2, x0 = Math.round(cx - (mE + mid / 2) * zv);
+      const L = i > 0 ? (valas[i - 1][1] + a) / 2 : -Infinity, R = i + 1 < valas.length ? (b + valas[i + 1][0]) / 2 : Infinity;
+      const vL = Math.max(0, L - x0), vR = Math.min(w, R - x0), fL = L > x0 ? Math.min(140, (cx - L) * .5) : PV.fade, fR = R < x0 + w ? Math.min(140, (R - cx) * .5) : PV.fade;
+      const t = document.createElement('canvas'); t.width = w; t.height = h; const q = t.getContext('2d');
+      q.drawImage(pc, 0, 0); q.globalCompositeOperation = 'destination-in';
+      const gr = q.createLinearGradient(0, 0, w, 0);
+      gr.addColorStop(vL / w, 'rgba(0,0,0,0)'); gr.addColorStop((vL + fL) / w, '#000'); gr.addColorStop((vR - fR) / w, '#000'); gr.addColorStop(vR / w, 'rgba(0,0,0,0)');
+      q.fillStyle = gr; q.fillRect(0, 0, w, h);
+      g.drawImage(t, x0, tpV);
+    });
   }
   if (PASTO) {   // buracos: valas escuras entre os trechos de gramado
     const chaos = SOLIDS.filter(s => s.y >= GROUND - 1).sort((a, b) => a.x - b.x);
