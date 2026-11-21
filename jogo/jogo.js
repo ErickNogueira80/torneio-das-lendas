@@ -74,6 +74,7 @@ if (params.has('limpo')) {   // teste (2026-11-20): só o chão e o herói, para
     { x: 2380, y: 460, w: 1620, h: 140 }, { x: 4120, y: 460, w: F0.fim - 3820, h: 140 },   // (Erick, 2026-11-21: mais 2 buracos)
   ] };
 }
+if (FASES[FASE_ID].objetos && !params.has('limpo')) FASES[FASE_ID].plataformas = platsDosObjetos(FASES[FASE_ID].objetos);   // fase com objetos do pasto
 const FASE = FASES[FASE_ID];
 const GROUND = 460;
 const SOLIDS = FASE.solidos, PLATS = FASE.plataformas, CHECKS = FASE.controles, ARENA = FASE.arena;
@@ -187,7 +188,7 @@ addEventListener('keydown', e => {
   if (e.repeat) return;
   keys[e.code] = true;
   if (state !== 'play') { menuKey(e.code); return; }
-  if (PASTO && /^Digit[1-7]$/.test(e.code)) trocarEstilo(+e.code[5] - 1);   // teste de estilos (2026-11-20)
+  if (PASTO && params.has('limpo') && /^Digit[1-7]$/.test(e.code)) trocarEstilo(+e.code[5] - 1);   // teste de estilos (só na tela de teste)
   if (JUMP_KEYS.includes(e.code)) jumpPressed = true;
   if (SWORD_KEYS.includes(e.code)) swordPressed = true;
   if (POWER_KEYS.includes(e.code)) powerPressed = true;
@@ -3372,7 +3373,7 @@ const ESTILOS = [
   ['calcada', 'Calçada (Afterimage): caminho de pedra no prado, raios de luz'],
   ['magibot', 'Magibot: barranco de musgo e terra, fundo enevoado, cipós na frente'],
 ];
-let ESTILO = ESTILOS.some(e => e[0] === params.get('estilo')) ? params.get('estilo') : params.has('limpo') ? 'magibot' : 'prado', estiloAviso = 3;
+let ESTILO = ESTILOS.some(e => e[0] === params.get('estilo')) ? params.get('estilo') : params.has('limpo') ? 'magibot' : 'prado', estiloAviso = params.has('limpo') ? 3 : 0;   // fora do teste, sem o aviso do estilo
 // Desenha um bloco (chão ou bloco alto) em pixel de 2 px: g = contexto, (x, yTopo) = onde se pisa,
 // w = largura, fundo = até onde vai a frente, bordaE/bordaD = pontas arredondadas (buraco ou bloco solto)
 function blocoMagibot(g, x0, yT, w, fundo, bordaE, bordaD, seed) {

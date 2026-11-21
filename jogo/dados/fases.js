@@ -184,20 +184,22 @@ window.FASES = {
       { x: 6760, y: 460, w: 820, h: 140 },
       { x: 7700, y: 460, w: 2000, h: 140 },
     ],
-    plataformas: [
-      { x: 450, y: 362, w: 160 }, { x: 680, y: 292, w: 140 },
-      { x: 1500, y: 352, w: 150 }, { x: 1720, y: 282, w: 150 },
-      { x: 2600, y: 362, w: 150 }, { x: 2820, y: 300, w: 150 },
-      { x: 3300, y: 352, w: 150 },
-      { x: 4500, y: 362, w: 150 }, { x: 4720, y: 292, w: 140 },
-      { x: 5500, y: 352, w: 150 }, { x: 5720, y: 282, w: 150 },
-      { x: 5900, y: 185, w: 130 },   // galho alto da árvore do baú: só se alcança pulando do galho de 282
-      { x: 7000, y: 362, w: 140 }, { x: 7200, y: 292, w: 160 },
-      { x: 7900, y: 352, w: 150 }, { x: 8120, y: 290, w: 140 },
+    // (2026-11-21, Erick) objetos do pasto no lugar das árvores-plataforma (arte do pôr do sol): as
+    // plataformas saem deles (platsDosObjetos em jogo.js). Pilha de feno: degraus a 42, 7 e 39 px da arte.
+    objetos: [
+      { tipo: 'feno', x: 450 }, { tipo: 'cerca', x: 760 },
+      { tipo: 'feno_pilha', x: 1420 }, { tipo: 'tronco_caido', x: 1800 },
+      { tipo: 'carroca', x: 2520 }, { tipo: 'pedra', x: 3080 }, { tipo: 'feno', x: 3500 },
+      { tipo: 'tronco_caido', x: 4420 }, { tipo: 'cerca', x: 4920 },
+      { tipo: 'feno', x: 5420 }, { tipo: 'feno_pilha', x: 5760 }, { tipo: 'pedra', x: 6260 },
+      { tipo: 'carroca', x: 6880 }, { tipo: 'feno', x: 7330 },
+      { tipo: 'pedra', x: 7760 }, { tipo: 'feno_pilha', x: 8020 },
     ],
-    baus: [
-      { x: 5960, y: 185, xp: 45, cura: true, texto: 'Baú escondido! +45 XP e vida cheia' },
+    baus: [   // no alto da pilha de feno do meio
+      { x: 5900, y: 330, xp: 45, cura: true, texto: 'Baú escondido! +45 XP e vida cheia' },
     ],
+    // sala secreta (2026-11-21, Erick): embaixo do buraco 3800–3910, caverna de cogumelos verdes
+    sala: { x0: 3375, x1: 4335, chao: 1020, mola: 3855, guardiao: { tipo: 'mimico', x: 3500, vida: 70, premio: 'lanca' } },
     perigoTipo: 'cardo',
     perigos: [],   // cardos retirados (Erick, 2026-11-20): o pasto é "paz e amor"
     controles: [80, 4250, 8300],

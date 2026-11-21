@@ -815,6 +815,12 @@ recorte em magenta `#FF00FF`, porque o recorte verde apaga o verde da arte.
     1 min ("A vaca tá ficando brava"), 2 ("Termina logo com isso") e 3 ("Você foi avisado": o herói fica
     com 1 de vida); 30 s depois o OVNI **abduz o herói** (derrota). Testes: `&calma=290` (quase dormindo),
     `&brava=170` (quase o aviso), `&brava=209` (abdução).
+    **Fase completa da Vaca montada para a Milena testar (2026-11-21):** as árvores-plataforma (arte do pôr
+    do sol) saíram; 16 objetos do pasto ao longo das 10 telas (`objetos` em `fases.js`; as plataformas saem
+    deles com `platsDosObjetos`): feno, cerca, pilhas de feno, troncos, carroças e pedras. Baú escondido no
+    alto da pilha de feno do meio (x 5900, y 330). **Sala secreta verde** embaixo do buraco 3800–3910
+    (`sala: { x0: 3375, x1: 4335, mola: 3855 }`, mímico com a lança). Besouros e pombos como antes. Fora da
+    tela de teste, as teclas 1–7 não trocam mais o estilo e o aviso do estilo não aparece.
     **Vala de terra** no lugar do buraco preto (escolha do Erick): imagem `vala_beirada` (lado direito;
     espelhada no esquerdo) em `valaBeirada()`; o capim dela encaixa no topo do prado, a terra começa logo
     abaixo da linha dos pés, a ponta do capim passa 8 px da beira da física e a parte de dentro some aos
