@@ -50,7 +50,7 @@ const OBJETOS_PASTO = {
   cerca: { w: 106, h: 42, corte: 47, base: 16, pisos: [[0, 106, 8]] },   // só o trecho do meio (dois mourões inteiros)
   carroca: { w: 144, h: 70, pisos: [[15, 85, 9]] },
   tronco_caido: { w: 121, h: 40, pisos: [[20, 106, 8]] },
-  pedra: { w: 103, h: 55, base: 14, pisos: [[12, 90, 4]] },   // mais larga (Erick: o herói ficava fora da pedra)
+  pedra: { w: 103, h: 55, base: 14, pisos: [[2, 101, 4]] },   // mais larga (Erick: o herói ficava fora da pedra)
 };
 const OBJ_BASE = 10;   // o pé do objeto (o capim da base) fica 10 px abaixo da linha dos pés
 function platsDosObjetos(objs) {
@@ -3408,11 +3408,6 @@ function drawObjetos() {
     ctx.fillStyle = 'rgba(20,12,16,.45)';   // sombra achatada no capim, em degraus de pixel
     for (let i = 0; i < 4; i++) { const enc = (4 - i) * w * .05; ctx.fillRect(Math.round((x + enc) / 2) * 2, yB - 6 + i * 2, Math.round((w - enc * 2) / 2) * 2, 2); }
     ctx.imageSmoothingEnabled = false; ctx.drawImage(im, sx, 0, sw, sh, x, yB - h, w, h); ctx.imageSmoothingEnabled = true;
-    for (let px = x - 6; px < x + w + 6; px += 2) {   // capim da faixa na frente do pé do objeto
-      const r = hashC(px + camX + o.x * .37); if (r < .35) continue;
-      const hh = 2 + Math.round(r * r * 5) * 2;
-      ctx.fillStyle = r > .93 ? '#9fae58' : r > .6 ? '#77833f' : '#5d6634'; ctx.fillRect(px, yB + 2 - hh, 2, hh);
-    }
   }
 }
 const blocosCache = new Map();
@@ -3517,11 +3512,11 @@ function posEstilo() {   // efeito sobre a cena inteira (depois do mundo, antes 
       const PASSO = 1900, parA = 1.25;
       for (let k = Math.floor((camX * parA - 600) / PASSO); k <= Math.floor((camX * parA + W + 600) / PASSO); k++) {
         const r = hashC(k * 5.3 + 1.7); if (r < .25) continue;   // nem todo trecho tem árvore
-        const tx = k * PASSO + 300 + r * 900 - camX * parA, tw = 50 + Math.round(r * 26), esc = 1 + r * .25, yG = 30 + r * 30;
+        const tx = k * PASSO + 300 + r * 900 - camX * parA, tw = 50 + Math.round(r * 26), esc = 1 + r * .25, yG = 18 + r * 14;   // o recorte começa acima da tela: o galho sobe até o alto (sem vão)
         if (tx < -700 || tx > W + 700) continue;
         c.beginPath();   // tronco: afina para cima, abre em raízes embaixo
-        for (let y = -10; y <= H; y += 4) { const a = y / H, m = tw / 2 * (1 - a * .25) + (a > .8 ? (a - .8) * 300 : 0) + Math.sin(y * .05 + k) * 3; c.lineTo(Math.round(tx + m + Math.sin(y * .021 + k) * 10), y); }
-        for (let y = H; y >= -10; y -= 4) { const a = y / H, m = tw / 2 * (1 - a * .25) + (a > .8 ? (a - .8) * 260 : 0) + Math.cos(y * .06 + k) * 3; c.lineTo(Math.round(tx - m + Math.sin(y * .021 + k) * 10), y); }
+        for (let y = -10; y <= H; y += 4) { const a = y / H, m = tw / 2 * (1 - a * .25) + (a > .8 ? (a - .8) * 300 : 0) + Math.sin(y * .05 + k); c.lineTo(Math.round(tx + m + Math.sin(y * .012 + k) * 3), y); }
+        for (let y = H; y >= -10; y -= 4) { const a = y / H, m = tw / 2 * (1 - a * .25) + (a > .8 ? (a - .8) * 260 : 0) + Math.cos(y * .06 + k); c.lineTo(Math.round(tx - m + Math.sin(y * .012 + k) * 3), y); }
         c.closePath(); c.fill();
         const tipo = Math.floor(hashC(k * 2.9) * 3);   // os dois galhos, só o da direita ou só o da esquerda
         if (tipo !== 2) peca(GE, tx - 14, yG - 41 * esc, esc, false);
