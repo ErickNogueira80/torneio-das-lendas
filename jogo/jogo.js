@@ -2317,7 +2317,12 @@ function update(dt) {
     if (e.T.paz) {   // não ataca; encostar deixa com 1 de vida; a investida só vem se for atacado
       if (overlap(player, e)) {
         if (e.carga && e.carga.fase === 'vai') golpeInvestida(e);
-        else if (!e.carga && !escondido()) umDeVida(e.x + e.w / 2, e.tipo === 'pombo' ? 'O pombo te derrubou!' : 'O besouro te empurrou!');
+        else if (!e.carga && !escondido()) {
+          if (player.hp <= 1 && player.inv <= 0 && state === 'play') {   // (Erick, 2026-11-21) já com 1 de vida, encostar de novo mata
+            player.hp = 0; floatText(player.x - 30, player.y - 10, e.tipo === 'pombo' ? 'O pombo te derrubou!' : 'O besouro te esmagou!', '#ff7b6b');
+            burst(player.x + 14, player.y + 20, 24, ['#ff7b6b', '#ffd0c8'], 220, .7); shake = .5; die();
+          } else umDeVida(e.x + e.w / 2, e.tipo === 'pombo' ? 'O pombo te derrubou!' : 'O besouro te empurrou!');
+        }
       }
     } else if (overlap(player, e) && e.estado !== 'dorme') hurtPlayer(e.T.dano, e.x + e.w / 2);
   }

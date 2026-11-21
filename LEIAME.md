@@ -779,6 +779,9 @@ recorte em magenta `#FF00FF`, porque o recorte verde apaga o verde da arte.
     quiser: gerar no PixelLab num tamanho maior (o besouro ocupa ~45 px da tela de 108).
     Vala: cada `prado_vala` vai só até o meio do caminho para a vala vizinha (a imagem tem ~1600 px e o
     capim das pontas cobria o buraco ao lado, 2026-11-21).
+    **Encostar com 1 de vida mata** (Erick, 2026-11-21, opção 2): a 1ª encostada no besouro (ou no pombo)
+    deixa com 1 de vida; encostar de novo já com 1 (fora dos 1,4 s de proteção) é derrota ("O besouro te
+    esmagou!"). Testado: vida cheia → 1; com 1 → tela de derrota.
     **Vala de terra** no lugar do buraco preto (escolha do Erick): imagem `vala_beirada` (lado direito;
     espelhada no esquerdo) em `valaBeirada()`; o capim dela encaixa no topo do prado, a terra começa logo
     abaixo da linha dos pés, a ponta do capim passa 8 px da beira da física e a parte de dentro some aos
