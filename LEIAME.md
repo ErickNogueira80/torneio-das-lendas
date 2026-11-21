@@ -710,6 +710,9 @@ recorte em magenta `#FF00FF`, porque o recorte verde apaga o verde da arte.
     `200 / naturalHeight`). O resto da tela continua em pixel art. A ponta direita ainda é amarelada.
     **Prado sem pixel art (2026-11-21, Erick):** `prado` com `semPixel` e `altura` 240 (escala no jogo
     `240 / naturalHeight`); para ver: `?fase=vaca&limpo&estilo=prado` (tecla 1).
+    **Objetos sem pixel art (2026-11-21, Erick):** feno, pilha, cerca, carroça, tronco e pedra com
+    `semPixel` e `altura` no dobro; `OBJETOS_PASTO` continua medido em px da arte em pixel e `drawObjetos`
+    converte pela razão `k` (altura da imagem / `h`, ou `hi` na cerca).
     Tela `?limpo`: feno 500, cerca 900, buraco 1600–1740, pilha de feno 2000, carroça 2500, tronco
     3100, pedra 3600. Se uma imagem for regerada com outro tamanho, medir os pisos de novo.
     **Tela de teste:** `?fase=vaca&limpo` tira bichos, árvores, buracos, baús e perigos (só o chão e

@@ -47,7 +47,7 @@ const FASE_ID = FASES[params.get('fase')] ? params.get('fase') : 'boitata';
 const OBJETOS_PASTO = {
   feno: { w: 62, h: 40, base: 20, pisos: [[2, 60, 8]] },
   feno_pilha: { w: 108, h: 75, base: 18, pisos: [[2, 23, 50], [25, 50, 29], [52, 102, 8]] },
-  cerca: { w: 106, h: 42, corte: 47, pisos: [[0, 106, 8]] },   // só o trecho do meio (dois mourões inteiros)
+  cerca: { w: 106, h: 42, hi: 45, corte: 47, pisos: [[0, 106, 8]] },   // só o trecho do meio (dois mourões inteiros)
   carroca: { w: 144, h: 70, base: 22, pisos: [[15, 85, 9]] },
   tronco_caido: { w: 121, h: 40, pisos: [[20, 106, 8]] },
   pedra: { w: 103, h: 55, base: 20, pisos: [[2, 101, 4]] },   // mais larga (Erick: o herói ficava fora da pedra)
@@ -3403,9 +3403,10 @@ function blocoMagibot(g, x0, yT, w, fundo, bordaE, bordaD, seed) {
 function drawObjetos() {
   for (const o of FASE.objetos || []) {
     const im = layer(FASE.fundo, o.tipo), O = OBJETOS_PASTO[o.tipo]; if (!im || !O) continue;
-    const sx = O.corte || 0, sw = O.corte ? O.w : im.naturalWidth, sh = Math.min(O.h, im.naturalHeight);
-    const w = sw * 2, h = sh * 2, x = Math.round(o.x - camX), yB = GROUND + (O.base ?? OBJ_BASE); if (x > W || x + w < 0) continue;
-    ctx.imageSmoothingEnabled = false; ctx.drawImage(im, sx, 0, sw, sh, x, yB - h, w, h); ctx.imageSmoothingEnabled = true;
+    // medidas em px da arte em pixel (a tela é o dobro); a arte lisa (sem pixel art, 2026-11-21) tem o dobro de linhas: k = 2
+    const k = im.naturalHeight / (O.hi || O.h), sx = (O.corte || 0) * k, sw = O.corte ? O.w * k : im.naturalWidth, sh = Math.min(O.h * k, im.naturalHeight);
+    const w = Math.round(sw * 2 / k), h = Math.round(sh * 2 / k), x = Math.round(o.x - camX), yB = GROUND + (O.base ?? OBJ_BASE); if (x > W || x + w < 0) continue;
+    ctx.imageSmoothingEnabled = k < 1.5 ? false : true; ctx.drawImage(im, sx, 0, sw, sh, x, yB - h, w, h); ctx.imageSmoothingEnabled = true;
   }
 }
 const CHAO_EXTRA = 0;   // bloco_chao v2 (2026-11-21) já tem a faixa funda; o v1 usava 12   // linhas da arte a mais na faixa de capim do bloco_chao
