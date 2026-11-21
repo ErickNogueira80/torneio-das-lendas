@@ -75,9 +75,11 @@ FUNDO_ALTURA = {"ceu": 270, "longe": 180, "perto": 210, "chao": 128,
                 # kit do pasto no estilo Magibot (2026-11-20): barranco que se repete, ponta do barranco,
                 # silhuetas da frente (tela inteira) e objetos-plataforma (altura do objeto recortado)
                 "bloco_chao": 100, "bloco_beirada": 100, "cipos": 270,
-                "feno": 40, "feno_pilha": 75, "cerca": 45, "carroca": 70, "tronco_caido": 40, "pedra": 55}
+                "feno": 40, "feno_pilha": 75, "cerca": 45, "carroca": 70, "tronco_caido": 40, "pedra": 55,
+                # beirada da vala do pasto de dia (2026-11-21): o jogo espelha para o outro lado
+                "vala_beirada": 150}
 # peças recortadas no conteúdo (a altura de FUNDO_ALTURA é a do objeto, não a da imagem)
-RECORTADAS = {"bloco_beirada", "feno", "feno_pilha", "cerca", "carroca", "tronco_caido", "pedra"}
+RECORTADAS = {"bloco_beirada", "vala_beirada", "feno", "feno_pilha", "cerca", "carroca", "tronco_caido", "pedra"}
 # As peças da árvore são escaladas pela medida que importa para o encaixe (em px da arte):
 TRONCO_LARGURA = 40   # largura do tronco
 GALHO_ESPESSURA = 12  # espessura do galho (o topo dele é onde se pisa)

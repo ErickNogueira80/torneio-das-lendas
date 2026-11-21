@@ -871,7 +871,8 @@
    "pedra": "fundos/vaca/pedra.png",
    "perto": "fundos/vaca/perto.png",
    "prado": "fundos/vaca/prado.png",
-   "tronco_caido": "fundos/vaca/tronco_caido.png"
+   "tronco_caido": "fundos/vaca/tronco_caido.png",
+   "vala_beirada": "fundos/vaca/vala_beirada.png"
   },
   "meta": {
    "arvore_galho": {
@@ -881,7 +882,7 @@
     "centro": 0.481
    }
   },
-  "ver": "b4f9f4d0"
+  "ver": "161c7f28"
  },
  "objetos/altar": {
   "tipo": "objeto",

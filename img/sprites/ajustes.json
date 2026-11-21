@@ -132,7 +132,9 @@
   "semRoxo": true,
   "semRosa": true,
   "semPixel": true,
-  "altura": 90
+  "altura": 90,
+  "semMagenta": 12,
+  "bordaCor": 2
  },
  "fundos/vaca/cipos": {
   "chave": [
@@ -146,35 +148,44 @@
   "semRosa": true,
   "semPixel": true,
   "altura": 140,
-  "baseSuave": 0.35,
-  "baseForte": true
+  "semMagenta": 12,
+  "bordaCor": 2
  },
  "fundos/vaca/tronco_caido": {
   "semRosa": true,
   "semPixel": true,
   "altura": 80,
-  "baseSuave": 0.45
+  "semMagenta": 12,
+  "bordaCor": 2
  },
  "fundos/vaca/feno": {
   "semRosa": true,
   "semPixel": true,
   "altura": 80,
-  "baseSuave": 0.25
+  "semMagenta": 12,
+  "bordaCor": 2
  },
  "fundos/vaca/feno_pilha": {
   "semRosa": true,
   "semPixel": true,
   "altura": 150,
-  "baseSuave": 0.2
+  "semMagenta": 12,
+  "bordaCor": 2
  },
  "fundos/vaca/pedra": {
   "semPixel": true,
   "altura": 110,
-  "baseSuave": 0.55,
-  "baseForte": true
+  "semMagenta": 12,
+  "bordaCor": 2
  },
  "fundos/vaca/ceu": {
   "semPixel": true,
   "altura": 540
+ },
+ "fundos/vaca/vala_beirada": {
+  "semPixel": true,
+  "altura": 300,
+  "semMagenta": 12,
+  "bordaCor": 2
  }
 }

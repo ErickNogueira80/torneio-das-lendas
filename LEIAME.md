@@ -737,7 +737,15 @@ recorte em magenta `#FF00FF`, porque o recorte verde apaga o verde da arte.
     buraco: só some o que fica acima do capim); `perto` sem `emendar` (a imagem já se repete) e com
     `bordaCor` 3; `longe` e `perto` com `semMagenta` 12 (o que puxa para rosa pega a cor dos vizinhos) e
     `longe` com `semCinza` 150 (cinza-arroxeado e lilás que o magenta deixou nos vales). Árvores-plataforma
-    e objetos ainda são do pôr do sol.
+    ainda são do pôr do sol.
+    Objetos de dia (2026-11-21), sem base de capim e sem sombra: o `baseSuave` saiu (deixava a base
+    enevoada); `semMagenta` 12 e `bordaCor` 2. Pisos medidos de novo no contorno de cima (`OBJETOS_PASTO`;
+    a cerca agora é a imagem inteira, sem `corte`). A pedra nova não agradou ao Erick: vai ser refeita.
+    **Vala de terra** no lugar do buraco preto (escolha do Erick): imagem `vala_beirada` (lado direito;
+    espelhada no esquerdo) em `valaBeirada()`; o capim dela encaixa no topo do prado, a terra começa logo
+    abaixo da linha dos pés, a ponta do capim passa 8 px da beira da física e a parte de dentro some aos
+    poucos no prado. O trecho do prado termina reto 40 px antes da beira (`VALA_RECUO`); o fundo da vala
+    é terra escura que vai ao preto.
     estão pintados na imagem (não saem por ajuste).
     Tela `?limpo`: feno 500, cerca 900, buraco 1600–1740, pilha de feno 2000, carroça 2500, tronco
     3100, pedra 3600. Se uma imagem for regerada com outro tamanho, medir os pisos de novo.

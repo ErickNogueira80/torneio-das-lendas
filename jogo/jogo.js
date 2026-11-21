@@ -44,13 +44,13 @@ const FASE_ID = FASES[params.get('fase')] ? params.get('fase') : 'boitata';
 // e onde se pisa ([x0, x1, y] em px da arte, medidos no perfil de cima de cada imagem). Se a ferramenta
 // gerar a imagem com outro tamanho, medir de novo. São plataformas de mão única: o herói passa na frente
 // andando e só fica em cima se pular (Erick: "se quiser passar por baixo, tem que ser uma opção").
-const OBJETOS_PASTO = {
-  feno: { w: 62, h: 40, base: 20, pisos: [[2, 60, 8]] },
-  feno_pilha: { w: 108, h: 75, base: 18, pisos: [[2, 23, 50], [25, 50, 29], [52, 102, 8]] },
-  cerca: { w: 106, h: 42, hi: 45, corte: 47, pisos: [[0, 106, 8]] },   // só o trecho do meio (dois mourões inteiros)
-  carroca: { w: 144, h: 70, base: 22, pisos: [[15, 85, 9]] },
-  tronco_caido: { w: 121, h: 40, pisos: [[20, 106, 8]] },
-  pedra: { w: 103, h: 55, base: 20, pisos: [[2, 101, 4]] },   // mais larga (Erick: o herói ficava fora da pedra)
+const OBJETOS_PASTO = {   // (2026-11-21) objetos de dia, sem base de capim: medidos no contorno de cima de cada imagem
+  feno: { w: 70, h: 40, pisos: [[4, 66, 7]] },
+  feno_pilha: { w: 111, h: 75, pisos: [[3, 29, 42], [31, 98, 7], [99, 109, 39]] },
+  cerca: { w: 191, h: 45, pisos: [[0, 191, 9]] },
+  carroca: { w: 138, h: 70, pisos: [[10, 82, 8]] },
+  tronco_caido: { w: 126, h: 40, pisos: [[8, 95, 10]] },
+  pedra: { w: 115, h: 55, pisos: [[14, 104, 5]] },
 };
 const OBJ_BASE = 6;   // o pé do objeto fica no meio da faixa de capim, junto da linha dos pés (Erick, 2026-11-21: centralizar)
 function platsDosObjetos(objs) {
@@ -3437,6 +3437,26 @@ function chaoLargo(bc) {   // bloco_chao com a faixa de capim mais funda: linhas
   g.putImageData(d, 0, 13);
   return chaoLargoCv = cv;
 }
+// Beirada da vala (2026-11-21): a imagem vala_beirada (lado direito; espelhada no esquerdo). O capim dela
+// encaixa no topo do prado e a terra começa logo abaixo da linha dos pés; a ponta do capim fica 8 px
+// além da beira da física. A ponta de dentro some aos poucos no prado (sem emenda reta).
+const VALA_RECUO = 40, VALA = { topo: 5, terra: 75, ponta: 135 };   // em px da imagem (300 de altura)
+const valaCache = new Map();
+function valaBeirada(g, im, xb, tp, espelha) {
+  const k = (GROUND - PISO_TOPO + 4 - tp) / (VALA.terra - VALA.topo), w = Math.round(im.naturalWidth * k), h = Math.round(im.naturalHeight * k);
+  let pc = valaCache.get(im.src + k);
+  if (!pc) {
+    pc = document.createElement('canvas'); pc.width = w; pc.height = h; const q = pc.getContext('2d');
+    q.imageSmoothingEnabled = true; q.drawImage(im, 0, 0, w, h);
+    q.globalCompositeOperation = 'destination-in';
+    const gr = q.createLinearGradient(0, 0, 70, 0); gr.addColorStop(0, 'rgba(0,0,0,0)'); gr.addColorStop(1, '#000');
+    q.fillStyle = gr; q.fillRect(0, 0, w, h);
+    valaCache.set(im.src + k, pc);
+  }
+  const x0 = Math.round(8 - VALA.ponta * k), y0 = Math.round(tp - VALA.topo * k);
+  g.save(); g.translate(xb, 0); if (espelha) g.scale(-1, 1);
+  g.drawImage(pc, x0, y0); g.restore();
+}
 const blocosCache = new Map();
 function drawBlocosAltos() {   // blocos acima do chão (Magibot): desenhados antes do chão, que cobre o pé deles
   for (const s of SOLIDS) {
@@ -3581,7 +3601,7 @@ function piso() {
   if (PASTO && !(SPR[FASE.fundo] && SPR[FASE.fundo].imgs) && !SPRITES_PRONTOS) return null;   // espera a lista de imagens (senão monta o chão sem a arte)
   const pradoImg = PASTO && SPR[FASE.fundo] && SPR[FASE.fundo].imgs && SPR[FASE.fundo].imgs.prado;
   if (pradoImg && !pradoImg.complete) return null;   // espera o prado carregar
-  if (PASTO && SPR[FASE.fundo] && SPR[FASE.fundo].imgs && ['bloco_chao', 'bloco_beirada'].some(k => SPR[FASE.fundo].imgs[k] && !SPR[FASE.fundo].imgs[k].complete)) return null;   // barranco pintado
+  if (PASTO && SPR[FASE.fundo] && SPR[FASE.fundo].imgs && ['bloco_chao', 'bloco_beirada', 'vala_beirada'].some(k => SPR[FASE.fundo].imgs[k] && !SPR[FASE.fundo].imgs[k].complete)) return null;   // barranco pintado
   const prado = PASTO && layer(FASE.fundo, 'prado');   // prado no estilo do fundo (2026-11-20): substitui o capim
   const capimArte = PASTO && (prado || layer(FASE.fundo, 'capim'));   // campo pintado (Gemini) ou o desenhado pelo jogo
   const capimImg = PASTO && SPR[FASE.fundo] && SPR[FASE.fundo].imgs && SPR[FASE.fundo].imgs.capim;
@@ -3682,7 +3702,10 @@ function piso() {
     if (PASTO) {   // campo: começa 40 px acima da linha dos pés e desce até a faixa preta; sem borda nem crosta
       // beiradas do buraco arredondadas e quebradas (iguais dos dois lados), não um corte reto
       const tp = (prado ? GROUND - 80 : capimArte ? GROUND - 50 : GROUND - 40) - PISO_TOPO, R0 = 40;
-      const beira = (y, k) => { const d = Math.max(0, y - tp), o = d < R0 ? R0 - Math.sqrt(Math.max(0, R0 * R0 - (R0 - d) * (R0 - d))) : 0;
+      const vb = prado && layer(FASE.fundo, 'vala_beirada');   // (2026-11-21, Erick: vala de terra) beirada pintada
+      const chaosV = SOLIDS.filter(o => o.y >= GROUND - 1);
+      const vE = vb && chaosV.some(o => o !== s && o.x < s.x && s.x - (o.x + o.w) < 400), vD = vb && chaosV.some(o => o !== s && o.x > s.x && o.x - (s.x + s.w) < 400);
+      const beira = vb ? (y, k) => ((k === 1 ? vE : vD) ? VALA_RECUO : 0) : (y, k) => { const d = Math.max(0, y - tp), o = d < R0 ? R0 - Math.sqrt(Math.max(0, R0 * R0 - (R0 - d) * (R0 - d))) : 0;
         return Math.round((o * .8 + d * .12 + 5 + Math.sin(d * .13 + k * 2.1) * 5 + hashC(Math.floor(y / 2) * 7.3 + k) * 7) / 2) * 2; };
       g.save(); g.beginPath(); g.moveTo(s.x + beira(tp, 1), 0);
       for (let y = tp; y < alt; y += 2) { g.lineTo(s.x + beira(y, 1), y); g.lineTo(s.x + beira(y, 1), y + 2); }
@@ -3703,6 +3726,7 @@ function piso() {
           x += lw;
         }
       }
+      if (vb) for (const [lado, xb] of [[vD, s.x + s.w], [vE, s.x]]) if (lado) valaBeirada(g, vb, xb, tp, xb === s.x);
       ys.forEach((y, i) => topos.set(s.x + i * 4, PISO_TOPO + base + y));
       continue;
     }
@@ -3743,6 +3767,8 @@ function piso() {
       if (MB) {   // boca do buraco vista um pouco de cima: parede de trás em terra, que escurece até o preto
         const f = px => Math.min(1, px / (alt - v0));
         gr.addColorStop(0, '#3a2630'); gr.addColorStop(f(4), '#2c1d25'); gr.addColorStop(f(30), '#150d12'); gr.addColorStop(f(70), '#070406'); gr.addColorStop(1, '#030203');
+      } else if (prado && layer(FASE.fundo, 'vala_beirada')) {   // vala de terra: o fundo escuro começa embaixo do capim
+        gr.addColorStop(0, 'rgba(40,26,18,0)'); gr.addColorStop(.25, '#2a1b12'); gr.addColorStop(.6, '#120b07'); gr.addColorStop(1, '#050302');
       } else { gr.addColorStop(0, 'rgba(14,22,12,0)'); gr.addColorStop(.3, 'rgba(14,22,12,.95)'); gr.addColorStop(.42, '#0b130a'); gr.addColorStop(.5, '#070b06'); gr.addColorStop(1, '#030503'); }
       g.fillStyle = gr; if (MB) {   // boca arredondada (Erick, 2026-11-21: "ficou quadrado"): cantos de cima em curva
         const c = Math.min(26, (x1 - x0) / 3);
