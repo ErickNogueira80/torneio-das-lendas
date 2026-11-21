@@ -1691,6 +1691,36 @@ flat, not vector, not pixel art), like a cozy modern fantasy indie platformer. N
 no orange. No text. Aspect ratio 1:1.
 ```
 
+### Ageláda, a Vaca, no PixelLab (2026-11-21)
+
+Refaz o roteiro do item 1 da seção 4.12 com o que aprendemos no besouro: **vista de lado** (View: **Side**; a
+1ª versão do besouro saiu em 3/4 porque ficou no padrão *top-down*), **tamanho grande** (o maior que o
+PixelLab permitir, ~172 px ou mais: a vaca é maior que o besouro e com 172 o besouro ficou com pixel fino),
+corpo de quatro patas se houver a opção, cores de dia. Animações **por descrição de texto** (o esqueleto
+pronto é de gente), só **East**. O jogo já usa os nomes `parado`, `andar`, `empinar`, `gas` e `cansada`.
+
+**Descrição (criação do personagem):**
+
+```
+Agelada, a sacred cow boss from a fantasy RPG: a big sturdy dairy cow, white with large reddish-
+brown patches, pink muzzle and pink udder, short cream horns, a small golden bell on a leather
+collar, a long tail with a dark tuft, and two SMALL white pigeon wings on its back (tiny compared to
+the body, soft grey feather tips). Calm, stubborn, a little grumpy expression, not scary. Strict
+side view, profile, all four legs under the body, facing right. Bright daylight colors, rich
+readable silhouette, 16-bit detailed pixel art, same style as a 56 px fantasy RPG hero.
+```
+
+| Jogo | Quadros | Descrição |
+|---|---|---|
+| `parado` | 4–6 | `Standing and grazing calmly, head slowly going down to the grass and back up, tail swishing, small wings twitching.` |
+| `andar` | 6–8 | `Walking slowly and heavily to the right, four legs moving in turn, bell swinging, body steady.` |
+| `empinar` | 5–7 | `Rearing up on the hind legs, front legs high in the air, then stomping both front hooves down hard on the ground.` |
+| `gas` | 5–7 | `Lifting the tail high and releasing a big puff of green smelly gas from behind, body still, head turned back looking annoyed.` |
+| `cansada` | 4–6 | `Exhausted: head hanging low, tongue out, panting, legs trembling, then slowly lying down on the ground.` |
+
+Baixar o zip (ou os GIFs) e salvar em `img/sprites/chefes/vaca/`. Com só `parado` e `andar` o jogo já troca o
+desenho; o resto entra quando chegar.
+
 ### Pintura do local (site e tela de título da fase)
 
 `web/locais/08-o-pasto-da-vaca-e-o-ovni.jpg` também é do pôr do sol. O prompt novo está em
