@@ -2053,7 +2053,7 @@ CHEFES.vaca = (() => {
         ctx.translate(Math.round(px - camX), Math.round(GROUND - b.sobe));
         ctx.scale(b.face, 1); ctx.rotate(-b.rot + (chutando ? Math.sin(time * 5) * .08 : 0)); ctx.scale(b.esc, b.esc);
         const animS = { espera: 'parado', enter: 'parado', anda: 'andar', empina: 'empinar', pisa: 'empinar', vira: 'gas', gas: 'gas' }[b.state];
-        if (S && drawFrame(S, b.dead ? 'cansada' : animS, time * 8, (OX - PIVO) * K, 0, 1)) { /* arte do PixelLab */ }
+        if (S && drawFrame(S, b.dead ? 'cansada' : animS, b.dead ? Math.min((b.deadT || 0) * 4, 6.99) : time * 7, (OX - PIVO) * K, 0, 1)) { /* arte do PixelLab; cansada toca uma vez e fica deitada */ }
         else {
           const cab = poseCab(b), passo = chutando ? Math.floor(time * 14) : b.anda ? Math.floor(b.passoT) : 0;
           const rabo = b.state === 'vira' || b.state === 'gas' ? 'alto' : (Math.sin(time * 3 + 1) > .3 ? 'balanca' : 'baixo');

@@ -47,7 +47,8 @@ RAIZ = Path(__file__).resolve().parent.parent
 ORIGEM = RAIZ / "img" / "sprites"
 DESTINO = RAIZ / "jogo" / "sprites"
 EXTS = {".png", ".jpg", ".jpeg", ".webp"}
-ANIMS = ["parado", "correr", "pular", "cair", "espada", "poder", "dano", "morrer", "andar", "voar", "preparar", "investida"]
+ANIMS = ["parado", "correr", "pular", "cair", "espada", "poder", "dano", "morrer", "andar", "voar", "preparar", "investida",
+         "empinar", "gas", "cansada"]
 PIXEL_ALTURA = 62   # altura do boneco em pixel art no jogo (px da tela virtual)
 
 # altura no jogo (px da tela virtual 960x540) e altura na folha (resolução guardada)
@@ -276,7 +277,10 @@ def preparar_pixel(grupo: str, pasta: Path, ajustes: dict, gifs: list[Path]) -> 
     anims: dict[str, list[Image.Image]] = {}
     for arq in gifs:
         anim = arq.stem.lower()
-        quadros = [f.convert("RGBA") for f in ImageSequence.Iterator(Image.open(arq))]
+        if arq.is_dir():   # pasta com os quadros soltos do PixelLab (frame_000.png...)
+            quadros = [Image.open(f).convert("RGBA") for f in sorted(arq.glob("*.png"))]
+        else:
+            quadros = [f.convert("RGBA") for f in ImageSequence.Iterator(Image.open(arq))]
         escolha = ajustes.get(f"{chave}/{anim}", {}).get("quadros")
         if escolha:
             quadros = [quadros[i - 1] for i in escolha if 0 < i <= len(quadros)]
@@ -1008,7 +1012,9 @@ def main():
             if r:
                 saida[f"{grupo}/{pasta.name}"] = r
     for pasta in sorted((ORIGEM / "chefes").glob("*/")):
-        r = preparar_partes(pasta)
+        # chefe animado do PixelLab (2026-11-21, a Vaca): uma pasta de quadros por animação
+        anim_dirs = [a for a in sorted(pasta.iterdir()) if a.is_dir() and a.name.lower() in ANIMS]
+        r = preparar_pixel("chefes", pasta, ajustes, anim_dirs) if anim_dirs else preparar_partes(pasta)
         if r:
             saida[f"chefes/{pasta.name}"] = r
     for pasta in sorted((ORIGEM / "fundos").glob("*/")):

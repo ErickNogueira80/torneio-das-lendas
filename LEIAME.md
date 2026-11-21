@@ -800,6 +800,12 @@ recorte em magenta `#FF00FF`, porque o recorte verde apaga o verde da arte.
     verdes (pintados uma vez numa cópia, `salaVerde`; o `ctx.filter` a cada quadro e o fundo redimensionado a
     cada quadro derrubavam o FPS na caverna, 2026-11-21). Chão da sala 20 px mais alto (os pés no meio do
     musgo). A sala do Boitatá não mudou (azul).
+    **Ageláda do PixelLab (2026-11-21):** 1ª versão (vista de lado, 160 px; a vaca ocupa 108 x 78).
+    Quadros soltos em `img/sprites/chefes/vaca/<animação>/frame_*.png` (pasta fora do git, como os fundos;
+    zip original em `originais/`); a ferramenta aceita chefe com pastas de quadros (`preparar_pixel`) e as
+    animações `empinar`, `gas`, `cansada`; `chefes/vaca` com `altura` 165 e `suavizar` 2. A `cansada` toca uma
+    vez e ela fica deitada. Bons: `parado`, `andar`, `cansada`. Fracos: `empinar` (quase não empina; o jogo já
+    gira o corpo nas patas de trás) e `gas` (sai pela boca); o Erick quis ver assim antes de refazer.
     **Vala de terra** no lugar do buraco preto (escolha do Erick): imagem `vala_beirada` (lado direito;
     espelhada no esquerdo) em `valaBeirada()`; o capim dela encaixa no topo do prado, a terra começa logo
     abaixo da linha dos pés, a ponta do capim passa 8 px da beira da física e a parte de dentro some aos

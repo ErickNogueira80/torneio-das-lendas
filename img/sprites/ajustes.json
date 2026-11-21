@@ -219,5 +219,9 @@
   "altura": 70,
   "semMagenta": 12,
   "bordaCor": 2
+ },
+ "chefes/vaca": {
+  "altura": 165,
+  "suavizar": 2
  }
 }
