@@ -3410,6 +3410,20 @@ function drawObjetos() {
     ctx.imageSmoothingEnabled = false; ctx.drawImage(im, sx, 0, sw, sh, x, yB - h, w, h); ctx.imageSmoothingEnabled = true;
   }
 }
+const CHAO_EXTRA = 12;   // linhas da arte a mais na faixa de capim do bloco_chao
+let chaoLargoCv = null;
+function chaoLargo(bc) {   // bloco_chao com a faixa de capim mais funda: linhas 0–21, + CHAO_EXTRA linhas da faixa, + o resto
+  if (chaoLargoCv) return chaoLargoCv;
+  const w = bc.naturalWidth, h = bc.naturalHeight, cv = document.createElement('canvas'), g = cv.getContext('2d');
+  cv.width = w; cv.height = h + CHAO_EXTRA;
+  g.drawImage(bc, 0, 0, w, 22, 0, 0, w, 22);
+  for (let i = 0; i < CHAO_EXTRA; i += 6) {   // pedaços de 6 linhas do miolo da faixa (14–20), cada um deslocado
+    const dx = Math.round(w * (.37 + i * .11)) % w;
+    g.drawImage(bc, 0, 14, w, 6, dx, 22 + i, w, 6); g.drawImage(bc, 0, 14, w, 6, dx - w, 22 + i, w, 6);
+  }
+  g.drawImage(bc, 0, 22, w, h - 22, 0, 22 + CHAO_EXTRA, w, h - 22);
+  return chaoLargoCv = cv;
+}
 const blocosCache = new Map();
 function drawBlocosAltos() {   // blocos acima do chão (Magibot): desenhados antes do chão, que cobre o pé deles
   for (const s of SOLIDS) {
@@ -3593,7 +3607,9 @@ function piso() {
         // grosso), por isso entra pela metade do tamanho, com o capim no mesmo lugar
         // (2026-11-20, Erick: a emenda com a bloco_beirada ficou ruim) a ponta sai do próprio bloco_chao: canto
         // de capim arredondado, frente de terra que recua para dentro e escurece, musgo pendurado
-        const topo = GROUND - 34 - PISO_TOPO, yT = topo + 26, R = 16, x0 = s.x, x1 = s.x + s.w;
+        // (2026-11-21, Erick: "deixa o piso mais largo") a faixa de capim ganha CHAO_EXTRA linhas da arte
+        // (copiadas da própria faixa, deslocadas na horizontal para não repetir): mais chão visto de cima
+        const bcL = chaoLargo(bc), topo = GROUND - 40 - PISO_TOPO, yT = topo + 26, R = 16, x0 = s.x, x1 = s.x + s.w;
         const rec = (y, k) => {   // quanto a ponta recua na altura y
           const d = y - yT; if (d < 0) return R;
           if (d < R) return R - Math.sqrt(R * R - (R - d) * (R - d));
@@ -3605,13 +3621,13 @@ function piso() {
         for (let y = topo; y <= alt; y += 2) g.lineTo(q2(x1 - (bD ? rec(y, x1) : 0)), y);
         for (let y = alt; y >= topo; y -= 2) g.lineTo(q2(x0 + (bE ? rec(y, x0) : 0)), y);
         g.closePath(); g.clip();
-        g.fillStyle = '#0d080b'; g.fillRect(x0, topo + 190, x1 - x0, alt);
-        g.save(); g.translate(0, topo); g.scale(2, 2); g.fillStyle = g.createPattern(bc, 'repeat-x'); g.fillRect(x0 / 2 - 2, 0, (x1 - x0) / 2 + 4, bc.naturalHeight); g.restore();
+        g.fillStyle = '#0d080b'; g.fillRect(x0, topo + 190 + CHAO_EXTRA * 2, x1 - x0, alt);
+        g.save(); g.translate(0, topo); g.scale(2, 2); g.fillStyle = g.createPattern(bcL, 'repeat-x'); g.fillRect(x0 / 2 - 2, 0, (x1 - x0) / 2 + 4, bcL.height); g.restore();
         for (const [lado, xb] of [[bE, x0], [bD, x1]]) {   // a terra escurece chegando na ponta
           if (!lado) continue;
           const dir = xb === x0 ? 1 : -1, gr = g.createLinearGradient(xb, 0, xb + dir * 70, 0);
           gr.addColorStop(0, 'rgba(8,4,8,.85)'); gr.addColorStop(1, 'rgba(8,4,8,0)');
-          g.fillStyle = gr; g.fillRect(Math.min(xb, xb + dir * 70), yT + 30, 70, alt);
+          g.fillStyle = gr; g.fillRect(Math.min(xb, xb + dir * 70), yT + 30 + CHAO_EXTRA * 2, 70, alt);
           const gr2 = g.createLinearGradient(xb, 0, xb + dir * 26, 0);   // e o capim do canto fica na sombra
           gr2.addColorStop(0, 'rgba(20,14,18,.55)'); gr2.addColorStop(1, 'rgba(20,14,18,0)');
           g.fillStyle = gr2; g.fillRect(Math.min(xb, xb + dir * 26), yT - 4, 26, 34);

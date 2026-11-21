@@ -682,6 +682,9 @@ recorte em magenta `#FF00FF`, porque o recorte verde apaga o verde da arte.
     tempos, com um ou dois galhos) e as samambaias viraram tufos sorteados (4 recortes, tamanho e lado
     variados). **Refino 3:** sem o capim desenhado na frente dos objetos; pedra com piso de ponta a
     ponta; tronco da árvore mais reto e galhos saindo do alto da tela (sem vão).
+    **Piso mais largo (2026-11-21, Erick):** a faixa de capim do `bloco_chao` ganha `CHAO_EXTRA` (12)
+    linhas da arte, copiadas do miolo da própria faixa e deslocadas na horizontal (`chaoLargo`); os pés
+    ficam no terço de cima da faixa (`topo = GROUND - 40`) e a frente de terra começa mais abaixo.
     Tela `?limpo`: feno 500, cerca 900, buraco 1600–1740, pilha de feno 2000, carroça 2500, tronco
     3100, pedra 3600. Se uma imagem for regerada com outro tamanho, medir os pisos de novo.
     **Tela de teste:** `?fase=vaca&limpo` tira bichos, árvores, buracos, baús e perigos (só o chão e
