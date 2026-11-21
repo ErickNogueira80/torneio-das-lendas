@@ -700,6 +700,10 @@ recorte em magenta `#FF00FF`, porque o recorte verde apaga o verde da arte.
     de dentro também; buraco: a faixa de capim termina reta na beira, a terra recua só abaixo dela, e a
     boca do buraco (parede de trás em terra que escurece até o preto) é desenhada por trás das beiradas;
     samambaias um pouco maiores e mais frequentes.
+    **Refino 2026-11-21 (noite):** objetos **sem sombra desenhada** (feno `base` 20, pilha 18, afundados
+    no gramado); limpeza do topo do gramado só no rosa de verdade (a anterior abria buracos); boca do
+    buraco com cantos de cima em curva e lábio da frente do gramado arredondado, terra irregular; limpeza
+    do rosa dos objetos mais forte (contorno em 2 passadas; `semRosa` puxa o rosado para marrom).
     Tela `?limpo`: feno 500, cerca 900, buraco 1600–1740, pilha de feno 2000, carroça 2500, tronco
     3100, pedra 3600. Se uma imagem for regerada com outro tamanho, medir os pisos de novo.
     **Tela de teste:** `?fase=vaca&limpo` tira bichos, árvores, buracos, baús e perigos (só o chão e

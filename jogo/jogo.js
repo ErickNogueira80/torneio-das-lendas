@@ -45,8 +45,8 @@ const FASE_ID = FASES[params.get('fase')] ? params.get('fase') : 'boitata';
 // gerar a imagem com outro tamanho, medir de novo. São plataformas de mão única: o herói passa na frente
 // andando e só fica em cima se pular (Erick: "se quiser passar por baixo, tem que ser uma opção").
 const OBJETOS_PASTO = {
-  feno: { w: 62, h: 40, base: 14, pisos: [[2, 60, 8]] },
-  feno_pilha: { w: 108, h: 75, base: 14, pisos: [[2, 23, 50], [25, 50, 29], [52, 102, 8]] },
+  feno: { w: 62, h: 40, base: 20, pisos: [[2, 60, 8]] },
+  feno_pilha: { w: 108, h: 75, base: 18, pisos: [[2, 23, 50], [25, 50, 29], [52, 102, 8]] },
   cerca: { w: 106, h: 42, corte: 47, pisos: [[0, 106, 8]] },   // só o trecho do meio (dois mourões inteiros)
   carroca: { w: 144, h: 70, base: 22, pisos: [[15, 85, 9]] },
   tronco_caido: { w: 121, h: 40, pisos: [[20, 106, 8]] },
@@ -3405,8 +3405,6 @@ function drawObjetos() {
     const im = layer(FASE.fundo, o.tipo), O = OBJETOS_PASTO[o.tipo]; if (!im || !O) continue;
     const sx = O.corte || 0, sw = O.corte ? O.w : im.naturalWidth, sh = Math.min(O.h, im.naturalHeight);
     const w = sw * 2, h = sh * 2, x = Math.round(o.x - camX), yB = GROUND + (O.base ?? OBJ_BASE); if (x > W || x + w < 0) continue;
-    ctx.fillStyle = 'rgba(16,22,10,.32)';   // sombra: elipse baixa colada no pé, um pouco mais larga que o objeto
-    for (let dy = -6; dy <= 2; dy += 2) { const k = dy < 0 ? 1 - (dy / 7) ** 2 : 1 - (dy / 3) ** 2, hw = Math.round(w * .52 * Math.sqrt(Math.max(0, k)) / 2) * 2; ctx.fillRect(x + Math.round(w / 2) - hw, yB + dy - 2, hw * 2, 2); }
     ctx.imageSmoothingEnabled = false; ctx.drawImage(im, sx, 0, sw, sh, x, yB - h, w, h); ctx.imageSmoothingEnabled = true;
   }
 }
@@ -3425,7 +3423,7 @@ function chaoLargo(bc) {   // bloco_chao com a faixa de capim mais funda: linhas
   // (2026-11-21, Erick: o piso parecia "sujo") na faixa de capim, os pixels marrons viram verde do pasto
   {   // fio rosado/marrom que o magenta deixou no topo do gramado (Erick, 2026-11-21): sai
     const d = g.getImageData(0, 0, w, 8), a = d.data;
-    for (let i = 0; i < a.length; i += 4) if (a[i + 3] && a[i] > a[i + 1] - 2) a[i + 3] = 0;
+    for (let i = 0; i < a.length; i += 4) if (a[i + 3] && a[i] > a[i + 1] + 12 && a[i + 2] > a[i + 1] - 20) a[i + 3] = 0;
     g.putImageData(d, 0, 0);
   }
   if (!CHAO_EXTRA) return chaoLargoCv = cv;   // v2: gramado limpo, sem a limpeza
@@ -3627,8 +3625,9 @@ function piso() {
         const rec = (y, k) => {   // quanto a ponta recua na altura y: canto de trás arredondado, faixa de capim
           const d = y - yT; if (d < 0) return R;   // reta, terra (abaixo de yF) recuando para dentro
           if (d < R) return R - Math.sqrt(R * R - (R - d) * (R - d));
-          if (y < yF) return 0;
-          return 4 + (y - yF) * .2 + hashC(Math.floor(y / 8) * 3.7 + k) * 5;
+          const dF = yF - y; if (dF > 12) return 0;
+          if (dF > 0) return 12 - Math.sqrt(144 - (12 - dF) * (12 - dF));   // lábio da frente arredondado
+          return 12 + (y - yF) * .2 + hashC(Math.floor(y / 6) * 3.7 + k) * 10;   // terra recuando, irregular
         };
         const q2 = v => Math.round(v / 2) * 2;
         g.save(); g.beginPath();
@@ -3741,7 +3740,12 @@ function piso() {
         const f = px => Math.min(1, px / (alt - v0));
         gr.addColorStop(0, '#3a2630'); gr.addColorStop(f(4), '#2c1d25'); gr.addColorStop(f(30), '#150d12'); gr.addColorStop(f(70), '#070406'); gr.addColorStop(1, '#030203');
       } else { gr.addColorStop(0, 'rgba(14,22,12,0)'); gr.addColorStop(.3, 'rgba(14,22,12,.95)'); gr.addColorStop(.42, '#0b130a'); gr.addColorStop(.5, '#070b06'); gr.addColorStop(1, '#030503'); }
-      g.fillStyle = gr; if (MB) { g.save(); g.globalCompositeOperation = 'destination-over'; g.fillRect(x0 - 40, v0, x1 - x0 + 80, alt); g.restore(); } else g.fillRect(x0 - 40, v0, x1 - x0 + 80, alt);   // passa por trás das beiradas recortadas
+      g.fillStyle = gr; if (MB) {   // boca arredondada (Erick, 2026-11-21: "ficou quadrado"): cantos de cima em curva
+        const c = Math.min(26, (x1 - x0) / 3);
+        g.beginPath(); g.moveTo(x0 - 40, alt); g.lineTo(x0 - 40, v0 + 28); g.lineTo(x0, v0 + 28);
+        g.quadraticCurveTo(x0, v0, x0 + c, v0); g.lineTo(x1 - c, v0); g.quadraticCurveTo(x1, v0, x1, v0 + 28);
+        g.lineTo(x1 + 40, v0 + 28); g.lineTo(x1 + 40, alt); g.closePath(); g.fill();
+      } else g.fillRect(x0 - 40, v0, x1 - x0 + 80, alt);   // passa por trás das beiradas recortadas
     }
     g.restore();
   }

@@ -749,13 +749,14 @@ def preparar_fundo(pasta: Path, ajustes: dict) -> dict | None:
             im = Image.fromarray(a.astype(np.uint8), "RGBA")
         if nome in RECORTADAS:   # objeto do pasto: o rosa do magenta que sobrou na borda sai (2026-11-21)
             a = np.asarray(im).astype(np.int32)
-            rosa = (a[:, :, 0] > a[:, :, 1] + 30) & (a[:, :, 2] > a[:, :, 1] + 15)
-            op = a[:, :, 3] > 0
-            viz = np.zeros_like(op)   # encosta num pixel transparente
-            viz[1:] |= ~op[:-1]; viz[:-1] |= ~op[1:]; viz[:, 1:] |= ~op[:, :-1]; viz[:, :-1] |= ~op[:, 1:]
-            a[:, :, 3] = np.where(rosa & viz, 0, a[:, :, 3])
+            rosa = (a[:, :, 0] > a[:, :, 1] + 20) & (a[:, :, 2] > a[:, :, 1] - 8)
+            for _ in range(2):   # duas passadas: o contorno rosado costuma ter 2 px
+                op = a[:, :, 3] > 0
+                viz = np.zeros_like(op)   # encosta num pixel transparente
+                viz[1:] |= ~op[:-1]; viz[:-1] |= ~op[1:]; viz[:, 1:] |= ~op[:, :-1]; viz[:, :-1] |= ~op[:, 1:]
+                a[:, :, 3] = np.where(rosa & viz, 0, a[:, :, 3])
             if aj.get("semRosa"):   # objeto sem roxo na arte: tira o tom rosado de dentro também
-                exc = np.maximum(0, a[:, :, 2] - a[:, :, 1])
+                exc = np.maximum(0, a[:, :, 2] - (a[:, :, 1] * 4) // 5)
                 a[:, :, 0] = np.maximum(0, a[:, :, 0] - exc); a[:, :, 2] -= exc
             im = Image.fromarray(a.astype(np.uint8), "RGBA")
         saida = DESTINO / chave / f"{nome}.png"
