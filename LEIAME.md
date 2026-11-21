@@ -756,7 +756,7 @@ recorte em magenta `#FF00FF`, porque o recorte verde apaga o verde da arte.
     Emenda da vala com o chão (2026-11-21): a beirada some no prado num degradê longo (62% da largura dela,
     em vez de 70 px); `perto` com `emendar` 0,03 (a emenda da camada de árvores e cercas deixava uma linha
     vertical justo perto da vala). Testado e descartado: o capim do prado ir até a beira com a quina
-    arredondada (ficou um bloco reto e duro). Pedra mais baixa (`base` 30).
+    arredondada (ficou um bloco reto e duro). Pedra mais baixa (`base` 44).
     **Vala de terra** no lugar do buraco preto (escolha do Erick): imagem `vala_beirada` (lado direito;
     espelhada no esquerdo) em `valaBeirada()`; o capim dela encaixa no topo do prado, a terra começa logo
     abaixo da linha dos pés, a ponta do capim passa 8 px da beira da física e a parte de dentro some aos

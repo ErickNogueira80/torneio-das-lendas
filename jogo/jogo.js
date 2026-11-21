@@ -50,7 +50,7 @@ const OBJETOS_PASTO = {   // (2026-11-21) objetos de dia, sem base de capim: med
   cerca: { w: 103, h: 45, pisos: [[2, 92, 20]] },   // cerca velha e torta (2026-11-21); a tábua de cima sobe um pouco para a direita
   carroca: { w: 138, h: 70, pisos: [[10, 82, 8]] },
   tronco_caido: { w: 206, h: 65, base: 22, pisos: [[12, 160, 16]] },   // maior e mais para dentro do capim (Erick)
-  pedra: { w: 124, h: 85, base: 30, pisos: [[28, 86, 8]] },   // pedra nova, uma rocha só; maior e mais para dentro do capim (Erick)
+  pedra: { w: 124, h: 85, base: 44, pisos: [[28, 86, 8]] },   // pedra nova, uma rocha só; maior e mais para dentro do capim (Erick)
 };
 const OBJ_BASE = 6;   // o pé do objeto fica no meio da faixa de capim, junto da linha dos pés (Erick, 2026-11-21: centralizar)
 function platsDosObjetos(objs) {

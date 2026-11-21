@@ -1591,6 +1591,24 @@ yellow highlights on the top, short cool shadows underneath. No orange, no pink,
 golden sunset tones. No characters, no animals, no text. Tall image, aspect ratio 1:2.
 ```
 
+### Prado com a vala pintada (2026-11-21)
+
+A beirada separada (`vala_beirada`) não emenda bem com o chão. O Erick voltou a usar anexo, "só fazer certo":
+anexar **só** o `img/sprites/fundos/vaca/prado.jpg` atual (o de dia, que já está no tom certo) e pedir que a vala
+seja pintada nele, sem mudar mais nada. Salvar como `prado_vala.jpg`. O jogo usa essa imagem no trecho de
+cada vala (a vala da imagem no lugar do buraco) e o prado normal no resto.
+
+```
+Create an image. Edit the attached image. Keep EVERYTHING exactly the same: same size, same framing,
+same grass texture, same brush strokes, same colors and the same light. Only add one thing: in the
+exact center of the image, a narrow ditch that crosses the whole strip from the top edge to the
+bottom edge, about one tenth of the image width. On both sides of the ditch the grass curves down
+over a rounded edge, with a few grass blades and thin roots hanging into it; inside the ditch, brown
+earth walls with small stones and roots, getting darker toward the bottom until almost black. The
+left and right edges of the image must stay exactly as in the original. Keep the plain white
+background above the grass. Same aspect ratio as the attached image.
+```
+
 ### Pintura do local (site e tela de título da fase)
 
 `web/locais/08-o-pasto-da-vaca-e-o-ovni.jpg` também é do pôr do sol. O prompt novo está em
