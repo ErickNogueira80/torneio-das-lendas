@@ -82,7 +82,8 @@
  "fundos/vaca/perto": {
   "emendar": 0.12,
   "semPixel": true,
-  "altura": 430
+  "altura": 430,
+  "bordaDura": true
  },
  "fundos/vaca/longe": {
   "emendar": 0.12,

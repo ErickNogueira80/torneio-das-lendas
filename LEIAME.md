@@ -719,6 +719,10 @@ recorte em magenta `#FF00FF`, porque o recorte verde apaga o verde da arte.
     Sem o rosa do magenta nas camadas lisas: a redução é feita pré-multiplicada (RGBa) e o rosa até 4 px
     da borda vira a cor vizinha; nas camadas recortadas (menos o céu, que tem rosa de verdade), o magenta
     forte some em qualquer lugar.
+    `perto` com `bordaDura` (alfa firme e 1 px a menos na borda: some o contorno escuro meio transparente
+    das copas); no pasto a segunda fileira de morros é mais escura (`tom` 0,6), para a crista clara dela
+    não aparecer como linha na montanha. O brilho de sol e os anéis de lente do lado direito do `perto`
+    estão pintados na imagem (não saem por ajuste).
     Tela `?limpo`: feno 500, cerca 900, buraco 1600–1740, pilha de feno 2000, carroça 2500, tronco
     3100, pedra 3600. Se uma imagem for regerada com outro tamanho, medir os pisos de novo.
     **Tela de teste:** `?fase=vaca&limpo` tira bichos, árvores, buracos, baús e perigos (só o chão e

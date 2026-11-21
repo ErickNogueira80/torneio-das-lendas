@@ -750,6 +750,11 @@ def preparar_fundo(pasta: Path, ajustes: dict) -> dict | None:
                 m |= (a[:, :, 0] > a[:, :, 1] + 50) & (a[:, :, 2] > a[:, :, 1] + 50)
             a[:, :, 0] = np.where(m, a[:, :, 0] - exc, a[:, :, 0]); a[:, :, 2] = np.where(m, a[:, :, 2] - exc, a[:, :, 2])
             im = Image.fromarray(np.clip(a, 0, 255).astype(np.uint8), "RGBA")
+            if aj.get("bordaDura"):   # borda firme: some o halo escuro/claro meio transparente que a arte trouxe
+                a = np.asarray(im).copy(); op = a[:, :, 3] >= 150
+                ero = op.copy(); ero[1:] &= op[:-1]; ero[:-1] &= op[1:]; ero[:, 1:] &= op[:, :-1]; ero[:, :-1] &= op[:, 1:]
+                a[:, :, 3] = np.where(ero, 255, 0)
+                im = Image.fromarray(a, "RGBA")
         else:
             im = pixelizar(im, largura, alvo, int(aj.get("cores", FUNDO_CORES)))
         if nome.startswith("arvore_") and not fundo_verde_arvore(arq):
