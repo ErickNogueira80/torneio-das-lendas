@@ -1055,6 +1055,9 @@
    "perto": "fundos/vaca/perto.png",
    "prado": "fundos/vaca/prado.png",
    "prado_vala": "fundos/vaca/prado_vala.png",
+   "sala_chao": "fundos/vaca/sala_chao.png",
+   "sala_fundo": "fundos/vaca/sala_fundo.png",
+   "sala_mola": "fundos/vaca/sala_mola.png",
    "tronco_caido": "fundos/vaca/tronco_caido.png",
    "vala_beirada": "fundos/vaca/vala_beirada.png"
   },
@@ -1066,7 +1069,7 @@
     "centro": 0.481
    }
   },
-  "ver": "94d883ce"
+  "ver": "6bce5ace"
  },
  "objetos/altar": {
   "tipo": "objeto",

@@ -77,9 +77,11 @@ FUNDO_ALTURA = {"ceu": 270, "longe": 180, "perto": 210, "chao": 128,
                 "bloco_chao": 100, "bloco_beirada": 100, "cipos": 270,
                 "feno": 40, "feno_pilha": 75, "cerca": 45, "carroca": 70, "tronco_caido": 40, "pedra": 55,
                 # beirada da vala do pasto de dia (2026-11-21): o jogo espelha para o outro lado
-                "vala_beirada": 150}
+                "vala_beirada": 150,
+                # sala secreta do pasto (2026-11-21): fundo da caverna verde, chão de musgo e cogumelo-mola
+                "sala_fundo": 420, "sala_chao": 160, "sala_mola": 70}
 # peças recortadas no conteúdo (a altura de FUNDO_ALTURA é a do objeto, não a da imagem)
-RECORTADAS = {"bloco_beirada", "vala_beirada", "feno", "feno_pilha", "cerca", "carroca", "tronco_caido", "pedra"}
+RECORTADAS = {"bloco_beirada", "vala_beirada", "sala_mola", "feno", "feno_pilha", "cerca", "carroca", "tronco_caido", "pedra"}
 # As peças da árvore são escaladas pela medida que importa para o encaixe (em px da arte):
 TRONCO_LARGURA = 40   # largura do tronco
 GALHO_ESPESSURA = 12  # espessura do galho (o topo dele é onde se pisa)
@@ -714,9 +716,9 @@ def preparar_fundo(pasta: Path, ajustes: dict) -> dict | None:
             im = im.crop((0, round(im.height * float(aj["corteTopo"])), im.width, im.height))
         if aj.get("corteBaixo"):           # ex.: faixa de chão que o Gemini pôs embaixo do objeto
             im = im.crop((0, 0, im.width, round(im.height * (1 - float(aj["corteBaixo"])))))
-        transparente = nome in ("longe", "perto", "capim", "frente", "prado", "prado_vala", "bloco_chao", "cipos") or nome in RECORTADAS or nome.startswith("arvore_")
+        transparente = nome in ("longe", "perto", "capim", "frente", "prado", "prado_vala", "sala_chao", "bloco_chao", "cipos") or nome in RECORTADAS or nome.startswith("arvore_")
         if transparente:
-            camada = nome in ("longe", "perto", "capim", "frente", "prado", "prado_vala", "bloco_chao", "bloco_beirada")   # paisagem embaixo: a cor do fundo vem do topo
+            camada = nome in ("longe", "perto", "capim", "frente", "prado", "prado_vala", "sala_chao", "bloco_chao", "bloco_beirada")   # paisagem embaixo: a cor do fundo vem do topo
             rgb = np.asarray(im.convert("RGB"))
             borda = np.concatenate([rgb[0], rgb[:, 0]])
             fundo_verde = int(np.argmax(np.median(borda, axis=0))) == 1

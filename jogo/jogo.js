@@ -4250,8 +4250,14 @@ function drawSala() {
   // campo sem fim: fileiras de cogumelinhos subindo para o fundo (menores, mais apagados e mais altos
   // quanto mais longe), como uma caverna sem fundo forrada de cogumelos. Desenhado uma vez numa imagem.
   // Se existir a arte pintada (objetos/fundo_sala), ela entra no lugar.
-  const arte = layer('objetos/fundo_sala', 'cogumelos');
-  if (arte) {
+  // (2026-11-21, Erick) sala do pasto: caverna de cogumelos verdes e chão de musgo, pintura lisa (Gemini)
+  const verde = PASTO && layer(FASE.fundo, 'sala_fundo'), chaoV = PASTO && layer(FASE.fundo, 'sala_chao');
+  const arte = verde ? null : layer('objetos/fundo_sala', 'cogumelos');
+  if (verde) {
+    const aw = x1 - x0, ah = Math.round(aw * verde.naturalHeight / verde.naturalWidth);
+    ctx.save(); ctx.beginPath(); ctx.rect(x0, topo, aw, chao + 30 - topo); ctx.clip();
+    ctx.drawImage(verde, x0, Math.max(topo, chao + 40 - ah), aw, ah); ctx.restore();
+  } else if (arte) {
     // o chão da arte (84,3% da altura) fica no chão da sala; o que passa dele é cortado
     const aw = x1 - x0, ah = Math.round(aw * arte.naturalHeight / arte.naturalWidth), ay = Math.round(chao + 4 - ah * .843);
     ctx.save(); ctx.beginPath(); ctx.rect(x0, topo, aw, chao + 2 - topo); ctx.clip();
@@ -4262,7 +4268,7 @@ function drawSala() {
     ctx.globalAlpha = .9 + .1 * Math.sin(time * 1.3); ctx.drawImage(cv, x0, chao - cv.height); ctx.globalAlpha = 1;
   }
   // cogumelos grandes no fundo (escurecidos: ficam atrás, na penumbra da caverna)
-  for (const c of arte ? [] : D.grandes) {   // a arte pintada já tem os seus
+  for (const c of arte || verde ? [] : D.grandes) {   // a arte pintada já tem os seus
     const im = layer('objetos/cogumelo_grande', c.n); if (!im) continue;
     const w = im.naturalWidth * 2, h = im.naturalHeight * 2;
     ctx.globalAlpha = .55; ctx.imageSmoothingEnabled = false;
@@ -4275,11 +4281,18 @@ function drawSala() {
     for (let y = 0; y < rz.len; y += B) ctx.fillRect(x + q(Math.sin(y * .06 + rz.ph) * 4), topo + y, B, B);
   }
   // piso da sala: crosta, pedras e cogumelinhos que brilham
+  if (chaoV) {   // chão de musgo no padrão do prado: o topo de musgo fica na linha dos pés
+    ctx.save(); ctx.beginPath(); ctx.rect(x0, 0, x1 - x0, SALA.fundo + 200); ctx.clip();
+    for (let x = x0 - ((x0 + camX) % chaoV.naturalWidth + chaoV.naturalWidth) % chaoV.naturalWidth; x < x1; x += chaoV.naturalWidth) ctx.drawImage(chaoV, Math.round(x), chao - 24);
+    ctx.restore();
+  } else {
   ctx.fillStyle = '#5a4036'; ctx.fillRect(x0, chao, x1 - x0, 2);
   ctx.fillStyle = '#3a2a26'; ctx.fillRect(x0, chao + 2, x1 - x0, 2);
+  }
   ctx.fillStyle = '#140a0d';
-  for (const p of D.pedras) { const x = Math.round(p.x - camX); ctx.fillRect(x, chao - q(p.h), q(p.w), q(p.h)); ctx.fillRect(x + 2, chao - q(p.h) - 2, q(p.w) - 4, 2); }
+  if (!chaoV) for (const p of D.pedras) { const x = Math.round(p.x - camX); ctx.fillRect(x, chao - q(p.h), q(p.w), q(p.h)); ctx.fillRect(x + 2, chao - q(p.h) - 2, q(p.w) - 4, 2); }
   ctx.imageSmoothingEnabled = false;
+  if (PASTO) ctx.filter = 'hue-rotate(-85deg) saturate(1.2)';   // os cogumelinhos azuis do PixelLab ficam verdes no pasto
   for (const c of D.cogumelos) {
     const x = Math.round(c.x - camX), im = layer('objetos/cogumelo_azul', c.n);
     if (im) { const w = im.naturalWidth * 2, h = im.naturalHeight * 2; ctx.drawImage(im, x - w / 2, chao - h + 2, w, h); continue; }
@@ -4298,6 +4311,7 @@ function drawSala() {
     ctx.save(); ctx.translate(x, chao + 2); if (c.esp) ctx.scale(-1, 1);
     ctx.drawImage(im, -Math.round(w / 2), -h, w, h); ctx.restore();
   }
+  ctx.filter = 'none';
   ctx.imageSmoothingEnabled = true;
   drawMola();
 }
@@ -4306,6 +4320,12 @@ function drawMola() {
   const B = 2, q = v => Math.round(v / B) * B, a = SALA.aperto, x = Math.round(SALA.mola - camX), chao = SALA.chao;
   const pisado = naSala(player) && player.naMola ? .35 : 0, sq = Math.max(a * (a > .5 ? -.4 : 1), pisado);   // estica no pulo, afunda pisado
   // cogumelo largo azul do PixelLab: afunda (achata e alarga) e estica, preso pelo pé
+  const mv = PASTO && layer(FASE.fundo, 'sala_mola');   // pasto: cogumelo-mola verde, pintura lisa
+  if (mv) {
+    const w = mv.naturalWidth * (1 + sq * .25), h = mv.naturalHeight * (1 - sq * .45);
+    ctx.drawImage(mv, Math.round(x - w / 2), Math.round(chao + 4 - h), Math.round(w), Math.round(h));
+    return;
+  }
   const im = layer('objetos/cogumelo_mola', 'mola');
   if (im) {
     const w = im.naturalWidth * 2 * (1 + sq * .25), h = im.naturalHeight * 2 * (1 - sq * .45);

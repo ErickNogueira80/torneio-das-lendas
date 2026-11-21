@@ -201,5 +201,23 @@
  "inimigos/besouro": {
   "altura": 150,
   "suavizar": 2
+ },
+ "fundos/vaca/sala_fundo": {
+  "semPixel": true,
+  "altura": 420
+ },
+ "fundos/vaca/sala_chao": {
+  "semPixel": true,
+  "altura": 160,
+  "corteTopo": 0.28,
+  "tirarClaros": 200,
+  "fecharBuracos": true,
+  "emendar": 0.06
+ },
+ "fundos/vaca/sala_mola": {
+  "semPixel": true,
+  "altura": 70,
+  "semMagenta": 12,
+  "bordaCor": 2
  }
 }

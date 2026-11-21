@@ -792,7 +792,12 @@ recorte em magenta `#FF00FF`, porque o recorte verde apaga o verde da arte.
     mímico guardando a lança): `sala: { x0: 1835, x1: 2795, chao: 1020, mola: 2315, guardiao: mímico }`.
     Testar com `&sala` (começa dentro) ou `&x=2300` (cai pelo buraco). Ainda não está na fase completa.
     Próximo (Erick): sala do pasto com cogumelos verdes e chão liso como o da superfície; prompts na seção
-    4.14 de `04-prompts-sprites.md` (`fundo_sala/verdes`, `fundo_sala/chao_verde`, `cogumelo_mola/verde`).
+    4.14 de `04-prompts-sprites.md`. **Feito (2026-11-21):** as 3 imagens do Gemini entraram em
+    `img/sprites/fundos/vaca/` como `sala_fundo` (caverna verde, 980x420), `sala_chao` (chão de musgo no padrão
+    do prado, `corteTopo` 0,28, `fecharBuracos`, `emendar` 0,06) e `sala_mola` (recortada, 70 px), todas lisas.
+    No pasto, `drawSala` usa o fundo verde, repete o chão com o musgo na linha dos pés (no lugar da crosta e
+    das pedrinhas) e o `drawMola` usa a mola verde; os cogumelinhos do PixelLab (parados e dançando) ficam
+    verdes por `hue-rotate`. A sala do Boitatá não mudou (azul).
     **Vala de terra** no lugar do buraco preto (escolha do Erick): imagem `vala_beirada` (lado direito;
     espelhada no esquerdo) em `valaBeirada()`; o capim dela encaixa no topo do prado, a terra começa logo
     abaixo da linha dos pés, a ponta do capim passa 8 px da beira da física e a parte de dentro some aos
