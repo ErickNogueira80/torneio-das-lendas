@@ -806,6 +806,15 @@ recorte em magenta `#FF00FF`, porque o recorte verde apaga o verde da arte.
     animações `empinar`, `gas`, `cansada`; `chefes/vaca` com `altura` 165 e `suavizar` 2. A `cansada` toca uma
     vez e ela fica deitada. Bons: `parado`, `andar`, `cansada`. Fracos: `empinar` (quase não empina; o jogo já
     gira o corpo nas patas de trás) e `gas` (sai pela boca); o Erick quis ver assim antes de refazer.
+    **Luta nova: o script dos 5 minutos** (Erick, script de 2026-11-15, ligado em 2026-11-21; substitui a
+    vitória por PS e por cansaço). Ao chegar a vaca **não ataca** (estado `calma`: pasta de olho no herói;
+    encostar não machuca). Barra **sono** no HUD. Sem bater nela: avisos em 1 min ("A vaca está de olho"),
+    2 ("desconfiada"), 3 ("vai dormir") e 4 ("A vaca dormiu", ela deita); em **5 min** ela dorme de vez, o
+    OVNI a leva e cai a dog tag (vitória). **Bater nela** a deixa brava: o relógio zera, ela não sente o
+    golpe (vida 9999, a barra não desce) e ataca com terremoto e gás sem cansar; barra **fúria**; avisos em
+    1 min ("A vaca tá ficando brava"), 2 ("Termina logo com isso") e 3 ("Você foi avisado": o herói fica
+    com 1 de vida); 30 s depois o OVNI **abduz o herói** (derrota). Testes: `&calma=290` (quase dormindo),
+    `&brava=170` (quase o aviso), `&brava=209` (abdução).
     **Vala de terra** no lugar do buraco preto (escolha do Erick): imagem `vala_beirada` (lado direito;
     espelhada no esquerdo) em `valaBeirada()`; o capim dela encaixa no topo do prado, a terra começa logo
     abaixo da linha dos pés, a ponta do capim passa 8 px da beira da física e a parte de dentro some aos

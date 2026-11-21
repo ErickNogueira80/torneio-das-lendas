@@ -222,12 +222,12 @@ window.FASES = {
     chefe: {
       tipo: 'vaca',
       nome: 'AGELÁDA',
-      vida: 220,   // Vigor 5 no caderno: a mais resistente até aqui
+      vida: 9999,   // (Erick, 2026-11-21, script dos 5 min) não se vence brigando: bater só a deixa brava
       rotuloVida: 'PS',
       sprite: 'chefes/vaca',   // arte do PixelLab (quando houver); sem ela, o jogo desenha a vaca
       resist: { agua: 1, fogo: 1, terra: 1, ar: 1, espada: 1 },
       frase: ['"Em sua frente tem uma vaca com pequenas asas de pombo brancas.', 'Ela não deixa vocês passarem. Ela muge."'],
-      dica: 'Pule as ondas do terremoto · saia de perto do gás · atacar ou esperar?',
+      dica: 'Atacar ou esperar?',
       textoFim: 'A vaca não aguenta mais!',
       dano: { terremoto: 12, gas: 4, gasSeg: 3, corpo: 6 },
       // o outro jeito de vencer (p. 35, "pelo cansaço"): cada ataque cansa; desviar sem levar dano cansa mais

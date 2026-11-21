@@ -1856,13 +1856,14 @@ CHEFES.vaca = (() => {
   const traseira = b => ({ x: b.x - b.face * (RX + 2) * K, y: GROUND - b.sobe - (OY - CY + 6) * K });
   function poseCab(b) {
     if (b.dead) return b.deadT > 2.2 ? 'alta' : 'cansada';
-    if (b.state === 'espera') return b.mugT > 0 ? 'alta' : 'baixa';
+    if (b.state === 'espera' || b.state === 'calma') return b.mugT > 0 ? 'alta' : 'baixa';
     if (b.state === 'empina' || b.state === 'pisa') return 'brava';
     return cansada(b) ? 'cansada' : 'alta';
   }
 
   // ---- ataques ----
   function bater(b, dano, x, veneno = 0) { if (player.inv <= 0) b.acertou = true; hurtPlayer(dano, x, veneno); }
+  function aviso(b, txt, cor) { texts.push({ x: b.x - txt.length * 4, y: GROUND - 230, txt, c: cor, life: 3.5 }); }
   function muu(b, txt) { const h = cabeca(b, poseCab(b)); floatText(h.x - 24, h.y - 46, txt || (Math.random() < .5 ? 'Muuu...' : 'Muuuu!'), '#fff3d6'); b.mugT = 1.2; }
   function proximo(b) {
     const fur = enraged(b), pcx = player.x + player.w / 2;
@@ -1873,12 +1874,8 @@ CHEFES.vaca = (() => {
     b.st = 0;
   }
   function fimAtaque(b) {
-    const C = b.cfg.cansaco, antes = b.cansaco;
-    b.cansaco = Math.min(100, b.cansaco + C.ataque + (b.acertou ? 0 : C.desvio));
-    for (const [lim, txt] of C.avisos) if (antes < lim && b.cansaco >= lim) { const h = cabeca(b, 'alta'); floatText(h.x - 70, h.y - 70, txt, '#9fe7ff'); }
-    b.rot = 0;
-    if (b.cansaco >= 100) derrotar(b, 'A vaca caiu de cansaço!');
-    else { b.state = 'anda'; b.st = 0; }
+    // (Erick, 2026-11-21, o script dos 5 min) brava, ela não cansa: atacar é a escolha errada
+    b.rot = 0; b.state = 'anda'; b.st = 0;
   }
   function derrotar(b, txt) {   // cansaço no máximo (a derrota por PS passa por damageBoss)
     b.dead = true; b.deadT = 0; contarMorte(FASE_ID);
@@ -1929,14 +1926,16 @@ CHEFES.vaca = (() => {
       return { cfg, x: ARENA.x0 + 640, face: -1, fire: cfg.vida, max: cfg.vida, cansaco: 0, state: 'espera', st: 0, flash: 0,
         dead: false, deadT: 0, ondas: [], gases: [], passoAtk: 0, pisadas: 0, puffs: 0, acertou: false, rot: 0, sobe: 0, esc: 1, alpha: 1,
         anda: false, passoT: 0, mugir: 1.5, mugT: 0, apanhou: false, ultFire: cfg.vida, ovni: null, falou: false, hx: 0, hy: 0,
+        calmaT: +params.get('calma') || 0, bravo: params.has('brava'), bravoT: +params.get('brava') || 0, msgs: 0, abduz: null,   // teste: &calma=290, &brava=170
         ...(params.has('cansaco') ? { cansaco: +params.get('cansaco') } : {}) };   // teste: &cansaco=90 já quase caindo
     },
     atualizar(b, dt) {
       b.st += dt; b.flash = Math.max(0, b.flash - dt); b.mugT = Math.max(0, b.mugT - dt);
       const D = b.cfg.dano, fur = enraged(b), sp = (fur ? 1.3 : 1) * (cansada(b) ? .8 : 1);
       const pcx = player.x + player.w / 2;
-      if (b.fire < b.ultFire && !b.apanhou) { b.apanhou = true; floatText(b.x - 70, GROUND - 200, 'Você mexeu com a vaca!', '#ffb36b'); }
-      b.ultFire = b.fire;
+      // (Erick, 2026-11-21, o script dos 5 min) bater nela a deixa brava: o relógio zera e ela não sente o golpe
+      if (b.fire < b.ultFire && !b.bravo) { b.bravo = true; b.bravoT = 0; b.msgs = 0; aviso(b, 'Você mexeu com a vaca!', '#ffb36b'); if (b.state === 'calma') { b.state = 'anda'; b.st = 0; } }
+      b.fire = b.max; b.ultFire = b.fire;
 
       // ondas do terremoto: correm pelo chão; só pega quem está no chão
       for (const o of b.ondas) {
@@ -1974,13 +1973,35 @@ CHEFES.vaca = (() => {
         return;
       }
 
+      if (b.abduz) {   // você foi avisado: o OVNI leva o herói (derrota)
+        const A = b.abduz; A.t += dt;
+        A.y = Math.min(A.y + 260 * dt, 110); player.vx = 0; player.vy = 0; player.inv = 2;
+        if (A.t > 1.2) player.y = Math.max(A.y + 30, player.y - 140 * dt);
+        if (A.t > 3.4 && state === 'play') { floatText(player.x - 60, player.y - 30, 'Você foi abduzido!', '#9dffb0'); die(); }
+        return;
+      }
+      if (bossActive && b.state !== 'enter') {
+        const AV = b.bravo ? [[60, 'A vaca tá ficando brava', '#ffb36b'], [120, 'Termina logo com isso', '#ff9a7a'], [180, 'Você foi avisado', '#ff6b6b']]
+          : [[60, 'A vaca está de olho', '#fff3d6'], [120, 'A vaca está desconfiada', '#fff3d6'], [180, 'A vaca vai dormir', '#cfe8ff'], [240, 'A vaca dormiu', '#cfe8ff']];
+        const tt = b.bravo ? (b.bravoT += dt) : (b.calmaT += dt);
+        while (b.msgs < AV.length && tt >= AV[b.msgs][0]) {
+          const [lim, txt, cor] = AV[b.msgs++]; aviso(b, txt, cor);
+          if (b.bravo && lim === 180) { player.hp = 1; shake = .4; }   // o aviso: fica com 1 de vida
+        }
+        if (!b.bravo && b.calmaT >= 300) { derrotar(b, 'A vaca dormiu de vez...'); return; }
+        if (b.bravo && b.bravoT >= 210) { b.abduz = { t: 0, y: -140 }; b.gases = []; b.ondas = []; aviso(b, 'Sim. Aliens.', '#9dffb0'); return; }
+      }
       const T = b.state;
       b.anda = false;
-      if (T === 'espera') {   // pastando; muge de vez em quando
+      if (T === 'calma') {   // não ataca: pasta de olho no herói; dorme depois de 4 min
+        b.face = pcx < b.x ? -1 : 1;
+        if (b.calmaT < 240) { b.mugir -= dt; if (b.mugir <= 0) { b.mugir = rnd(5, 9); muu(b); } }
+        else if (Math.random() < dt * 1.2) floatText(b.hx + b.face * 10, b.hy - 30, 'z', '#cfe8ff');
+      } else if (T === 'espera') {   // pastando; muge de vez em quando
         b.mugir -= dt; if (b.mugir <= 0) { b.mugir = rnd(3.5, 6); muu(b); }
       } else if (T === 'enter') {   // o herói entrou: ela levanta a cabeça e muge alto (e não responde mais nada)
         if (b.st < dt * 1.5) { b.face = pcx < b.x ? -1 : 1; muu(b, 'MUUUUU!'); shake = .35; }
-        if (b.st > 1.4) { b.state = 'anda'; b.st = 0; }
+        if (b.st > 1.4) { b.state = b.bravo ? 'anda' : 'calma'; b.st = 0; }   // ao chegar ela não ataca (script dos 5 min)
       } else if (T === 'anda') {   // fica de frente para o herói, a uns 240 px, sempre entre ele e a saída
         b.face = pcx < b.x ? -1 : 1;
         const alvo = clamp(pcx + (pcx < b.x ? 240 : -240), ARENA.x0 + 220, ARENA.x1 - 110), d = alvo - b.x;
@@ -2003,7 +2024,7 @@ CHEFES.vaca = (() => {
       }
       if (b.anda) b.passoT += dt * 7 * sp;
       // encostar no corpo dela empurra e machuca um pouco
-      if (T !== 'espera' && T !== 'enter' && overlap(player, corpo(b))) bater(b, D.corpo, b.x);
+      if (b.bravo && T !== 'espera' && T !== 'enter' && overlap(player, corpo(b))) bater(b, D.corpo, b.x);   // calma, encostar não machuca
       // efeitos: suor quando cansada, bufo quando brava
       const h = cabeca(b, poseCab(b)); b.hx = h.x; b.hy = h.y;
       if (b.cansaco >= 35 && Math.random() < dt * (b.cansaco / 25)) particles.push({ x: h.x + rnd(-14, 14), y: h.y - 14, vx: rnd(-30, 30), vy: rnd(-90, -50), life: .6, max: .6, c: '#bfe8ff', s: 3, g: 400 });
@@ -2024,7 +2045,7 @@ CHEFES.vaca = (() => {
       return null;
     },
     // barra extra no HUD: o cansaço (o outro jeito de vencer)
-    barraExtra: b => ({ frac: b.cansaco / 100, rotulo: 'cansaço', c1: '#9fe7ff', c2: '#2f6f9a' }),
+    barraExtra: b => b.bravo ? { frac: Math.min(1, b.bravoT / 210), rotulo: 'fúria', c1: '#ff9a7a', c2: '#8a2f2f' } : { frac: Math.min(1, b.calmaT / 300), rotulo: 'sono', c1: '#9fe7ff', c2: '#2f6f9a' },
     luzes(b) {
       const L = b.alpha > 0 ? [[b.x, GROUND - 70 - b.sobe, 210, null]] : [];   // luz suave na vaca (só aparece se a fase tiver escuridão)
       for (const g of b.gases) L.push([g.x, g.y, g.r * 1.5, '170,230,90']);
@@ -2052,8 +2073,8 @@ CHEFES.vaca = (() => {
         const px = b.x + b.face * (PIVO - OX) * K * b.esc, chutando = b.dead && b.deadT > 2.4;
         ctx.translate(Math.round(px - camX), Math.round(GROUND - b.sobe));
         ctx.scale(b.face, 1); ctx.rotate(-b.rot + (chutando ? Math.sin(time * 5) * .08 : 0)); ctx.scale(b.esc, b.esc);
-        const animS = { espera: 'parado', enter: 'parado', anda: 'andar', empina: 'empinar', pisa: 'empinar', vira: 'gas', gas: 'gas' }[b.state];
-        if (S && drawFrame(S, b.dead ? 'cansada' : animS, b.dead ? Math.min((b.deadT || 0) * 4, 6.99) : time * 7, (OX - PIVO) * K, 0, 1)) { /* arte do PixelLab; cansada toca uma vez e fica deitada */ }
+        const dorme = b.state === 'calma' && b.calmaT >= 240, animS = dorme ? 'cansada' : { espera: 'parado', enter: 'parado', calma: 'parado', anda: 'andar', empina: 'empinar', pisa: 'empinar', vira: 'gas', gas: 'gas' }[b.state];
+        if (S && drawFrame(S, b.dead ? 'cansada' : animS, b.dead ? 6.99 : dorme ? Math.min((b.calmaT - 240) * 4, 6.99) : time * 7, (OX - PIVO) * K, 0, 1)) { /* arte do PixelLab; cansada toca uma vez e fica deitada */ }
         else {
           const cab = poseCab(b), passo = chutando ? Math.floor(time * 14) : b.anda ? Math.floor(b.passoT) : 0;
           const rabo = b.state === 'vira' || b.state === 'gas' ? 'alto' : (Math.sin(time * 3 + 1) > .3 ? 'balanca' : 'baixo');
@@ -2077,6 +2098,7 @@ CHEFES.vaca = (() => {
         }
       }
       if (b.ovni && b.ovni.y > -80) desenhaOvni(b.ovni.x - camX, b.ovni.y, time);
+      if (b.abduz) { const ax = player.x + player.w / 2 - camX; if (b.abduz.t > .9) desenhaRaio(ax, b.abduz.y + 10, clamp((b.abduz.t - .9) / .3, 0, 1)); desenhaOvni(ax, b.abduz.y, time); }
     },
   };
 })();
