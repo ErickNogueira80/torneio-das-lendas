@@ -132,7 +132,7 @@
   "semRoxo": true,
   "semRosa": true,
   "semPixel": true,
-  "altura": 64,
+  "altura": 90,
   "semMagenta": 12,
   "bordaCor": 2
  },
@@ -154,7 +154,7 @@
  "fundos/vaca/tronco_caido": {
   "semRosa": true,
   "semPixel": true,
-  "altura": 110,
+  "altura": 130,
   "semMagenta": 12,
   "bordaCor": 2
  },
@@ -174,7 +174,7 @@
  },
  "fundos/vaca/pedra": {
   "semPixel": true,
-  "altura": 110,
+  "altura": 140,
   "semMagenta": 12,
   "bordaCor": 2
  },

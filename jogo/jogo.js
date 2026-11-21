@@ -47,10 +47,10 @@ const FASE_ID = FASES[params.get('fase')] ? params.get('fase') : 'boitata';
 const OBJETOS_PASTO = {   // (2026-11-21) objetos de dia, sem base de capim: medidos no contorno de cima de cada imagem
   feno: { w: 70, h: 40, pisos: [[4, 66, 7]] },
   feno_pilha: { w: 111, h: 75, pisos: [[3, 29, 42], [31, 98, 7], [99, 109, 39]] },
-  cerca: { w: 135, h: 32, pisos: [[0, 135, 7]] },   // menor (Erick: não encaixava no cenário)
+  cerca: { w: 103, h: 45, pisos: [[2, 92, 20]] },   // cerca velha e torta (2026-11-21); a tábua de cima sobe um pouco para a direita
   carroca: { w: 138, h: 70, pisos: [[10, 82, 8]] },
-  tronco_caido: { w: 174, h: 55, base: 14, pisos: [[10, 130, 13]] },   // maior e mais para dentro do capim (Erick)
-  pedra: { w: 80, h: 55, pisos: [[16, 56, 5]] },   // pedra nova, uma rocha só
+  tronco_caido: { w: 206, h: 65, base: 22, pisos: [[12, 160, 16]] },   // maior e mais para dentro do capim (Erick)
+  pedra: { w: 102, h: 70, base: 0, pisos: [[22, 70, 6]] },   // pedra nova, uma rocha só; maior e mais em cima do capim (Erick)
 };
 const OBJ_BASE = 6;   // o pé do objeto fica no meio da faixa de capim, junto da linha dos pés (Erick, 2026-11-21: centralizar)
 function platsDosObjetos(objs) {
@@ -3794,8 +3794,18 @@ const perfilGalho = new Map();   // 'x|y da plataforma' -> quanto o galho desce 
 // caminho pela frente das árvores: perto de uma árvore com raiz, o herói e as brasas descem na tela
 // e passam por cima das raízes, na frente do tronco (só no desenho; a física não muda)
 const FRENTE_MAX = 44;
+const FRENTE_OBJ = new Set(['pedra', 'tronco_caido', 'carroca']), FRENTE_PASTO = 30;
 function caminhoFrente(x) {
-  const AR = arvoresProntas; if (!AR || PASTO) return 0;   // no pasto a raiz fica no chão
+  if (PASTO) {   // (2026-11-21, Erick) andando no chão, o herói desce na tela e passa pela frente da pedra, do tronco e da carroça
+    let m = 0;
+    for (const o of FASE.objetos || []) {
+      const O = FRENTE_OBJ.has(o.tipo) && OBJETOS_PASTO[o.tipo]; if (!O) continue;
+      const d = Math.abs(x - (o.x + O.w)) / (O.w * 1.15);
+      if (d < 1) { const s = 1 - d; m = Math.max(m, FRENTE_PASTO * s * s * (3 - 2 * s)); }
+    }
+    return m;
+  }
+  const AR = arvoresProntas; if (!AR) return 0;
   let m = 0;
   for (const t of AR) {
     const rz = t.raizFrente; if (!rz) continue;

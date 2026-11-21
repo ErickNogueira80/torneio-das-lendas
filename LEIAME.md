@@ -741,8 +741,12 @@ recorte em magenta `#FF00FF`, porque o recorte verde apaga o verde da arte.
     Objetos de dia (2026-11-21), sem base de capim e sem sombra: o `baseSuave` saiu (deixava a base
     enevoada); `semMagenta` 12 e `bordaCor` 2. Pisos medidos de novo no contorno de cima (`OBJETOS_PASTO`;
     a cerca agora é a imagem inteira, sem `corte`). Pedra refeita (uma rocha só; o Erick aprovou). Tronco
-    maior (`altura` 110) e mais para dentro do capim (`base` 14); cerca menor (`altura` 64) enquanto não
-    chega uma cerca no estilo das do cenário.
+    maior (`altura` 130) e mais para dentro do capim (`base` 22); pedra maior (`altura` 140) e mais em cima
+    do capim (`base` 0). Cerca nova, velha e torta como as do cenário: o Erick gerou 3; ficou a 3
+    (`cerca.jpg`; as outras em `cerca_1.jpg` e `cerca_2.jpg`, que a ferramenta ignora).
+    **Caminho pela frente dos objetos** (como na raiz da árvore): andando no chão perto da pedra, do tronco
+    ou da carroça, o herói desce até 30 px na tela e passa na frente deles (`caminhoFrente`, `FRENTE_OBJ`;
+    só no desenho, a física não muda).
     **Vala de terra** no lugar do buraco preto (escolha do Erick): imagem `vala_beirada` (lado direito;
     espelhada no esquerdo) em `valaBeirada()`; o capim dela encaixa no topo do prado, a terra começa logo
     abaixo da linha dos pés, a ponta do capim passa 8 px da beira da física e a parte de dentro some aos
