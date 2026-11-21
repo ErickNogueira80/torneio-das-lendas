@@ -145,21 +145,25 @@
  "fundos/vaca/tronco_caido": {
   "semRosa": true,
   "semPixel": true,
-  "altura": 80
+  "altura": 80,
+  "baseSuave": 0.45
  },
  "fundos/vaca/feno": {
   "semRosa": true,
   "semPixel": true,
-  "altura": 80
+  "altura": 80,
+  "baseSuave": 0.25
  },
  "fundos/vaca/feno_pilha": {
   "semRosa": true,
   "semPixel": true,
-  "altura": 150
+  "altura": 150,
+  "baseSuave": 0.2
  },
  "fundos/vaca/pedra": {
   "semPixel": true,
-  "altura": 110
+  "altura": 110,
+  "baseSuave": 0.4
  },
  "fundos/vaca/ceu": {
   "semPixel": true,

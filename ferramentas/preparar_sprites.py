@@ -790,6 +790,12 @@ def preparar_fundo(pasta: Path, ajustes: dict) -> dict | None:
             if aj.get("semRosa"):   # objeto sem roxo na arte: tira o tom rosado de dentro também
                 exc = np.maximum(0, a[:, :, 2] - (a[:, :, 1] * 4) // 5)
                 a[:, :, 0] = np.maximum(0, a[:, :, 0] - exc); a[:, :, 2] -= exc
+            if aj.get("baseSuave"):   # (Erick, 2026-11-21) a base escura pintada some aos poucos no capim do jogo
+                h = a.shape[0]; y0 = h * (1 - float(aj["baseSuave"]))
+                t = np.clip((np.arange(h) - y0) / (h - y0), 0, 1)[:, None]
+                lum = (a[:, :, 0] * 3 + a[:, :, 1] * 6 + a[:, :, 2]) / 10
+                escuro = np.clip((110 - lum) / 60, 0, 1)
+                a[:, :, 3] = (a[:, :, 3] * (1 - t * np.maximum(escuro, t))).astype(a.dtype)
             im = Image.fromarray(a.astype(np.uint8), "RGBA")
         saida = DESTINO / chave / f"{nome}.png"
         saida.parent.mkdir(parents=True, exist_ok=True)

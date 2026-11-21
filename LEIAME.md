@@ -724,7 +724,9 @@ recorte em magenta `#FF00FF`, porque o recorte verde apaga o verde da arte.
     escurecida da mesma imagem, deixava o morro com contorno duplo; ela fica só nas outras fases.
     `longe` do pasto **sem `emendar`** (a imagem já se repete quase sem emenda; a emenda cortava a ponta
     esquerda e deixava uma mancha cinza no alto à direita) e com `bordaCor` 3 (os 3 px da borda pegam a
-    cor de dentro: some o fio cinza que o magenta deixava na crista dos morros). O brilho de sol e os anéis de lente do lado direito do `perto`
+    cor de dentro: some o fio cinza que o magenta deixava na crista dos morros).
+    Objetos com `baseSuave` (fração de baixo da imagem em que a base escura pintada vai sumindo no capim;
+    o escuro some mais rápido que o claro): pedra 0,4, tronco 0,45, feno 0,25, pilha de feno 0,2. O brilho de sol e os anéis de lente do lado direito do `perto`
     estão pintados na imagem (não saem por ajuste).
     Tela `?limpo`: feno 500, cerca 900, buraco 1600–1740, pilha de feno 2000, carroça 2500, tronco
     3100, pedra 3600. Se uma imagem for regerada com outro tamanho, medir os pisos de novo.
