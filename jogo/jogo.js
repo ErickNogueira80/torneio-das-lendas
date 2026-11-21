@@ -47,10 +47,10 @@ const FASE_ID = FASES[params.get('fase')] ? params.get('fase') : 'boitata';
 const OBJETOS_PASTO = {   // (2026-11-21) objetos de dia, sem base de capim: medidos no contorno de cima de cada imagem
   feno: { w: 70, h: 40, pisos: [[4, 66, 7]] },
   feno_pilha: { w: 111, h: 75, pisos: [[3, 29, 42], [31, 98, 7], [99, 109, 39]] },
-  cerca: { w: 191, h: 45, pisos: [[0, 191, 9]] },
+  cerca: { w: 135, h: 32, pisos: [[0, 135, 7]] },   // menor (Erick: não encaixava no cenário)
   carroca: { w: 138, h: 70, pisos: [[10, 82, 8]] },
-  tronco_caido: { w: 126, h: 40, pisos: [[8, 95, 10]] },
-  pedra: { w: 115, h: 55, pisos: [[14, 104, 5]] },
+  tronco_caido: { w: 174, h: 55, base: 14, pisos: [[10, 130, 13]] },   // maior e mais para dentro do capim (Erick)
+  pedra: { w: 80, h: 55, pisos: [[16, 56, 5]] },   // pedra nova, uma rocha só
 };
 const OBJ_BASE = 6;   // o pé do objeto fica no meio da faixa de capim, junto da linha dos pés (Erick, 2026-11-21: centralizar)
 function platsDosObjetos(objs) {

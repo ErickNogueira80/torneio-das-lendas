@@ -740,7 +740,9 @@ recorte em magenta `#FF00FF`, porque o recorte verde apaga o verde da arte.
     ainda são do pôr do sol.
     Objetos de dia (2026-11-21), sem base de capim e sem sombra: o `baseSuave` saiu (deixava a base
     enevoada); `semMagenta` 12 e `bordaCor` 2. Pisos medidos de novo no contorno de cima (`OBJETOS_PASTO`;
-    a cerca agora é a imagem inteira, sem `corte`). A pedra nova não agradou ao Erick: vai ser refeita.
+    a cerca agora é a imagem inteira, sem `corte`). Pedra refeita (uma rocha só; o Erick aprovou). Tronco
+    maior (`altura` 110) e mais para dentro do capim (`base` 14); cerca menor (`altura` 64) enquanto não
+    chega uma cerca no estilo das do cenário.
     **Vala de terra** no lugar do buraco preto (escolha do Erick): imagem `vala_beirada` (lado direito;
     espelhada no esquerdo) em `valaBeirada()`; o capim dela encaixa no topo do prado, a terra começa logo
     abaixo da linha dos pés, a ponta do capim passa 8 px da beira da física e a parte de dentro some aos
