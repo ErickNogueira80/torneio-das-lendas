@@ -1474,6 +1474,123 @@ repeats seamlessly. Plain solid white background above the grass. Very wide imag
 
 (A `frente` é silhueta escura e serve de dia; não precisa refazer.)
 
+### Objetos de dia e beirada da vala (2026-11-21)
+
+O Erick achou os objetos enevoados embaixo (a base escura que saía aos poucos) e pediu para refazer; e o buraco
+vira **vala de terra** (escolha do Erick). Objetos **sem base de capim e sem sombra**, cortados retos embaixo: o
+jogo põe o pé deles no capim. Sem anexo. Quando chegarem, o Claude tira o `baseSuave` deles, mede de novo onde
+se pisa (`OBJETOS_PASTO`) e monta a vala com a `vala_beirada` (espelhada do outro lado; escuro no meio).
+
+**`feno`** (um fardo de feno; 4:3)
+
+```
+Create an image. One big rectangular hay bale for a 2D side-scrolling game. Golden straw with
+slightly darker sides, two tight twine bands, a few loose straws sticking out. Seen from the side
+and slightly from above, so the flat top is visible (a character stands on it). The object stands
+alone: NO ground, NO grass base, NO moss patch, NO shadow under it; the bottom is clean and cut
+straight. Plain solid #FF00FF magenta background everywhere around it. Painterly hand-painted 2D
+game art with soft visible brush strokes and rich detailed texture (not flat, not vector, not pixel
+art), like a cozy modern fantasy indie platformer. Sunny mid-afternoon: bright neutral daylight from
+high above, fresh natural colors, light warm-yellow highlights on the top, short cool shadows
+underneath. No orange, no pink, no purple, no golden sunset tones. No characters, no animals, no
+text. Aspect ratio 4:3.
+```
+
+**`feno_pilha`** (três fardos em degraus; 4:3)
+
+```
+Create an image. A stack of three rectangular hay bales like steps for a 2D side-scrolling game: two
+bales side by side at the bottom and one bale on top of them, shifted to the right, so a character
+can climb. Golden straw, twine bands, a few loose straws. All bales have the same light. Seen from
+the side and slightly from above, so the flat top is visible (a character stands on it). The object
+stands alone: NO ground, NO grass base, NO moss patch, NO shadow under it; the bottom is clean and
+cut straight. Plain solid #FF00FF magenta background everywhere around it. Painterly hand-painted 2D
+game art with soft visible brush strokes and rich detailed texture (not flat, not vector, not pixel
+art), like a cozy modern fantasy indie platformer. Sunny mid-afternoon: bright neutral daylight from
+high above, fresh natural colors, light warm-yellow highlights on the top, short cool shadows
+underneath. No orange, no pink, no purple, no golden sunset tones. No characters, no animals, no
+text. Aspect ratio 4:3.
+```
+
+**`cerca`** (trecho de cerca; 3:1)
+
+```
+Create an image. A section of old rustic wooden pasture fence for a 2D side-scrolling game: thick
+weathered posts and two chunky horizontal rails; the TOP rail is wide and flat like a beam a
+character can walk on. Warm natural brown wood with grain and a few cracks. The left and right edges
+must match so it repeats seamlessly. Seen from the side and slightly from above, so the flat top is
+visible (a character stands on it). The object stands alone: NO ground, NO grass base, NO moss
+patch, NO shadow under it; the bottom is clean and cut straight. Plain solid #FF00FF magenta
+background everywhere around it. Painterly hand-painted 2D game art with soft visible brush strokes
+and rich detailed texture (not flat, not vector, not pixel art), like a cozy modern fantasy indie
+platformer. Sunny mid-afternoon: bright neutral daylight from high above, fresh natural colors,
+light warm-yellow highlights on the top, short cool shadows underneath. No orange, no pink, no
+purple, no golden sunset tones. No characters, no animals, no text. Wide image, aspect ratio 3:1.
+```
+
+**`carroca`** (carroça com feno; 3:2)
+
+```
+Create an image. An old wooden farm cart full of hay for a 2D side-scrolling game: two big wooden
+wheels, a flat wooden bed with a heap of golden hay on top, a long wooden pole resting on the ground
+at the right. Seen from the side and slightly from above, so the flat top is visible (a character
+stands on it). The object stands alone: NO ground, NO grass base, NO moss patch, NO shadow under it;
+the bottom is clean and cut straight. Plain solid #FF00FF magenta background everywhere around it.
+Painterly hand-painted 2D game art with soft visible brush strokes and rich detailed texture (not
+flat, not vector, not pixel art), like a cozy modern fantasy indie platformer. Sunny mid-afternoon:
+bright neutral daylight from high above, fresh natural colors, light warm-yellow highlights on the
+top, short cool shadows underneath. No orange, no pink, no purple, no golden sunset tones. No
+characters, no animals, no text. Aspect ratio 3:2.
+```
+
+**`tronco_caido`** (tronco caído; 3:1)
+
+```
+Create an image. A big fallen tree trunk lying on the ground for a 2D side-scrolling game, thick and
+slightly curved, with a flat mossy top a character can walk on, brown bark with deep grooves, a
+broken end on the left and a few short roots on the right. Seen from the side and slightly from
+above, so the flat top is visible (a character stands on it). The object stands alone: NO ground, NO
+grass base, NO moss patch, NO shadow under it; the bottom is clean and cut straight. Plain solid
+#FF00FF magenta background everywhere around it. Painterly hand-painted 2D game art with soft
+visible brush strokes and rich detailed texture (not flat, not vector, not pixel art), like a cozy
+modern fantasy indie platformer. Sunny mid-afternoon: bright neutral daylight from high above, fresh
+natural colors, light warm-yellow highlights on the top, short cool shadows underneath. No orange,
+no pink, no purple, no golden sunset tones. No characters, no animals, no text. Wide image, aspect
+ratio 3:1.
+```
+
+**`pedra`** (pedra grande; 4:3)
+
+```
+Create an image. A big rounded boulder for a 2D side-scrolling game, with a wide flat mossy top a
+character can stand on, natural warm grey stone with soft painterly shading and a few cracks, bright
+green moss on top. Seen from the side and slightly from above, so the flat top is visible (a
+character stands on it). The object stands alone: NO ground, NO grass base, NO moss patch, NO shadow
+under it; the bottom is clean and cut straight. Plain solid #FF00FF magenta background everywhere
+around it. Painterly hand-painted 2D game art with soft visible brush strokes and rich detailed
+texture (not flat, not vector, not pixel art), like a cozy modern fantasy indie platformer. Sunny
+mid-afternoon: bright neutral daylight from high above, fresh natural colors, light warm-yellow
+highlights on the top, short cool shadows underneath. No orange, no pink, no purple, no golden
+sunset tones. No characters, no animals, no text. Aspect ratio 4:3.
+```
+
+**`vala_beirada`** (a beirada do chão na vala; o jogo espelha para o outro lado; 1:2)
+
+```
+Create an image. The RIGHT END of a grassy meadow ground where it drops into a deep ditch, for a 2D
+side-scrolling game, seen from the side. At the top: a thick band of fresh green grass with tiny
+white and yellow wildflowers that curves down over a rounded edge, with a few grass blades and thin
+roots hanging over it. Below the grass: the earth wall of the ditch going straight down, brown soil
+with thin roots, small stones and bits of moss, getting darker toward the bottom until it is almost
+black at the bottom of the image. The left part of the image is the ground (grass on top, earth
+below); to the right of the earth wall there is only plain solid #FF00FF magenta, and also magenta
+above the grass. Painterly hand-painted 2D game art with soft visible brush strokes and rich
+detailed texture (not flat, not vector, not pixel art), like a cozy modern fantasy indie platformer.
+Sunny mid-afternoon: bright neutral daylight from high above, fresh natural colors, light warm-
+yellow highlights on the top, short cool shadows underneath. No orange, no pink, no purple, no
+golden sunset tones. No characters, no animals, no text. Tall image, aspect ratio 1:2.
+```
+
 ### Pintura do local (site e tela de título da fase)
 
 `web/locais/08-o-pasto-da-vaca-e-o-ovni.jpg` também é do pôr do sol. O prompt novo está em
