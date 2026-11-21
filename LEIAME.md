@@ -713,6 +713,9 @@ recorte em magenta `#FF00FF`, porque o recorte verde apaga o verde da arte.
     **Objetos sem pixel art (2026-11-21, Erick):** feno, pilha, cerca, carroça, tronco e pedra com
     `semPixel` e `altura` no dobro; `OBJETOS_PASTO` continua medido em px da arte em pixel e `drawObjetos`
     converte pela razão `k` (altura da imagem / `h`, ou `hi` na cerca).
+    **Fundos sem pixel art (2026-11-21, Erick):** `ceu` (540), `longe` (400), `perto` (430) e `frente`
+    (140) com `semPixel`; o jogo suaviza a camada quando a imagem tem altura perto da desenhada, e a
+    faixa da frente cobre 140 px (`kf`). Cipós, herói e árvores-plataforma continuam em pixel art.
     Tela `?limpo`: feno 500, cerca 900, buraco 1600–1740, pilha de feno 2000, carroça 2500, tronco
     3100, pedra 3600. Se uma imagem for regerada com outro tamanho, medir os pisos de novo.
     **Tela de teste:** `?fase=vaca&limpo` tira bichos, árvores, buracos, baús e perigos (só o chão e

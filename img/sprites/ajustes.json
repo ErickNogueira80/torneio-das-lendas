@@ -80,16 +80,22 @@
   "corteTopo": 0.29
  },
  "fundos/vaca/perto": {
-  "emendar": 0.12
+  "emendar": 0.12,
+  "semPixel": true,
+  "altura": 430
  },
  "fundos/vaca/longe": {
-  "emendar": 0.12
+  "emendar": 0.12,
+  "semPixel": true,
+  "altura": 400
  },
  "fundos/vaca/capim": {
   "emendar": 0.12
  },
  "fundos/vaca/frente": {
-  "emendar": 0.12
+  "emendar": 0.12,
+  "semPixel": true,
+  "altura": 140
  },
  "fundos/vaca/arvore": {
   "tronco": 64,
@@ -153,5 +159,9 @@
  "fundos/vaca/pedra": {
   "semPixel": true,
   "altura": 110
+ },
+ "fundos/vaca/ceu": {
+  "semPixel": true,
+  "altura": 540
  }
 }

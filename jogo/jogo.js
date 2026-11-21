@@ -2836,7 +2836,7 @@ function drawTree(x, base, h, w, b, color) {
 function tiled(img, par, base, height, desloc = 0) {
   const nw = img.naturalWidth || img.width, nh = img.naturalHeight || img.height;
   const k = height / nh, w = nw * k;
-  ctx.imageSmoothingEnabled = !fundoPixel();
+  ctx.imageSmoothingEnabled = !fundoPixel() || nh >= height * .9;   // camada lisa: suaviza
   let x = -((camX * par + desloc * w) % w); if (x > 0) x -= w;
   for (; x < W; x += w) ctx.drawImage(img, x, base - height, w + 1, height);
   ctx.imageSmoothingEnabled = true;
@@ -2856,7 +2856,7 @@ function faixas() {
   const pinta = (g, img, base, altura, desloc = 0) => {
     const nw = img.naturalWidth || img.width, nh = img.naturalHeight || img.height;
     const w = nw * altura / nh;
-    g.imageSmoothingEnabled = !fundoPixel();
+    g.imageSmoothingEnabled = !fundoPixel() || nh >= altura * .9;   // camada lisa (sem pixel art, 2026-11-21): suaviza
     for (let x = -desloc * w; x < g.canvas.width; x += w) g.drawImage(img, Math.round(x), base - altura, Math.ceil(w) + 1, altura);
   };
   const L = nova(parL), gl = L.getContext('2d');
@@ -2963,7 +2963,7 @@ function drawBackground() {
   if (ceu) {
     const k = Math.max(W / ceu.naturalWidth, H / ceu.naturalHeight);
     const w = ceu.naturalWidth * k, over = Math.max(0, w - W), x0 = -over * clamp(camX / Math.max(1, LEVEL_END - W), 0, 1);
-    ctx.imageSmoothingEnabled = !fundoPixel();
+    ctx.imageSmoothingEnabled = !fundoPixel() || ceu.naturalHeight >= H * .9;   // céu liso: suaviza
     ctx.drawImage(ceu, x0, 0, w, ceu.naturalHeight * k);
     ctx.imageSmoothingEnabled = true;
     if (FASE.luaNoCeu) luaTela = [x0 + FASE.luaNoCeu[0] * w, FASE.luaNoCeu[1] * ceu.naturalHeight * k];
@@ -3250,7 +3250,7 @@ function drawCrista() {
   }
   const arte = arte0 && frentePreta;
   if (arte) {   // faixa preta pintada (Gemini), repetida na horizontal
-    const w = arte.naturalWidth * 2, h = arte.naturalHeight * 2, y = Math.round(H - CRISTA - h * FRENTE_CORPO);
+    const kf = 140 / arte.naturalHeight, w = arte.naturalWidth * kf, h = 140, y = Math.round(H - CRISTA - h * FRENTE_CORPO);   // a faixa cobre 140 px (pixel 70 linhas no dobro; lisa 140)
     ctx.imageSmoothingEnabled = false;
     for (let x = -(((camX * CRISTA_PAR) % w) + w) % w; x < W; x += w) ctx.drawImage(arte, Math.round(x), y, w, h);
     ctx.imageSmoothingEnabled = true;
