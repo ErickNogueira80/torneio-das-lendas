@@ -757,6 +757,13 @@ recorte em magenta `#FF00FF`, porque o recorte verde apaga o verde da arte.
     em vez de 70 px); `perto` com `emendar` 0,03 (a emenda da camada de árvores e cercas deixava uma linha
     vertical justo perto da vala). Testado e descartado: o capim do prado ir até a beira com a quina
     arredondada (ficou um bloco reto e duro). Pedra mais baixa (`base` 44).
+    **Prado com a vala pintada** (2026-11-21; o Erick aprovou a imagem): `prado_vala.jpg`, o próprio
+    `prado.jpg` editado no Gemini (anexo só dele). Ferramenta: mesmos ajustes do prado, menos `emendar` e
+    `aplainar` (cortariam/deslocariam a vala). No jogo, centrado em cada buraco; as pontas somem no prado
+    normal num degradê de 220 px; só uma faixa de 90 px no meio (a terra da vala) estica para a abertura
+    na linha dos pés ficar do tamanho do buraco (`PV`: `centro` 806,5, `abre` 72, `meio` 90). Com ele, a
+    `vala_beirada` e a rampa (`subidaVala`) ficam desligadas (não há morrinho); continuam no código como
+    reserva.
     **Vala de terra** no lugar do buraco preto (escolha do Erick): imagem `vala_beirada` (lado direito;
     espelhada no esquerdo) em `valaBeirada()`; o capim dela encaixa no topo do prado, a terra começa logo
     abaixo da linha dos pés, a ponta do capim passa 8 px da beira da física e a parte de dentro some aos

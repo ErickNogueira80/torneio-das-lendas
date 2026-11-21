@@ -871,6 +871,7 @@
    "pedra": "fundos/vaca/pedra.png",
    "perto": "fundos/vaca/perto.png",
    "prado": "fundos/vaca/prado.png",
+   "prado_vala": "fundos/vaca/prado_vala.png",
    "tronco_caido": "fundos/vaca/tronco_caido.png",
    "vala_beirada": "fundos/vaca/vala_beirada.png"
   },
@@ -882,7 +883,7 @@
     "centro": 0.481
    }
   },
-  "ver": "07e5bd9e"
+  "ver": "94d883ce"
  },
  "objetos/altar": {
   "tipo": "objeto",

@@ -71,7 +71,7 @@ FUNDO_ALTURA = {"ceu": 270, "longe": 180, "perto": 210, "chao": 128,
                 # campo aberto do pasto (2026-11-20): o campo pintado (piso) e a faixa preta da frente
                 "capim": 80, "frente": 70,
                 # prado pintado no estilo do fundo (2026-11-20): o chão do pasto, com perspectiva
-                "prado": 120,
+                "prado": 120, "prado_vala": 120,   # prado_vala (2026-11-21): o mesmo prado com a vala pintada no meio
                 # kit do pasto no estilo Magibot (2026-11-20): barranco que se repete, ponta do barranco,
                 # silhuetas da frente (tela inteira) e objetos-plataforma (altura do objeto recortado)
                 "bloco_chao": 100, "bloco_beirada": 100, "cipos": 270,
@@ -701,9 +701,9 @@ def preparar_fundo(pasta: Path, ajustes: dict) -> dict | None:
             im = im.crop((0, round(im.height * float(aj["corteTopo"])), im.width, im.height))
         if aj.get("corteBaixo"):           # ex.: faixa de chão que o Gemini pôs embaixo do objeto
             im = im.crop((0, 0, im.width, round(im.height * (1 - float(aj["corteBaixo"])))))
-        transparente = nome in ("longe", "perto", "capim", "frente", "prado", "bloco_chao", "cipos") or nome in RECORTADAS or nome.startswith("arvore_")
+        transparente = nome in ("longe", "perto", "capim", "frente", "prado", "prado_vala", "bloco_chao", "cipos") or nome in RECORTADAS or nome.startswith("arvore_")
         if transparente:
-            camada = nome in ("longe", "perto", "capim", "frente", "prado", "bloco_chao", "bloco_beirada")   # paisagem embaixo: a cor do fundo vem do topo
+            camada = nome in ("longe", "perto", "capim", "frente", "prado", "prado_vala", "bloco_chao", "bloco_beirada")   # paisagem embaixo: a cor do fundo vem do topo
             rgb = np.asarray(im.convert("RGB"))
             borda = np.concatenate([rgb[0], rgb[:, 0]])
             fundo_verde = int(np.argmax(np.median(borda, axis=0))) == 1

@@ -189,5 +189,13 @@
   "semMagenta": 12,
   "bordaCor": 2,
   "casarCom": "prado"
+ },
+ "fundos/vaca/prado_vala": {
+  "cores": 48,
+  "tirarClaros": 200,
+  "semPixel": true,
+  "altura": 240,
+  "fecharBuracos": true,
+  "corteTopo": 0.4
  }
 }
