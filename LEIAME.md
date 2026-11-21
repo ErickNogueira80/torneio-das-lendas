@@ -761,9 +761,9 @@ recorte em magenta `#FF00FF`, porque o recorte verde apaga o verde da arte.
     `prado.jpg` editado no Gemini (anexo só dele). Ferramenta: mesmos ajustes do prado, menos `emendar` e
     `aplainar` (cortariam/deslocariam a vala). No jogo, centrado em cada buraco; as pontas somem no prado
     normal num degradê de 220 px; só uma faixa de 90 px no meio (a terra da vala) estica para a abertura
-    na linha dos pés ficar do tamanho do buraco (`PV`: `centro` 806,5, `abre` 72, `meio` 90). Com ele, a
-    `vala_beirada` e a rampa (`subidaVala`) ficam desligadas (não há morrinho); continuam no código como
-    reserva.
+    na linha dos pés ficar do tamanho do buraco (`PV`: `centro` 806,5, `abre` 58, `meio` 110; o Erick pediu
+    o buraco mais largo). Com ele, a `vala_beirada` fica desligada (reserva no código) e a rampa
+    (`subidaVala`) sobe 26 px (`PV.subida`): chegando na borda, o herói sobe na beirada de capim da imagem.
     **Vala de terra** no lugar do buraco preto (escolha do Erick): imagem `vala_beirada` (lado direito;
     espelhada no esquerdo) em `valaBeirada()`; o capim dela encaixa no topo do prado, a terra começa logo
     abaixo da linha dos pés, a ponta do capim passa 8 px da beira da física e a parte de dentro some aos

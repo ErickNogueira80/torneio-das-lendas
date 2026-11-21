@@ -3442,13 +3442,15 @@ function chaoLargo(bc) {   // bloco_chao com a faixa de capim mais funda: linhas
 // além da beira da física. A ponta de dentro some aos poucos no prado (sem emenda reta).
 const VALA_RECUO = 40, VALA = { topo: 5, terra: 75, ponta: 135 };   // em px da imagem (300 de altura)
 const valaCache = new Map();
-const PV = { centro: 806.5, abre: 72, meio: 90, fade: 220 };   // prado_vala: centro da vala e abertura na linha dos pés (px da imagem), degradê das pontas
+const PV = { centro: 806.5, abre: 58, meio: 110, fade: 220, subida: 26 };   // Erick: buraco mais largo e subir na borda   // prado_vala: centro da vala e abertura na linha dos pés (px da imagem), degradê das pontas
 // Rampa da vala (2026-11-21, Erick): chegando na beirada, o herói sobe no morrinho de capim dela e fica
 // no alto até a outra beirada (só no desenho; a física continua reta). Vale no ar também: o pulo sai do alto.
 const VALA_SUBIDA = 58, VALA_RAMPA = 150, VALA_ALTO = 30;
 let valasPasto = null;
 function subidaVala(x) {
-  if (!PASTO || ESTILO !== 'prado' || !layer(FASE.fundo, 'vala_beirada') || layer(FASE.fundo, 'prado_vala')) return 0;   // com o prado_vala não há morrinho
+  const comPV = PASTO && ESTILO === 'prado' && layer(FASE.fundo, 'prado_vala');
+  if (!comPV && (!PASTO || ESTILO !== 'prado' || !layer(FASE.fundo, 'vala_beirada'))) return 0;
+  const SUB = comPV ? PV.subida : VALA_SUBIDA;   // prado_vala: sobe na beirada de capim da imagem
   if (!valasPasto) {
     const ch = SOLIDS.filter(o => o.y >= GROUND - 1).sort((a, b) => a.x - b.x); valasPasto = [];
     for (let i = 0; i + 1 < ch.length; i++) { const a = ch[i].x + ch[i].w, b = ch[i + 1].x; if (b - a >= 8 && b - a < 400) valasPasto.push([a, b]); }
@@ -3456,8 +3458,8 @@ function subidaVala(x) {
   for (const [a, b] of valasPasto) {
     if (x < a - VALA_RAMPA || x > b + VALA_RAMPA) continue;
     const d = x < a ? (a - VALA_ALTO) - x : x > b ? x - (b + VALA_ALTO) : -1;   // distância até o alto
-    if (d <= 0) return VALA_SUBIDA;
-    const t = 1 - d / (VALA_RAMPA - VALA_ALTO); return VALA_SUBIDA * t * t * (3 - 2 * t);
+    if (d <= 0) return SUB;
+    const t = 1 - d / (VALA_RAMPA - VALA_ALTO); return SUB * t * t * (3 - 2 * t);
   }
   return 0;
 }
