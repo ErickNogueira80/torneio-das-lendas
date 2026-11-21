@@ -113,7 +113,8 @@
    249
   ],
   "corteBaixo": 0.2,
-  "semRoxo": true
+  "semRoxo": true,
+  "semRosa": true
  },
  "fundos/vaca/cipos": {
   "chave": [
@@ -123,6 +124,16 @@
   ]
  },
  "fundos/vaca/carroca": {
-  "corteBaixo": 0.1
+  "corteBaixo": 0.1,
+  "semRosa": true
+ },
+ "fundos/vaca/tronco_caido": {
+  "semRosa": true
+ },
+ "fundos/vaca/feno": {
+  "semRosa": true
+ },
+ "fundos/vaca/feno_pilha": {
+  "semRosa": true
  }
 }

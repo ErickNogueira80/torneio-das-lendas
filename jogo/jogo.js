@@ -50,7 +50,7 @@ const OBJETOS_PASTO = {
   cerca: { w: 106, h: 42, corte: 47, pisos: [[0, 106, 8]] },   // só o trecho do meio (dois mourões inteiros)
   carroca: { w: 144, h: 70, base: 22, pisos: [[15, 85, 9]] },
   tronco_caido: { w: 121, h: 40, pisos: [[20, 106, 8]] },
-  pedra: { w: 103, h: 55, pisos: [[2, 101, 4]] },   // mais larga (Erick: o herói ficava fora da pedra)
+  pedra: { w: 103, h: 55, base: 20, pisos: [[2, 101, 4]] },   // mais larga (Erick: o herói ficava fora da pedra)
 };
 const OBJ_BASE = 6;   // o pé do objeto fica no meio da faixa de capim, junto da linha dos pés (Erick, 2026-11-21: centralizar)
 function platsDosObjetos(objs) {
@@ -3405,8 +3405,8 @@ function drawObjetos() {
     const im = layer(FASE.fundo, o.tipo), O = OBJETOS_PASTO[o.tipo]; if (!im || !O) continue;
     const sx = O.corte || 0, sw = O.corte ? O.w : im.naturalWidth, sh = Math.min(O.h, im.naturalHeight);
     const w = sw * 2, h = sh * 2, x = Math.round(o.x - camX), yB = GROUND + (O.base ?? OBJ_BASE); if (x > W || x + w < 0) continue;
-    ctx.fillStyle = 'rgba(20,12,16,.45)';   // sombra achatada no capim, em degraus de pixel
-    for (let i = 0; i < 4; i++) { const enc = (4 - i) * w * .05; ctx.fillRect(Math.round((x + enc) / 2) * 2, yB - 6 + i * 2, Math.round((w - enc * 2) / 2) * 2, 2); }
+    ctx.fillStyle = 'rgba(16,22,10,.32)';   // sombra: elipse baixa colada no pé, um pouco mais larga que o objeto
+    for (let dy = -6; dy <= 2; dy += 2) { const k = dy < 0 ? 1 - (dy / 7) ** 2 : 1 - (dy / 3) ** 2, hw = Math.round(w * .52 * Math.sqrt(Math.max(0, k)) / 2) * 2; ctx.fillRect(x + Math.round(w / 2) - hw, yB + dy - 2, hw * 2, 2); }
     ctx.imageSmoothingEnabled = false; ctx.drawImage(im, sx, 0, sw, sh, x, yB - h, w, h); ctx.imageSmoothingEnabled = true;
   }
 }
@@ -3423,6 +3423,11 @@ function chaoLargo(bc) {   // bloco_chao com a faixa de capim mais funda: linhas
   }
   g.drawImage(bc, 0, 22, w, h - 22, 0, 22 + CHAO_EXTRA, w, h - 22);
   // (2026-11-21, Erick: o piso parecia "sujo") na faixa de capim, os pixels marrons viram verde do pasto
+  {   // fio rosado/marrom que o magenta deixou no topo do gramado (Erick, 2026-11-21): sai
+    const d = g.getImageData(0, 0, w, 8), a = d.data;
+    for (let i = 0; i < a.length; i += 4) if (a[i + 3] && a[i] > a[i + 1] - 2) a[i + 3] = 0;
+    g.putImageData(d, 0, 0);
+  }
   if (!CHAO_EXTRA) return chaoLargoCv = cv;   // v2: gramado limpo, sem a limpeza
   const d = g.getImageData(0, 13, w, 9 + CHAO_EXTRA), a = d.data;   // só o topo verde (não a borda escura nem a terra)
   for (let i = 0; i < a.length; i += 4) {
@@ -3548,8 +3553,8 @@ function posEstilo() {   // efeito sobre a cena inteira (depois do mundo, antes 
       const TUFOS = [[0, 140, 100, 84], [100, 140, 140, 84], [352, 140, 88, 84], [440, 140, 106, 84]];   // só a parte de cima (o morrinho preto embaixo fica fora)
       const PT = 230, parT = 1.45;
       for (let k = Math.floor(camX * parT / PT) - 1; k <= Math.floor((camX * parT + W) / PT) + 1; k++) {
-        const r = hashC(k * 3.1 + 9.4); if (r < .4) continue;
-        const t = TUFOS[Math.floor(hashC(k * 1.7) * 4)], esc = .55 + hashC(k * 4.3) * .4;
+        const r = hashC(k * 3.1 + 9.4); if (r < .22) continue;
+        const t = TUFOS[Math.floor(hashC(k * 1.7) * 4)], esc = .65 + hashC(k * 4.3) * .4;
         peca(t, k * PT + r * 120 - camX * parT, H - t[3] * esc + 8, esc, hashC(k * 6.1) > .5);
       }
       c.imageSmoothingEnabled = true;
@@ -3618,11 +3623,12 @@ function piso() {
         // de capim arredondado, frente de terra que recua para dentro e escurece, musgo pendurado
         // (2026-11-21, Erick: "deixa o piso mais largo") a faixa de capim ganha CHAO_EXTRA linhas da arte
         // (copiadas da própria faixa, deslocadas na horizontal para não repetir): mais chão visto de cima
-        const bcL = chaoLargo(bc), topo = GROUND - 30 - PISO_TOPO, yT = topo + 4, R = 16, x0 = s.x, x1 = s.x + s.w;
-        const rec = (y, k) => {   // quanto a ponta recua na altura y
-          const d = y - yT; if (d < 0) return R;
+        const bcL = chaoLargo(bc), topo = GROUND - 30 - PISO_TOPO, yT = topo + 4, yF = topo + 58, R = 8, x0 = s.x, x1 = s.x + s.w;
+        const rec = (y, k) => {   // quanto a ponta recua na altura y: canto de trás arredondado, faixa de capim
+          const d = y - yT; if (d < 0) return R;   // reta, terra (abaixo de yF) recuando para dentro
           if (d < R) return R - Math.sqrt(R * R - (R - d) * (R - d));
-          return (d - R) * .18 + hashC(Math.floor(y / 8) * 3.7 + k) * 5;
+          if (y < yF) return 0;
+          return 4 + (y - yF) * .2 + hashC(Math.floor(y / 8) * 3.7 + k) * 5;
         };
         const q2 = v => Math.round(v / 2) * 2;
         g.save(); g.beginPath();
@@ -3632,21 +3638,22 @@ function piso() {
         g.closePath(); g.clip();
         g.fillStyle = '#0d080b'; g.fillRect(x0, topo + 190 + CHAO_EXTRA * 2, x1 - x0, alt);
         g.save(); g.translate(0, topo); g.scale(2, 2); g.fillStyle = g.createPattern(bcL, 'repeat-x'); g.fillRect(x0 / 2 - 2, 0, (x1 - x0) / 2 + 4, bcL.height); g.restore();
+        g.globalCompositeOperation = 'source-atop';   // as sombras só pintam o que já é chão
         for (const [lado, xb] of [[bE, x0], [bD, x1]]) {   // a terra escurece chegando na ponta
           if (!lado) continue;
           const dir = xb === x0 ? 1 : -1, gr = g.createLinearGradient(xb, 0, xb + dir * 70, 0);
           gr.addColorStop(0, 'rgba(8,4,8,.85)'); gr.addColorStop(1, 'rgba(8,4,8,0)');
-          g.fillStyle = gr; g.fillRect(Math.min(xb, xb + dir * 70), yT + 30 + CHAO_EXTRA * 2, 70, alt);
+          g.fillStyle = gr; g.fillRect(Math.min(xb, xb + dir * 70), yF, 70, alt);
           const gr2 = g.createLinearGradient(xb, 0, xb + dir * 26, 0);   // e o capim do canto fica na sombra
           gr2.addColorStop(0, 'rgba(20,14,18,.55)'); gr2.addColorStop(1, 'rgba(20,14,18,0)');
-          g.fillStyle = gr2; g.fillRect(Math.min(xb, xb + dir * 26), yT - 4, 26, 34);
+          g.fillStyle = gr2; g.fillRect(Math.min(xb, xb + dir * 26), yT - 4, 26, yF - yT + 4);
         }
         g.restore();
         for (const [lado, xb] of [[bE, x0], [bD, x1]]) {   // musgo e raízes pendurados no canto
           if (!lado) continue;
           const dir = xb === x0 ? 1 : -1;
           for (let i = 0; i < 7; i++) {
-            const r = hashC(xb * .13 + i * 7.1), y = yT + 4 + i * 5, xx = q2(xb + dir * (rec(y, xb) + 2 + r * 10));
+            const r = hashC(xb * .13 + i * 7.1), y = yF - 4 + i * 4, xx = q2(xb + dir * (rec(y, xb) + 2 + r * 10));
             const comp = 6 + Math.round(r * 9) * 2;
             g.fillStyle = i < 3 ? (r > .5 ? '#5d6634' : '#4a5230') : '#2a1d22';
             g.fillRect(xx, y, 2, comp); if (r > .6) g.fillRect(xx + dir * 2, y + comp - 4, 2, 4);
@@ -3728,10 +3735,13 @@ function piso() {
     for (let i = 0; i + 1 < chaos.length; i++) {
       const x0 = chaos[i].x + chaos[i].w, x1 = chaos[i + 1].x;
       if (x1 - x0 < 8) continue;
-      const v0 = ESTILO === 'magibot' ? base - 4 : base - 30;
+      const MB = PASTO && ESTILO === 'magibot', v0 = MB ? GROUND - 14 - PISO_TOPO : base - 30;   // magibot: na linha do topo do gramado
       const gr = g.createLinearGradient(0, v0, 0, alt);   // vala escura (Erick, 2026-11-20)
-      gr.addColorStop(0, 'rgba(14,22,12,0)'); gr.addColorStop(ESTILO === 'magibot' ? .12 : .3, 'rgba(14,22,12,.95)'); gr.addColorStop(.42, '#0b130a'); gr.addColorStop(.5, '#070b06'); gr.addColorStop(1, '#030503');
-      g.fillStyle = gr; g.fillRect(x0 - 40, v0, x1 - x0 + 80, alt);   // passa por trás das beiradas recortadas
+      if (MB) {   // boca do buraco vista um pouco de cima: parede de trás em terra, que escurece até o preto
+        const f = px => Math.min(1, px / (alt - v0));
+        gr.addColorStop(0, '#3a2630'); gr.addColorStop(f(4), '#2c1d25'); gr.addColorStop(f(30), '#150d12'); gr.addColorStop(f(70), '#070406'); gr.addColorStop(1, '#030203');
+      } else { gr.addColorStop(0, 'rgba(14,22,12,0)'); gr.addColorStop(.3, 'rgba(14,22,12,.95)'); gr.addColorStop(.42, '#0b130a'); gr.addColorStop(.5, '#070b06'); gr.addColorStop(1, '#030503'); }
+      g.fillStyle = gr; if (MB) { g.save(); g.globalCompositeOperation = 'destination-over'; g.fillRect(x0 - 40, v0, x1 - x0 + 80, alt); g.restore(); } else g.fillRect(x0 - 40, v0, x1 - x0 + 80, alt);   // passa por trás das beiradas recortadas
     }
     g.restore();
   }

@@ -747,6 +747,17 @@ def preparar_fundo(pasta: Path, ajustes: dict) -> dict | None:
             if nome.startswith("arvore_copa"):   # folhas opacas (sem ver o tronco através delas)
                 a[:, :, 3] = np.where(a[:, :, 3] > 90, 255, 0)
             im = Image.fromarray(a.astype(np.uint8), "RGBA")
+        if nome in RECORTADAS:   # objeto do pasto: o rosa do magenta que sobrou na borda sai (2026-11-21)
+            a = np.asarray(im).astype(np.int32)
+            rosa = (a[:, :, 0] > a[:, :, 1] + 30) & (a[:, :, 2] > a[:, :, 1] + 15)
+            op = a[:, :, 3] > 0
+            viz = np.zeros_like(op)   # encosta num pixel transparente
+            viz[1:] |= ~op[:-1]; viz[:-1] |= ~op[1:]; viz[:, 1:] |= ~op[:, :-1]; viz[:, :-1] |= ~op[:, 1:]
+            a[:, :, 3] = np.where(rosa & viz, 0, a[:, :, 3])
+            if aj.get("semRosa"):   # objeto sem roxo na arte: tira o tom rosado de dentro também
+                exc = np.maximum(0, a[:, :, 2] - a[:, :, 1])
+                a[:, :, 0] = np.maximum(0, a[:, :, 0] - exc); a[:, :, 2] -= exc
+            im = Image.fromarray(a.astype(np.uint8), "RGBA")
         saida = DESTINO / chave / f"{nome}.png"
         saida.parent.mkdir(parents=True, exist_ok=True)
         im.save(saida, optimize=True)

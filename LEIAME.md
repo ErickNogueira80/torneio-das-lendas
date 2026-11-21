@@ -694,6 +694,12 @@ recorte em magenta `#FF00FF`, porque o recorte verde apaga o verde da arte.
     baixos: feno e pilha `base` 14, carroça 22. **Sem véu nem neblina** no estilo Magibot (o fundo fica
     com a cor original; Erick: "o fundo tá muito apagado... tira a neblina"); a vala do buraco escurece
     logo abaixo da linha dos pés.
+    **Refino 2026-11-21 (tarde):** sombra dos objetos é uma elipse baixa colada no pé; o fio rosado no
+    topo do gramado sai (`chaoLargo`); pedra mais baixa (`base` 20); a ferramenta tira o rosa do magenta
+    das bordas de todos os objetos e, com `semRosa` (tronco, feno, pilha, carroça, cerca), o tom rosado
+    de dentro também; buraco: a faixa de capim termina reta na beira, a terra recua só abaixo dela, e a
+    boca do buraco (parede de trás em terra que escurece até o preto) é desenhada por trás das beiradas;
+    samambaias um pouco maiores e mais frequentes.
     Tela `?limpo`: feno 500, cerca 900, buraco 1600–1740, pilha de feno 2000, carroça 2500, tronco
     3100, pedra 3600. Se uma imagem for regerada com outro tamanho, medir os pisos de novo.
     **Tela de teste:** `?fase=vaca&limpo` tira bichos, árvores, buracos, baús e perigos (só o chão e
