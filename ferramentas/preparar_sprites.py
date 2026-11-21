@@ -738,7 +738,18 @@ def preparar_fundo(pasta: Path, ajustes: dict) -> dict | None:
             alvo = int(aj.get("altura", FUNDO_ALTURA[re.sub(r"\d+$", "", nome)]))
             largura = max(1, round(im.width * alvo / im.height))
         if aj.get("semPixel"):   # pintura lisa (Erick, 2026-11-21: chão sem pixel art): só reduz, sem paleta
-            im = im.convert("RGBA").resize((largura, alvo), Image.LANCZOS)
+            # pré-multiplicado: a cor dos pixels transparentes (o magenta) não vaza para a borda ao reduzir
+            im = im.convert("RGBA").convert("RGBa").resize((largura, alvo), Image.LANCZOS).convert("RGBA")
+            # e o rosa que o magenta deixou na própria borda da arte (até 4 px da transparência) vira a cor vizinha
+            a = np.asarray(im).astype(np.int32); op = a[:, :, 3] > 8; perto = ~op
+            for _ in range(4):
+                v = perto.copy(); v[1:] |= perto[:-1]; v[:-1] |= perto[1:]; v[:, 1:] |= perto[:, :-1]; v[:, :-1] |= perto[:, 1:]; perto = v
+            exc = np.maximum(0, np.minimum(a[:, :, 0], a[:, :, 2]) - a[:, :, 1])
+            m = perto & op
+            if nome != "ceu" and (~op).any():   # camada recortada: magenta forte em qualquer lugar (o céu tem rosa de verdade)
+                m |= (a[:, :, 0] > a[:, :, 1] + 50) & (a[:, :, 2] > a[:, :, 1] + 50)
+            a[:, :, 0] = np.where(m, a[:, :, 0] - exc, a[:, :, 0]); a[:, :, 2] = np.where(m, a[:, :, 2] - exc, a[:, :, 2])
+            im = Image.fromarray(np.clip(a, 0, 255).astype(np.uint8), "RGBA")
         else:
             im = pixelizar(im, largura, alvo, int(aj.get("cores", FUNDO_CORES)))
         if nome.startswith("arvore_") and not fundo_verde_arvore(arq):
