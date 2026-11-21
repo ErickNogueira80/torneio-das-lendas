@@ -4587,7 +4587,9 @@ function drawEnemies(frente = false) {
       const anim = e.T.mov === 'voo' ? 'voar' : prep && S.quadros.preparar ? 'preparar' : vai && S.quadros.investida ? 'investida' : 'andar';
       const tq = prep ? Math.min(c.t / .55, .99) * S.quadros.preparar.length : vai ? time * 14 : time * (e.T.mov === 'voo' ? 8 : 6) + e.x * .01;
       const treme = prep ? Math.sin(time * 60) * 2 : 0, inclina = prep ? .1 * Math.min(1, c.t / .3) : vai ? .06 : 0;
+      if (e.flash > 0) ctx.filter = 'brightness(2.2)';
       drawFrame(S, anim, tq, x + e.w / 2 + treme, e.y + e.h + (e.T.mov === 'voo' ? 6 : 0), face, 1, 1, inclina);
+      ctx.filter = 'none';
     } else if (e.tipo === 'brasa') {
       flame(x + 13, e.y + 26, 30, 38 + Math.sin(time * 10 + e.x) * 4, time * 14 + e.x);
       ctx.fillStyle = '#2a0a04';
@@ -4597,7 +4599,8 @@ function drawEnemies(frente = false) {
       const pombo = e.tipo === 'pombo', fr = pombo ? quadroPombo(Math.floor(time * 8 + e.x) % 2) : quadroBesouroGrande(Math.floor(time * 4) % 2);
       const esc = pombo ? 2 : 6, face = pombo ? (player.x > e.x ? 1 : -1) : (e.vx > 0 ? 1 : -1), w = fr.width * esc, h = fr.height * esc;
       ctx.save(); ctx.translate(Math.round(x + e.w / 2), Math.round(e.y + e.h + (pombo ? 4 : 2))); ctx.scale(face, 1);
-      ctx.imageSmoothingEnabled = false; ctx.drawImage(fr, -w / 2, -h, w, h); ctx.imageSmoothingEnabled = true; ctx.restore();
+      if (e.flash > 0) ctx.filter = 'brightness(2.2)';
+      ctx.imageSmoothingEnabled = false; ctx.drawImage(fr, -w / 2, -h, w, h); ctx.imageSmoothingEnabled = true; ctx.filter = 'none'; ctx.restore();
     } else {
       const cx = x + 11, cy = e.y + 11;
       const halo = ctx.createRadialGradient(cx, cy, 2, cx, cy, 26);
@@ -4608,7 +4611,7 @@ function drawEnemies(frente = false) {
       ctx.beginPath(); ctx.ellipse(cx - 8, cy - 6, 8, 4 + wf * .3, -.5, 0, Math.PI * 2); ctx.ellipse(cx + 8, cy - 6, 8, 4 - wf * .3, .5, 0, Math.PI * 2); ctx.fill();
       ctx.fillStyle = '#fff1c2'; ctx.beginPath(); ctx.arc(cx, cy, 6, 0, Math.PI * 2); ctx.fill();
     }
-    if (e.flash > 0) { ctx.fillStyle = 'rgba(255,255,255,.6)'; ctx.fillRect(x - 4, e.y - 10, e.w + 8, e.h + 10); }
+    // (Erick, 2026-11-21) sem o retângulo branco do tamanho da caixa de colisão: quem pisca é o próprio desenho
     if (e.hp < e.max && !e.T.paz) {
       ctx.fillStyle = 'rgba(0,0,0,.6)'; ctx.fillRect(x, e.y - 14, e.w, 4);
       ctx.fillStyle = '#ffb36b'; ctx.fillRect(x, e.y - 14, e.w * e.hp / e.max, 4);

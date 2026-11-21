@@ -785,6 +785,8 @@ recorte em magenta `#FF00FF`, porque o recorte verde apaga o verde da arte.
     Besouro v3 (2026-11-21): o Erick gerou no PixelLab em 172 px (o besouro ocupa 112 x 70 px, antes ~45 de
     altura): mais detalhe e pixels menores na tela; `suavizar` 2 continua. Versões anteriores em
     `img/sprites/inimigos/besouro/originais/` (`v2_108px`, `v3_172px` = a atual).
+    Sem o retângulo branco do tamanho da caixa de colisão quando um inimigo pisca (Erick, 2026-11-21: não
+    mostrar caixa de nenhum inimigo ou personagem): quem clareia é o próprio desenho (`ctx.filter`).
     **Vala de terra** no lugar do buraco preto (escolha do Erick): imagem `vala_beirada` (lado direito;
     espelhada no esquerdo) em `valaBeirada()`; o capim dela encaixa no topo do prado, a terra começa logo
     abaixo da linha dos pés, a ponta do capim passa 8 px da beira da física e a parte de dentro some aos
