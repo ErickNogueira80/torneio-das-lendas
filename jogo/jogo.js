@@ -4254,9 +4254,13 @@ function drawSala() {
   const verde = PASTO && layer(FASE.fundo, 'sala_fundo'), chaoV = PASTO && layer(FASE.fundo, 'sala_chao');
   const arte = verde ? null : layer('objetos/fundo_sala', 'cogumelos');
   if (verde) {
-    const aw = x1 - x0, ah = Math.round(aw * verde.naturalHeight / verde.naturalWidth);
-    ctx.save(); ctx.beginPath(); ctx.rect(x0, topo, aw, chao + 30 - topo); ctx.clip();
-    ctx.drawImage(verde, x0, Math.max(topo, chao + 40 - ah), aw, ah); ctx.restore();
+    const aw = x1 - x0, ah = Math.round(aw * verde.naturalHeight / verde.naturalWidth), y = Math.max(topo, chao + 40 - ah);
+    let fc = salaCache.get('fundo');
+    if (!fc) {   // pronto uma vez, no tamanho da tela (redimensionar a cada quadro derrubava o FPS)
+      fc = document.createElement('canvas'); fc.width = aw; fc.height = Math.min(ah, chao + 30 - y);
+      fc.getContext('2d').drawImage(verde, 0, 0, aw, ah); salaCache.set('fundo', fc);
+    }
+    ctx.drawImage(fc, x0, y);
   } else if (arte) {
     // o chão da arte (84,3% da altura) fica no chão da sala; o que passa dele é cortado
     const aw = x1 - x0, ah = Math.round(aw * arte.naturalHeight / arte.naturalWidth), ay = Math.round(chao + 4 - ah * .843);
@@ -4283,7 +4287,7 @@ function drawSala() {
   // piso da sala: crosta, pedras e cogumelinhos que brilham
   if (chaoV) {   // chão de musgo no padrão do prado: o topo de musgo fica na linha dos pés
     ctx.save(); ctx.beginPath(); ctx.rect(x0, 0, x1 - x0, SALA.fundo + 200); ctx.clip();
-    for (let x = x0 - ((x0 + camX) % chaoV.naturalWidth + chaoV.naturalWidth) % chaoV.naturalWidth; x < x1; x += chaoV.naturalWidth) ctx.drawImage(chaoV, Math.round(x), chao - 24);
+    for (let x = x0 - ((x0 + camX) % chaoV.naturalWidth + chaoV.naturalWidth) % chaoV.naturalWidth; x < x1; x += chaoV.naturalWidth) ctx.drawImage(chaoV, Math.round(x), chao - 44);   // pés no meio do musgo (Erick)
     ctx.restore();
   } else {
   ctx.fillStyle = '#5a4036'; ctx.fillRect(x0, chao, x1 - x0, 2);
@@ -4292,9 +4296,8 @@ function drawSala() {
   ctx.fillStyle = '#140a0d';
   if (!chaoV) for (const p of D.pedras) { const x = Math.round(p.x - camX); ctx.fillRect(x, chao - q(p.h), q(p.w), q(p.h)); ctx.fillRect(x + 2, chao - q(p.h) - 2, q(p.w) - 4, 2); }
   ctx.imageSmoothingEnabled = false;
-  if (PASTO) ctx.filter = 'hue-rotate(-85deg) saturate(1.2)';   // os cogumelinhos azuis do PixelLab ficam verdes no pasto
   for (const c of D.cogumelos) {
-    const x = Math.round(c.x - camX), im = layer('objetos/cogumelo_azul', c.n);
+    const x = Math.round(c.x - camX), im = salaVerde(layer('objetos/cogumelo_azul', c.n));
     if (im) { const w = im.naturalWidth * 2, h = im.naturalHeight * 2; ctx.drawImage(im, x - w / 2, chao - h + 2, w, h); continue; }
     const k = c.s * B, brilho = .7 + .3 * Math.sin(time * 2 + c.x);   // sem a imagem: o desenhado
     ctx.fillStyle = '#cfc2a0'; ctx.fillRect(x - k / 2, chao - 3 * k, k, 3 * k);
@@ -4305,17 +4308,27 @@ function drawSala() {
   // chão), e alguns dançam espelhados
   for (const c of D.dancam) {
     const perto = naSala(player) && Math.abs(player.x + player.w / 2 - c.x) < 160;
-    const qd = Math.floor(time * (perto ? 15 : 8) + c.ph) % 9, im = layer('objetos/cogumelo_danca', String(qd + 1));
+    const qd = Math.floor(time * (perto ? 15 : 8) + c.ph) % 9, im = salaVerde(layer('objetos/cogumelo_danca', String(qd + 1)));
     if (!im) continue;
     const w = im.naturalWidth * 2, h = im.naturalHeight * 2, x = Math.round(c.x - camX);
     ctx.save(); ctx.translate(x, chao + 2); if (c.esp) ctx.scale(-1, 1);
     ctx.drawImage(im, -Math.round(w / 2), -h, w, h); ctx.restore();
   }
-  ctx.filter = 'none';
   ctx.imageSmoothingEnabled = true;
   drawMola();
 }
 // cogumelo-mola: chapéu largo que afunda quando pisam e estica no pulo
+// sala do pasto: os cogumelinhos azuis do PixelLab pintados de verde UMA vez (o filtro a cada quadro derrubava o FPS)
+const salaCache = new Map();
+function salaVerde(im) {
+  if (!PASTO || !im) return im;
+  let c = salaCache.get(im);
+  if (!c) {
+    c = document.createElement('canvas'); c.width = im.naturalWidth; c.height = im.naturalHeight; const g = c.getContext('2d');
+    g.filter = 'hue-rotate(-85deg) saturate(1.2)'; g.drawImage(im, 0, 0); salaCache.set(im, c);
+  }
+  c.naturalWidth = c.width; c.naturalHeight = c.height; return c;
+}
 function drawMola() {
   const B = 2, q = v => Math.round(v / B) * B, a = SALA.aperto, x = Math.round(SALA.mola - camX), chao = SALA.chao;
   const pisado = naSala(player) && player.naMola ? .35 : 0, sq = Math.max(a * (a > .5 ? -.4 : 1), pisado);   // estica no pulo, afunda pisado

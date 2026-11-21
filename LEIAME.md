@@ -797,7 +797,9 @@ recorte em magenta `#FF00FF`, porque o recorte verde apaga o verde da arte.
     do prado, `corteTopo` 0,28, `fecharBuracos`, `emendar` 0,06) e `sala_mola` (recortada, 70 px), todas lisas.
     No pasto, `drawSala` usa o fundo verde, repete o chão com o musgo na linha dos pés (no lugar da crosta e
     das pedrinhas) e o `drawMola` usa a mola verde; os cogumelinhos do PixelLab (parados e dançando) ficam
-    verdes por `hue-rotate`. A sala do Boitatá não mudou (azul).
+    verdes (pintados uma vez numa cópia, `salaVerde`; o `ctx.filter` a cada quadro e o fundo redimensionado a
+    cada quadro derrubavam o FPS na caverna, 2026-11-21). Chão da sala 20 px mais alto (os pés no meio do
+    musgo). A sala do Boitatá não mudou (azul).
     **Vala de terra** no lugar do buraco preto (escolha do Erick): imagem `vala_beirada` (lado direito;
     espelhada no esquerdo) em `valaBeirada()`; o capim dela encaixa no topo do prado, a terra começa logo
     abaixo da linha dos pés, a ponta do capim passa 8 px da beira da física e a parte de dentro some aos
