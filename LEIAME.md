@@ -753,6 +753,10 @@ recorte em magenta `#FF00FF`, porque o recorte verde apaga o verde da arte.
     herói sobe no morrinho de capim dela (até 58 px na tela, `subidaVala`) e fica no alto até a outra
     beirada; vale no ar também, então o pulo sai do alto (só no desenho, a física continua reta).
     Testar com `&ff=90` (avança 90 quadros antes de desenhar): sem ele, o herói pisca nas capturas.
+    Emenda da vala com o chão (2026-11-21): a beirada some no prado num degradê longo (62% da largura dela,
+    em vez de 70 px); `perto` com `emendar` 0,03 (a emenda da camada de árvores e cercas deixava uma linha
+    vertical justo perto da vala). Testado e descartado: o capim do prado ir até a beira com a quina
+    arredondada (ficou um bloco reto e duro). Pedra mais baixa (`base` 30).
     **Vala de terra** no lugar do buraco preto (escolha do Erick): imagem `vala_beirada` (lado direito;
     espelhada no esquerdo) em `valaBeirada()`; o capim dela encaixa no topo do prado, a terra começa logo
     abaixo da linha dos pés, a ponta do capim passa 8 px da beira da física e a parte de dentro some aos

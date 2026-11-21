@@ -84,7 +84,8 @@
   "altura": 430,
   "bordaDura": true,
   "bordaCor": 3,
-  "semMagenta": 12
+  "semMagenta": 12,
+  "emendar": 0.03
  },
  "fundos/vaca/longe": {
   "semPixel": true,

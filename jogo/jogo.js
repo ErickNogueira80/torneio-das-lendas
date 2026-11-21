@@ -50,7 +50,7 @@ const OBJETOS_PASTO = {   // (2026-11-21) objetos de dia, sem base de capim: med
   cerca: { w: 103, h: 45, pisos: [[2, 92, 20]] },   // cerca velha e torta (2026-11-21); a tábua de cima sobe um pouco para a direita
   carroca: { w: 138, h: 70, pisos: [[10, 82, 8]] },
   tronco_caido: { w: 206, h: 65, base: 22, pisos: [[12, 160, 16]] },   // maior e mais para dentro do capim (Erick)
-  pedra: { w: 124, h: 85, base: 14, pisos: [[28, 86, 8]] },   // pedra nova, uma rocha só; maior e mais para dentro do capim (Erick)
+  pedra: { w: 124, h: 85, base: 30, pisos: [[28, 86, 8]] },   // pedra nova, uma rocha só; maior e mais para dentro do capim (Erick)
 };
 const OBJ_BASE = 6;   // o pé do objeto fica no meio da faixa de capim, junto da linha dos pés (Erick, 2026-11-21: centralizar)
 function platsDosObjetos(objs) {
@@ -3467,7 +3467,7 @@ function valaBeirada(g, im, xb, tp, espelha) {
     pc = document.createElement('canvas'); pc.width = w; pc.height = h; const q = pc.getContext('2d');
     q.imageSmoothingEnabled = true; q.drawImage(im, 0, 0, w, h);
     q.globalCompositeOperation = 'destination-in';
-    const gr = q.createLinearGradient(0, 0, 70, 0); gr.addColorStop(0, 'rgba(0,0,0,0)'); gr.addColorStop(1, '#000');
+    const gr = q.createLinearGradient(0, 0, w * .62, 0); gr.addColorStop(0, 'rgba(0,0,0,0)'); gr.addColorStop(.5, 'rgba(0,0,0,.45)'); gr.addColorStop(1, '#000');   // some bem devagar no prado
     q.fillStyle = gr; q.fillRect(0, 0, w, h);
     valaCache.set(im.src + k, pc);
   }
