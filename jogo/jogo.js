@@ -67,7 +67,9 @@ if (params.has('limpo')) {   // teste (2026-11-20): só o chão e o herói, para
   const objetos = [{ tipo: 'feno', x: 500 }, { tipo: 'cerca', x: 900 }, { tipo: 'feno_pilha', x: 2000 },
     { tipo: 'carroca', x: 2500 }, { tipo: 'tronco_caido', x: 3100 }, { tipo: 'pedra', x: 3600 }];
   const inimigos = [{ tipo: 'besouro', x: 3300, x1: 3150, x2: 3740, vel: 55, vida: 999 }];   // (2026-11-21, Erick) besouro perto da pedra
-  FASES[FASE_ID] = { ...F0, inimigos, baus: [], perigos: [], sala: null, objetos, plataformas: platsDosObjetos(objetos), solidos: [
+  // (2026-11-21, Erick) sala secreta embaixo do 2º buraco (2250–2380), como a do Boitatá: o mímico guarda a lança
+  const sala = { x0: 1835, x1: 2795, chao: 1020, mola: 2315, guardiao: { tipo: 'mimico', x: 1960, vida: 70, premio: 'lanca' } };
+  FASES[FASE_ID] = { ...F0, inimigos, baus: [], perigos: [], sala, objetos, plataformas: platsDosObjetos(objetos), solidos: [
     { x: -300, y: 460, w: 1900, h: 140 }, { x: 1740, y: 460, w: 510, h: 140 },   // buracos em 1600–1740, 2250–2380 e 4000–4120
     { x: 2380, y: 460, w: 1620, h: 140 }, { x: 4120, y: 460, w: F0.fim - 3820, h: 140 },   // (Erick, 2026-11-21: mais 2 buracos)
   ] };

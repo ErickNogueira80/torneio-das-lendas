@@ -787,6 +787,10 @@ recorte em magenta `#FF00FF`, porque o recorte verde apaga o verde da arte.
     `img/sprites/inimigos/besouro/originais/` (`v2_108px`, `v3_172px` = a atual).
     Sem o retângulo branco do tamanho da caixa de colisão quando um inimigo pisca (Erick, 2026-11-21: não
     mostrar caixa de nenhum inimigo ou personagem): quem clareia é o próprio desenho (`ctx.filter`).
+    **Sala secreta na tela `?limpo`** (Erick, 2026-11-21, "como na tela do Boitatá"): embaixo do 2º buraco
+    (2250–2380), a mesma sala do Boitatá (caverna de cogumelos azuis, cogumelo-mola no meio para sair e o
+    mímico guardando a lança): `sala: { x0: 1835, x1: 2795, chao: 1020, mola: 2315, guardiao: mímico }`.
+    Testar com `&sala` (começa dentro) ou `&x=2300` (cai pelo buraco). Ainda não está na fase completa.
     **Vala de terra** no lugar do buraco preto (escolha do Erick): imagem `vala_beirada` (lado direito;
     espelhada no esquerdo) em `valaBeirada()`; o capim dela encaixa no topo do prado, a terra começa logo
     abaixo da linha dos pés, a ponta do capim passa 8 px da beira da física e a parte de dentro some aos
