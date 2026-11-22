@@ -196,7 +196,7 @@ footer{border-top:1px solid var(--line);padding:22px 0;color:var(--muted);font-s
   </div>
 
   <h2 style="margin-top:34px">Como está o projeto</h2>
-  <p><span class="pill gold">Parte 1 escrita</span><span class="pill">Jogo: fases do Boitatá e da Vaca (protótipo)</span><span class="pill">Parte 2: o torneio (a escrever)</span><span class="pill">13 locais ilustrados</span><span class="pill">Bestiário com tentativa e dano</span><span class="pill">5 de 11 criaturas ilustradas</span></p>
+  <p><span class="pill gold">Parte 1 escrita</span><span class="pill">Jogo: fases do Boitatá e da Vaca (protótipo)</span><span class="pill">Parte 2: o torneio (a escrever)</span><span class="pill">13 locais ilustrados</span><span class="pill">Bestiário com tentativa e dano</span><span class="pill gold">11 de 11 criaturas ilustradas</span></p>
   <p class="note">Novidades de 22/11: tentativa e dano de todos os monstros, as fichas do Grifo, do Kallikántzaros e da Hidra, as fichas dos jogadores e o Purgatório com o Cérberus. Ainda faltam: a cena do museu, a luta do pesadelo, os ataques do Cérberus e a ficha do Miguel.</p>
 </section>
 
@@ -340,27 +340,27 @@ const BEASTS = [
    d:'Como o próprio nome diz, é uma mula que por conta de uma maldição teve a cabeça arrancada e substituída por uma espécie de bola de fogo mágica que é quase impossível de ser apagada. Hoje em dia ela protege os campos e fazendas de bandidos e ladrões que tentam roubar ou matar os animais dos fazendeiros.',
    at:[['Bola de fogo','+10','-9','1D10'],['Coice','+8','-7','1D8+1D4'],['Investida','+9','-8','1D12'],['"Tapa" de casco','+7','-6','2D6']], pe:['Intimidação','Furtividade'],
    m:'Apagando totalmente o fogo de sua cabeça ou "danificando" o coração dela.'},
-  {nome:'Robin Hood', comb:'2º e 3º combate', st:[2,1,3,1,3],
+  {nome:'Robin Hood', img:'robin-hood', comb:'2º e 3º combate', st:[2,1,3,1,3],
    d:'Um homem que não se sabe onde vive. Um arqueiro famoso que usa muito a cor verde. Segundo as lendas, ele vive na floresta e rouba dos ricos para dar aos pobres e necessitados, porém quando rouba de um rico desgraçado, ele o mata e dá todo o seu dinheiro para os mais necessitados.',
    at:[['Flechada','8','-7','1D12'],['Flechada tripla','+11','-10','3D6'],['Facada','+13','-12','1D8']], pe:['Acrobacia +8','Pontaria +6'],
    m:'Arrancando a cabeça ou fazendo ele chegar a 0 PS.'},
-  {nome:'Boitatá', comb:'2º e 3º combate', st:[1,1,3,2,3],
+  {nome:'Boitatá', img:'boitata', comb:'2º e 3º combate', st:[1,1,3,2,3],
    d:'Uma cobra de fogo flamejante que mora na parte mais densa da floresta. Ela começou a ser desse jeito após um grande incêndio florestal que tomou sua vida. A floresta aprisionou sua alma em um corpo incendiado e a tornou guardiã da mesma, desde então ela protege a região de lenhadores.',
    at:[['Bola de fogo gigante','+8','-7','1D12+1D4'],['Mordida venenosa','+11','-10','1D10+1D6'],['Mordida comum','+6','-5','1D8']], pe:['Agilidade +3'],
    m:'Apagando completamente seu fogo ou arrancando suas presas.'},
-  {nome:'Nessie', comb:'4º combate', st:[3,1,1,3,2],
+  {nome:'Nessie', img:'nessie', comb:'4º combate', st:[3,1,1,3,2],
    d:'Nessie é o famoso monstro do lago Ness. Segundo as várias lendas desse lago um monstro vindo das profundezas do inferno protege todos os seres vivos do lago. Ninguém nunca viu ele (até agora), ninguém sabe a real aparência dele, apenas sabem que é um monstro gigante que nunca se fez presente diante de ninguém.',
    at:[['Jato d\'água','+7','-6','2D8+1D4'],['Onda matadora','+10','-9','2D10'],['Tufão merengue','+7','-6','1D12'],['Redemoinho','+8','-7','1D10']], pe:['Furtividade ×3'],
    m:'Fazendo amizade com ele ou matando ele (de alguma forma). O final muda conforme a escolha.'},
-  {nome:'Ageláda (Vaca)', comb:'5º combate', st:[5,0,1,4,0],
+  {nome:'Ageláda (Vaca)', img:'vaca', comb:'5º combate', st:[5,0,1,4,0],
    d:'Na Índia as vacas são consideradas deusas/entidades sagradas. Para eles a vaca representa a vida, a fertilidade, a generosidade e a pureza. Ela também é associada à bondade e à maternidade, já que ela é capaz de fornecer leite e outros recursos para os seres humanos.',
    at:[['Gás mortal','+5','-4','1D4'],['Terremoto','+7','-6','1D6+1D4']], pe:['Nenhuma'],
    m:'Pelo cansaço ou fazendo ela chegar a 0 PS.'},
-  {nome:'Freddy Kruger', comb:'6º combate', st:[2,0,3,1,4],
+  {nome:'Freddy Kruger', img:'fobetor', comb:'6º combate', st:[2,0,3,1,4],
    d:'Freddy Kruger é um assassino movido por vinganças, crueldade e prazer em causar sofrimento. Ele transforma os sonhos das pessoas nos maiores pesadelos delas onde ele é capaz de controlar praticamente tudo e suas vítimas ficam extremamente vulneráveis.',
    at:[['Pesadelo','+12','-11','1D8'],['Arranhão','+10','-9','1D10+1D4'],['Caldeirão','+15','-14','1D12+1D8+1D4'],['Dardo envenenado','+10','-9','2D6']], pe:['Pontaria','Furtividade ×2'],
    m:'Tomando controle de seu sonho ou forçando sair dele o tempo todo.',
-   obs:'Personagem de filme; a sugestão para o material final é trocar por uma criatura original (ver Sugestões).'},
+   obs:'Personagem de filme; a sugestão para o material final é trocar por uma criatura original (ver Sugestões). A ilustração já mostra essa criatura original, o Fobétor, senhor dos pesadelos.'},
   {nome:'Grifo', img:'grifo', comb:'7º combate', st:[2,1,3,2,2],
    d:'O grifo é uma criatura mitológica que possui o corpo de um leão e a cabeça e as asas de uma águia. Ele é conhecido por sua força, coragem e poder. Nas histórias, costuma proteger tesouros e lugares sagrados, sendo considerado um símbolo de proteção, sabedoria e bravura.',
    at:[['Furacão','+8','-7','1D12+1D4'],['Investida','+10','-9','1D12'],['Ruído sonoro','+9','-8','1D8'],['Ataque de pelos','+6','-5','1D6']], pe:['Acrobacia +3','Intimidação','Enganação'],
@@ -379,7 +379,7 @@ const BEASTS = [
    at:[['Mordida','+6','-5','2D8+7'],['Bola de fogo','+10','-9','2D6+1D4'],['Arranhão','+5','-4','1D12+1D4'],['Pisada esmagadora','+13','-12','1D10+1D12+1D4'],['Terremoto','+10','-9','1D10+1D8']], pe:['Intimidação','Iniciativa','Sobrevivência'],
    m:'Perfurando todos os seus sete corações ou acertando 3 vezes o coração principal.',
    obs:'Gigante, 7 cabeças, "infinitas" vidas. Não tem como fazer amizade com ela: matar ela é obrigatório. Se a Nessie virou amiga, ela ajuda nessa batalha.'},
-  {nome:'Cérberus', comb:'Purgatório · quando alguém morre', st:null,
+  {nome:'Cérberus', img:'cerberus', comb:'Purgatório · quando alguém morre', st:null,
    d:'Um cão enorme de três cabeças chamado Cérberus protege o portão entre o céu e o inferno, o lugar em que ele fica chama-se purgatório, o lugar das almas ainda não julgadas. O cão é um demônio que está lá para garantir que nenhuma alma fuja de nenhum dos lugares, ataca qualquer que vê.',
    at:[], pe:[],
    m:'Quem morre tem de 10 a 15 rodadas para matá-lo, ou sai do Purgatório tirando 1 ou 20 nos dois dados de 2D20 (ver Signos › O Purgatório).',

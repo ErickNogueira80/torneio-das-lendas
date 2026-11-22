@@ -950,8 +950,8 @@ partir da p. 22; a transcrição cita as duas.
 
 - 2026-11-22 (Erick): as ilustrações do portal (locais e bestiário) são do **Gemini**. No bestiário,
   o Boitatá e a Vaca usam a mesma descrição dos chefes do jogo, sem pixel art (`03-prompts-imagens.md`);
-  entrou o prompt do Cérberus. Faltam ilustrar: Robin Hood, Boitatá, Nessie, Vaca, Fobétor (Freddy) e
-  Cérberus.
+  entrou o prompt do Cérberus. As 6 que faltavam (Robin Hood, Boitatá, Nessie, Vaca, Fobétor no lugar do
+  Freddy, Cérberus) foram geradas no mesmo dia: o bestiário do portal tem as 11 criaturas ilustradas.
 - 2026-11-22 (Erick): novas anotações da Milena (zip do WhatsApp com 21 fotos) entram no material
   e no portal: transcrição das p. 22 a 42, sugestões novas (1.11 jogadores e elementos, 2.10
   Purgatório, 2.11 fichas dos jogadores), bestiário do portal com tentativa e dano, fichas do
