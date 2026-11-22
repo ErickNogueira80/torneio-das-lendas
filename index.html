@@ -417,12 +417,22 @@ document.getElementById('scenes').innerHTML = SCENES.map((s,i) => `
   </div>`).join('');
 
 const LET = ['V','P','A','F','I'], NOMES = ['Vigor','Presença','Agilidade','Força','Intelecto'];
+const FOCO = {"mula-sem-cabeca": 45, "robin-hood": 62, "boitata": 58, "nessie": 63, "vaca": 46, "fobetor": 52, "grifo": 47, "kallikantzaros": 52, "excalibur": 47, "hidra": 60, "cerberus": 50};   // onde está a criatura na imagem (% da largura)
+function centrar(){   // recorta a imagem do card com a criatura no meio
+  document.querySelectorAll('.beast .img img[data-fx]').forEach(im => {
+    if (!im.naturalWidth || !im.clientHeight) return;
+    const v = im.clientWidth / (im.clientHeight * im.naturalWidth / im.naturalHeight), f = +im.dataset.fx / 100;
+    const px = v >= 1 ? 50 : Math.max(0, Math.min(100, (f - v / 2) / (1 - v) * 100));
+    im.style.objectPosition = px.toFixed(1) + '% 50%';
+  });
+}
+addEventListener('resize', centrar);
 const ataque = a => typeof a === 'string' ? `<li>${esc(a)}</li>`
   : `<li>${esc(a[0])}<br><small class="dado">1D20 · S ${esc(a[1])} · N ${esc(a[2])}${a[3] ? ` · dano <b>${esc(a[3])}</b>` : ''}</small></li>`;
 document.getElementById('beasts').innerHTML = BEASTS.map(b => `
   <article class="card beast">
     <div class="img" ${b.img ? `data-lb="${B+b.img}.jpg" data-cap="${esc(b.nome)}"` : ''}>
-      ${b.img ? `<img loading="lazy" src="${B+b.img}.jpg" alt="${esc(b.nome)}">`
+      ${b.img ? `<img loading="lazy" src="${B+b.img}.jpg" alt="${esc(b.nome)}" data-fx="${FOCO[b.img] ?? 50}" onload="centrar()">`
               : `<div class="noimg"><span>✦</span>imagem em breve</div>`}
     </div>
     <div class="pad">
