@@ -99,6 +99,7 @@ th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-ali
 th{background:var(--bg2);font-family:Cinzel,serif;color:var(--gold);font-weight:500}
 .tablewrap{overflow-x:auto}
 
+.dado{color:var(--muted,#8a8f98);font-size:.85em}
 /* caderno */
 .thumbs{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
 .thumbs figure{margin:0;cursor:zoom-in;background:var(--card);border:1px solid var(--line);border-radius:10px;overflow:hidden}
@@ -187,16 +188,16 @@ footer{border-top:1px solid var(--line);padding:22px 0;color:var(--muted);font-s
   <h2 style="margin-top:34px">Explore</h2>
   <div class="grid g3">
     <a class="card" href="#aventura"><img src="web/locais/05-o-lago-e-a-ilha.jpg" alt=""><div class="pad"><h3>A aventura</h3><p>As 13 cenas da jornada, do despertar até o Olimpo.</p></div></a>
-    <a class="card" href="#bestiario"><img src="web/bestiario/hidra.jpg" alt=""><div class="pad"><h3>Bestiário</h3><p>As 10 criaturas: história, ataques, status e como derrotar.</p></div></a>
-    <a class="card" href="#signos"><img src="web/locais/01-o-despertar.jpg" alt=""><div class="pad"><h3>Signos e elementos</h3><p>Fogo, Terra, Ar e Água, e as constelações dos jogadores.</p></div></a>
-    <a class="card" href="#caderno"><img src="fotos-originais/WhatsApp%20Image%202026-11-07%20at%2020.12.24%20(1).jpeg" alt="" style="object-position:top"><div class="pad"><h3>Caderno original</h3><p>As 36 páginas escritas à mão, do jeito que nasceram.</p></div></a>
+    <a class="card" href="#bestiario"><img src="web/bestiario/hidra.jpg" alt=""><div class="pad"><h3>Bestiário</h3><p>As 11 criaturas: história, ataques, status e como derrotar.</p></div></a>
+    <a class="card" href="#signos"><img src="web/locais/01-o-despertar.jpg" alt=""><div class="pad"><h3>Signos e elementos</h3><p>Fogo, Terra, Ar e Água, os jogadores e o Purgatório.</p></div></a>
+    <a class="card" href="#caderno"><img src="fotos-originais/WhatsApp%20Image%202026-11-07%20at%2020.12.24%20(1).jpeg" alt="" style="object-position:top"><div class="pad"><h3>Caderno original</h3><p>As 42 páginas escritas à mão, do jeito que nasceram.</p></div></a>
     <a class="card" href="#transcricao"><img src="fotos-originais/WhatsApp%20Image%202026-11-07%20at%2020.12.21%20(1).jpeg" alt="" style="object-position:top"><div class="pad"><h3>Transcrição</h3><p>O caderno inteiro digitado, página por página.</p></div></a>
     <a class="card" href="#sugestoes"><img src="web/locais/11-a-espada-na-pedra.jpg" alt=""><div class="pad"><h3>Sugestões</h3><p>Ideias para fechar furos, completar regras e continuar a história.</p></div></a>
   </div>
 
   <h2 style="margin-top:34px">Como está o projeto</h2>
-  <p><span class="pill gold">Parte 1 escrita</span><span class="pill">Jogo: fase do Boitatá (protótipo)</span><span class="pill">Parte 2: o torneio (a escrever)</span><span class="pill">13 locais ilustrados</span><span class="pill">5 de 10 criaturas ilustradas</span></p>
-  <p class="note">Ainda faltam: as fichas do Grifo, do Kallikántzaros e da Hidra, a cena do museu, a luta do pesadelo e as regras de dano.</p>
+  <p><span class="pill gold">Parte 1 escrita</span><span class="pill">Jogo: fases do Boitatá e da Vaca (protótipo)</span><span class="pill">Parte 2: o torneio (a escrever)</span><span class="pill">13 locais ilustrados</span><span class="pill">Bestiário com tentativa e dano</span><span class="pill">5 de 11 criaturas ilustradas</span></p>
+  <p class="note">Novidades de 22/11: tentativa e dano de todos os monstros, as fichas do Grifo, do Kallikántzaros e da Hidra, as fichas dos jogadores e o Purgatório com o Cérberus. Ainda faltam: a cena do museu, a luta do pesadelo, os ataques do Cérberus e a ficha do Miguel.</p>
 </section>
 
 <!-- AVENTURA -->
@@ -210,6 +211,7 @@ footer{border-top:1px solid var(--line);padding:22px 0;color:var(--muted);font-s
 <section class="view" id="v-bestiario">
   <h1>Bestiário</h1>
   <p class="lead">As criaturas na ordem dos combates. Status: <b>V</b> Vigor · <b>P</b> Presença · <b>A</b> Agilidade · <b>F</b> Força · <b>I</b> Intelecto.</p>
+  <p class="note">Cada ataque rola 1D20. <b>S</b> e <b>N</b> são os números do caderno (parece: acerta tirando S ou mais, erra tirando N ou menos); depois vem o dado de dano.</p>
   <div id="beasts" style="margin-top:28px"></div>
 </section>
 
@@ -239,12 +241,31 @@ footer{border-top:1px solid var(--line);padding:22px 0;color:var(--muted);font-s
     <tr><td>Nome, idade aproximada, poder, aparência. De 3 a 4 ataques diferentes, com pelo menos 1 do seu elemento.</td><td>Como usar os itens e poderes; quais serão os poderes e os itens; backstory (não será relevante).</td></tr>
   </table></div>
   <p class="note">Cada jogador pode ter no máximo 2 itens, e um deles <b>deve</b> ser de ataque (página 34).</p>
+
+  <h2 style="margin-top:30px">Os jogadores</h2>
+  <p>Os quatro jogadores e os elementos, das páginas 34 e 37 a 40. Status: <b>F</b> Força · <b>I</b> Intelecto · <b>V</b> Vigor · <b>A</b> Agilidade · <b>P</b> Presença.</p>
+  <div class="tablewrap"><table>
+    <tr><th>Jogador</th><th>Elemento</th><th>Personagem</th><th>F I V A P</th><th>Perícias</th><th>Itens</th><th>Ataques (1D20 · S · N · dano)</th></tr>
+    <tr><td>Beatriz</td><td>🔥 Fogo</td><td>Amagi Mamabami [?], 25 anos</td><td>4 2 1 3 2</td><td>Medicina 5, Luta 3, Pontaria 2</td><td>Nenhum</td><td>Espada de fogo (+8 · -7 · 1D12+2D4)<br>Círculo de fogo (+10 · -9 · 2D4)<br>Arco dourado (+11 · -10 · 1D6+1D4)</td></tr>
+    <tr><td>Mateus</td><td>🌪️ Ar</td><td>[?]am Seixeira [?], 30 anos</td><td>2 2 2 2 2</td><td>Luta 5, Furtividade 5</td><td>Faca (defesa pessoal), laser (ataque)</td><td>Imobilização (+6 · -5 · sem dano)<br>Gancho de esquerda (+7 · -6 · 1D8)<br>Rasteira (+7 · -6 · 1D10)</td></tr>
+    <tr><td>Miguel</td><td>🌿 Terra</td><td colspan="5"><i>Ficha ainda em branco (página 38).</i></td></tr>
+    <tr><td>João Felipe</td><td>🌊 Água</td><td>Jane Vorhood [?], 82 anos</td><td>1 4 2 2 3</td><td>—</td><td>1 adaga de gelo</td><td>Manipulação de água (+7 · -6 · 1D6+1D4)<br>Facada (+10 · -9 · 1D10 [?])<br>Ataque de gelo (+12 · -11 · 1D12+1D6)</td></tr>
+  </table></div>
+  <p class="note">[?] = leitura incerta. O nome do personagem do Mateus fica em parte embaixo do desenho colado na ficha.</p>
+
+  <h2 style="margin-top:30px">O Purgatório</h2>
+  <p>Toda vez que um jogador morre, vai para o <b>Purgatório</b>, o lugar para onde os signos vão quando morrem e onde ficam as almas ainda não julgadas. Lá ele precisa:</p>
+  <ul>
+    <li><b>matar o Cérberus</b>, o cão de três cabeças que guarda o portão entre o céu e o inferno, em no máximo 10 a 15 rodadas; <b>ou</b></li>
+    <li>rolar <b>2D20</b> toda vez que for a vez dele e tirar <b>1 ou 20 nos dois dados</b>: (20,20), (20,1), (1,1) ou (1,20).</li>
+  </ul>
+  <p>Se não conseguir nenhum dos dois no tempo limite, volta vivo, mas com parte da vida original e com <b>-3 nos danos por 3 rodadas</b> (página 41).</p>
 </section>
 
 <!-- CADERNO -->
 <section class="view" id="v-caderno">
   <h1>Caderno original</h1>
-  <p class="lead">As 36 páginas fotografadas, na ordem em que foram escritas. Clique para ampliar e use as setas para virar as páginas.</p>
+  <p class="lead">As 42 páginas fotografadas, na ordem em que foram escritas. As páginas 22 a 42 são das fotos de 22/11, com as fichas completas. Clique para ampliar e use as setas para virar as páginas.</p>
   <div class="thumbs" id="thumbs" style="margin-top:24px"></div>
 </section>
 
@@ -317,64 +338,72 @@ const SCENES = [
 const BEASTS = [
   {nome:'Mula sem cabeça', img:'mula-sem-cabeca', comb:'1º combate', st:[2,1,3,2,2],
    d:'Como o próprio nome diz, é uma mula que por conta de uma maldição teve a cabeça arrancada e substituída por uma espécie de bola de fogo mágica que é quase impossível de ser apagada. Hoje em dia ela protege os campos e fazendas de bandidos e ladrões que tentam roubar ou matar os animais dos fazendeiros.',
-   at:['Bola de fogo','Coice','Investida','"Tapa" de casco'], pe:['Intimidação','Furtividade'],
+   at:[['Bola de fogo','+10','-9','1D10'],['Coice','+8','-7','1D8+1D4'],['Investida','+9','-8','1D12'],['"Tapa" de casco','+7','-6','2D6']], pe:['Intimidação','Furtividade'],
    m:'Apagando totalmente o fogo de sua cabeça ou "danificando" o coração dela.'},
   {nome:'Robin Hood', comb:'2º e 3º combate', st:[2,1,3,1,3],
    d:'Um homem que não se sabe onde vive. Um arqueiro famoso que usa muito a cor verde. Segundo as lendas, ele vive na floresta e rouba dos ricos para dar aos pobres e necessitados, porém quando rouba de um rico desgraçado, ele o mata e dá todo o seu dinheiro para os mais necessitados.',
-   at:['Flechada','Flechada tripla','Facada'], pe:['Acrobacia','Pontaria'],
+   at:[['Flechada','8','-7','1D12'],['Flechada tripla','+11','-10','3D6'],['Facada','+13','-12','1D8']], pe:['Acrobacia +8','Pontaria +6'],
    m:'Arrancando a cabeça ou fazendo ele chegar a 0 PS.'},
   {nome:'Boitatá', comb:'2º e 3º combate', st:[1,1,3,2,3],
    d:'Uma cobra de fogo flamejante que mora na parte mais densa da floresta. Ela começou a ser desse jeito após um grande incêndio florestal que tomou sua vida. A floresta aprisionou sua alma em um corpo incendiado e a tornou guardiã da mesma, desde então ela protege a região de lenhadores.',
-   at:['Bola de fogo gigante','Mordida venenosa','Mordida comum'], pe:['Agilidade'],
+   at:[['Bola de fogo gigante','+8','-7','1D12+1D4'],['Mordida venenosa','+11','-10','1D10+1D6'],['Mordida comum','+6','-5','1D8']], pe:['Agilidade +3'],
    m:'Apagando completamente seu fogo ou arrancando suas presas.'},
   {nome:'Nessie', comb:'4º combate', st:[3,1,1,3,2],
    d:'Nessie é o famoso monstro do lago Ness. Segundo as várias lendas desse lago um monstro vindo das profundezas do inferno protege todos os seres vivos do lago. Ninguém nunca viu ele (até agora), ninguém sabe a real aparência dele, apenas sabem que é um monstro gigante que nunca se fez presente diante de ninguém.',
-   at:['Jato d\'água','Onda matadora','Tufão merengue','Redemoinho'], pe:['Furtividade ×3'],
+   at:[['Jato d\'água','+7','-6','2D8+1D4'],['Onda matadora','+10','-9','2D10'],['Tufão merengue','+7','-6','1D12'],['Redemoinho','+8','-7','1D10']], pe:['Furtividade ×3'],
    m:'Fazendo amizade com ele ou matando ele (de alguma forma). O final muda conforme a escolha.'},
   {nome:'Ageláda (Vaca)', comb:'5º combate', st:[5,0,1,4,0],
    d:'Na Índia as vacas são consideradas deusas/entidades sagradas. Para eles a vaca representa a vida, a fertilidade, a generosidade e a pureza. Ela também é associada à bondade e à maternidade, já que ela é capaz de fornecer leite e outros recursos para os seres humanos.',
-   at:['Gás mortal','Terremoto'], pe:['Nenhuma'],
+   at:[['Gás mortal','+5','-4','1D4'],['Terremoto','+7','-6','1D6+1D4']], pe:['Nenhuma'],
    m:'Pelo cansaço ou fazendo ela chegar a 0 PS.'},
   {nome:'Freddy Kruger', comb:'6º combate', st:[2,0,3,1,4],
    d:'Freddy Kruger é um assassino movido por vinganças, crueldade e prazer em causar sofrimento. Ele transforma os sonhos das pessoas nos maiores pesadelos delas onde ele é capaz de controlar praticamente tudo e suas vítimas ficam extremamente vulneráveis.',
-   at:['Pesadelo','Arranhão','Caldeirão','Dardo envenenado'], pe:['Pontaria','Furtividade ×2'],
+   at:[['Pesadelo','+12','-11','1D8'],['Arranhão','+10','-9','1D10+1D4'],['Caldeirão','+15','-14','1D12+1D8+1D4'],['Dardo envenenado','+10','-9','2D6']], pe:['Pontaria','Furtividade ×2'],
    m:'Tomando controle de seu sonho ou forçando sair dele o tempo todo.',
    obs:'Personagem de filme; a sugestão para o material final é trocar por uma criatura original (ver Sugestões).'},
   {nome:'Grifo', img:'grifo', comb:'7º combate', st:[2,1,3,2,2],
-   d:'No chão vocês veem um grifo, ele parece ter 3,5 metros de altura. Na batalha do grifo eles também têm a opção de fazer amizade com ele, mas será mais difícil.',
-   at:['Furacão','Investida ×3','Ruído sonoro ×2','Ataque de penas ×2'], pe:['Acrobacia','Enganação','Intimidação'],
+   d:'O grifo é uma criatura mitológica que possui o corpo de um leão e a cabeça e as asas de uma águia. Ele é conhecido por sua força, coragem e poder. Nas histórias, costuma proteger tesouros e lugares sagrados, sendo considerado um símbolo de proteção, sabedoria e bravura.',
+   at:[['Furacão','+8','-7','1D12+1D4'],['Investida','+10','-9','1D12'],['Ruído sonoro','+9','-8','1D8'],['Ataque de pelos','+6','-5','1D6']], pe:['Acrobacia +3','Intimidação','Enganação'],
    m:'Tentando muito fazer amizade ou arrancando uma de suas patas.',
-   obs:'Ataques e perícias vêm da ficha da Aetós (águia), que virou o Grifo. A ficha própria ainda está em branco.'},
+   obs:'Na batalha do grifo eles também têm a opção de fazer amizade com ele, mas será mais difícil.'},
   {nome:'Kallikántzaros (Leprechaun)', img:'kallikantzaros', comb:'8º combate · "aliado"', st:[2,1,3,1,3],
    d:'Um ser pequeno, usando vestimentas verdes e com detalhes de trevos. Em sua cabeça havia uma cartola da mesma cor e com um pingente relativamente grande de um trevo dourado. Ele está dormindo em cima do pote. "AH, que maravilha! os três grandes vieram para o torneio imagino."',
-   at:['Ataque de moeda','Vômito arco-íris','Martelada brutal'], pe:['Furtividade','Reflexo','Enganação ×2'],
-   m:'Chegando a 0 PS.', obs:'Ele não gosta do humano e esconde uma dog tag no chapéu. Ficha própria ainda em branco.'},
+   at:[['Ataque de moeda','+15','-14','1D12'],['Onda arco-íris','+7','-6','2D6+1D4'],['Martelada brutal','+11','-10','2D8+1D4']], pe:['Furtividade','Reflexo','Enganação ×2'],
+   m:'Chegando a 0 PS.', obs:'Da ficha: "O Leprechaun é uma criatura do folclore irlandês, conhecida por ser um pequeno duende que usa roupas verdes e um chapéu. Ele é famoso por guardar um pote de ouro no final do arco-íris. Dizem que é muito esperto e brincalhão, gostando de pregar peças nas pessoas e proteger seu tesouro." Ele não gosta do humano e esconde uma dog tag no chapéu.'},
   {nome:'Excalibur', img:'excalibur', comb:'9º combate · batalha psicológica', st:[0,0,0,4,6],
    d:'Uma espécie de pedestal de pedra com uma espada cravada nele. Segundo a lenda, apenas os dignos de verdade podem levantar a espada. Quem pegá-la poderá ficar com ela até o torneio.',
    at:['Visão da alma','Toque amaldiçoado','Alta sorte'], pe:['Enganação','Intuição','Tática'],
    m:'Achando o digno de tentar empunhá-la.'},
   {nome:'Hidra', img:'hidra', comb:'10º combate · batalha final', st:[3,3,0,5,4],
-   d:'Gigante, 7 cabeças, "infinitas" vidas. Não tem como fazer amizade com ela: matar ela é obrigatório.',
-   at:['Mordida','Bola de fogo','Arranhão','Pisada esmagadora','Terremoto'], pe:['Intimidação','Sobrevivência','Iniciativa'],
+   d:'A hidra é uma criatura da mitologia grega, conhecida por ter várias cabeças de serpente. Uma de suas características mais famosas é que, quando uma cabeça era cortada, outra nascia no lugar. Ela vivia em um pântano e era considerada um monstro muito perigoso e difícil de derrotar.',
+   at:[['Mordida','+6','-5','2D8+7'],['Bola de fogo','+10','-9','2D6+1D4'],['Arranhão','+5','-4','1D12+1D4'],['Pisada esmagadora','+13','-12','1D10+1D12+1D4'],['Terremoto','+10','-9','1D10+1D8']], pe:['Intimidação','Iniciativa','Sobrevivência'],
    m:'Perfurando todos os seus sete corações ou acertando 3 vezes o coração principal.',
-   obs:'Se a Nessie virou amiga, ela ajuda nessa batalha.'}
+   obs:'Gigante, 7 cabeças, "infinitas" vidas. Não tem como fazer amizade com ela: matar ela é obrigatório. Se a Nessie virou amiga, ela ajuda nessa batalha.'},
+  {nome:'Cérberus', comb:'Purgatório · quando alguém morre', st:null,
+   d:'Um cão enorme de três cabeças chamado Cérberus protege o portão entre o céu e o inferno, o lugar em que ele fica chama-se purgatório, o lugar das almas ainda não julgadas. O cão é um demônio que está lá para garantir que nenhuma alma fuja de nenhum dos lugares, ataca qualquer que vê.',
+   at:[], pe:[],
+   m:'Quem morre tem de 10 a 15 rodadas para matá-lo, ou sai do Purgatório tirando 1 ou 20 nos dois dados de 2D20 (ver Signos › O Purgatório).',
+   obs:'Ataques, status e perícias ainda em branco no caderno (página 42).'}
 ];
 
-const FOTOS = ['20.12.25','20.12.24 (1)','20.12.24','20.12.23 (3)','20.12.23 (2)','20.12.23 (1)','20.12.23',
+const N1 = ['20.12.25','20.12.24 (1)','20.12.24','20.12.23 (3)','20.12.23 (2)','20.12.23 (1)','20.12.23',
   '20.12.22 (1)','20.12.22','20.12.21 (1)','20.12.21','20.12.20 (1)','20.12.20','20.12.19 (2)','20.12.19 (1)',
-  '20.12.19','20.12.18 (2)','20.12.18 (1)','20.12.18','20.12.17','20.12.16 (1)','20.12.16','20.11.32 (1)',
-  '20.11.32','20.11.31 (3)','20.11.31 (2)','20.11.31 (1)','20.11.31','20.11.30 (3)','20.11.30 (2)',
-  '20.11.30 (1)','20.11.30','20.11.29 (2)','20.11.29 (1)','20.11.29','20.11.28'];
+  '20.12.19','20.12.18 (2)','20.12.18 (1)','20.12.18','20.12.17','20.12.16 (1)'];
+const N2 = ['20.13.23','20.13.23 (1)','20.13.23 (2)','20.13.24','20.13.24 (1)','20.13.24 (2)','20.13.24 (3)',
+  '20.13.24 (4)','20.13.25','20.13.25 (1)','20.13.26','20.13.27','20.14.03','20.14.03 (1)','20.14.03 (2)',
+  '20.14.04','20.14.04 (1)','20.14.05','20.14.06','20.14.06 (1)','20.14.06 (2)'];
+const FOTOS = [...N1.map(f => '2026-11-07 at ' + f), ...N2.map(f => '2026-11-22 at ' + f)];
 const TITULOS = ['Signos e elementos','O mundo','O chamado','As constelações','As marcas e o museu',
   'Combates (1)','Combates (2)','Combates (3)','Premonição','Mula, montanha e portão','Boitatá, Robin Hood e a lista',
   'A lista','O lago','Amigos de Nessie','O barqueiro e o arco-íris','O Leprechaun','A vaca','A noite e o pesadelo',
   'O grifo e a traição','A Hidra e o fim','A espada na pedra','Bestiário: Mula','Bestiário: Robin Hood',
   'Bestiário: Boitatá','Bestiário: Nessie','Bestiário: Vaca','Bestiário: Freddy','Bestiário: Grifo',
   'Bestiário: Leprechaun','Bestiário: Hidra','Notas do mestre (1)','Notas do mestre (2)','Notas (3) e status',
-  'Criação de personagem','Como matar cada monstro','Como matar (cont.)'];
+  'Criação de personagem e jogadores','Como matar cada monstro','Como matar (cont.)','Ficha do Mateus',
+  'Ficha do Miguel','Ficha da Beatriz','Ficha do João','Sistema do Purgatório','Cérberus'];
 
 const esc = s => s.replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const fotoUrl = f => 'fotos-originais/' + encodeURIComponent('WhatsApp Image 2026-11-07 at ' + f + '.jpeg');
+const fotoUrl = f => 'fotos-originais/' + encodeURIComponent('WhatsApp Image ' + (f.includes(' at ') ? f : '2026-11-07 at ' + f) + '.jpeg');
 
 document.getElementById('scenes').innerHTML = SCENES.map((s,i) => `
   <div class="scene">
@@ -388,6 +417,8 @@ document.getElementById('scenes').innerHTML = SCENES.map((s,i) => `
   </div>`).join('');
 
 const LET = ['V','P','A','F','I'], NOMES = ['Vigor','Presença','Agilidade','Força','Intelecto'];
+const ataque = a => typeof a === 'string' ? `<li>${esc(a)}</li>`
+  : `<li>${esc(a[0])}<br><small class="dado">1D20 · S ${esc(a[1])} · N ${esc(a[2])}${a[3] ? ` · dano <b>${esc(a[3])}</b>` : ''}</small></li>`;
 document.getElementById('beasts').innerHTML = BEASTS.map(b => `
   <article class="card beast">
     <div class="img" ${b.img ? `data-lb="${B+b.img}.jpg" data-cap="${esc(b.nome)}"` : ''}>
@@ -398,11 +429,11 @@ document.getElementById('beasts').innerHTML = BEASTS.map(b => `
       <span class="pill gold">${esc(b.comb)}</span>
       <h2 style="margin-top:6px">${esc(b.nome)}</h2>
       <p>${esc(b.d)}</p>
-      <div class="stats">${b.st.map((v,i)=>`<div class="stat" title="${NOMES[i]}"><b>${v}</b><small>${NOMES[i]}</small></div>`).join('')}</div>
-      <div class="cols">
-        <div><div class="lbl">ATAQUES</div><ul>${b.at.map(a=>`<li>${esc(a)}</li>`).join('')}</ul></div>
+      ${b.st ? `<div class="stats">${b.st.map((v,i)=>`<div class="stat" title="${NOMES[i]}"><b>${v}</b><small>${NOMES[i]}</small></div>`).join('')}</div>` : ''}
+      ${b.at.length ? `<div class="cols">
+        <div><div class="lbl">ATAQUES</div><ul>${b.at.map(ataque).join('')}</ul></div>
         <div><div class="lbl">PERÍCIAS</div><ul>${b.pe.map(a=>`<li>${esc(a)}</li>`).join('')}</ul></div>
-      </div>
+      </div>` : ''}
       <p><span class="lbl">COMO DERROTAR</span><br>${esc(b.m)}</p>
       ${b.obs ? `<p class="note">${esc(b.obs)}</p>` : ''}
     </div>

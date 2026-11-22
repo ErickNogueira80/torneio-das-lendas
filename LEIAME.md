@@ -23,13 +23,14 @@ Pessoal (família).
 - Portal (GitHub Pages): https://ericknogueira80.github.io/torneio-das-lendas/ — `index.html` na
   raiz; lê os `.md` direto (por isso o `.nojekyll`).
 - Fotos originais: `C:\Users\erick\Downloads\milena_rpg_001` (36 fotos do WhatsApp de
-  07/11/2026), copiadas para `fotos-originais/` como backup.
+  07/11/2026) e o zip `WhatsApp Unknown 2026-11-22 at 20.17.55.zip` (21 fotos de 22/11/2026, as
+  páginas 22 a 42), todas copiadas para `fotos-originais/` como backup.
 
 ## Arquivos
 
 | Arquivo | O que tem |
 |---|---|
-| `fotos-originais/` | Backup das 36 fotos do caderno |
+| `fotos-originais/` | Backup das fotos do caderno: 36 de 07/11 e 21 de 22/11 (57 no total) |
 | `01-transcricao-integral.md` | Transcrição fiel, página por página, com a grafia dela |
 | `02-sugestoes.md` | Furos de continuidade, regras que faltam, correções de texto, ideias para a parte 2 e plano do material |
 | `03-prompts-imagens.md` | Prompts para gerar imagens dos 13 locais, das 10 criaturas do bestiário e de 2 extras em outra IA, com um bloco de estilo comum |
@@ -920,6 +921,13 @@ termina em `20.11.28`. Quando há vários arquivos no mesmo segundo, o de maior 
 primeiro: `(3)`, `(2)`, `(1)` e, por último, o sem número. A ordem foi conferida pela
 continuidade do texto.
 
+**Fotos de 22/11/2026** (páginas 22 a 42): a ordem é a contrária, do mais cedo para o mais tarde
+(`20.13.23` até `20.14.06 (2)`); no mesmo segundo, o sem número vem primeiro, depois `(1)`,
+`(2)`... As páginas 22 a 36 são as mesmas de antes fotografadas de novo (agora com tentativa e
+dano e as fichas do Grifo, do Kallikatzaros e da Hidra); 37 a 40 são as fichas dos jogadores, 41
+o Sistema do Purgatório e 42 o Cérberus. O portal mostra as fotos novas no lugar das antigas a
+partir da p. 22; a transcrição cita as duas.
+
 ## Decisões
 
 - 2026-11-07: a transcrição mantém a grafia original. As correções ficam só em
@@ -940,6 +948,12 @@ continuidade do texto.
   fogo e pelos poderes. O boneco e as animações vêm do PixelLab (pixellab.ai, câmera
   Sidescroller). O motor ganha modo pixel nítido e luz dinâmica.
 
+- 2026-11-22 (Erick): novas anotações da Milena (zip do WhatsApp com 21 fotos) entram no material
+  e no portal: transcrição das p. 22 a 42, sugestões novas (1.11 jogadores e elementos, 2.10
+  Purgatório, 2.11 fichas dos jogadores), bestiário do portal com tentativa e dano, fichas do
+  Grifo, do Kallikántzaros e da Hidra, o Cérberus, e na aba Signos as seções "Os jogadores" e "O
+  Purgatório". Os primeiros nomes dos jogadores (Beatriz, Mateus, Miguel, João Felipe) aparecem
+  no portal, como no caderno.
 - 2026-11-15 (Erick): fase da Vaca implementada a partir da ideia do rascunho "atacar ou esperar",
   seguindo o caderno: dois jeitos de vencer (cansaço ou 0 PS), os dois terminam na abdução pelo OVNI.
   O prêmio segue o caderno (dog tag dourada) até a Milena decidir o furo "pingente ou dog tag".
@@ -994,8 +1008,15 @@ Milena decidir e anote a decisão na frente.
   maior; atributo 0 = dois d20, fica com o menor; perícia treinada +5; dificuldade 10 (normal)
   ou 15 (difícil).
 - [ ] **O que é PS e quanto cada um tem.** Sugestão: PS = 10 + 5 × Vigor.
-- [ ] **Coluna "Tentativa | Dano"** das fichas (p. 22 a 27) está vazia: qual atributo/perícia
-  rola para acertar e qual dado de dano.
+- [x] **Coluna "Tentativa | Dano"** das fichas (p. 22 a 27): preenchida pela Milena (fotos de
+  22/11): 1D20 com "S" e "N" e o dado de dano. Falta só dizer o que S e N significam e se
+  atributo e perícia entram na rolagem (sugestão 2.3).
+- [ ] **Purgatório (p. 41) e Cérberus (p. 42), fotos de 22/11:** sair tirando 1 ou 20 nos dois
+  dados é só 1% por vez; "1 da vida original" parece fração sem o número de baixo; Cérberus sem
+  ataques (sugestão 2.10).
+- [ ] **Fichas dos jogadores (p. 37 a 40):** a do Miguel está em branco; o Mateus (Ar) não tem
+  ataque de elemento (talvez seja o humano/Câncer, que na tabela dela é de Ar); somas de status
+  diferentes (10 e 12) (sugestões 1.11 e 2.11).
 - [ ] **Maldição do barqueiro (p. 9):** do jeito que está, tirar 16 tira e dá ponto de azar ao
   mesmo tempo. Sugestão: 15+ perde 1 ponto, menos de 10 ganha 1, de 10 a 14 nada. Falta
   dizer quando rola e o que o azar faz na prática.
@@ -1025,7 +1046,8 @@ Milena decidir e anote a decisão na frente.
 
 ### O que falta escrever
 
-- [ ] Fichas do Grifo, do Kallikántzaros (Leprechaun) e da Hidra (p. 28 a 30 em branco).
+- [x] Fichas do Grifo, do Kallikántzaros (Leprechaun) e da Hidra: feitas (fotos de 22/11).
+- [ ] Ataques do Cérberus (p. 42) e ficha do Miguel (p. 38).
 - [ ] Cena do museu.
 - [ ] A luta contra o Freddy (p. 18 tem só o teste inicial).
 - [ ] Parte 2: o Torneio das Lendas. Ideias: os outros oito signos como rivais, semideuses como

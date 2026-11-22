@@ -1,7 +1,23 @@
 # RPG da Milena: transcrição integral
 
-Transcrição fiel do caderno da Milena (36 fotos de 07/11/2026, pasta `fotos-originais/`).
-A ordem é a das fotos (a primeira é `20.12.25`, a última é `20.11.28`).
+Transcrição fiel do caderno da Milena (pasta `fotos-originais/`), em duas levas de fotos:
+
+- **07/11/2026:** 36 fotos, páginas 1 a 36. A ordem é a das fotos, de trás para a frente (a
+  primeira é `20.12.25`, a última é `20.11.28`).
+- **22/11/2026:** 21 fotos, páginas 22 a 42. As páginas 22 a 36 foram fotografadas de novo,
+  agora com as fichas do bestiário completas (tentativa, dano e as fichas do Grifo, do
+  Kallikatzaros e da Hidra); as páginas 37 a 42 são novas (fichas dos jogadores, Purgatório e
+  Cérberus). A ordem é a das fotos, do mais cedo para o mais tarde (a primeira é `20.13.23`, a
+  última é `20.14.06 (2)`); no mesmo segundo, o sem número vem primeiro, depois `(1)`, `(2)`...
+  Nas fotos de 22/11, o nome traz a data: `22/11 20.13.23`.
+
+**Como ler a tentativa e o dano (fotos de 22/11)**
+
+- Cada ataque tem "1D20" e dois números, "S" e "N", escritos por ela como `S: +10  N: -9`. Pela
+  forma, parece ser: **S** = sucesso tirando esse número ou mais no d20; **N** = não acerta
+  tirando esse número ou menos. *[nota: leitura nossa; está confirmado só que os dois números
+  sempre emendam (10 e 9, 8 e 7...).]*
+- O dano é o dado escrito na coluna DANO (ex.: `1D12+1D4`).
 
 **Como ler esta transcrição**
 
@@ -469,7 +485,7 @@ combates (Excalibur é o 9º), esta cena entra entre o grifo/Leprechaun e a Hidr
 
 ---
 
-## Página 22 · foto `20.12.16` · Bestiário: Mula sem cabeça
+## Página 22 · fotos `20.12.16` e `22/11 20.13.23` · Bestiário: Mula sem cabeça
 
 **MULA SEM CABEÇA**
 
@@ -480,16 +496,18 @@ dos fazendeiros.
 
 | ATAQUES | TENTATIVA | DANO |
 |---|---|---|
-| Bola de fogo | | |
-| Coice | | |
-| Investida | | |
-| "Tapa" de Casco *[nota: escrito num pedaço de fita colado]* | | |
+| Bola de fogo | 1D20 · S: +10 · N: -9 | 1D10 |
+| Coice | 1D20 · S: +8 · N: -7 | 1D8 + 1D4 |
+| Investida | 1D20 · S: +9 · N: -8 | 1D12 |
+| "Tapa" de Casco *[nota: escrito num pedaço de fita colado]* | 1D20 · S: +7 · N: -6 | 2D6 |
+
+*[nota: tentativa e dano preenchidos na foto de 22/11.]*
 
 Perícias: Intimidação, Furtividade
 
 ---
 
-## Página 23 · foto `20.11.32 (1)` · Bestiário: Robin Hood
+## Página 23 · fotos `20.11.32 (1)` e `22/11 20.13.23 (1)` · Bestiário: Robin Hood
 
 **ROBIN HOOD**
 
@@ -499,15 +517,17 @@ rouba de um rico desgraçado, ele o mata e dá todo o seu dinheiro para os mais 
 
 | ATAQUE | TENTATIVA | DANO |
 |---|---|---|
-| Flechada | | |
-| Flechada tripla | | |
-| Facada | | |
+| Flechada | 1D20 · S: 8 · N: -7 | 1D12 |
+| Flechada tripla | 1D20 · S: +11 · N: -10 | 3D6 |
+| Facada | 1D20 · S: +13 · N: -12 | 1D8 |
 
-Perícias: Acrobacia, Pontaria
+Perícias: Acrobacia +8, Pontaria +6
+
+*[nota: tentativa, dano e os bônus das perícias (+8 e +6) preenchidos na foto de 22/11.]*
 
 ---
 
-## Página 24 · foto `20.11.32` · Bestiário: Boitatá
+## Página 24 · fotos `20.11.32` e `22/11 20.13.23 (2)` · Bestiário: Boitatá
 
 **BOITATÁ**
 
@@ -517,15 +537,17 @@ corpo incendiado e a tornou guardiã da mesma, desde então ela protege a regiã
 
 | ATAQUES | TENTATIVA | DANO |
 |---|---|---|
-| Bola de fogo gigante | | |
-| Mordida venenosa | | |
-| Mordida comum | | |
+| Bola de fogo gigante | 1D20 · S: +8 · N: -7 | 1D12 + 1D4 |
+| Mordida venenosa | 1D20 · S: +11 · N: -10 | 1D10 + 1D6 |
+| Mordida comum | 1D20 · S: +6 · N: -5 | 1D8 |
 
-Perícias: Agilidade
+Perícias: Agilidade +3
+
+*[nota: tentativa, dano e o +3 preenchidos na foto de 22/11.]*
 
 ---
 
-## Página 25 · foto `20.11.31 (3)` · Bestiário: Nessie
+## Página 25 · fotos `20.11.31 (3)` e `22/11 20.13.24` · Bestiário: Nessie
 
 **NESSIE**
 
@@ -536,16 +558,18 @@ presente diante de ninguém.
 
 | ATAQUES | TENTATIVA | DANO |
 |---|---|---|
-| Jato d'água | | |
-| Onda matadora | | |
-| Tufão merengue | | |
-| Redemoinho | | |
+| Jato d'água | 1D20 · S: +7 · N: -6 | 2D8 + 1D4 |
+| Onda matadora | 1D20 · S: +10 · N: -9 | 2D10 |
+| Tufão merengue | 1D20 · S: +7 · N: -6 | 1D12 |
+| Redemoinho | 1D20 · S: +8 · N: -7 | 1D10 |
+
+*[nota: tentativa e dano preenchidos na foto de 22/11.]*
 
 Perícias: Furtividade X3
 
 ---
 
-## Página 26 · foto `20.11.31 (2)` · Bestiário: Ageláda (Vaca)
+## Página 26 · fotos `20.11.31 (2)` e `22/11 20.13.24 (1)` · Bestiário: Ageláda (Vaca)
 
 **AGELÁDA (VACA)**
 
@@ -555,14 +579,16 @@ que ela é capaz de fornecer leite e outros recursos para os seres humanos.
 
 | ATAQUES | TENTATIVA | DANO |
 |---|---|---|
-| Gás mortal | | |
-| Terremoto | | |
+| Gás mortal | 1D20 · S: +5 · N: -4 | 1D4 |
+| Terremoto | 1D20 · S: +7 · N: -6 | 1D6 + 1D4 |
+
+*[nota: tentativa e dano preenchidos na foto de 22/11.]*
 
 Perícia: NENHUMA
 
 ---
 
-## Página 27 · foto `20.11.31 (1)` · Bestiário: Freddy Kruger
+## Página 27 · fotos `20.11.31 (1)` e `22/11 20.13.24 (2)` · Bestiário: Freddy Kruger
 
 **FREDDY KRUGER**
 
@@ -572,40 +598,82 @@ praticamente tudo e suas vítimas ficam extremamente vulneráveis
 
 | ATAQUES | TENTATIVA | DANO |
 |---|---|---|
-| Pesadelo | | |
-| Arranhão | | |
-| Caldeirão | | |
-| Dardo envenenado | | |
+| Pesadelo | 1D20 · S: +12 · N: -11 | 1D8 |
+| Arranhão | 1D20 · S: +10 · N: -9 | 1D10 + 1D4 |
+| Caldeirão | 1D20 · S: +15 · N: -14 | 1D12 + 1D8 + 1D4 |
+| Dardo envenenado | 1D20 · S: +10 · N: -9 | 2D6 |
+
+*[nota: tentativa e dano preenchidos na foto de 22/11; no alto da página aparece "10 /" no lugar
+da data.]*
 
 Perícias: Pontaria, Furtivida X2
 
 ---
 
-## Página 28 · foto `20.11.31` · Bestiário: Grifo
+## Página 28 · fotos `20.11.31` e `22/11 20.13.24 (3)` · Bestiário: Grifo
 
 **GRIFO**
 
-*[página em branco, só com o título]*
+O grifo é uma criatura mitológica que possui o corpo de um leão e a cabeça ~~[ilegível]~~ e as
+asas de uma águia. Ele é conhecido por sua força, coragem e poder. Nas histórias, costuma proteger
+tesouros e lugares sagrados, sendo considerado um símbolo de proteção, sabedoria e bravura
+
+| ATAQUES | TENTATIVA | DANO |
+|---|---|---|
+| Furacão | 1D20 · S: +8 · N: -7 | 1D12 + 1D4 |
+| Investida | 1D20 · S: +10 · N: -9 | 1D12 |
+| Ruído sonoro | 1D20 · S: +9 · N: -8 | 1D8 |
+| Ataque de pelos | 1D20 · S: +6 · N: -5 | 1D6 |
+
+Perícias: Acrobacia +3, Intimidação, Enganação
+
+*[nota: em 07/11 a página estava em branco; a ficha inteira é da foto de 22/11.]*
 
 ---
 
-## Página 29 · foto `20.11.30 (3)` · Bestiário: Kallikatzaros (Leprechaun)
+## Página 29 · fotos `20.11.30 (3)` e `22/11 20.13.24 (4)` · Bestiário: Kallikatzaros (Leprechaun)
 
 **KALLIKATZAROS (LEPRECHAUN)**
 
-*[página em branco, só com o título]*
+O Leprechaun é uma criatura do folclore irlandês, conhecida por ser um pequeno duende que usa
+roupas verdes e um chapéu. Ele é famoso por guardar um pote de ouro no final do arco-íris. Dizem
+que é muito esperto e brincalhão, gostando de pregar peças nas pessoas e proteger seu tesouro
+
+| ATAQUES | TENTATIVA | DANO |
+|---|---|---|
+| Ataque de moeda [?] *[nota: parece "molda"]* | 1D20 · S: +15 · N: -14 | 1D12 |
+| Onda arco-íris | 1D20 · S: +7 · N: -6 | 2D6 + 1D4 |
+| Martelada brutal | 1D20 · S: +11 · N: -10 | 2D8 + 1D4 |
+
+Perícias: Furtividade, Reflexo, Enganação X2
+
+*[nota: em 07/11 a página estava em branco; a ficha inteira é da foto de 22/11.]*
 
 ---
 
-## Página 30 · foto `20.11.30 (2)` · Bestiário: Hidra
+## Página 30 · fotos `20.11.30 (2)` e `22/11 20.13.25` · Bestiário: Hidra
 
 **HIDRA**
 
-*[página em branco, só com o título]*
+A hidra é uma criatura da mitologia grega, conhecida por ter várias cabeças de serpente. Uma de
+suas características mais famosas é que, quando uma cabeça era cortada, outra nascia no lugar. Ela
+vivia em um pântano e era considerada um monstro muito perigoso e difícil de derrotar
+
+| ATAQUES | TENTATIVA | DANO |
+|---|---|---|
+| Mordida | 1D20 · S: +6 · N: -5 | 2D8 + 7 |
+| Bola de fogo | 1D20 · S: +10 · N: -9 | 2D6 + 1D4 |
+| Arranhão | 1D20 · S: +5 · N: -4 | 1D12 + 1D4 |
+| Pisada esmagadora | 1D20 · S: +13 · N: -12 | 1D10 + 1D12 + 1D4 |
+| Terremoto | 1D20 · S: +10 · N: -9 | 1D10 + 1D8 |
+
+Perícias: Intimidação, Iniciativa, Sobrevivência
+
+*[nota: em 07/11 a página estava em branco; a ficha inteira é da foto de 22/11.]*
 
 ---
 
-## Página 31 · foto `20.11.30 (1)` · Notas do mestre (1)
+## Página 31 · fotos `20.11.30 (1)` e `22/11 20.13.25 (1)` · Notas do mestre (1)
 
 *[nota: página toda em caneta vermelha, com dois títulos em azul.]*
 
@@ -630,7 +698,7 @@ E se eles não quiserem ir para o final do arco-íris?
 
 ---
 
-## Página 32 · foto `20.11.30` · Notas do mestre (2)
+## Página 32 · fotos `20.11.30` e `22/11 20.13.26` · Notas do mestre (2)
 
 Em algum momento eles vão acabar indo até lá
 
@@ -652,7 +720,7 @@ Decidir na hora do jogo quem empunhará a Excalibur
 
 ---
 
-## Página 33 · foto `20.11.29 (2)` · Notas do mestre (3) e status dos monstros
+## Página 33 · fotos `20.11.29 (2)` e `22/11 20.13.27` · Notas do mestre (3) e status dos monstros
 
 Quem pegá-la poderá ficar com ela até o torneio
 
@@ -680,7 +748,7 @@ Excalibur estão escritos em pedacinhos de fita colados por cima.]*
 
 ---
 
-## Página 34 · foto `20.11.29 (1)` · Criação de personagem
+## Página 34 · fotos `20.11.29 (1)` e `22/11 20.14.03` · Criação de personagem
 
 Os players deverão ter NOME, IDADE APROXIMADA, 3 a 4 ataques diferentes com no mínimo 1[?]
 ataques de seu elemento. Não precisam de Backstory.
@@ -692,9 +760,21 @@ Podem ter no máximo 2 itens e um deles DEVE ser para ataque.
 
 *[nota: o número de ataques do elemento está rasurado; parece "1" escrito por cima de "2".]*
 
+*Acrescentado na foto de 22/11, em azul:*
+
+PLAYERS - Beatriz
+- Mateus
+- Miguel
+- João Felipe
+
+Elementos - B - Fogo
+MA - AR
+Mi - Terra
+J - Água
+
 ---
 
-## Página 35 · foto `20.11.29` · Como matar cada monstro
+## Página 35 · fotos `20.11.29` e `22/11 20.14.03 (1)` · Como matar cada monstro
 
 COMO MATAR CADA MONSTRO
 
@@ -714,10 +794,139 @@ Kruger: Tomando controle de seu sonho ou forçando sair dele o tempo todo
 
 ---
 
-## Página 36 · foto `20.11.28` · Como matar cada monstro (continuação)
+## Página 36 · fotos `20.11.28` e `22/11 20.14.03 (2)` · Como matar cada monstro (continuação)
 
 Leprechaun: 0 PS
 
 Excalibur: Achando o digno de tentar empunhá-la
 
 Hidra: perfurando todos os seus sete corações ou acertando 3 vezes o coração principal
+
+*[nota: as páginas 31 a 36 continuam iguais na foto de 22/11, menos o acréscimo dos jogadores na
+p. 34.]*
+
+---
+
+## Página 37 · foto `22/11 20.14.04` · Ficha do Mateus
+
+**FICHA DO: MATEUS**
+
+Nome do personagem: [?]AM Seixeira [?] *[nota: o começo do nome fica embaixo do desenho colado]*
+Idade: 30
+
+STATUS
+
+| F | I | V | A | P |
+|---|---|---|---|---|
+| 2 | 2 | 2 | 2 | 2 |
+
+Perícias: Luta 5, furtividade 5
+
+Itens: Faca - Defesa pessoal; Lazer - ataque
+
+| ATAQUES | TENTATIVA | DANO |
+|---|---|---|
+| Imobilização | 1D20 · S: +6 · N: -5 | — |
+| Gancho de esquerda | 1D20 · S: +7 · N: -6 | 1D8 |
+| rasteira | 1D20 · S: +7 · N: -6 | 1D10 |
+
+*[nota: desenho colorido colado: rapaz de cabelo ruivo, olhos verde-amarelados, blusa branca de
+gola alta e casaco preto.]*
+
+---
+
+## Página 38 · foto `22/11 20.14.04 (1)` · Ficha do Miguel
+
+**FICHA DO: MIGUEL**
+
+*[página em branco, só com o título]*
+
+---
+
+## Página 39 · foto `22/11 20.14.05` · Ficha da Beatriz
+
+**FICHA DO: BEATRIZ**
+
+Nome: Am~~[ilegível]~~gi Mamabami [?]
+Idade: 25
+
+STATUS
+
+| F | I | V | A | P |
+|---|---|---|---|---|
+| 4 | 2 | 1 | 3 | 2 |
+
+Perícias: Medicina 5, Luta 3, Pontaria 2
+
+Itens: NENHUM
+
+| ATAQUES | TENTATIVA | DANO |
+|---|---|---|
+| Espada de fogo | 1D20 · S: +8 · N: -7 | 1D12 + 2D4 |
+| Círculo de fogo | 1D20 · S: +10 · N: -9 | 2D4 |
+| Arco dourado | 1D20 · S: +11 · N: -10 | 1D6 + 1D4 |
+
+*[nota: desenho colorido colado: moça de cabelo preto comprido com franja, olhos vermelhos, roupa
+azul com um símbolo no peito.]*
+
+---
+
+## Página 40 · foto `22/11 20.14.06` · Ficha do João
+
+**FICHA DO: JOÃO**
+
+Nome: Jane Vorhood [?]
+Idade: 82
+
+STATUS
+
+| F | I | V | A | P |
+|---|---|---|---|---|
+| 1 | 4 | 2 | 2 | 3 |
+
+Perícias: *[em branco]*
+
+Itens: 1 adaga de gelo
+
+| ATAQUES | TENTATIVA | DANO |
+|---|---|---|
+| Manipulação de água | 1D20 · S: +7 · N: -6 | 1D6 + 1D4 |
+| Facada | 1D20 · S: +10 · N: -9 | 1D~~8~~10 [?] *[nota: parece um 8 riscado e 10 ao lado]* |
+| Ataque de gelo | 1D20 · S: +12 · N: -11 | 1D12 + 1D6 |
+
+---
+
+## Página 41 · foto `22/11 20.14.06 (1)` · Sistema do Purgatório
+
+*[nota: página toda em roxo.]*
+
+**SISTEMA DO PURGATÓRIO**
+
+TODA VEZ que um dos players morrerem eles terão que ir para o PURGATÓRIO. Lá [?] é tipo o lugar
+para onde os signos vão quando morrem. Quem morrer vai ter que enfrentar e matar CÉRBERUS. Eles
+terão no máximo 10 à 15 rodadas para matá-lo
+
+OU
+
+Eles podem rodar 2D20 e para sair eles devem tirar 1 ou 20 nos dois dados (20,20)(20,1)(1,1) ou
+(1,20) mas eles terão que rodar esses dados sempre que for a vez deles
+
+Se não conseguirem fazer nada disso no tempo limite, eles voltarão vivos mas com 1 [?] da vida
+original e com -3 de desvantagem nos danos por 3 rodada
+
+*[nota: o "1" da vida original está sublinhado, como o começo de uma fração (½?) sem o número de
+baixo.]*
+
+---
+
+## Página 42 · foto `22/11 20.14.06 (2)` · Cérberus
+
+**CÉRBERUS (do purgatório)**
+
+Um cão enorme de três cabeças chamado Cérberus protege o portão entre o céu e o inferno, o lugar
+em que ele fica chama-se purgatório, o lugar das almas ainda não julgadas. O cão é um demônio que
+está lá para garantir que nenhuma alma fuja de nenhum dos lugares, ataca qualquer que vê.
+
+| ATAQUES | TENTATIVA | DANO |
+|---|---|---|
+| *[em branco]* | | |

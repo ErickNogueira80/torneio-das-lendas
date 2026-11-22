@@ -103,6 +103,21 @@ Coisas que o caderno diz de dois jeitos. Não tem certo ou errado; é só escolh
   Dardo" na p. 27. A Mula ganhou o "Tapa de casco".
 - **Ideia:** a ficha do bestiário vale como versão final; as listas das p. 6 a 8 viram só o
   índice dos combates.
+- **Atualização (fotos de 22/11):** o Grifo ganhou ficha própria (p. 28), então a ficha da águia
+  já pode sair. No Leprechaun, o "Vômito arco-íris" da lista virou "Onda arco-íris" na ficha
+  (p. 29); vale a da ficha.
+
+### 1.11 Os quatro jogadores e os elementos
+
+- **No caderno (p. 34, acréscimo de 22/11):** Beatriz = Fogo, Mateus = Ar, Miguel = Terra,
+  João Felipe = Água. As fichas estão nas p. 37 a 40 (a do Miguel ainda em branco).
+- **Por que olhar:** a história fala em três jogadores com constelação e um humano sem marca (o
+  Câncer). Na tabela dela, o **Câncer é de Ar**, e a ficha do Mateus (Ar) é a única sem nenhum
+  ataque de elemento: imobilização, gancho e rasteira, com faca e laser. Isso combina com o
+  humano, que luta "no braço" (decisão do Erick de 07/11: o 4º jogador não tem atributo próprio).
+- **Ideia:** confirmar com ela se o Mateus é o humano/Câncer. Se for, os outros ficam: Beatriz
+  de Sagitário (Fogo, como decidido em 08/11), João de Áries (Água) e Miguel de Capricórnio
+  (Terra), que são os signos circulados e desenhados nas p. 1 e 4.
 
 ---
 
@@ -129,7 +144,15 @@ Coisas que o caderno diz de dois jeitos. Não tem certo ou errado; é só escolh
 
 ### 2.3 Preencher a coluna "Tentativa | Dano"
 
-- **No caderno (p. 22 a 27):** a tabela está pronta, mas vazia.
+- **Atualização (fotos de 22/11): preenchida.** Todos os ataques do bestiário (menos o Cérberus)
+  e das fichas dos jogadores agora têm "1D20, S e N" e o dado de dano. Ficam três dúvidas:
+  - O que são exatamente **S** e **N**? Pela forma (`S: +10  N: -9`), parece "acerta tirando 10
+    ou mais; erra tirando 9 ou menos". Vale ela escrever a regra numa linha.
+  - Os **atributos** (V, P, A, F, I) e as **perícias** entram na rolagem? Hoje a tentativa não
+    usa nenhum dos dois. A ideia da seção 2.1 continua valendo, ou dá para dizer que a perícia
+    soma no d20 (ex.: Luta 5 soma +5 nos ataques corpo a corpo).
+  - Quem **defende** rola alguma coisa, ou só o atacante rola?
+- **Como estava em 07/11 (p. 22 a 27):** a tabela estava pronta, mas vazia.
 - **Ideia:** "Tentativa" = qual atributo ou perícia o monstro rola para acertar; "Dano" = qual
   dado o golpe tira. Exemplo para a Mula:
 
@@ -193,6 +216,39 @@ Coisas que o caderno diz de dois jeitos. Não tem certo ou errado; é só escolh
   precisarem e a morte aparecer, o nosso herói irá perecer") pode ser uma profecia sobre a
   parte 2.
 
+### 2.10 O Purgatório e o Cérberus (p. 41 e 42, fotos de 22/11)
+
+- **No caderno:** quem morre vai para o Purgatório e tem 10 a 15 rodadas para matar o Cérberus,
+  **ou** rola 2D20 a cada vez e sai se tirar 1 ou 20 **nos dois dados**. Se não conseguir, volta
+  com "1 [?] da vida original" e -3 nos danos por 3 rodadas.
+- **Por que olhar:**
+  - Tirar 1 ou 20 nos dois dados é raro: 4 resultados em 400, ou seja, **1% por vez**. Em 15
+    rodadas, a chance de sair assim é de uns 14%. Se a ideia é ser uma saída de sorte, ok; se é
+    uma saída de verdade, fica difícil.
+  - "1 da vida original" parece uma fração sem o número de baixo (½?). E a vida (PS) ainda não
+    tem número (ver 2.2).
+  - O Cérberus ainda não tem ataques, status nem PS (a tabela da p. 42 está vazia).
+  - Falta dizer se quem morreu enfrenta o Cérberus **sozinho** e o que os outros fazem enquanto
+    isso (a aventura continua? esperam?).
+- **Ideias:**
+  - Para a saída da sorte ficar mais justa: "1 ou 20 em **pelo menos um** dos dois dados" dá 19%
+    por vez.
+  - Escrever "metade da vida (½ PS)".
+  - Cérberus com uma cabeça por ataque (mordida, fogo, uivo) e status alto, mas só contra um
+    jogador, para dar para vencer sozinho.
+
+### 2.11 Fichas dos jogadores conferidas com as regras da p. 34
+
+| Jogador | Elemento | 3 a 4 ataques | Pelo menos 1 do elemento | Até 2 itens, 1 de ataque | Soma dos status |
+|---|---|---|---|---|---|
+| Mateus | Ar | 3 ✓ | nenhum (ver 1.11) | faca + laser ✓ | 10 |
+| Miguel | Terra | ficha em branco | | | |
+| Beatriz | Fogo | 3 ✓ | Espada e Círculo de fogo ✓ | nenhum item ✓ | 12 |
+| João | Água | 3 ✓ | Manipulação de água e Ataque de gelo ✓ | adaga de gelo ✓ | 12 |
+
+- **Ideia:** dizer quantos pontos de status cada jogador distribui (por exemplo 12, com máximo
+  de 4 em cada). Hoje o Mateus tem 10 e os outros 12. A ficha do João está sem perícias.
+
 ---
 
 ## 3. Texto
@@ -219,6 +275,8 @@ Só para a versão passada a limpo, sem mexer no estilo dela:
 | eles tem | eles têm |
 | Freddy Kruger | Freddy Krueger |
 | Kallikatzaros / Kalikatzaros | Kallikántzaros |
+| Cérberus | Cérbero (em português) ou Cérberus (em latim), à escolha dela |
+| Lazer (item do Mateus) | Laser |
 
 ### 3.3 Os "haters"
 
@@ -273,6 +331,9 @@ Sugestão de organização para o "livro do mestre", reaproveitando tudo o que j
 8. **Extras para imprimir:** fichas em branco, a lista com as letras para revelar e as cartas
    das constelações.
 
-Páginas que ainda faltam escrever: as fichas do **Grifo**, do **Kallikántzaros** e da
-**Hidra** (p. 28 a 30), a cena do **museu** e a luta contra o **Freddy** (p. 18 tem só o teste
-inicial).
+Páginas que ainda faltam escrever: a cena do **museu**, a luta contra o **Freddy** (p. 18 tem
+só o teste inicial), os ataques do **Cérberus** (p. 42) e a ficha do **Miguel** (p. 38). As
+fichas do Grifo, do Kallikántzaros e da Hidra ficaram prontas nas fotos de 22/11.
+
+O livro do mestre ganha mais duas partes: **fichas dos jogadores** (p. 37 a 40) e **regras do
+Purgatório** (p. 41 e 42), que entram no capítulo de regras.
