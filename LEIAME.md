@@ -34,7 +34,7 @@ Pessoal (família).
 | `01-transcricao-integral.md` | Transcrição fiel, página por página, com a grafia dela |
 | `02-sugestoes.md` | Furos de continuidade, regras que faltam, correções de texto, ideias para a parte 2 e plano do material |
 | `03-prompts-imagens.md` | Prompts para gerar imagens dos 13 locais, das 10 criaturas do bestiário e de 2 extras em outra IA, com um bloco de estilo comum |
-| `img/local`, `img/bestiario` | Imagens geradas em tamanho original (fora do git, só no PC) |
+| `img/local`, `img/bestiario` | Imagens geradas no **Gemini** (Erick, 2026-11-22) em tamanho original (fora do git, só no PC) |
 | `web/` | Versões menores das imagens, usadas pelo portal |
 | `ferramentas/otimizar_imagens.py` | Gera `web/` a partir de `img/` (rodar depois de adicionar imagens) |
 | `index.html` | O portal: início, aventura, bestiário, signos, caderno, transcrição e sugestões |
@@ -948,6 +948,10 @@ partir da p. 22; a transcrição cita as duas.
   fogo e pelos poderes. O boneco e as animações vêm do PixelLab (pixellab.ai, câmera
   Sidescroller). O motor ganha modo pixel nítido e luz dinâmica.
 
+- 2026-11-22 (Erick): as ilustrações do portal (locais e bestiário) são do **Gemini**. No bestiário,
+  o Boitatá e a Vaca usam a mesma descrição dos chefes do jogo, sem pixel art (`03-prompts-imagens.md`);
+  entrou o prompt do Cérberus. Faltam ilustrar: Robin Hood, Boitatá, Nessie, Vaca, Fobétor (Freddy) e
+  Cérberus.
 - 2026-11-22 (Erick): novas anotações da Milena (zip do WhatsApp com 21 fotos) entram no material
   e no portal: transcrição das p. 22 a 42, sugestões novas (1.11 jogadores e elementos, 2.10
   Purgatório, 2.11 fichas dos jogadores), bestiário do portal com tentativa e dano, fichas do

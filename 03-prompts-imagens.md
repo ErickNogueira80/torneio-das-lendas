@@ -182,12 +182,28 @@ standing on a thick tree branch. Mood: skilled, mysterious, morally grey.
 
 ### Boitatá (p. 24)
 
+*2026-11-22 (Erick): mesma descrição do chefe do jogo (seção 2.3 A de `04-prompts-sprites.md`), sem
+pixel art, para a ilustração bater com o Boitatá da fase.*
+
 ```
-A giant serpent made of living flames, from Brazilian folklore, coiling through the densest
-part of a burned forest. Its body is a charred, glowing ember skin with fire running along it,
-eyes like bright coals, venomous fangs. It guards the forest against lumberjacks. Mood:
-tragic and furious, a spirit of the forest.
+A giant fire serpent boss (Boitata from Brazilian folklore), full body, side view facing left.
+The body rests on the ground in a thick coil, the neck rises in a tall S curve and the head is
+raised high, mouth wide open hissing with sharp fangs and a forked tongue, the thin tail curls
+out on the ground at the left. Back and sides: charred black and very dark red scales with
+glowing orange and yellow lava cracks between the scales. Belly: smooth pale cream and sand
+colored ventral plates in wide horizontal bands, clearly separated from the back, running along
+the whole underside of the neck and body. Burning yellow eye. Setting: the densest part of a
+burned forest at night, charred trunks and glowing embers. Not pixel art: painterly digital
+illustration.
 ```
+
+Se quiser chamas saindo das costas (no jogo elas são animadas por cima, por isso o prompt do jogo
+não tem), acrescente: `Small flames and embers rising along its back.`
+
+*Prompt antigo (antes de 22/11):* `A giant serpent made of living flames, from Brazilian folklore,
+coiling through the densest part of a burned forest. Its body is a charred, glowing ember skin
+with fire running along it, eyes like bright coals, venomous fangs. It guards the forest against
+lumberjacks. Mood: tragic and furious, a spirit of the forest.`
 
 ### Nessie (p. 25)
 
@@ -200,11 +216,23 @@ but not purely evil.
 
 ### Ageláda, a vaca (p. 26)
 
+*2026-11-22 (Erick): mesma descrição da chefe do jogo (seção "Ageláda, a Vaca, no PixelLab" de
+`04-prompts-sprites.md`), sem pixel art, para a ilustração bater com a vaca da fase.*
+
 ```
-A sacred-looking white cow with small white pigeon wings, standing firmly in a pasture and
-blocking the path, calm but stubborn expression, a faint holy glow around it, a golden dog tag
-on a cord around its neck. Mood: funny but surprisingly powerful boss.
+Agelada, a sacred cow boss from a fantasy RPG: a big sturdy dairy cow, white with large reddish-
+brown patches, pink muzzle and pink udder, short cream horns, a small golden bell on a leather
+collar, a long tail with a dark tuft, and two SMALL white pigeon wings on its back (tiny compared to
+the body, soft grey feather tips). Calm, stubborn, a little grumpy expression, not scary. Strict
+side view, profile, all four legs under the body, facing right. Setting: a green farm pasture on a
+sunny mid-afternoon, hay bales and a wooden fence in the distance. Bright daylight colors, rich
+readable silhouette. Not pixel art: painterly digital illustration.
 ```
+
+*Prompt antigo (antes de 22/11):* `A sacred-looking white cow with small white pigeon wings,
+standing firmly in a pasture and blocking the path, calm but stubborn expression, a faint holy
+glow around it, a golden dog tag on a cord around its neck. Mood: funny but surprisingly powerful
+boss.`
 
 ### Fobétor, o senhor dos pesadelos (p. 27)
 
@@ -253,6 +281,17 @@ A colossal seven-headed hydra in a flooded Greek temple: scaly dark green and bl
 seven long serpent necks each with a different snarling head, one head breathing fire. Under
 its chest, a faint glowing heart visible through the scales. Mood: the final boss, terrifying,
 seemingly endless lives.
+```
+
+### Cérberus, o guardião do Purgatório (p. 41 e 42)
+
+```
+Cerberus, a huge three-headed demon dog guarding the colossal gate between heaven and hell in
+Purgatory, a misty grey realm where unjudged souls wander as faint glowing wisps. Black fur
+streaked with dark red, muscular body, each of the three heads snarling in a different
+direction with glowing red eyes, heavy broken chains around its neck. Behind it, an enormous
+ancient gate: bright golden light leaking from above, red infernal glow from below. Mood:
+relentless guardian that attacks anyone it sees, scary but not gory.
 ```
 
 ---
