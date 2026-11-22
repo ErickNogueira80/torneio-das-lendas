@@ -911,7 +911,9 @@ lojas mudam: confirmar antes de pagar.
 1. Salvar as imagens novas em `img/local` ou `img/bestiario`.
 2. Rodar `python ferramentas/otimizar_imagens.py`.
 3. Se for criatura nova com imagem, colocar `img: '<nome-do-arquivo-sem-.jpg>'` no item dela em
-   `BEASTS` dentro do `index.html` (e ajustar a contagem "x de 10 criaturas ilustradas").
+   `BEASTS` dentro do `index.html` (e ajustar a contagem "x de 11 criaturas ilustradas"), e o
+   ponto onde a criatura está na imagem (% da largura) em `FOCO`: o card recorta a imagem com esse
+   ponto no meio (Erick, 2026-11-22).
 4. `git add -A && git commit && git push`. O GitHub Pages atualiza em 1 ou 2 minutos.
 
 ## Ordem das fotos
