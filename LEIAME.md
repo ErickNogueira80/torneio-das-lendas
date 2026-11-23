@@ -931,9 +931,10 @@ vez e os jogadores só veem o que ela liberou (imagem e nome).
   curiosos. As imagens (`web/`), os `.md` e `fonte/portal.html` continuam abertos para quem souber o
   endereço ou achar o repositório. Alternativas descartadas: repositório privado com Firebase
   Hosting (links mudariam) ou GitHub Pro pago.
-- **Situação:** telas prontas e publicadas; falta o Erick criar o projeto no Firebase e mandar o
-  `firebaseConfig` e o e-mail da mestre (roteiro abaixo). Depois o Claude grava a config e as regras
-  e testa liberar e esconder.
+- **Situação (2026-11-22):** Firebase do Erick ligado (projeto `testeefk`, banco
+  `https://testeefk-default-rtdb.firebaseio.com`, config em `mesa/firebase.js`). Usuária da mestre
+  criada em Authentication (o e-mail fica só no Firebase e nas regras, não neste repositório
+  público).
 
 Roteiro do Firebase (uma vez, conta Google do Erick):
 1. https://console.firebase.google.com → **Adicionar projeto** (ex.: `torneio-das-lendas`), sem
