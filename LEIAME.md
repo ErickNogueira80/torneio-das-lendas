@@ -20,8 +20,14 @@ Pessoal (família).
 
 - Pasta: `D:\Erick\Jogos\milena-rpg`
 - Repositório: https://github.com/ErickNogueira80/torneio-das-lendas (público).
-- Portal (GitHub Pages): https://ericknogueira80.github.io/torneio-das-lendas/ — `index.html` na
-  raiz; lê os `.md` direto (por isso o `.nojekyll`).
+- Portal (GitHub Pages): https://ericknogueira80.github.io/torneio-das-lendas/ — **trancado com
+  senha** desde 2026-11-22 (a senha fica com o Erick e a Milena; não anotar aqui, o repositório é
+  público). O portal de verdade é `fonte/portal.html`; o `index.html` da raiz é gerado por
+  `ferramentas/trancar_portal.py` (página que pede a senha e decifra o portal). Lê os `.md` direto
+  (por isso o `.nojekyll`).
+- Mesa dos jogadores: https://ericknogueira80.github.io/torneio-das-lendas/mesa/ — cada jogador
+  abre no celular e vê só as criaturas que a Milena liberou na aba **Mesa** do portal (seção
+  "Mesa" abaixo).
 - Fotos originais: `C:\Users\erick\Downloads\milena_rpg_001` (36 fotos do WhatsApp de
   07/11/2026) e o zip `WhatsApp Unknown 2026-11-22 at 20.17.55.zip` (21 fotos de 22/11/2026, as
   páginas 22 a 42), todas copiadas para `fotos-originais/` como backup.
@@ -37,7 +43,9 @@ Pessoal (família).
 | `img/local`, `img/bestiario` | Imagens geradas no **Gemini** (Erick, 2026-11-22) em tamanho original (fora do git, só no PC) |
 | `web/` | Versões menores das imagens, usadas pelo portal |
 | `ferramentas/otimizar_imagens.py` | Gera `web/` a partir de `img/` (rodar depois de adicionar imagens) |
-| `index.html` | O portal: início, aventura, bestiário, signos, caderno, transcrição e sugestões |
+| `fonte/portal.html` | O portal (onde se edita): início, aventura, bestiário, signos, caderno, transcrição, sugestões e o painel da Mesa |
+| `index.html` | Gerado: o portal trancado com senha (`python ferramentas/trancar_portal.py`) |
+| `mesa/` | Tela dos jogadores (`index.html`) e a configuração do Firebase (`firebase.js`) |
 | `jogo/` | Jogo de plataforma com RPG (protótipo, fase do Boitatá): `index.html`, `jogo.js` (motor), `dados/herois.js`, `dados/fases.js`, manifest e ícones |
 | `04-prompts-sprites.md` | Prompts das imagens do jogo (herói, Boitatá em 3 partes, inimigos, fundo em camadas) e a ficha dos 4 heróis para a Milena |
 | `ferramentas/preparar_sprites.py` | Transforma as imagens de `img/sprites/` (fora do git) nas folhas de `jogo/sprites/` + `sprites.json` |
@@ -906,12 +914,52 @@ lojas mudam: confirmar antes de pagar.
 - **Público:** marcar "para crianças" traz regras bem mais rígidas no Google; classificar como
   livre para todos, sem mirar em crianças, é mais simples.
 
+## Mesa: o portal como ferramenta de jogo (2026-11-22)
+
+Pedido do Erick: a Milena joga com os amigos, cada um no seu celular; ela libera os bosses um por
+vez e os jogadores só veem o que ela liberou (imagem e nome).
+
+- **Jogadores:** abrem `.../mesa/` (sem senha, sem conta). Tela de espera até a primeira criatura;
+  cada criatura liberada aparece na hora com animação ("Nova criatura") e vibração; as anteriores
+  ficam embaixo, em "Já encontradas". Tocar amplia a imagem.
+- **Mestre:** aba **Mesa** do portal (trancado), entra uma vez com e-mail e senha do Firebase e
+  toca em Liberar/Esconder em cada criatura; "Esconder todas" zera a mesa.
+- **Como funciona:** Firebase Realtime Database (projeto gratuito do Erick), nó `mesa/bosses/<img>`
+  com `{nome, img, t}`. Regras: leitura livre; escrita só com o e-mail da mestre logado. Config em
+  `mesa/firebase.js` (os valores do `firebaseConfig` não são segredo).
+- **Limite (decisão do Erick, 2026-11-22: repositório continua público):** proteção contra
+  curiosos. As imagens (`web/`), os `.md` e `fonte/portal.html` continuam abertos para quem souber o
+  endereço ou achar o repositório. Alternativas descartadas: repositório privado com Firebase
+  Hosting (links mudariam) ou GitHub Pro pago.
+- **Situação:** telas prontas e publicadas; falta o Erick criar o projeto no Firebase e mandar o
+  `firebaseConfig` e o e-mail da mestre (roteiro abaixo). Depois o Claude grava a config e as regras
+  e testa liberar e esconder.
+
+Roteiro do Firebase (uma vez, conta Google do Erick):
+1. https://console.firebase.google.com → **Adicionar projeto** (ex.: `torneio-das-lendas`), sem
+   Google Analytics.
+2. **Criação › Realtime Database › Criar banco de dados** → local `us-central1` → **modo
+   bloqueado**.
+3. **Criação › Authentication › Começar** → **E-mail/senha** → ativar → aba **Usuários › Adicionar
+   usuário**: o e-mail e a senha da mestre.
+4. **Configurações do projeto (engrenagem) › Seus apps › Web (`</>`)** → apelido `mesa`, sem
+   Hosting → copiar o bloco `firebaseConfig`.
+5. Mandar para o Claude o `firebaseConfig` e o e-mail da mestre. Regras a colar em **Realtime
+   Database › Regras** (o Claude confere o e-mail):
+
+```
+{ "rules": { "mesa": { ".read": true, ".write": "auth != null && auth.token.email == 'EMAIL_DA_MESTRE'" } } }
+```
+
 ## Como atualizar o portal
+
+O portal se edita em `fonte/portal.html`; depois de qualquer mudança, rodar
+`python ferramentas/trancar_portal.py` (pede a senha) para gerar o `index.html` trancado.
 
 1. Salvar as imagens novas em `img/local` ou `img/bestiario`.
 2. Rodar `python ferramentas/otimizar_imagens.py`.
 3. Se for criatura nova com imagem, colocar `img: '<nome-do-arquivo-sem-.jpg>'` no item dela em
-   `BEASTS` dentro do `index.html` (e ajustar a contagem "x de 11 criaturas ilustradas"). No card, a
+   `BEASTS` dentro do `fonte/portal.html` (e ajustar a contagem "x de 11 criaturas ilustradas"). No card, a
    imagem fica inteira em cima (16:9, sem corte) e o texto embaixo (Erick, 2026-11-22: recortada
    numa coluna, as criaturas largas ficavam cortadas).
 4. `git add -A && git commit && git push`. O GitHub Pages atualiza em 1 ou 2 minutos.
@@ -950,6 +998,9 @@ partir da p. 22; a transcrição cita as duas.
   fogo e pelos poderes. O boneco e as animações vêm do PixelLab (pixellab.ai, câmera
   Sidescroller). O motor ganha modo pixel nítido e luz dinâmica.
 
+- 2026-11-22 (Erick): o portal vira ferramenta de jogo: portal trancado com senha, tela dos jogadores
+  em `mesa/` e painel da mestre na aba Mesa, ligados pelo Firebase; os jogadores veem imagem e nome
+  de cada boss liberado. Repositório continua público (proteção contra curiosos). Ver seção "Mesa".
 - 2026-11-22 (Erick): as ilustrações do portal (locais e bestiário) são do **Gemini**. No bestiário,
   o Boitatá e a Vaca usam a mesma descrição dos chefes do jogo, sem pixel art (`03-prompts-imagens.md`);
   entrou o prompt do Cérberus. As 6 que faltavam (Robin Hood, Boitatá, Nessie, Vaca, Fobétor no lugar do

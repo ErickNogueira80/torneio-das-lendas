@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#120e1a">
+<title>Mesa · Torneio das Lendas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Crimson+Pro:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#120e1a;--bg2:#1c1626;--line:#3a2f4a;--text:#ece4d4;--muted:#b3a88f;--gold:#e3b75a;--gold2:#f5d48a}
+*{box-sizing:border-box}
+html,body{margin:0;background:radial-gradient(ellipse at top,#2a2040 0%,var(--bg) 60%) fixed,var(--bg);color:var(--text);
+  font-family:'Crimson Pro',Georgia,serif;font-size:19px;min-height:100%}
+header{padding:18px 16px 6px;text-align:center}
+header h1{font-family:Cinzel,serif;color:var(--gold);font-size:22px;margin:0;letter-spacing:.06em}
+header p{margin:4px 0 0;color:var(--muted);font-size:15px}
+main{max-width:1100px;margin:0 auto;padding:10px 16px 40px}
+.espera{text-align:center;color:var(--muted);padding:70px 10px}
+.espera .estrela{font-size:64px;color:var(--gold);opacity:.6;animation:pulsa 2.4s ease-in-out infinite}
+@keyframes pulsa{50%{opacity:1;transform:scale(1.08)}}
+.atual{margin:12px 0 26px}
+.carta{background:var(--bg2);border:1px solid var(--line);border-radius:16px;overflow:hidden;cursor:zoom-in}
+.carta img{width:100%;aspect-ratio:16/9;object-fit:contain;display:block;background:#0e0b14}
+.carta h2{font-family:Cinzel,serif;color:var(--gold2);margin:0;padding:12px 16px 14px;font-size:24px}
+.lista{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px}
+.lista .carta h2{font-size:17px;padding:8px 12px 10px}
+.rotulo{font-family:Cinzel,serif;color:var(--gold);font-size:14px;letter-spacing:.08em;margin:0 0 10px}
+#zoom,#novo{position:fixed;inset:0;background:rgba(8,6,12,.94);display:none;align-items:center;justify-content:center;
+  flex-direction:column;z-index:10;padding:16px;text-align:center}
+#zoom.on,#novo.on{display:flex}
+#zoom img,#novo img{max-width:100%;max-height:80vh;border-radius:12px}
+#novo small{font-family:Cinzel,serif;color:var(--gold);letter-spacing:.2em;font-size:15px}
+#novo h2{font-family:Cinzel,serif;color:var(--gold2);font-size:30px;margin:10px 0 0}
+#novo .wrap{animation:surge 1.2s ease-out}
+@keyframes surge{from{opacity:0;transform:scale(.85);filter:blur(10px) brightness(2)}to{opacity:1;transform:none;filter:none}}
+.aviso{color:var(--muted);text-align:center;font-size:15px}
+</style>
+</head>
+<body>
+<header>
+  <h1>✦ Torneio das Lendas</h1>
+  <p>As criaturas que vocês encontraram</p>
+</header>
+<main id="app"><div class="espera"><div class="estrela">✦</div><p>Conectando…</p></div></main>
+<div id="zoom"><img alt=""></div>
+<div id="novo"><div class="wrap"><small>NOVA CRIATURA</small><br><img alt=""><h2></h2><p class="aviso">Toque para fechar</p></div></div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script src="firebase.js"></script>
+<script>
+(function () {
+  const app = document.getElementById('app'), zoom = document.getElementById('zoom'), novo = document.getElementById('novo');
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  const src = b => '../web/bestiario/' + encodeURIComponent(b.img) + '.jpg';
+  const carta = b => `<div class="carta" data-src="${src(b)}"><img src="${src(b)}" alt="${esc(b.nome)}"><h2>${esc(b.nome)}</h2></div>`;
+
+  if (!window.FIREBASE_CONFIG) {
+    app.innerHTML = '<div class="espera"><div class="estrela">✦</div><p>A mesa ainda não foi configurada.</p></div>';
+    return;
+  }
+  firebase.initializeApp(window.FIREBASE_CONFIG);
+  let vistos = null;   // ids já mostrados (null = primeira leitura, sem animação)
+  firebase.database().ref('mesa/bosses').on('value', snap => {
+    const dados = snap.val() || {};
+    const lista = Object.entries(dados).map(([id, b]) => ({ id, ...b })).sort((a, b) => (b.t || 0) - (a.t || 0));
+    if (!lista.length) {
+      app.innerHTML = '<div class="espera"><div class="estrela">✦</div><p>Aguardando a mestre revelar a primeira criatura…</p></div>';
+    } else {
+      const [atual, ...resto] = lista;
+      app.innerHTML = `<div class="atual">${carta(atual)}</div>` +
+        (resto.length ? `<p class="rotulo">JÁ ENCONTRADAS</p><div class="lista">${resto.map(carta).join('')}</div>` : '');
+      if (vistos && !vistos.has(atual.id)) {
+        novo.querySelector('img').src = src(atual); novo.querySelector('h2').textContent = atual.nome;
+        novo.classList.add('on');
+        if (navigator.vibrate) navigator.vibrate([120, 60, 120]);
+      }
+    }
+    vistos = new Set(lista.map(b => b.id));
+    if (zoom.classList.contains('on') && !lista.some(b => src(b) === zoom.querySelector('img').getAttribute('src'))) zoom.classList.remove('on');
+  }, () => {
+    app.innerHTML = '<div class="espera"><div class="estrela">✦</div><p>Sem conexão com a mesa. Confira a internet.</p></div>';
+  });
+  document.addEventListener('click', e => {
+    if (novo.classList.contains('on')) { novo.classList.remove('on'); return; }
+    if (zoom.classList.contains('on')) { zoom.classList.remove('on'); return; }
+    const c = e.target.closest('.carta');
+    if (c) { zoom.querySelector('img').src = c.dataset.src; zoom.classList.add('on'); }
+  });
+})();
+</script>
+</body>
+</html>
