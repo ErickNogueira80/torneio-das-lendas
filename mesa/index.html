@@ -13,33 +13,43 @@
 *{box-sizing:border-box}
 html,body{margin:0;background:radial-gradient(ellipse at top,#2a2040 0%,var(--bg) 60%) fixed,var(--bg);color:var(--text);
   font-family:'Crimson Pro',Georgia,serif;font-size:19px;min-height:100%}
-header{padding:18px 16px 6px;text-align:center}
+header{padding:16px 16px 6px;text-align:center}
 header h1{font-family:Cinzel,serif;color:var(--gold);font-size:22px;margin:0;letter-spacing:.06em}
-header p{margin:4px 0 0;color:var(--muted);font-size:15px}
-header .eu{color:var(--gold2)}
-#sub a{color:var(--muted);font-size:14px;margin-left:10px}
-main{max-width:1100px;margin:0 auto;padding:10px 16px 40px}
-.espera{text-align:center;color:var(--muted);padding:70px 10px}
+#sub{margin:6px 0 0;color:var(--muted);font-size:15px;display:flex;align-items:center;justify-content:center;gap:8px;min-height:30px}
+#sub .eu{color:var(--gold2);font-family:Cinzel,serif;font-size:17px}
+#sub img{width:30px;height:30px;border-radius:50%;object-fit:cover;border:1px solid var(--gold);background:#fff}
+main{max-width:1100px;margin:0 auto;padding:10px 16px 100px}
+.espera{text-align:center;color:var(--muted);padding:60px 10px}
 .espera .estrela{font-size:64px;color:var(--gold);opacity:.6;animation:pulsa 2.4s ease-in-out infinite}
 @keyframes pulsa{50%{opacity:1;transform:scale(1.08)}}
-.atual{margin:12px 0 26px}
+.atual{margin:8px 0 26px}
 .carta{background:var(--bg2);border:1px solid var(--line);border-radius:16px;overflow:hidden;cursor:zoom-in}
 .carta img{width:100%;aspect-ratio:16/9;object-fit:contain;display:block;background:#0e0b14}
 .carta h2{font-family:Cinzel,serif;color:var(--gold2);margin:0;padding:12px 16px 14px;font-size:24px}
 .lista{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px}
 .lista .carta h2{font-size:17px;padding:8px 12px 10px}
 .rotulo{font-family:Cinzel,serif;color:var(--gold);font-size:14px;letter-spacing:.08em;margin:0 0 10px}
-#zoom,#novo{position:fixed;inset:0;background:rgba(8,6,12,.94);display:none;align-items:center;justify-content:center;
-  flex-direction:column;z-index:10;padding:16px;text-align:center}
-#zoom.on,#novo.on{display:flex}
-#zoom img,#novo img{max-width:100%;max-height:80vh;border-radius:12px}
+.ov{position:fixed;inset:0;background:rgba(8,6,12,.95);display:none;align-items:center;justify-content:center;
+  flex-direction:column;z-index:20;padding:16px;text-align:center}
+.ov.on{display:flex}
+#zoom img,#novo img{max-width:100%;max-height:78vh;border-radius:12px}
 #novo small{font-family:Cinzel,serif;color:var(--gold);letter-spacing:.2em;font-size:15px}
 #novo h2{font-family:Cinzel,serif;color:var(--gold2);font-size:30px;margin:10px 0 0}
 #novo .wrap{animation:surge 1.2s ease-out}
 @keyframes surge{from{opacity:0;transform:scale(.85);filter:blur(10px) brightness(2)}to{opacity:1;transform:none;filter:none}}
 .aviso{color:var(--muted);text-align:center;font-size:15px}
+/* barra de navegação */
+nav#barra{position:fixed;left:0;right:0;bottom:0;z-index:15;display:none;background:rgba(18,14,26,.97);border-top:1px solid var(--line);
+  padding:6px 6px calc(6px + env(safe-area-inset-bottom))}
+nav#barra.on{display:flex;justify-content:center;gap:4px}
+nav#barra button{flex:1;max-width:180px;font:inherit;background:transparent;border:0;color:var(--muted);padding:6px 4px 4px;border-radius:12px;cursor:pointer;position:relative}
+nav#barra button span{display:block;font-size:22px;line-height:1.1}
+nav#barra button small{font-family:Cinzel,serif;font-size:12px;letter-spacing:.04em}
+nav#barra button.on{color:var(--gold2);background:rgba(227,183,90,.12)}
+nav#barra button i{position:absolute;top:4px;right:calc(50% - 22px);width:10px;height:10px;border-radius:50%;background:#e2553c;display:none}
+nav#barra button.novo i{display:block}
 /* quem é você */
-.quem{text-align:center;padding:30px 0}
+.quem{text-align:center;padding:24px 0}
 .quem h2{font-family:Cinzel,serif;color:var(--gold2);font-size:26px;margin:0 0 6px}
 .quem p{color:var(--muted);margin:0 0 22px}
 .herois{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;max-width:520px;margin:0 auto}
@@ -64,41 +74,52 @@ main{max-width:1100px;margin:0 auto;padding:10px 16px 40px}
 .selo{margin-left:auto;font-family:'IM Fell English',serif;font-size:16px;font-style:italic;color:#8a2a1a;white-space:nowrap}
 .dogtags{text-align:center;font-family:'IM Fell English',serif;font-style:italic;font-size:16px;color:#6e4a24;margin-top:8px}
 /* ficha do jogador */
-#ficha{position:fixed;inset:0;background:rgba(8,6,12,.96);display:none;z-index:12;overflow:auto;padding:16px}
-#ficha.on{display:block}
 .ficha{max-width:560px;margin:0 auto;background:var(--bg2);border:1px solid var(--gold);border-radius:16px;padding:18px 16px 20px}
 .ficha .topo{display:flex;gap:14px;align-items:center}
-.ficha .topo img{width:110px;height:130px;object-fit:cover;border-radius:10px;border:1px solid var(--line);background:#fff}
+.ficha .foto{position:relative;flex:none;cursor:pointer}
+.ficha .foto img{width:110px;height:130px;object-fit:cover;border-radius:10px;border:1px solid var(--line);background:#fff;display:block}
+.ficha .foto em{position:absolute;right:-6px;bottom:-6px;background:var(--gold);color:#1b1408;border-radius:50%;width:28px;height:28px;font-style:normal;
+  display:flex;align-items:center;justify-content:center;font-size:15px;box-shadow:0 2px 6px rgba(0,0,0,.5)}
 .ficha small.k{display:block;font-family:Cinzel,serif;color:var(--gold);font-size:13px;letter-spacing:.08em}
 .ficha h2{font-family:Cinzel,serif;color:var(--gold2);margin:2px 0 4px;font-size:24px}
 .ficha h3{font-family:Cinzel,serif;color:var(--gold);font-size:15px;letter-spacing:.08em;margin:18px 0 6px}
-.ficha .st{display:flex;gap:8px;flex-wrap:wrap}
-.ficha .st{flex-wrap:nowrap}
+.ficha .st{display:flex;gap:6px;flex-wrap:nowrap}
 .ficha .st div{flex:1;min-width:0;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:4px 2px;text-align:center}
-.ficha .st span{font-size:12px!important}
 .ficha .st b{display:block;font-family:Cinzel,serif;font-size:22px;color:var(--gold2)}
-.ficha .st span{font-size:13px;color:var(--muted)}
+.ficha .st span{font-size:12px;color:var(--muted)}
 .ficha table{width:100%;border-collapse:collapse;font-size:17px}
 .ficha td,.ficha th{padding:6px 4px;border-bottom:1px solid var(--line);text-align:left}
 .ficha th{font-family:Cinzel,serif;font-weight:600;font-size:13px;color:var(--gold);letter-spacing:.06em}
 .ficha ul{margin:0;padding-left:20px}
 .ficha .vazio{color:var(--muted);font-style:italic}
 .btn{font:inherit;font-size:16px;border-radius:999px;border:1px solid var(--gold);background:var(--gold);color:#1b1408;font-weight:600;padding:8px 22px;cursor:pointer}
-.btn.leve{background:transparent;color:var(--gold2);font-weight:400;padding:3px 12px;font-size:14px}
-#aviso-lista{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:#e3b75a;color:#1b1408;font-weight:600;padding:10px 20px;
-  border-radius:999px;display:none;z-index:11;box-shadow:0 4px 18px rgba(0,0,0,.5);text-align:center;max-width:90vw}
+/* escolha do avatar */
+#avatar .opcoes{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin:16px 0}
+#avatar .op{font:inherit;color:var(--text);background:var(--bg2);border:2px solid var(--line);border-radius:14px;padding:10px;width:150px;cursor:pointer}
+#avatar .op.on{border-color:var(--gold);box-shadow:0 0 0 2px rgba(227,183,90,.35)}
+#avatar .op img{width:128px;height:150px;object-fit:cover;border-radius:10px;background:#fff;display:block;margin:0 auto 8px}
+#avatar .op:disabled{opacity:.5;cursor:not-allowed}
+#avatar .op .falta{width:128px;height:150px;border-radius:10px;border:1px dashed var(--line);display:flex;align-items:center;justify-content:center;
+  margin:0 auto 8px;color:var(--muted);font-size:14px;padding:8px}
+#aviso-lista{position:fixed;left:50%;bottom:86px;transform:translateX(-50%);background:#e3b75a;color:#1b1408;font-weight:600;padding:10px 20px;
+  border-radius:999px;display:none;z-index:16;box-shadow:0 4px 18px rgba(0,0,0,.5);text-align:center;max-width:90vw;cursor:pointer}
 </style>
 </head>
 <body>
 <header>
   <h1>✦ Torneio das Lendas</h1>
-  <p id="sub">As criaturas que vocês encontraram</p>
+  <div id="sub">As criaturas que vocês encontraram</div>
 </header>
 <main id="app"><div class="espera"><div class="estrela">✦</div><p>Conectando…</p></div></main>
-<div id="zoom"><img alt=""></div>
-<div id="novo"><div class="wrap"><small>NOVA CRIATURA</small><br><img alt=""><h2></h2><p class="aviso">Toque para fechar</p></div></div>
+<nav id="barra">
+  <button data-v="criaturas"><i></i><span>🐉</span><small>Criaturas</small></button>
+  <button data-v="lista" hidden><i></i><span>📜</span><small>Lista</small></button>
+  <button data-v="ficha"><i></i><span>🧾</span><small>Minha ficha</small></button>
+</nav>
+<div id="zoom" class="ov" data-ov="zoom"><img alt=""><p class="aviso">Toque para fechar</p></div>
+<div id="novo" class="ov" data-ov="novo"><div class="wrap"><small>NOVA CRIATURA</small><br><img alt=""><h2></h2><p class="aviso">Toque para fechar</p></div></div>
+<div id="avatar" class="ov" data-ov="avatar"></div>
 <div id="aviso-lista"></div>
-<div id="ficha"></div>
 
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
@@ -106,20 +127,24 @@ main{max-width:1100px;margin:0 auto;padding:10px 16px 40px}
 <script src="fichas.js"></script>
 <script>
 (function () {
-  // Os quatro jogadores (caderno, p. 34). id = chave no Firebase (mesa/jogadores/<id>).
-  // Sem elemento na tela (Erick, 2026-11-22). Cada nome fica reservado para o 1º celular que escolher
-  // (mesa/jogadores/<id> = {dev}); só a mestre libera de novo, no painel.
+  // Os quatro jogadores (caderno, p. 34). Sem elemento na tela (Erick, 2026-11-22). Cada nome fica
+  // reservado para o 1º celular que escolher (mesa/jogadores/<id> = {dev, avatar}); só a mestre libera.
   const JOGADORES = [
     { id: 'miguel', nome: 'Miguel' }, { id: 'bia', nome: 'Bia' }, { id: 'mateus', nome: 'Mateus' }, { id: 'joao', nome: 'João' },
   ];
-  const app = document.getElementById('app'), sub = document.getElementById('sub');
-  const zoom = document.getElementById('zoom'), novo = document.getElementById('novo'), avisoEl = document.getElementById('aviso-lista');
+  // Navegação: cada aba é um endereço (#criaturas, #lista, #ficha) e cada janela por cima (imagem
+  // ampliada, nova criatura, escolha do avatar) é um passo no histórico. Assim o "voltar" do Android
+  // fecha a janela ou volta de aba, em vez de sair da página.
+  const ABAS = ['criaturas', 'lista', 'ficha'];
+  const $ = id => document.getElementById(id);
+  const app = $('app'), sub = $('sub'), barra = $('barra'), avisoEl = $('aviso-lista');
   const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
   const src = b => '../web/bestiario/' + encodeURIComponent(b.img) + '.jpg';
   const carta = b => `<div class="carta" data-src="${src(b)}"><img src="${src(b)}" alt="${esc(b.nome)}"><h2>${esc(b.nome)}</h2></div>`;
   const ESPERA = t => `<div class="espera"><div class="estrela">✦</div><p>${t}</p></div>`;
   const ler = k => { try { return localStorage.getItem(k); } catch (e) { return null; } };
   const gravar = (k, v) => { try { v == null ? localStorage.removeItem(k) : localStorage.setItem(k, v); } catch (e) {} };
+  const NOMES_ST = { F: 'Força', I: 'Intelecto', V: 'Vigor', A: 'Agilidade', P: 'Presença' };
 
   if (!window.FIREBASE_CONFIG) { app.innerHTML = ESPERA('A mesa ainda não foi configurada.'); return; }
   firebase.initializeApp(window.FIREBASE_CONFIG);
@@ -127,32 +152,69 @@ main{max-width:1100px;margin:0 auto;padding:10px 16px 40px}
 
   let dev = ler('tdl_dev'); if (!dev) { dev = Math.random().toString(36).slice(2) + Date.now().toString(36); gravar('tdl_dev', dev); }
   let eu = JOGADORES.find(j => j.id === ler('tdl_jogador')) || null;
-  let donos = null, bosses = null, lista = null;
-  const fichaEl = document.getElementById('ficha');
-  const NOMES_ST = { F: 'Força', I: 'Intelecto', V: 'Vigor', A: 'Agilidade', P: 'Presença' };
-  function mostrarFicha(primeira) {
-    const f = (window.FICHAS || {})[eu.id];
-    const corpo = !f ? '<p class="vazio">A sua ficha ainda está em branco no caderno da mestre. Combine com ela!</p>' : `
-      <div class="topo">${f.retrato ? `<img src="${f.retrato}" alt="">` : ''}<div><small class="k">PERSONAGEM</small><h2>${esc(f.personagem)}</h2><div>${f.idade} anos</div></div></div>
+  let donos = null, bosses = null, lista = null, primeiraVez = false;
+  let vistos = null, letrasAntes = null, listaAntes = null;
+  const novidade = { criaturas: false, lista: false };
+
+  // ---------- navegação ----------
+  const aba = () => { const h = location.hash.slice(1); return ABAS.includes(h) && !(h === 'lista' && !(lista && lista.entregue)) ? h : 'criaturas'; };
+  function irPara(v) { if (v !== aba() || location.hash !== '#' + v) { history.pushState(null, '', '#' + v); sincronizar(); } }
+  function abrirJanela(ov) { history.pushState({ ov }, '', location.hash || '#criaturas'); sincronizar(); }
+  function fecharJanela() { if (history.state && history.state.ov) history.back(); }
+  function sincronizar() {
+    const ov = history.state && history.state.ov;
+    document.querySelectorAll('.ov').forEach(o => o.classList.toggle('on', o.dataset.ov === ov));
+    if (!ov) { novidade[aba()] = false; render(); window.scrollTo({ top: 0 }); }
+  }
+  addEventListener('popstate', sincronizar);
+
+  // ---------- jogador, ficha e avatar ----------
+  const ficha = () => (window.FICHAS || {})[eu.id];
+  function fotoAtual() {
+    const f = ficha(); if (!f) return null;
+    const quer = donos && donos[eu.id] && donos[eu.id].avatar;
+    return (quer === 'ia' && f.retratoIA) ? f.retratoIA : (f.retrato || f.retratoIA || null);
+  }
+  function htmlFicha() {
+    const f = ficha();
+    const intro = primeiraVez ? `<p style="text-align:center;color:var(--muted);margin:0 0 14px">Esta é a sua ficha. Você pode voltar a ela quando quiser, em <b>Minha ficha</b>, aqui embaixo.</p>` : '';
+    if (!f) return intro + `<div class="ficha"><small class="k">MINHA FICHA · ${esc(eu.nome).toUpperCase()}</small>
+      <p class="vazio">A sua ficha ainda está em branco no caderno da mestre. Combine com ela!</p></div>` + botaoComecar();
+    const foto = fotoAtual();
+    return intro + `<div class="ficha"><small class="k">MINHA FICHA · ${esc(eu.nome).toUpperCase()}</small>
+      <div class="topo">${foto ? `<div class="foto" data-avatar title="Trocar a imagem"><img src="${foto}" alt=""><em>✎</em></div>` : ''}
+        <div><small class="k">PERSONAGEM</small><h2>${esc(f.personagem)}</h2><div>${f.idade} anos</div></div></div>
       <h3>STATUS</h3><div class="st">${Object.entries(f.status).map(([k, v]) => `<div><b>${v}</b><span>${NOMES_ST[k]}</span></div>`).join('')}</div>
       <h3>PERÍCIAS</h3>${f.pericias.length ? `<ul>${f.pericias.map(x => `<li>${esc(x)}</li>`).join('')}</ul>` : '<p class="vazio">Nenhuma ainda</p>'}
       <h3>ITENS</h3>${f.itens.length ? `<ul>${f.itens.map(x => `<li>${esc(x)}</li>`).join('')}</ul>` : '<p class="vazio">Nenhum</p>'}
-      <h3>ATAQUES</h3><table><tr><th>Ataque</th><th>1D20</th><th>Dano</th></tr>${f.ataques.map(a => `<tr><td>${esc(a[0])}</td><td>S ${esc(a[1])} · N ${esc(a[2])}</td><td>${esc(a[3])}</td></tr>`).join('')}</table>`;
-    fichaEl.innerHTML = `<div class="ficha"><small class="k">${primeira ? 'ESTA É A SUA FICHA' : 'MINHA FICHA'} · ${esc(eu.nome).toUpperCase()}</small>${corpo}
-      <p style="text-align:center;margin:20px 0 0"><button class="btn" data-fechar-ficha>${primeira ? 'Ir para a mesa' : 'Fechar'}</button></p></div>`;
-    fichaEl.classList.add('on'); fichaEl.scrollTop = 0;
+      <h3>ATAQUES</h3><table><tr><th>Ataque</th><th>1D20</th><th>Dano</th></tr>${f.ataques.map(a => `<tr><td>${esc(a[0])}</td><td>S ${esc(a[1])} · N ${esc(a[2])}</td><td>${esc(a[3])}</td></tr>`).join('')}</table></div>` + botaoComecar();
+  }
+  const botaoComecar = () => primeiraVez ? `<p style="text-align:center;margin:20px 0 0"><button class="btn" data-comecar>Ir para a mesa</button></p>` : '';
+  function abrirAvatar() {
+    const f = ficha(); if (!f) return;
+    const atual = fotoAtual();
+    const op = (tipo, img, rotulo) => img
+      ? `<button class="op${atual === img ? ' on' : ''}" data-escolhe="${tipo}"><img src="${img}" alt=""><b>${rotulo}</b></button>`
+      : `<button class="op" disabled><div class="falta">Ainda não chegou</div><b>${rotulo}</b></button>`;
+    $('avatar').innerHTML = `<div><h2 style="font-family:Cinzel,serif;color:var(--gold2);margin:0">Sua imagem</h2>
+      <p class="aviso">Escolha qual aparece na sua ficha</p>
+      <div class="opcoes">${op('desenho', f.retrato, 'Desenho')}${op('ia', f.retratoIA, 'Avatar da IA')}</div>
+      <button class="btn" data-fechar>Fechar</button></div>`;
+    abrirJanela('avatar');
+  }
+  function escolherAvatar(tipo) {
+    db.ref('mesa/jogadores/' + eu.id).transaction(c => (c && c.dev === dev) ? { ...c, avatar: tipo } : undefined, () => fecharJanela(), false);
   }
   function escolher(j) {
     db.ref('mesa/jogadores/' + j.id).transaction(cur => {
       if (cur && cur.dev !== dev) return;   // já é de outro celular: desiste
-      return { dev, t: Date.now() };
+      return { ...(cur || {}), dev, t: Date.now() };
     }, (err, ok, snap) => {
       if (!err && ok && snap.val() && snap.val().dev === dev) {
-        eu = j; gravar('tdl_jogador', j.id); vistos = null; marcarPresenca(); render(); mostrarFicha(true);
+        eu = j; gravar('tdl_jogador', j.id); vistos = null; marcarPresenca(); primeiraVez = true; irPara('ficha');
       } else aviso(j.nome + ' já foi escolhido por outro jogador');
     }, false);
   }
-  let vistos = null, letrasAntes = null, listaAntes = null;
 
   // presença: o jogador escolhido aparece "na mesa" para a mestre enquanto a página estiver aberta
   let presRef = null;
@@ -174,8 +236,9 @@ main{max-width:1100px;margin:0 auto;padding:10px 16px 40px}
     render();
   });
 
-  function aviso(t) {
-    avisoEl.textContent = t; avisoEl.style.display = 'block';
+  // ---------- conteúdo ----------
+  function aviso(t, abaAlvo) {
+    avisoEl.textContent = t; avisoEl.style.display = 'block'; avisoEl.dataset.aba = abaAlvo || '';
     clearTimeout(aviso.t); aviso.t = setTimeout(() => avisoEl.style.display = 'none', 3500);
     if (navigator.vibrate) navigator.vibrate([80, 40, 80]);
   }
@@ -186,7 +249,7 @@ main{max-width:1100px;margin:0 auto;padding:10px 16px 40px}
     return marca;
   }
   function htmlLista() {
-    if (!lista || !lista.entregue) return '';
+    if (!lista || !lista.entregue) return ESPERA('O portão ainda não entregou a lista.');
     const itens = Object.values(lista.itens || {});
     return `<div class="pergaminho"><h2>Lista</h2><ol>${itens.map((it, i) => {
       const letras = it.letras || '', antes = letrasAntes ? (letrasAntes[i] || '') : null;
@@ -199,6 +262,14 @@ main{max-width:1100px;margin:0 auto;padding:10px 16px 40px}
       return `<li class="${it.morto ? 'morto' : ''}"><span class="nome">${nome}</span>${it.morto ? '<span class="selo">Morto</span>' : ''}</li>`;
     }).join('')}</ol>${lista.dogtags ? `<div class="dogtags">Dog tags: ${lista.dogtags}</div>` : ''}</div>`;
   }
+  function listaBosses() { return Object.entries(bosses || {}).map(([id, b]) => ({ id, ...b })).sort((a, b) => (b.t || 0) - (a.t || 0)); }
+  function htmlCriaturas() {
+    const bl = listaBosses();
+    if (!bl.length) return ESPERA('Aguardando a mestre revelar a primeira criatura…');
+    const [atual, ...resto] = bl;
+    return `<div class="atual">${carta(atual)}</div>` +
+      (resto.length ? `<p class="rotulo">JÁ ENCONTRADAS</p><div class="lista">${resto.map(carta).join('')}</div>` : '');
+  }
   function htmlQuem() {
     return `<div class="quem"><h2>Quem é você?</h2><p>Escolha o seu jogador</p><div class="herois">${JOGADORES.map(j => {
       const ocupado = donos && donos[j.id] && donos[j.id].dev !== dev;
@@ -206,52 +277,67 @@ main{max-width:1100px;margin:0 auto;padding:10px 16px 40px}
     }).join('')}</div></div>`;
   }
   function render() {
-    if (!eu) { sub.textContent = 'As criaturas que vocês encontraram'; app.innerHTML = donos === null ? ESPERA('Conectando…') : htmlQuem(); return; }
-    sub.innerHTML = `<span class="eu">✦ ${esc(eu.nome)}</span> <button class="btn leve" data-minha-ficha>Minha ficha</button>`;
-    if (bosses === null || lista === null) return;
-    const bl = Object.entries(bosses).map(([id, b]) => ({ id, ...b })).sort((a, b) => (b.t || 0) - (a.t || 0));
-    let h = htmlLista();
-    if (!bl.length) h += h ? '' : ESPERA('Aguardando a mestre revelar a primeira criatura…');
-    else {
-      const [atual, ...resto] = bl;
-      h += `<div class="atual">${carta(atual)}</div>` +
-        (resto.length ? `<p class="rotulo">JÁ ENCONTRADAS</p><div class="lista">${resto.map(carta).join('')}</div>` : '');
-      if (vistos && !vistos.has(atual.id)) {
-        novo.querySelector('img').src = src(atual); novo.querySelector('h2').textContent = atual.nome;
-        novo.classList.add('on');
-        if (navigator.vibrate) navigator.vibrate([120, 60, 120]);
-      }
+    if (!eu) {
+      sub.textContent = 'As criaturas que vocês encontraram'; barra.classList.remove('on');
+      app.innerHTML = donos === null ? ESPERA('Conectando…') : htmlQuem(); return;
     }
-    app.innerHTML = h;
-    vistos = new Set(bl.map(b => b.id));
-    if (zoom.classList.contains('on') && !bl.some(b => src(b) === zoom.querySelector('img').getAttribute('src'))) zoom.classList.remove('on');
+    const foto = fotoAtual();
+    sub.innerHTML = `${foto ? `<img src="${foto}" alt="">` : ''}<span class="eu">${esc(eu.nome)}</span>`;
+    const v = aba(), temLista = !!(lista && lista.entregue);
+    barra.classList.add('on');
+    barra.querySelectorAll('button').forEach(b => {
+      b.classList.toggle('on', b.dataset.v === v);
+      b.classList.toggle('novo', !!novidade[b.dataset.v] && b.dataset.v !== v);
+      if (b.dataset.v === 'lista') b.hidden = !temLista;
+    });
+    if (v === 'ficha') { app.innerHTML = htmlFicha(); return; }
+    if (bosses === null || lista === null) { app.innerHTML = ESPERA('Conectando…'); return; }
+    app.innerHTML = v === 'lista' ? htmlLista() : htmlCriaturas();
   }
+
   const falha = () => { app.innerHTML = ESPERA('Sem conexão com a mesa. Confira a internet.'); };
-  db.ref('mesa/bosses').on('value', snap => { bosses = snap.val() || {}; render(); }, falha);
+  db.ref('mesa/bosses').on('value', snap => {
+    bosses = snap.val() || {};
+    const bl = listaBosses(), atual = bl[0];
+    if (eu && vistos && atual && !vistos.has(atual.id)) {
+      const n = $('novo'); n.querySelector('img').src = src(atual); n.querySelector('h2').textContent = atual.nome;
+      if (aba() !== 'criaturas') novidade.criaturas = true;
+      abrirJanela('novo');
+      if (navigator.vibrate) navigator.vibrate([120, 60, 120]);
+    }
+    vistos = new Set(bl.map(b => b.id));
+    render();
+  }, falha);
   db.ref('mesa/lista').on('value', snap => {
     const nova = snap.val() || {};
     const letras = Object.values(nova.itens || {}).map(it => it.letras || '');
     if (listaAntes && eu) {
-      if (nova.entregue && !listaAntes.entregue) aviso('O portão entregou a lista!');
-      else if (nova.entregue && (nova.dogtags || 0) > (listaAntes.dogtags || 0)) aviso('Nova dog tag: letras reveladas!');
-      else if (nova.entregue && JSON.stringify(letras) !== JSON.stringify(letrasAntes)) aviso('A lista mudou');
+      let t = '';
+      if (nova.entregue && !listaAntes.entregue) t = 'O portão entregou a lista!';
+      else if (nova.entregue && (nova.dogtags || 0) > (listaAntes.dogtags || 0)) t = 'Nova dog tag: letras reveladas!';
+      else if (nova.entregue && JSON.stringify(letras) !== JSON.stringify(letrasAntes)) t = 'A lista mudou';
+      if (t) { if (aba() !== 'lista') { novidade.lista = true; t += ' Toque para ver.'; } aviso(t, 'lista'); }
     }
     lista = nova; render();
     letrasAntes = letras; listaAntes = nova;
   }, falha);
 
   document.addEventListener('click', e => {
-    const j = e.target.closest('[data-j]');
-    if (j && !j.disabled) { escolher(JOGADORES.find(x => x.id === j.dataset.j)); return; }
-    if (e.target.closest('[data-minha-ficha]')) { mostrarFicha(false); return; }
-    if (e.target.closest('[data-fechar-ficha]')) { fichaEl.classList.remove('on'); return; }
-    if (fichaEl.contains(e.target)) return;
-    if (novo.classList.contains('on')) { novo.classList.remove('on'); return; }
-    if (zoom.classList.contains('on')) { zoom.classList.remove('on'); return; }
-    const c = e.target.closest('.carta');
-    if (c) { zoom.querySelector('img').src = c.dataset.src; zoom.classList.add('on'); }
+    const t = e.target;
+    const j = t.closest('[data-j]'); if (j && !j.disabled) { escolher(JOGADORES.find(x => x.id === j.dataset.j)); return; }
+    const nb = t.closest('nav#barra button'); if (nb) { primeiraVez = false; irPara(nb.dataset.v); return; }
+    if (t.closest('[data-comecar]')) { primeiraVez = false; irPara('criaturas'); return; }
+    if (t.closest('#aviso-lista')) { avisoEl.style.display = 'none'; if (avisoEl.dataset.aba) irPara(avisoEl.dataset.aba); return; }
+    if (t.closest('[data-avatar]')) { abrirAvatar(); return; }
+    const op = t.closest('[data-escolhe]'); if (op) { escolherAvatar(op.dataset.escolhe); return; }
+    if (t.closest('#avatar')) { if (t.closest('[data-fechar]') || t.id === 'avatar') fecharJanela(); return; }
+    if (t.closest('#novo')) { fecharJanela(); return; }
+    if (t.closest('#zoom')) { fecharJanela(); return; }
+    const c = t.closest('.carta');
+    if (c) { $('zoom').querySelector('img').src = c.dataset.src; abrirJanela('zoom'); }
   });
-  render();
+  if (history.state && history.state.ov) history.replaceState(null, '', location.hash || '#criaturas');   // recarregou com janela aberta
+  sincronizar();
 })();
 </script>
 </body>

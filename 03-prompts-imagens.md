@@ -296,6 +296,53 @@ relentless guardian that attacks anyone it sees, scary but not gory.
 
 ---
 
+## Avatares dos jogadores (Gemini, a partir do desenho) — 2026-11-22
+
+Para a ficha da mesa (`mesa/`). **Anexar a foto do desenho** que a Milena fez (os recortes estão em
+`mesa/retratos/<jogador>.jpg`; o do João é a foto `22.11.26`). O jogador escolhe na ficha se usa o
+desenho ou o avatar da IA. Formato **quadrado (1:1)**, só cabeça e ombros. Salvar a escolhida e
+mandar para o Claude, que grava em `mesa/retratos/<jogador>-ia.jpg` e liga na ficha. **Não usar foto
+de pessoa de verdade**: são personagens inventados, e os jogadores são crianças.
+
+Começo comum (colar antes de cada um):
+
+```
+Create an image. Turn the attached hand-drawn character sketch into a polished character portrait
+for a fantasy tabletop RPG, keeping the same character: same hair style and color, same eye color,
+same clothes and colors, same expression. Head and shoulders, facing the viewer, centered.
+Semi-realistic digital painting, soft painterly brushwork, warm dramatic light, a slightly mystical
+glow, plain dark purple background. Suitable for a teen audience. No text, no letters, no frame.
+Square image, aspect ratio 1:1.
+```
+
+**Bia: Amagi Mamabami** (anexar `mesa/retratos/bia.jpg`)
+
+```
+The character is Amagi Mamabami, a 25-year-old woman: long straight black hair with blunt bangs,
+striking red eyes, calm confident slight smile, a dark blue jacket with a small embroidered symbol
+on the chest over a black top.
+```
+
+**Mateus: Sam Seixeira** (anexar `mesa/retratos/mateus.jpg`)
+
+```
+The character is Sam Seixeira, a 30-year-old man: short messy orange-red hair, yellow-green eyes,
+light freckles, a relaxed half smile, a white ribbed turtleneck sweater under an open black jacket.
+```
+
+**João: Jane Vorhood** (anexar `mesa/retratos/joao.jpg`)
+
+```
+The character is Jane Vorhood, a kind 82-year-old woman with gentle wrinkles: big voluminous curly
+brown hair with a small bun on top, eyes closed in a peaceful happy smile, rosy cheeks, a pink
+blouse with a white collar. Sweet grandmother look, with a hint of hidden power.
+```
+
+**Miguel:** a ficha ainda está em branco no caderno; quando houver desenho, usar o começo comum e
+descrever o que estiver no desenho.
+
+---
+
 ## Extras (opcional)
 
 ### As constelações dos jogadores (p. 4)

@@ -963,7 +963,15 @@ ataques), **sem o elemento** (o "atributo principal", Erick; também protege a v
 humano/Câncer); o botão **Minha ficha** reabre quando quiser. Fichas em `mesa/fichas.js`, retratos em
 `mesa/retratos/` (recortados das fotos; o do João chegou depois, em papel solto, foto `22.11.26`). A ficha do Miguel está em branco no caderno. O progresso
 (criaturas, lista, dog tags, jogadores) fica salvo no Firebase entre sessões; **Nova partida** no
-painel zera tudo. Pendente com a Milena: a grafia dos nomes (hoje como no caderno: Nessie,
+painel zera tudo.
+**Navegação (2026-11-22, 3º pedido):** barra embaixo com **Criaturas**, **Lista** (só depois que o
+portão entrega) e **Minha ficha**; cada aba é um endereço (`#criaturas`, `#lista`, `#ficha`) e cada
+janela por cima (imagem ampliada, nova criatura, escolha da imagem) entra no histórico, então o
+**voltar do Android** volta de aba ou fecha a janela em vez de sair da página. Novidade em outra aba
+ganha uma bolinha vermelha e um aviso que leva até ela. Na ficha, **tocar na foto** escolhe entre o
+**desenho** e o **avatar da IA** (`retratoIA` em `mesa/fichas.js`, arquivo `mesa/retratos/<id>-ia.jpg`;
+escolha salva em `mesa/jogadores/<id>/avatar`). Prompts dos avatares no Gemini: `03-prompts-imagens.md`,
+seção "Avatares dos jogadores" (anexando o desenho; nada de foto de pessoa de verdade). Pendente com a Milena: a grafia dos nomes (hoje como no caderno: Nessie,
 Vaca, Freddy Kruger, Grifo, Kallikatzaros, Excalibur, Hidra); a Hidra ganha letras desde a Nessie
 "por enquanto". Vão testar na prática e adaptar.
 
