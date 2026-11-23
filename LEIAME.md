@@ -957,7 +957,7 @@ Firebase ganharam `mestre` e `mesa/jogadores` (ver abaixo).
 **Ajustes de 2026-11-22 (2º pedido):** cada nome fica **reservado para o primeiro celular** que o
 escolher (`mesa/jogadores/<id> = {dev}`, com transação; um código aleatório do aparelho fica no
 navegador); outro celular vê "já escolhido". Só a mestre libera o nome (botão **Liberar** no
-painel). Quem está conectado fica em `mesa/online`. Ao escolher, abre a **ficha do jogador** como no
+painel); quando ela libera ou faz **Nova partida**, o celular volta para "Quem é você?" (Erick, 2026-11-22). Quem está conectado fica em `mesa/online`. Ao escolher, abre a **ficha do jogador** como no
 caderno (p. 37 a 40: personagem, idade, retrato desenhado pela Milena, status, perícias, itens,
 ataques), **sem o elemento** (o "atributo principal", Erick; também protege a virada do
 humano/Câncer); o botão **Minha ficha** reabre quando quiser. Fichas em `mesa/fichas.js`, retratos em

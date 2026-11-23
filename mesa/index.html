@@ -230,8 +230,9 @@ nav#barra button.novo i{display:block}
     donos = s.val() || {};
     if (eu) {
       const d = donos[eu.id];
-      if (d && d.dev !== dev) { eu = null; gravar('tdl_jogador', null); marcarPresenca(); }   // outro celular ficou com ele
-      else if (!d) db.ref('mesa/jogadores/' + eu.id).transaction(c => (c && c.dev !== dev) ? undefined : { dev, t: Date.now() }, null, false);   // a mestre liberou: reserva de novo
+      // a reserva sumiu (a mestre liberou o nome ou fez Nova partida) ou é de outro celular: volta para "Quem é você?"
+      if (!d || d.dev !== dev) { eu = null; gravar('tdl_jogador', null); marcarPresenca(); primeiraVez = false;
+        if (location.hash) history.replaceState(null, '', location.pathname + location.search); }
     }
     render();
   });
