@@ -946,7 +946,14 @@ começam como tracinhos; **Nova dog tag** sorteia uma letra nova em cada nome ai
 inteiro e risca; também há **Revelar nome**, **Desfazer**, **Recolher** e **Zerar a lista**. Os nomes
 completos ficam só no portal trancado (`LISTA` em `fonte/portal.html`); no Firebase vai só o que os
 jogadores já veem (`mesa/lista`: `entregue`, `dogtags`, `itens[i].vis` com `_` no lugar das letras
-escondidas, `pos` e `morto`). Pendente com a Milena: a grafia dos nomes (hoje como no caderno: Nessie,
+escondidas, `pos` e `morto`).
+**Ajustes de 2026-11-22 (depois do 1º teste):** a pedido da Milena, os jogadores **não veem o tamanho
+dos nomes**: só as letras já reveladas, na ordem, e um "?" (dados públicos em `mesa/lista`:
+`letras`, `completo`, `morto`; as posições ficam em `mestre/lista`, que só a mestre lê). A lista usa
+o **pergaminho do jogo** (`jogo/sprites/hud/pergaminho.png`, recortado em 9 partes) e a fonte IM Fell
+English. Ao abrir a mesa, cada um escolhe **quem é** (Miguel, Bia, Mateus, João; fica salvo no
+celular, com "trocar"); o painel mostra **quem está na mesa agora** (`mesa/jogadores`). As regras do
+Firebase ganharam `mestre` e `mesa/jogadores` (ver abaixo). Pendente com a Milena: a grafia dos nomes (hoje como no caderno: Nessie,
 Vaca, Freddy Kruger, Grifo, Kallikatzaros, Excalibur, Hidra); a Hidra ganha letras desde a Nessie
 "por enquanto". Vão testar na prática e adaptar.
 
@@ -963,7 +970,19 @@ Roteiro do Firebase (uma vez, conta Google do Erick):
    Database › Regras** (o Claude confere o e-mail):
 
 ```
-{ "rules": { "mesa": { ".read": true, ".write": "auth != null && auth.token.email == 'EMAIL_DA_MESTRE'" } } }
+{
+  "rules": {
+    "mesa": {
+      ".read": true,
+      ".write": "auth != null && auth.token.email == 'EMAIL_DA_MESTRE'",
+      "jogadores": { "$j": { ".write": true, ".validate": "$j.matches(/^(miguel|bia|mateus|joao)$/) && newData.isNumber()" } }
+    },
+    "mestre": {
+      ".read": "auth != null && auth.token.email == 'EMAIL_DA_MESTRE'",
+      ".write": "auth != null && auth.token.email == 'EMAIL_DA_MESTRE'"
+    }
+  }
+}
 ```
 
 ## Como atualizar o portal

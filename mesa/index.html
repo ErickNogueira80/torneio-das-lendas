@@ -7,7 +7,7 @@
 <meta name="theme-color" content="#120e1a">
 <title>Mesa · Torneio das Lendas</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Crimson+Pro:wght@400;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Crimson+Pro:wght@400;600&family=IM+Fell+English+SC&family=IM+Fell+English:ital@0;1&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#120e1a;--bg2:#1c1626;--line:#3a2f4a;--text:#ece4d4;--muted:#b3a88f;--gold:#e3b75a;--gold2:#f5d48a}
 *{box-sizing:border-box}
@@ -16,6 +16,8 @@ html,body{margin:0;background:radial-gradient(ellipse at top,#2a2040 0%,var(--bg
 header{padding:18px 16px 6px;text-align:center}
 header h1{font-family:Cinzel,serif;color:var(--gold);font-size:22px;margin:0;letter-spacing:.06em}
 header p{margin:4px 0 0;color:var(--muted);font-size:15px}
+header .eu{color:var(--gold2)}
+#sub a{color:var(--muted);font-size:14px;margin-left:10px}
 main{max-width:1100px;margin:0 auto;padding:10px 16px 40px}
 .espera{text-align:center;color:var(--muted);padding:70px 10px}
 .espera .estrela{font-size:64px;color:var(--gold);opacity:.6;animation:pulsa 2.4s ease-in-out infinite}
@@ -36,68 +38,120 @@ main{max-width:1100px;margin:0 auto;padding:10px 16px 40px}
 #novo .wrap{animation:surge 1.2s ease-out}
 @keyframes surge{from{opacity:0;transform:scale(.85);filter:blur(10px) brightness(2)}to{opacity:1;transform:none;filter:none}}
 .aviso{color:var(--muted);text-align:center;font-size:15px}
-/* lista do portão */
-.pergaminho{background:linear-gradient(#e9d9b0,#d8c08a);color:#3a2a14;border-radius:6px;padding:18px 18px 20px;margin:8px 0 26px;
-  box-shadow:0 6px 24px rgba(0,0,0,.45);position:relative;
-  clip-path:polygon(0 8px,4% 0,8% 8px,12% 0,16% 8px,20% 0,24% 8px,28% 0,32% 8px,36% 0,40% 8px,44% 0,48% 8px,52% 0,56% 8px,60% 0,64% 8px,68% 0,72% 8px,76% 0,80% 8px,84% 0,88% 8px,92% 0,96% 8px,100% 0,100% calc(100% - 8px),96% 100%,92% calc(100% - 8px),88% 100%,84% calc(100% - 8px),80% 100%,76% calc(100% - 8px),72% 100%,68% calc(100% - 8px),64% 100%,60% calc(100% - 8px),56% 100%,52% calc(100% - 8px),48% 100%,44% calc(100% - 8px),40% 100%,36% calc(100% - 8px),32% 100%,28% calc(100% - 8px),24% 100%,20% calc(100% - 8px),16% 100%,12% calc(100% - 8px),8% 100%,4% calc(100% - 8px),0 100%)}
-.pergaminho h2{font-family:Cinzel,serif;text-align:center;margin:4px 0 12px;font-size:22px;letter-spacing:.12em;color:#5a3d12}
+/* quem é você */
+.quem{text-align:center;padding:30px 0}
+.quem h2{font-family:Cinzel,serif;color:var(--gold2);font-size:26px;margin:0 0 6px}
+.quem p{color:var(--muted);margin:0 0 22px}
+.herois{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;max-width:520px;margin:0 auto}
+.heroi{font:inherit;color:var(--text);background:var(--bg2);border:2px solid var(--line);border-radius:16px;padding:18px 10px;cursor:pointer}
+.heroi b{display:block;font-family:Cinzel,serif;font-size:22px;color:var(--gold2);margin:6px 0 2px}
+.heroi span{font-size:40px}
+.heroi small{color:var(--muted)}
+.heroi:disabled{opacity:.45;cursor:not-allowed}
+/* lista do portão: o pergaminho do jogo (jogo/sprites/hud/pergaminho.png, 1090×520) cortado em 9 partes */
+.pergaminho{border-style:solid;border-width:44px 50px 40px;border-image:url('../jogo/sprites/hud/pergaminho.png') 112 138 96 138 fill / 44px 50px 40px stretch;
+  color:#3a2410;margin:8px -6px 26px;padding:2px 4px;filter:drop-shadow(0 8px 18px rgba(0,0,0,.5))}
+.pergaminho h2{font-family:'IM Fell English SC',Cinzel,serif;text-align:center;margin:0 0 8px;font-size:28px;color:#5a1e0c;font-weight:400}
 .pergaminho ol{list-style:none;margin:0;padding:0}
-.pergaminho li{display:flex;align-items:baseline;gap:10px;padding:5px 0;border-bottom:1px dashed rgba(90,61,18,.3);font-size:20px}
+.pergaminho li{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid rgba(110,74,36,.25);font-size:21px;min-height:40px}
 .pergaminho li:last-child{border-bottom:0}
-.nome{font-family:Cinzel,serif;letter-spacing:.08em;display:flex;flex-wrap:wrap;gap:3px}
-.nome .l{display:inline-block;min-width:.75em;text-align:center;border-bottom:2px solid #5a3d12;line-height:1.15}
-.nome .l.esp{border:0;min-width:.5em}
-.nome .l.nova{animation:brilha 2.4s ease-out}
-@keyframes brilha{0%{color:#fff;text-shadow:0 0 12px #ffd76a,0 0 22px #ffb300;transform:scale(1.5)}100%{color:inherit;text-shadow:none;transform:none}}
-.morto .nome{text-decoration:line-through;text-decoration-thickness:2px;opacity:.75}
-.morto .nome .l{border-bottom-color:transparent}
-.selo{margin-left:auto;font-size:14px;font-style:italic;color:#8a2a1a;white-space:nowrap}
-.dogtags{text-align:center;font-size:15px;color:#6a4f22;margin-top:10px}
+.nome{font-family:'IM Fell English SC',Cinzel,serif;display:flex;flex-wrap:wrap;gap:4px;align-items:center}
+.nome .l{text-transform:uppercase;display:inline-block;min-width:1.1em;text-align:center;background:rgba(110,74,36,.14);border-radius:4px;padding:0 3px;line-height:1.3}
+.nome .l.nova{animation:brilha 2.6s ease-out}
+.nome .misterio{color:rgba(110,74,36,.55);font-family:'IM Fell English',serif;font-style:italic;font-size:18px}
+@keyframes brilha{0%{color:#fff;background:#e3b75a;box-shadow:0 0 16px #ffd76a;transform:scale(1.5)}100%{transform:none}}
+.morto .nome{text-decoration:line-through;text-decoration-thickness:2px;opacity:.75;letter-spacing:.04em}
+.selo{margin-left:auto;font-family:'IM Fell English',serif;font-size:16px;font-style:italic;color:#8a2a1a;white-space:nowrap}
+.dogtags{text-align:center;font-family:'IM Fell English',serif;font-style:italic;font-size:16px;color:#6e4a24;margin-top:8px}
+#aviso-lista{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:#e3b75a;color:#1b1408;font-weight:600;padding:10px 20px;
+  border-radius:999px;display:none;z-index:11;box-shadow:0 4px 18px rgba(0,0,0,.5);text-align:center;max-width:90vw}
 </style>
 </head>
 <body>
 <header>
   <h1>✦ Torneio das Lendas</h1>
-  <p>As criaturas que vocês encontraram</p>
+  <p id="sub">As criaturas que vocês encontraram</p>
 </header>
 <main id="app"><div class="espera"><div class="estrela">✦</div><p>Conectando…</p></div></main>
 <div id="zoom"><img alt=""></div>
 <div id="novo"><div class="wrap"><small>NOVA CRIATURA</small><br><img alt=""><h2></h2><p class="aviso">Toque para fechar</p></div></div>
-<div id="aviso-lista" style="position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:#e3b75a;color:#1b1408;font-weight:600;padding:10px 20px;border-radius:999px;display:none;z-index:11;box-shadow:0 4px 18px rgba(0,0,0,.5)"></div>
+<div id="aviso-lista"></div>
 
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script src="firebase.js"></script>
 <script>
 (function () {
-  const app = document.getElementById('app'), zoom = document.getElementById('zoom'), novo = document.getElementById('novo');
-  const avisoEl = document.getElementById('aviso-lista');
+  // Os quatro jogadores (caderno, p. 34). id = chave no Firebase (mesa/jogadores/<id>).
+  const JOGADORES = [
+    { id: 'miguel', nome: 'Miguel', el: 'Terra', ic: '🌿' },
+    { id: 'bia', nome: 'Bia', el: 'Fogo', ic: '🔥' },
+    { id: 'mateus', nome: 'Mateus', el: 'Ar', ic: '🌪️' },
+    { id: 'joao', nome: 'João', el: 'Água', ic: '🌊' },
+  ];
+  const app = document.getElementById('app'), sub = document.getElementById('sub');
+  const zoom = document.getElementById('zoom'), novo = document.getElementById('novo'), avisoEl = document.getElementById('aviso-lista');
   const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
   const src = b => '../web/bestiario/' + encodeURIComponent(b.img) + '.jpg';
   const carta = b => `<div class="carta" data-src="${src(b)}"><img src="${src(b)}" alt="${esc(b.nome)}"><h2>${esc(b.nome)}</h2></div>`;
   const ESPERA = t => `<div class="espera"><div class="estrela">✦</div><p>${t}</p></div>`;
+  const ler = k => { try { return localStorage.getItem(k); } catch (e) { return null; } };
+  const gravar = (k, v) => { try { v == null ? localStorage.removeItem(k) : localStorage.setItem(k, v); } catch (e) {} };
 
   if (!window.FIREBASE_CONFIG) { app.innerHTML = ESPERA('A mesa ainda não foi configurada.'); return; }
   firebase.initializeApp(window.FIREBASE_CONFIG);
+  const db = firebase.database();
 
-  let bosses = null, lista = null;           // null = ainda não chegou
-  let vistos = null, visAntes = null, listaAntes = null;
+  let eu = JOGADORES.find(j => j.id === ler('tdl_jogador')) || null;
+  let online = {}, bosses = null, lista = null;
+  let vistos = null, letrasAntes = null, listaAntes = null;
+
+  // presença: o jogador escolhido aparece "na mesa" para a mestre enquanto a página estiver aberta
+  let presRef = null;
+  function marcarPresenca() {
+    if (presRef) { presRef.onDisconnect().cancel(); presRef.remove(); presRef = null; }
+    if (!eu) return;
+    presRef = db.ref('mesa/jogadores/' + eu.id);
+    presRef.onDisconnect().remove();
+    presRef.set(firebase.database.ServerValue.TIMESTAMP);
+  }
+  db.ref('.info/connected').on('value', s => { if (s.val()) marcarPresenca(); });
+  db.ref('mesa/jogadores').on('value', s => { online = s.val() || {}; render(); });
+
   function aviso(t) {
     avisoEl.textContent = t; avisoEl.style.display = 'block';
     clearTimeout(aviso.t); aviso.t = setTimeout(() => avisoEl.style.display = 'none', 3500);
     if (navigator.vibrate) navigator.vibrate([80, 40, 80]);
   }
+  // quais letras são novas: casa as letras antigas, em ordem, com as atuais; o que sobrar é novo
+  function novas(antes, agora) {
+    const marca = []; let j = 0;
+    for (let i = 0; i < agora.length; i++) { if (j < antes.length && agora[i] === antes[j]) { j++; marca.push(false); } else marca.push(true); }
+    return marca;
+  }
   function htmlLista() {
     if (!lista || !lista.entregue) return '';
     const itens = Object.values(lista.itens || {});
-    return `<div class="pergaminho"><h2>LISTA</h2><ol>${itens.map((it, i) => {
-      const antes = (visAntes && visAntes[i]) || '';
-      const letras = [...(it.vis || '')].map((c, k) => c === ' ' ? '<span class="l esp"></span>'
-        : `<span class="l${c !== '_' && visAntes && antes[k] === '_' ? ' nova' : ''}">${c === '_' ? '&nbsp;' : esc(c)}</span>`).join('');
-      return `<li class="${it.morto ? 'morto' : ''}"><span class="nome">${letras}</span>${it.morto ? '<span class="selo">Morto</span>' : ''}</li>`;
+    return `<div class="pergaminho"><h2>Lista</h2><ol>${itens.map((it, i) => {
+      const letras = it.letras || '', antes = letrasAntes ? (letrasAntes[i] || '') : null;
+      let nome;
+      if (it.morto || it.completo) nome = esc(letras);
+      else {
+        const nv = antes === null ? [] : novas(antes, letras);
+        nome = [...letras].map((c, k) => `<span class="l${nv[k] ? ' nova' : ''}">${esc(c)}</span>`).join('') + '<span class="misterio">?</span>';
+      }
+      return `<li class="${it.morto ? 'morto' : ''}"><span class="nome">${nome}</span>${it.morto ? '<span class="selo">Morto</span>' : ''}</li>`;
     }).join('')}</ol>${lista.dogtags ? `<div class="dogtags">Dog tags: ${lista.dogtags}</div>` : ''}</div>`;
   }
+  function htmlQuem() {
+    return `<div class="quem"><h2>Quem é você?</h2><p>Escolha o seu jogador</p><div class="herois">${JOGADORES.map(j => {
+      const ocupado = online[j.id] && (!eu || eu.id !== j.id);
+      return `<button class="heroi" data-j="${j.id}"${ocupado ? ' disabled' : ''}><span>${j.ic}</span><b>${esc(j.nome)}</b><small>${ocupado ? 'já está na mesa' : esc(j.el)}</small></button>`;
+    }).join('')}</div></div>`;
+  }
   function render() {
+    if (!eu) { sub.textContent = 'As criaturas que vocês encontraram'; app.innerHTML = htmlQuem(); return; }
+    sub.innerHTML = `<span class="eu">${eu.ic} ${esc(eu.nome)} · ${esc(eu.el)}</span><a href="#" data-trocar>trocar</a>`;
     if (bosses === null || lista === null) return;
     const bl = Object.entries(bosses).map(([id, b]) => ({ id, ...b })).sort((a, b) => (b.t || 0) - (a.t || 0));
     let h = htmlLista();
@@ -116,25 +170,30 @@ main{max-width:1100px;margin:0 auto;padding:10px 16px 40px}
     vistos = new Set(bl.map(b => b.id));
     if (zoom.classList.contains('on') && !bl.some(b => src(b) === zoom.querySelector('img').getAttribute('src'))) zoom.classList.remove('on');
   }
-  const db = firebase.database(), falha = () => { app.innerHTML = ESPERA('Sem conexão com a mesa. Confira a internet.'); };
+  const falha = () => { app.innerHTML = ESPERA('Sem conexão com a mesa. Confira a internet.'); };
   db.ref('mesa/bosses').on('value', snap => { bosses = snap.val() || {}; render(); }, falha);
   db.ref('mesa/lista').on('value', snap => {
     const nova = snap.val() || {};
-    const vis = Object.values(nova.itens || {}).map(it => it.vis || '');
-    if (listaAntes) {
+    const letras = Object.values(nova.itens || {}).map(it => it.letras || '');
+    if (listaAntes && eu) {
       if (nova.entregue && !listaAntes.entregue) aviso('O portão entregou a lista!');
       else if (nova.entregue && (nova.dogtags || 0) > (listaAntes.dogtags || 0)) aviso('Nova dog tag: letras reveladas!');
-      else if (nova.entregue && JSON.stringify(vis) !== JSON.stringify(visAntes)) aviso('A lista mudou');
+      else if (nova.entregue && JSON.stringify(letras) !== JSON.stringify(letrasAntes)) aviso('A lista mudou');
     }
     lista = nova; render();
-    visAntes = vis; listaAntes = nova;
+    letrasAntes = letras; listaAntes = nova;
   }, falha);
+
   document.addEventListener('click', e => {
+    const j = e.target.closest('[data-j]');
+    if (j && !j.disabled) { eu = JOGADORES.find(x => x.id === j.dataset.j); gravar('tdl_jogador', eu.id); vistos = null; marcarPresenca(); render(); return; }
+    if (e.target.closest('[data-trocar]')) { e.preventDefault(); eu = null; gravar('tdl_jogador', null); marcarPresenca(); render(); return; }
     if (novo.classList.contains('on')) { novo.classList.remove('on'); return; }
     if (zoom.classList.contains('on')) { zoom.classList.remove('on'); return; }
     const c = e.target.closest('.carta');
     if (c) { zoom.querySelector('img').src = c.dataset.src; zoom.classList.add('on'); }
   });
+  render();
 })();
 </script>
 </body>

@@ -513,16 +513,25 @@ function mesaRender(){
    Os nomes completos ficam só aqui (portal trancado); para os jogadores vai só o que está visível. */
 const LISTA = ['Mula sem cabeça','Robin Hood','Boitatá','Nessie','Vaca','Freddy Kruger','Grifo','Kallikatzaros','Excalibur','Hidra'];
 const LISTA_MORTOS = 3;   // já riscados quando a lista é entregue
+// Parte secreta (posições das letras) em mestre/lista, que só a mestre lê; os jogadores leem
+// mesa/lista, só com as letras já reveladas, na ordem, sem o tamanho do nome (Milena, 2026-11-22).
 function listaEstado(){
-  const st = MESA.lista || {}, it = st.itens || {};
+  const pub = MESA.lista || {}, it = (MESA.segredo && MESA.segredo.itens) || {};
+  const st = pub;
   return { entregue: !!st.entregue, dogtags: st.dogtags || 0,
     itens: LISTA.map((n, i) => ({ pos: (it[i] && it[i].pos) || [], morto: it[i] ? !!it[i].morto : i < LISTA_MORTOS })) };
 }
 function listaGravar(st){
-  const itens = st.itens.map((x, i) => ({ pos: x.pos, morto: x.morto,
-    vis: [...LISTA[i]].map((c, k) => c === ' ' ? ' ' : (x.morto || x.pos.includes(k)) ? c : '_').join('') }));
-  return firebase.database().ref('mesa/lista').set({ entregue: st.entregue, dogtags: st.dogtags, itens })
-    .catch(() => alert('Não consegui gravar. Confira a internet e se você entrou como mestre.'));
+  const letrasDe = i => [...LISTA[i]].map((c, k) => k).filter(k => LISTA[i][k] !== ' ');
+  const pub = st.itens.map((x, i) => {
+    const completo = x.morto || letrasDe(i).every(k => x.pos.includes(k));
+    return { morto: x.morto, completo, letras: completo ? LISTA[i] : [...x.pos].sort((a, b) => a - b).map(k => LISTA[i][k]).join('') };
+  });
+  const erro = () => alert('Não consegui gravar. Confira a internet e se você entrou como mestre.');
+  return Promise.all([
+    firebase.database().ref('mestre/lista').set({ itens: st.itens.map(x => ({ pos: x.pos, morto: x.morto })) }),
+    firebase.database().ref('mesa/lista').set({ entregue: st.entregue, dogtags: st.dogtags, itens: pub }),
+  ]).catch(erro);
 }
 function listaHtml(){
   const st = listaEstado();
@@ -535,13 +544,16 @@ function listaHtml(){
         ? `<button class="btn" data-l="vivo" data-i="${i}">Desfazer</button>`
         : `${faltam ? `<button class="btn" data-l="inteiro" data-i="${i}">Revelar nome</button> ` : ''}<button class="btn on" data-l="morto" data-i="${i}">Riscar (morto)</button>`}</td></tr>`;
   }).join('');
-  return `<h2 style="margin-top:20px">A lista do portão</h2>
+  const NOMES_J = { miguel: '🌿 Miguel', bia: '🔥 Bia', mateus: '🌪️ Mateus', joao: '🌊 João' };
+  const naMesa = Object.keys(MESA.online || {}).map(k => NOMES_J[k] || k);
+  return `<p style="margin-top:14px"><b>Na mesa agora:</b> ${naMesa.length ? naMesa.map(n => `<span class="pill gold">${n}</span>`).join(' ') : '<span class="note">ninguém conectado</span>'}</p>
+    <h2 style="margin-top:20px">A lista do portão</h2>
     <div class="lista-mestre"><p>${st.entregue
       ? `<span class="pill gold">Entregue aos jogadores</span> <button class="btn" data-l="recolher">Recolher</button>`
       : `<span class="pill">Ainda não entregue</span> <button class="btn on" data-l="entregar">Entregar a lista</button>`}
       <button class="btn on" data-l="dogtag">Nova dog tag (${st.dogtags})</button>
       <button class="btn" data-l="zerar">Zerar a lista</button></p>
-      <p class="note">Você vê os nomes inteiros: em dourado o que os jogadores já veem, em cinza o que ainda está escondido. "Nova dog tag" sorteia uma letra nova em cada nome escondido.</p>
+      <p class="note">Você vê os nomes inteiros: em dourado o que os jogadores já veem, apagado o que ainda está escondido. "Nova dog tag" sorteia uma letra nova em cada nome escondido. Os jogadores veem só as letras já reveladas, sem saber o tamanho do nome.</p>
       <table>${linhas}</table></div>`;
 }
 document.addEventListener('click', e => {
@@ -550,7 +562,7 @@ document.addEventListener('click', e => {
   if (m === 'entregar') st.entregue = true;
   if (m === 'recolher') st.entregue = false;
   if (m === 'zerar') { if (!confirm('Zerar a lista? Some dos celulares e as letras voltam a ficar escondidas.')) return;
-    firebase.database().ref('mesa/lista').remove(); return; }
+    firebase.database().ref('mesa/lista').remove(); firebase.database().ref('mestre/lista').remove(); return; }
   if (m === 'dogtag') {
     st.dogtags++;
     st.itens.forEach((it, i) => {
@@ -571,6 +583,9 @@ function mesaInit(){
   firebase.auth().onAuthStateChanged(u => { MESA.user = u; mesaRender(); });
   firebase.database().ref('mesa/bosses').on('value', s => { MESA.lib = s.val() || {}; mesaRender(); });
   firebase.database().ref('mesa/lista').on('value', s => { MESA.lista = s.val() || {}; mesaRender(); });
+  firebase.database().ref('mesa/jogadores').on('value', s => { MESA.online = s.val() || {}; mesaRender(); });
+  firebase.auth().onAuthStateChanged(u => { if (u && !MESA.segredoOk) { MESA.segredoOk = true;
+    firebase.database().ref('mestre/lista').on('value', s => { MESA.segredo = s.val() || {}; mesaRender(); }); } });
 }
 document.addEventListener('submit', e => {
   if (e.target.id !== 'mesa-login') return;
