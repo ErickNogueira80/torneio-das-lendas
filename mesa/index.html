@@ -123,8 +123,8 @@ nav#barra button.novo i{display:block}
 
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
-<script src="firebase.js"></script>
-<script src="fichas.js"></script>
+<script src="firebase.js?v=2"></script>
+<script src="fichas.js?v=2"></script>
 <script>
 (function () {
   // Os quatro jogadores (caderno, p. 34). Sem elemento na tela (Erick, 2026-11-22). Cada nome fica
@@ -173,7 +173,8 @@ nav#barra button.novo i{display:block}
   function fotoAtual() {
     const f = ficha(); if (!f) return null;
     const quer = donos && donos[eu.id] && donos[eu.id].avatar;
-    return (quer === 'ia' && f.retratoIA) ? f.retratoIA : (f.retrato || f.retratoIA || null);
+    // avatar da IA é o padrão (Erick, 2026-11-22); o jogador pode trocar para o desenho
+    return (quer === 'desenho' && f.retrato) ? f.retrato : (f.retratoIA || f.retrato || null);
   }
   function htmlFicha() {
     const f = ficha();
@@ -203,7 +204,9 @@ nav#barra button.novo i{display:block}
     abrirJanela('avatar');
   }
   function escolherAvatar(tipo) {
-    db.ref('mesa/jogadores/' + eu.id).transaction(c => (c && c.dev === dev) ? { ...c, avatar: tipo } : undefined, () => fecharJanela(), false);
+    if (donos && donos[eu.id]) donos[eu.id].avatar = tipo;   // mostra na hora; o Firebase confirma em seguida
+    db.ref('mesa/jogadores/' + eu.id + '/avatar').set(tipo).catch(() => aviso('Não consegui salvar a imagem. Confira a internet.'));
+    fecharJanela(); render();
   }
   function escolher(j) {
     db.ref('mesa/jogadores/' + j.id).transaction(cur => {
