@@ -110,6 +110,12 @@ th{background:var(--bg2);font-family:Cinzel,serif;color:var(--gold);font-weight:
 .mesa-card.lib{border-color:var(--gold);box-shadow:0 0 0 2px rgba(227,183,90,.35)}
 .btn{font:inherit;font-size:16px;border-radius:999px;border:1px solid var(--gold);background:transparent;color:var(--gold2);padding:6px 16px;cursor:pointer}
 .btn.on{background:var(--gold);color:#1b1408;font-weight:600}
+.lista-mestre{background:var(--bg2);border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin:18px 0}
+.lista-mestre table{width:100%;border-collapse:collapse}
+.lista-mestre td{padding:6px 6px;border-bottom:1px solid var(--line);vertical-align:middle}
+.lista-mestre .mask{font-family:Cinzel,serif;letter-spacing:.12em;color:var(--gold2)}
+.lista-mestre .mask i{color:var(--muted);font-style:normal;opacity:.4}
+.lista-mestre .riscado{text-decoration:line-through;opacity:.7}
 .mesa-form input{font:inherit;font-size:17px;padding:8px 10px;border-radius:8px;border:1px solid var(--line);background:var(--bg2);color:var(--text);margin:4px 8px 4px 0;max-width:100%}
 /* caderno */
 .thumbs{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
@@ -495,19 +501,76 @@ function mesaRender(){
     return;
   }
   const n = Object.keys(MESA.lib).length;
-  box.innerHTML = `<p><span class="pill gold">${n} de ${BEASTS.filter(b=>b.img).length} liberadas</span>
+  box.innerHTML = listaHtml() + `<h2 style="margin-top:26px">Criaturas</h2><p><span class="pill gold">${n} de ${BEASTS.filter(b=>b.img).length} liberadas</span>
       <button class="btn" data-m="todos">Esconder todas</button> <button class="btn" data-m="sair">Sair</button></p>
     <div class="mesa-grid">${BEASTS.filter(b=>b.img).map((b,i) => { const on = !!MESA.lib[b.img]; return `
       <div class="mesa-card${on?' lib':''}"><img loading="lazy" src="${B+b.img}.jpg" alt="">
         <div class="pad"><h3>${esc(b.nome)}</h3><small class="note">${esc(b.comb)}</small><br>
         <button class="btn${on?' on':''}" data-m="${on?'esconder':'liberar'}" data-i="${i}">${on?'✓ Liberada · esconder':'Liberar'}</button></div></div>`; }).join('')}</div>`;
 }
+/* lista do portão (p. 11 a 13): o portão entrega a lista depois do Boitatá e do Robin Hood; cada dog
+   tag revela uma letra sorteada em cada nome ainda escondido; boss morto = nome inteiro e riscado.
+   Os nomes completos ficam só aqui (portal trancado); para os jogadores vai só o que está visível. */
+const LISTA = ['Mula sem cabeça','Robin Hood','Boitatá','Nessie','Vaca','Freddy Kruger','Grifo','Kallikatzaros','Excalibur','Hidra'];
+const LISTA_MORTOS = 3;   // já riscados quando a lista é entregue
+function listaEstado(){
+  const st = MESA.lista || {}, it = st.itens || {};
+  return { entregue: !!st.entregue, dogtags: st.dogtags || 0,
+    itens: LISTA.map((n, i) => ({ pos: (it[i] && it[i].pos) || [], morto: it[i] ? !!it[i].morto : i < LISTA_MORTOS })) };
+}
+function listaGravar(st){
+  const itens = st.itens.map((x, i) => ({ pos: x.pos, morto: x.morto,
+    vis: [...LISTA[i]].map((c, k) => c === ' ' ? ' ' : (x.morto || x.pos.includes(k)) ? c : '_').join('') }));
+  return firebase.database().ref('mesa/lista').set({ entregue: st.entregue, dogtags: st.dogtags, itens })
+    .catch(() => alert('Não consegui gravar. Confira a internet e se você entrou como mestre.'));
+}
+function listaHtml(){
+  const st = listaEstado();
+  const linhas = st.itens.map((x, i) => {
+    const mask = [...LISTA[i]].map((c, k) => c === ' ' ? '&nbsp;' : (x.morto || x.pos.includes(k)) ? esc(c) : `<i>${esc(c)}</i>`).join('');
+    const faltam = [...LISTA[i]].filter((c, k) => c !== ' ' && !x.pos.includes(k)).length;
+    return `<tr><td class="mask${x.morto ? ' riscado' : ''}" title="Dourado = já aparece para os jogadores">${mask}</td>
+      <td>${x.morto ? '<b>Morto</b>' : faltam ? `<small class="note">faltam ${faltam}</small>` : '<small class="note">nome completo</small>'}</td>
+      <td style="text-align:right;white-space:nowrap">${x.morto
+        ? `<button class="btn" data-l="vivo" data-i="${i}">Desfazer</button>`
+        : `${faltam ? `<button class="btn" data-l="inteiro" data-i="${i}">Revelar nome</button> ` : ''}<button class="btn on" data-l="morto" data-i="${i}">Riscar (morto)</button>`}</td></tr>`;
+  }).join('');
+  return `<h2 style="margin-top:20px">A lista do portão</h2>
+    <div class="lista-mestre"><p>${st.entregue
+      ? `<span class="pill gold">Entregue aos jogadores</span> <button class="btn" data-l="recolher">Recolher</button>`
+      : `<span class="pill">Ainda não entregue</span> <button class="btn on" data-l="entregar">Entregar a lista</button>`}
+      <button class="btn on" data-l="dogtag">Nova dog tag (${st.dogtags})</button>
+      <button class="btn" data-l="zerar">Zerar a lista</button></p>
+      <p class="note">Você vê os nomes inteiros: em dourado o que os jogadores já veem, em cinza o que ainda está escondido. "Nova dog tag" sorteia uma letra nova em cada nome escondido.</p>
+      <table>${linhas}</table></div>`;
+}
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-l]'); if (!b) return;
+  const st = listaEstado(), m = b.dataset.l, x = st.itens[+b.dataset.i];
+  if (m === 'entregar') st.entregue = true;
+  if (m === 'recolher') st.entregue = false;
+  if (m === 'zerar') { if (!confirm('Zerar a lista? Some dos celulares e as letras voltam a ficar escondidas.')) return;
+    firebase.database().ref('mesa/lista').remove(); return; }
+  if (m === 'dogtag') {
+    st.dogtags++;
+    st.itens.forEach((it, i) => {
+      if (it.morto) return;
+      const livres = [...LISTA[i]].map((c, k) => k).filter(k => LISTA[i][k] !== ' ' && !it.pos.includes(k));
+      if (livres.length) it.pos.push(livres[Math.floor(Math.random() * livres.length)]);
+    });
+  }
+  if (m === 'morto') x.morto = true;
+  if (m === 'vivo') x.morto = false;
+  if (m === 'inteiro') x.pos = [...LISTA[+b.dataset.i]].map((c, k) => k).filter(k => LISTA[+b.dataset.i][k] !== ' ');
+  listaGravar(st);
+});
 function mesaInit(){
   if (MESA.ok || !window.FIREBASE_CONFIG) { mesaRender(); return; }
   MESA.ok = true;
   if (!firebase.apps.length) firebase.initializeApp(window.FIREBASE_CONFIG);
   firebase.auth().onAuthStateChanged(u => { MESA.user = u; mesaRender(); });
   firebase.database().ref('mesa/bosses').on('value', s => { MESA.lib = s.val() || {}; mesaRender(); });
+  firebase.database().ref('mesa/lista').on('value', s => { MESA.lista = s.val() || {}; mesaRender(); });
 }
 document.addEventListener('submit', e => {
   if (e.target.id !== 'mesa-login') return;

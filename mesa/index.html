@@ -36,6 +36,23 @@ main{max-width:1100px;margin:0 auto;padding:10px 16px 40px}
 #novo .wrap{animation:surge 1.2s ease-out}
 @keyframes surge{from{opacity:0;transform:scale(.85);filter:blur(10px) brightness(2)}to{opacity:1;transform:none;filter:none}}
 .aviso{color:var(--muted);text-align:center;font-size:15px}
+/* lista do portão */
+.pergaminho{background:linear-gradient(#e9d9b0,#d8c08a);color:#3a2a14;border-radius:6px;padding:18px 18px 20px;margin:8px 0 26px;
+  box-shadow:0 6px 24px rgba(0,0,0,.45);position:relative;
+  clip-path:polygon(0 8px,4% 0,8% 8px,12% 0,16% 8px,20% 0,24% 8px,28% 0,32% 8px,36% 0,40% 8px,44% 0,48% 8px,52% 0,56% 8px,60% 0,64% 8px,68% 0,72% 8px,76% 0,80% 8px,84% 0,88% 8px,92% 0,96% 8px,100% 0,100% calc(100% - 8px),96% 100%,92% calc(100% - 8px),88% 100%,84% calc(100% - 8px),80% 100%,76% calc(100% - 8px),72% 100%,68% calc(100% - 8px),64% 100%,60% calc(100% - 8px),56% 100%,52% calc(100% - 8px),48% 100%,44% calc(100% - 8px),40% 100%,36% calc(100% - 8px),32% 100%,28% calc(100% - 8px),24% 100%,20% calc(100% - 8px),16% 100%,12% calc(100% - 8px),8% 100%,4% calc(100% - 8px),0 100%)}
+.pergaminho h2{font-family:Cinzel,serif;text-align:center;margin:4px 0 12px;font-size:22px;letter-spacing:.12em;color:#5a3d12}
+.pergaminho ol{list-style:none;margin:0;padding:0}
+.pergaminho li{display:flex;align-items:baseline;gap:10px;padding:5px 0;border-bottom:1px dashed rgba(90,61,18,.3);font-size:20px}
+.pergaminho li:last-child{border-bottom:0}
+.nome{font-family:Cinzel,serif;letter-spacing:.08em;display:flex;flex-wrap:wrap;gap:3px}
+.nome .l{display:inline-block;min-width:.75em;text-align:center;border-bottom:2px solid #5a3d12;line-height:1.15}
+.nome .l.esp{border:0;min-width:.5em}
+.nome .l.nova{animation:brilha 2.4s ease-out}
+@keyframes brilha{0%{color:#fff;text-shadow:0 0 12px #ffd76a,0 0 22px #ffb300;transform:scale(1.5)}100%{color:inherit;text-shadow:none;transform:none}}
+.morto .nome{text-decoration:line-through;text-decoration-thickness:2px;opacity:.75}
+.morto .nome .l{border-bottom-color:transparent}
+.selo{margin-left:auto;font-size:14px;font-style:italic;color:#8a2a1a;white-space:nowrap}
+.dogtags{text-align:center;font-size:15px;color:#6a4f22;margin-top:10px}
 </style>
 </head>
 <body>
@@ -46,6 +63,7 @@ main{max-width:1100px;margin:0 auto;padding:10px 16px 40px}
 <main id="app"><div class="espera"><div class="estrela">✦</div><p>Conectando…</p></div></main>
 <div id="zoom"><img alt=""></div>
 <div id="novo"><div class="wrap"><small>NOVA CRIATURA</small><br><img alt=""><h2></h2><p class="aviso">Toque para fechar</p></div></div>
+<div id="aviso-lista" style="position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:#e3b75a;color:#1b1408;font-weight:600;padding:10px 20px;border-radius:999px;display:none;z-index:11;box-shadow:0 4px 18px rgba(0,0,0,.5)"></div>
 
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
@@ -53,24 +71,40 @@ main{max-width:1100px;margin:0 auto;padding:10px 16px 40px}
 <script>
 (function () {
   const app = document.getElementById('app'), zoom = document.getElementById('zoom'), novo = document.getElementById('novo');
+  const avisoEl = document.getElementById('aviso-lista');
   const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
   const src = b => '../web/bestiario/' + encodeURIComponent(b.img) + '.jpg';
   const carta = b => `<div class="carta" data-src="${src(b)}"><img src="${src(b)}" alt="${esc(b.nome)}"><h2>${esc(b.nome)}</h2></div>`;
+  const ESPERA = t => `<div class="espera"><div class="estrela">✦</div><p>${t}</p></div>`;
 
-  if (!window.FIREBASE_CONFIG) {
-    app.innerHTML = '<div class="espera"><div class="estrela">✦</div><p>A mesa ainda não foi configurada.</p></div>';
-    return;
-  }
+  if (!window.FIREBASE_CONFIG) { app.innerHTML = ESPERA('A mesa ainda não foi configurada.'); return; }
   firebase.initializeApp(window.FIREBASE_CONFIG);
-  let vistos = null;   // ids já mostrados (null = primeira leitura, sem animação)
-  firebase.database().ref('mesa/bosses').on('value', snap => {
-    const dados = snap.val() || {};
-    const lista = Object.entries(dados).map(([id, b]) => ({ id, ...b })).sort((a, b) => (b.t || 0) - (a.t || 0));
-    if (!lista.length) {
-      app.innerHTML = '<div class="espera"><div class="estrela">✦</div><p>Aguardando a mestre revelar a primeira criatura…</p></div>';
-    } else {
-      const [atual, ...resto] = lista;
-      app.innerHTML = `<div class="atual">${carta(atual)}</div>` +
+
+  let bosses = null, lista = null;           // null = ainda não chegou
+  let vistos = null, visAntes = null, listaAntes = null;
+  function aviso(t) {
+    avisoEl.textContent = t; avisoEl.style.display = 'block';
+    clearTimeout(aviso.t); aviso.t = setTimeout(() => avisoEl.style.display = 'none', 3500);
+    if (navigator.vibrate) navigator.vibrate([80, 40, 80]);
+  }
+  function htmlLista() {
+    if (!lista || !lista.entregue) return '';
+    const itens = Object.values(lista.itens || {});
+    return `<div class="pergaminho"><h2>LISTA</h2><ol>${itens.map((it, i) => {
+      const antes = (visAntes && visAntes[i]) || '';
+      const letras = [...(it.vis || '')].map((c, k) => c === ' ' ? '<span class="l esp"></span>'
+        : `<span class="l${c !== '_' && visAntes && antes[k] === '_' ? ' nova' : ''}">${c === '_' ? '&nbsp;' : esc(c)}</span>`).join('');
+      return `<li class="${it.morto ? 'morto' : ''}"><span class="nome">${letras}</span>${it.morto ? '<span class="selo">Morto</span>' : ''}</li>`;
+    }).join('')}</ol>${lista.dogtags ? `<div class="dogtags">Dog tags: ${lista.dogtags}</div>` : ''}</div>`;
+  }
+  function render() {
+    if (bosses === null || lista === null) return;
+    const bl = Object.entries(bosses).map(([id, b]) => ({ id, ...b })).sort((a, b) => (b.t || 0) - (a.t || 0));
+    let h = htmlLista();
+    if (!bl.length) h += h ? '' : ESPERA('Aguardando a mestre revelar a primeira criatura…');
+    else {
+      const [atual, ...resto] = bl;
+      h += `<div class="atual">${carta(atual)}</div>` +
         (resto.length ? `<p class="rotulo">JÁ ENCONTRADAS</p><div class="lista">${resto.map(carta).join('')}</div>` : '');
       if (vistos && !vistos.has(atual.id)) {
         novo.querySelector('img').src = src(atual); novo.querySelector('h2').textContent = atual.nome;
@@ -78,11 +112,23 @@ main{max-width:1100px;margin:0 auto;padding:10px 16px 40px}
         if (navigator.vibrate) navigator.vibrate([120, 60, 120]);
       }
     }
-    vistos = new Set(lista.map(b => b.id));
-    if (zoom.classList.contains('on') && !lista.some(b => src(b) === zoom.querySelector('img').getAttribute('src'))) zoom.classList.remove('on');
-  }, () => {
-    app.innerHTML = '<div class="espera"><div class="estrela">✦</div><p>Sem conexão com a mesa. Confira a internet.</p></div>';
-  });
+    app.innerHTML = h;
+    vistos = new Set(bl.map(b => b.id));
+    if (zoom.classList.contains('on') && !bl.some(b => src(b) === zoom.querySelector('img').getAttribute('src'))) zoom.classList.remove('on');
+  }
+  const db = firebase.database(), falha = () => { app.innerHTML = ESPERA('Sem conexão com a mesa. Confira a internet.'); };
+  db.ref('mesa/bosses').on('value', snap => { bosses = snap.val() || {}; render(); }, falha);
+  db.ref('mesa/lista').on('value', snap => {
+    const nova = snap.val() || {};
+    const vis = Object.values(nova.itens || {}).map(it => it.vis || '');
+    if (listaAntes) {
+      if (nova.entregue && !listaAntes.entregue) aviso('O portão entregou a lista!');
+      else if (nova.entregue && (nova.dogtags || 0) > (listaAntes.dogtags || 0)) aviso('Nova dog tag: letras reveladas!');
+      else if (nova.entregue && JSON.stringify(vis) !== JSON.stringify(visAntes)) aviso('A lista mudou');
+    }
+    lista = nova; render();
+    visAntes = vis; listaAntes = nova;
+  }, falha);
   document.addEventListener('click', e => {
     if (novo.classList.contains('on')) { novo.classList.remove('on'); return; }
     if (zoom.classList.contains('on')) { zoom.classList.remove('on'); return; }

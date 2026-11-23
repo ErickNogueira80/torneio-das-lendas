@@ -938,6 +938,18 @@ vez e os jogadores só veem o que ela liberou (imagem e nome).
   Regras publicadas e conferidas (leitura livre em `mesa`, escrita sem login recusada, resto do banco
   fechado). Testado pelo Erick em 2026-11-22: liberar e esconder aparecem na hora no celular.
 
+**Lista do portão na mesa (2026-11-22, Erick):** a lista aparece num pergaminho na tela dos
+jogadores quando a Milena toca em **Entregar a lista** (no caderno, o portão entrega depois do
+Boitatá e do Robin Hood; Mula, Robin Hood e Boitatá já vêm riscados como "Morto"). Os outros nomes
+começam como tracinhos; **Nova dog tag** sorteia uma letra nova em cada nome ainda escondido (p. 13:
+"para cada dog tag, uma letra nova de todos os nomes é revelada"); **Riscar (morto)** revela o nome
+inteiro e risca; também há **Revelar nome**, **Desfazer**, **Recolher** e **Zerar a lista**. Os nomes
+completos ficam só no portal trancado (`LISTA` em `fonte/portal.html`); no Firebase vai só o que os
+jogadores já veem (`mesa/lista`: `entregue`, `dogtags`, `itens[i].vis` com `_` no lugar das letras
+escondidas, `pos` e `morto`). Pendente com a Milena: a grafia dos nomes (hoje como no caderno: Nessie,
+Vaca, Freddy Kruger, Grifo, Kallikatzaros, Excalibur, Hidra); a Hidra ganha letras desde a Nessie
+"por enquanto". Vão testar na prática e adaptar.
+
 Roteiro do Firebase (uma vez, conta Google do Erick):
 1. https://console.firebase.google.com → **Adicionar projeto** (ex.: `torneio-das-lendas`), sem
    Google Analytics.
