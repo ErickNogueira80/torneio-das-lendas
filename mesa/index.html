@@ -63,6 +63,28 @@ main{max-width:1100px;margin:0 auto;padding:10px 16px 40px}
 .morto .nome{text-decoration:line-through;text-decoration-thickness:2px;opacity:.75;letter-spacing:.04em}
 .selo{margin-left:auto;font-family:'IM Fell English',serif;font-size:16px;font-style:italic;color:#8a2a1a;white-space:nowrap}
 .dogtags{text-align:center;font-family:'IM Fell English',serif;font-style:italic;font-size:16px;color:#6e4a24;margin-top:8px}
+/* ficha do jogador */
+#ficha{position:fixed;inset:0;background:rgba(8,6,12,.96);display:none;z-index:12;overflow:auto;padding:16px}
+#ficha.on{display:block}
+.ficha{max-width:560px;margin:0 auto;background:var(--bg2);border:1px solid var(--gold);border-radius:16px;padding:18px 16px 20px}
+.ficha .topo{display:flex;gap:14px;align-items:center}
+.ficha .topo img{width:110px;height:130px;object-fit:cover;border-radius:10px;border:1px solid var(--line);background:#fff}
+.ficha small.k{display:block;font-family:Cinzel,serif;color:var(--gold);font-size:13px;letter-spacing:.08em}
+.ficha h2{font-family:Cinzel,serif;color:var(--gold2);margin:2px 0 4px;font-size:24px}
+.ficha h3{font-family:Cinzel,serif;color:var(--gold);font-size:15px;letter-spacing:.08em;margin:18px 0 6px}
+.ficha .st{display:flex;gap:8px;flex-wrap:wrap}
+.ficha .st{flex-wrap:nowrap}
+.ficha .st div{flex:1;min-width:0;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:4px 2px;text-align:center}
+.ficha .st span{font-size:12px!important}
+.ficha .st b{display:block;font-family:Cinzel,serif;font-size:22px;color:var(--gold2)}
+.ficha .st span{font-size:13px;color:var(--muted)}
+.ficha table{width:100%;border-collapse:collapse;font-size:17px}
+.ficha td,.ficha th{padding:6px 4px;border-bottom:1px solid var(--line);text-align:left}
+.ficha th{font-family:Cinzel,serif;font-weight:600;font-size:13px;color:var(--gold);letter-spacing:.06em}
+.ficha ul{margin:0;padding-left:20px}
+.ficha .vazio{color:var(--muted);font-style:italic}
+.btn{font:inherit;font-size:16px;border-radius:999px;border:1px solid var(--gold);background:var(--gold);color:#1b1408;font-weight:600;padding:8px 22px;cursor:pointer}
+.btn.leve{background:transparent;color:var(--gold2);font-weight:400;padding:3px 12px;font-size:14px}
 #aviso-lista{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:#e3b75a;color:#1b1408;font-weight:600;padding:10px 20px;
   border-radius:999px;display:none;z-index:11;box-shadow:0 4px 18px rgba(0,0,0,.5);text-align:center;max-width:90vw}
 </style>
@@ -76,18 +98,19 @@ main{max-width:1100px;margin:0 auto;padding:10px 16px 40px}
 <div id="zoom"><img alt=""></div>
 <div id="novo"><div class="wrap"><small>NOVA CRIATURA</small><br><img alt=""><h2></h2><p class="aviso">Toque para fechar</p></div></div>
 <div id="aviso-lista"></div>
+<div id="ficha"></div>
 
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script src="firebase.js"></script>
+<script src="fichas.js"></script>
 <script>
 (function () {
   // Os quatro jogadores (caderno, p. 34). id = chave no Firebase (mesa/jogadores/<id>).
+  // Sem elemento na tela (Erick, 2026-11-22). Cada nome fica reservado para o 1º celular que escolher
+  // (mesa/jogadores/<id> = {dev}); só a mestre libera de novo, no painel.
   const JOGADORES = [
-    { id: 'miguel', nome: 'Miguel', el: 'Terra', ic: '🌿' },
-    { id: 'bia', nome: 'Bia', el: 'Fogo', ic: '🔥' },
-    { id: 'mateus', nome: 'Mateus', el: 'Ar', ic: '🌪️' },
-    { id: 'joao', nome: 'João', el: 'Água', ic: '🌊' },
+    { id: 'miguel', nome: 'Miguel' }, { id: 'bia', nome: 'Bia' }, { id: 'mateus', nome: 'Mateus' }, { id: 'joao', nome: 'João' },
   ];
   const app = document.getElementById('app'), sub = document.getElementById('sub');
   const zoom = document.getElementById('zoom'), novo = document.getElementById('novo'), avisoEl = document.getElementById('aviso-lista');
@@ -102,8 +125,33 @@ main{max-width:1100px;margin:0 auto;padding:10px 16px 40px}
   firebase.initializeApp(window.FIREBASE_CONFIG);
   const db = firebase.database();
 
+  let dev = ler('tdl_dev'); if (!dev) { dev = Math.random().toString(36).slice(2) + Date.now().toString(36); gravar('tdl_dev', dev); }
   let eu = JOGADORES.find(j => j.id === ler('tdl_jogador')) || null;
-  let online = {}, bosses = null, lista = null;
+  let donos = null, bosses = null, lista = null;
+  const fichaEl = document.getElementById('ficha');
+  const NOMES_ST = { F: 'Força', I: 'Intelecto', V: 'Vigor', A: 'Agilidade', P: 'Presença' };
+  function mostrarFicha(primeira) {
+    const f = (window.FICHAS || {})[eu.id];
+    const corpo = !f ? '<p class="vazio">A sua ficha ainda está em branco no caderno da mestre. Combine com ela!</p>' : `
+      <div class="topo">${f.retrato ? `<img src="${f.retrato}" alt="">` : ''}<div><small class="k">PERSONAGEM</small><h2>${esc(f.personagem)}</h2><div>${f.idade} anos</div></div></div>
+      <h3>STATUS</h3><div class="st">${Object.entries(f.status).map(([k, v]) => `<div><b>${v}</b><span>${NOMES_ST[k]}</span></div>`).join('')}</div>
+      <h3>PERÍCIAS</h3>${f.pericias.length ? `<ul>${f.pericias.map(x => `<li>${esc(x)}</li>`).join('')}</ul>` : '<p class="vazio">Nenhuma ainda</p>'}
+      <h3>ITENS</h3>${f.itens.length ? `<ul>${f.itens.map(x => `<li>${esc(x)}</li>`).join('')}</ul>` : '<p class="vazio">Nenhum</p>'}
+      <h3>ATAQUES</h3><table><tr><th>Ataque</th><th>1D20</th><th>Dano</th></tr>${f.ataques.map(a => `<tr><td>${esc(a[0])}</td><td>S ${esc(a[1])} · N ${esc(a[2])}</td><td>${esc(a[3])}</td></tr>`).join('')}</table>`;
+    fichaEl.innerHTML = `<div class="ficha"><small class="k">${primeira ? 'ESTA É A SUA FICHA' : 'MINHA FICHA'} · ${esc(eu.nome).toUpperCase()}</small>${corpo}
+      <p style="text-align:center;margin:20px 0 0"><button class="btn" data-fechar-ficha>${primeira ? 'Ir para a mesa' : 'Fechar'}</button></p></div>`;
+    fichaEl.classList.add('on'); fichaEl.scrollTop = 0;
+  }
+  function escolher(j) {
+    db.ref('mesa/jogadores/' + j.id).transaction(cur => {
+      if (cur && cur.dev !== dev) return;   // já é de outro celular: desiste
+      return { dev, t: Date.now() };
+    }, (err, ok, snap) => {
+      if (!err && ok && snap.val() && snap.val().dev === dev) {
+        eu = j; gravar('tdl_jogador', j.id); vistos = null; marcarPresenca(); render(); mostrarFicha(true);
+      } else aviso(j.nome + ' já foi escolhido por outro jogador');
+    }, false);
+  }
   let vistos = null, letrasAntes = null, listaAntes = null;
 
   // presença: o jogador escolhido aparece "na mesa" para a mestre enquanto a página estiver aberta
@@ -111,12 +159,20 @@ main{max-width:1100px;margin:0 auto;padding:10px 16px 40px}
   function marcarPresenca() {
     if (presRef) { presRef.onDisconnect().cancel(); presRef.remove(); presRef = null; }
     if (!eu) return;
-    presRef = db.ref('mesa/jogadores/' + eu.id);
+    presRef = db.ref('mesa/online/' + eu.id);
     presRef.onDisconnect().remove();
-    presRef.set(firebase.database.ServerValue.TIMESTAMP);
+    presRef.set(true);
   }
   db.ref('.info/connected').on('value', s => { if (s.val()) marcarPresenca(); });
-  db.ref('mesa/jogadores').on('value', s => { online = s.val() || {}; render(); });
+  db.ref('mesa/jogadores').on('value', s => {
+    donos = s.val() || {};
+    if (eu) {
+      const d = donos[eu.id];
+      if (d && d.dev !== dev) { eu = null; gravar('tdl_jogador', null); marcarPresenca(); }   // outro celular ficou com ele
+      else if (!d) db.ref('mesa/jogadores/' + eu.id).transaction(c => (c && c.dev !== dev) ? undefined : { dev, t: Date.now() }, null, false);   // a mestre liberou: reserva de novo
+    }
+    render();
+  });
 
   function aviso(t) {
     avisoEl.textContent = t; avisoEl.style.display = 'block';
@@ -145,13 +201,13 @@ main{max-width:1100px;margin:0 auto;padding:10px 16px 40px}
   }
   function htmlQuem() {
     return `<div class="quem"><h2>Quem é você?</h2><p>Escolha o seu jogador</p><div class="herois">${JOGADORES.map(j => {
-      const ocupado = online[j.id] && (!eu || eu.id !== j.id);
-      return `<button class="heroi" data-j="${j.id}"${ocupado ? ' disabled' : ''}><span>${j.ic}</span><b>${esc(j.nome)}</b><small>${ocupado ? 'já está na mesa' : esc(j.el)}</small></button>`;
+      const ocupado = donos && donos[j.id] && donos[j.id].dev !== dev;
+      return `<button class="heroi" data-j="${j.id}"${ocupado ? ' disabled' : ''}><span>✦</span><b>${esc(j.nome)}</b><small>${ocupado ? 'já escolhido' : 'escolher'}</small></button>`;
     }).join('')}</div></div>`;
   }
   function render() {
-    if (!eu) { sub.textContent = 'As criaturas que vocês encontraram'; app.innerHTML = htmlQuem(); return; }
-    sub.innerHTML = `<span class="eu">${eu.ic} ${esc(eu.nome)} · ${esc(eu.el)}</span><a href="#" data-trocar>trocar</a>`;
+    if (!eu) { sub.textContent = 'As criaturas que vocês encontraram'; app.innerHTML = donos === null ? ESPERA('Conectando…') : htmlQuem(); return; }
+    sub.innerHTML = `<span class="eu">✦ ${esc(eu.nome)}</span> <button class="btn leve" data-minha-ficha>Minha ficha</button>`;
     if (bosses === null || lista === null) return;
     const bl = Object.entries(bosses).map(([id, b]) => ({ id, ...b })).sort((a, b) => (b.t || 0) - (a.t || 0));
     let h = htmlLista();
@@ -186,8 +242,10 @@ main{max-width:1100px;margin:0 auto;padding:10px 16px 40px}
 
   document.addEventListener('click', e => {
     const j = e.target.closest('[data-j]');
-    if (j && !j.disabled) { eu = JOGADORES.find(x => x.id === j.dataset.j); gravar('tdl_jogador', eu.id); vistos = null; marcarPresenca(); render(); return; }
-    if (e.target.closest('[data-trocar]')) { e.preventDefault(); eu = null; gravar('tdl_jogador', null); marcarPresenca(); render(); return; }
+    if (j && !j.disabled) { escolher(JOGADORES.find(x => x.id === j.dataset.j)); return; }
+    if (e.target.closest('[data-minha-ficha]')) { mostrarFicha(false); return; }
+    if (e.target.closest('[data-fechar-ficha]')) { fichaEl.classList.remove('on'); return; }
+    if (fichaEl.contains(e.target)) return;
     if (novo.classList.contains('on')) { novo.classList.remove('on'); return; }
     if (zoom.classList.contains('on')) { zoom.classList.remove('on'); return; }
     const c = e.target.closest('.carta');

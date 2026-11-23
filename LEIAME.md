@@ -953,7 +953,17 @@ dos nomes**: só as letras já reveladas, na ordem, e um "?" (dados públicos em
 o **pergaminho do jogo** (`jogo/sprites/hud/pergaminho.png`, recortado em 9 partes) e a fonte IM Fell
 English. Ao abrir a mesa, cada um escolhe **quem é** (Miguel, Bia, Mateus, João; fica salvo no
 celular, com "trocar"); o painel mostra **quem está na mesa agora** (`mesa/jogadores`). As regras do
-Firebase ganharam `mestre` e `mesa/jogadores` (ver abaixo). Pendente com a Milena: a grafia dos nomes (hoje como no caderno: Nessie,
+Firebase ganharam `mestre` e `mesa/jogadores` (ver abaixo).
+**Ajustes de 2026-11-22 (2º pedido):** cada nome fica **reservado para o primeiro celular** que o
+escolher (`mesa/jogadores/<id> = {dev}`, com transação; um código aleatório do aparelho fica no
+navegador); outro celular vê "já escolhido". Só a mestre libera o nome (botão **Liberar** no
+painel). Quem está conectado fica em `mesa/online`. Ao escolher, abre a **ficha do jogador** como no
+caderno (p. 37 a 40: personagem, idade, retrato desenhado pela Milena, status, perícias, itens,
+ataques), **sem o elemento** (o "atributo principal", Erick; também protege a virada do
+humano/Câncer); o botão **Minha ficha** reabre quando quiser. Fichas em `mesa/fichas.js`, retratos em
+`mesa/retratos/` (recortados das fotos). A ficha do Miguel está em branco no caderno. O progresso
+(criaturas, lista, dog tags, jogadores) fica salvo no Firebase entre sessões; **Nova partida** no
+painel zera tudo. Pendente com a Milena: a grafia dos nomes (hoje como no caderno: Nessie,
 Vaca, Freddy Kruger, Grifo, Kallikatzaros, Excalibur, Hidra); a Hidra ganha letras desde a Nessie
 "por enquanto". Vão testar na prática e adaptar.
 
@@ -975,7 +985,10 @@ Roteiro do Firebase (uma vez, conta Google do Erick):
     "mesa": {
       ".read": true,
       ".write": "auth != null && auth.token.email == 'EMAIL_DA_MESTRE'",
-      "jogadores": { "$j": { ".write": true, ".validate": "$j.matches(/^(miguel|bia|mateus|joao)$/) && newData.isNumber()" } }
+      "jogadores": { "$j": {
+        ".write": "!data.exists() || (newData.exists() && newData.child('dev').val() == data.child('dev').val())",
+        ".validate": "$j.matches(/^(miguel|bia|mateus|joao)$/) && newData.child('dev').isString()" } },
+      "online": { "$j": { ".write": true, ".validate": "$j.matches(/^(miguel|bia|mateus|joao)$/) && newData.isBoolean()" } }
     },
     "mestre": {
       ".read": "auth != null && auth.token.email == 'EMAIL_DA_MESTRE'",

@@ -544,9 +544,14 @@ function listaHtml(){
         ? `<button class="btn" data-l="vivo" data-i="${i}">Desfazer</button>`
         : `${faltam ? `<button class="btn" data-l="inteiro" data-i="${i}">Revelar nome</button> ` : ''}<button class="btn on" data-l="morto" data-i="${i}">Riscar (morto)</button>`}</td></tr>`;
   }).join('');
-  const NOMES_J = { miguel: '🌿 Miguel', bia: '🔥 Bia', mateus: '🌪️ Mateus', joao: '🌊 João' };
-  const naMesa = Object.keys(MESA.online || {}).map(k => NOMES_J[k] || k);
-  return `<p style="margin-top:14px"><b>Na mesa agora:</b> ${naMesa.length ? naMesa.map(n => `<span class="pill gold">${n}</span>`).join(' ') : '<span class="note">ninguém conectado</span>'}</p>
+  const NOMES_J = [['miguel', '🌿 Miguel'], ['bia', '🔥 Bia'], ['mateus', '🌪️ Mateus'], ['joao', '🌊 João']];
+  const donos = MESA.donos || {}, on = MESA.on || {};
+  const jog = NOMES_J.map(([id, n]) => donos[id]
+    ? `<span class="pill${on[id] ? ' gold' : ''}" title="${on[id] ? 'conectado agora' : 'escolhido, mas sem conexão agora'}">${n} ${on[id] ? '● na mesa' : '○ fora'}</span> <button class="btn" data-jl="${id}" title="Libera o nome para outro celular escolher">Liberar</button>`
+    : `<span class="pill">${n} · livre</span>`).join(' &nbsp; ');
+  return `<h2 style="margin-top:20px">Jogadores</h2>
+    <p>${jog}</p>
+    <p><button class="btn" data-nova-partida>Nova partida (zerar tudo)</button> <span class="note">Tudo fica salvo sozinho entre uma sessão e outra; use este botão só para começar do zero.</span></p>
     <h2 style="margin-top:20px">A lista do portão</h2>
     <div class="lista-mestre"><p>${st.entregue
       ? `<span class="pill gold">Entregue aos jogadores</span> <button class="btn" data-l="recolher">Recolher</button>`
@@ -557,6 +562,11 @@ function listaHtml(){
       <table>${linhas}</table></div>`;
 }
 document.addEventListener('click', e => {
+  const jl = e.target.closest('[data-jl]');
+  if (jl && confirm('Liberar este nome? Outro celular poderá escolhê-lo.')) {
+    firebase.database().ref('mesa/jogadores/' + jl.dataset.jl).remove(); firebase.database().ref('mesa/online/' + jl.dataset.jl).remove(); return; }
+  if (e.target.closest('[data-nova-partida]') && confirm('Começar uma partida nova? Some tudo dos celulares: criaturas, lista, dog tags e a escolha dos jogadores.')) {
+    firebase.database().ref('mesa').remove(); firebase.database().ref('mestre').remove(); return; }
   const b = e.target.closest('[data-l]'); if (!b) return;
   const st = listaEstado(), m = b.dataset.l, x = st.itens[+b.dataset.i];
   if (m === 'entregar') st.entregue = true;
@@ -583,7 +593,8 @@ function mesaInit(){
   firebase.auth().onAuthStateChanged(u => { MESA.user = u; mesaRender(); });
   firebase.database().ref('mesa/bosses').on('value', s => { MESA.lib = s.val() || {}; mesaRender(); });
   firebase.database().ref('mesa/lista').on('value', s => { MESA.lista = s.val() || {}; mesaRender(); });
-  firebase.database().ref('mesa/jogadores').on('value', s => { MESA.online = s.val() || {}; mesaRender(); });
+  firebase.database().ref('mesa/jogadores').on('value', s => { MESA.donos = s.val() || {}; mesaRender(); });
+  firebase.database().ref('mesa/online').on('value', s => { MESA.on = s.val() || {}; mesaRender(); });
   firebase.auth().onAuthStateChanged(u => { if (u && !MESA.segredoOk) { MESA.segredoOk = true;
     firebase.database().ref('mestre/lista').on('value', s => { MESA.segredo = s.val() || {}; mesaRender(); }); } });
 }
