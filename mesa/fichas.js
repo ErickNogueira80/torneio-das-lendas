@@ -18,7 +18,7 @@ window.FICHAS = {
     ataques: [['Imobilização', '+6', '-5', '—'], ['Gancho de esquerda', '+7', '-6', '1D8'], ['Rasteira', '+7', '-6', '1D10']],
   },
   joao: {
-    personagem: 'Jane Vorhood', idade: 82, retrato: null,
+    personagem: 'Jane Vorhood', idade: 82, retrato: 'retratos/joao.jpg',
     status: { F: 1, I: 4, V: 2, A: 2, P: 3 },
     pericias: [],
     itens: ['1 adaga de gelo'],

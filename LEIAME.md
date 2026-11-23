@@ -36,7 +36,7 @@ Pessoal (família).
 
 | Arquivo | O que tem |
 |---|---|
-| `fotos-originais/` | Backup das fotos do caderno: 36 de 07/11 e 21 de 22/11 (57 no total) |
+| `fotos-originais/` | Backup das fotos do caderno: 36 de 07/11, 21 de 22/11 e o retrato do João (`22.11.26`, papel solto), 58 no total |
 | `01-transcricao-integral.md` | Transcrição fiel, página por página, com a grafia dela |
 | `02-sugestoes.md` | Furos de continuidade, regras que faltam, correções de texto, ideias para a parte 2 e plano do material |
 | `03-prompts-imagens.md` | Prompts para gerar imagens dos 13 locais, das 10 criaturas do bestiário e de 2 extras em outra IA, com um bloco de estilo comum |
@@ -961,7 +961,7 @@ painel). Quem está conectado fica em `mesa/online`. Ao escolher, abre a **ficha
 caderno (p. 37 a 40: personagem, idade, retrato desenhado pela Milena, status, perícias, itens,
 ataques), **sem o elemento** (o "atributo principal", Erick; também protege a virada do
 humano/Câncer); o botão **Minha ficha** reabre quando quiser. Fichas em `mesa/fichas.js`, retratos em
-`mesa/retratos/` (recortados das fotos). A ficha do Miguel está em branco no caderno. O progresso
+`mesa/retratos/` (recortados das fotos; o do João chegou depois, em papel solto, foto `22.11.26`). A ficha do Miguel está em branco no caderno. O progresso
 (criaturas, lista, dog tags, jogadores) fica salvo no Firebase entre sessões; **Nova partida** no
 painel zera tudo. Pendente com a Milena: a grafia dos nomes (hoje como no caderno: Nessie,
 Vaca, Freddy Kruger, Grifo, Kallikatzaros, Excalibur, Hidra); a Hidra ganha letras desde a Nessie

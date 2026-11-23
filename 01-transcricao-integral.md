@@ -894,6 +894,9 @@ Itens: 1 adaga de gelo
 | Facada | 1D20 · S: +10 · N: -9 | 1D~~8~~10 [?] *[nota: parece um 8 riscado e 10 ao lado]* |
 | Ataque de gelo | 1D20 · S: +12 · N: -11 | 1D12 + 1D6 |
 
+*[nota: o retrato da personagem veio depois, num papel solto (foto `22/11 22.11.26`): senhora de
+cabelo castanho volumoso, olhos fechados, sorrindo, de blusa rosa.]*
+
 ---
 
 ## Página 41 · foto `22/11 20.14.06 (1)` · Sistema do Purgatório
