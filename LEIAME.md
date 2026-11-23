@@ -971,7 +971,7 @@ janela por cima (imagem ampliada, nova criatura, escolha da imagem) entra no his
 ganha uma bolinha vermelha e um aviso que leva até ela. Na ficha, **tocar na foto** escolhe entre o
 **desenho** e o **avatar da IA** (`retratoIA` em `mesa/fichas.js`, arquivo `mesa/retratos/<id>-ia.jpg`;
 escolha salva em `mesa/jogadores/<id>/avatar`). Prompts dos avatares no Gemini: `03-prompts-imagens.md`,
-seção "Avatares dos jogadores" (anexando o desenho; nada de foto de pessoa de verdade). Pendente com a Milena: a grafia dos nomes (hoje como no caderno: Nessie,
+seção "Avatares dos jogadores" (anexando o desenho; nada de foto de pessoa de verdade). Avatares de Bia, Mateus e João gerados pelo Erick no Gemini em 2026-11-22 (originais em `img/avatares/`, fora do git; 600×600 em `mesa/retratos/`). Pendente com a Milena: a grafia dos nomes (hoje como no caderno: Nessie,
 Vaca, Freddy Kruger, Grifo, Kallikatzaros, Excalibur, Hidra); a Hidra ganha letras desde a Nessie
 "por enquanto". Vão testar na prática e adaptar.
 

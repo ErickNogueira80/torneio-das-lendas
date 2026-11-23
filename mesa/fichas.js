@@ -6,21 +6,21 @@
 window.FICHAS = {
   miguel: null,   // p. 38: ficha ainda em branco
   bia: {
-    personagem: 'Amagi Mamabami', idade: 25, retrato: 'retratos/bia.jpg', retratoIA: null,
+    personagem: 'Amagi Mamabami', idade: 25, retrato: 'retratos/bia.jpg', retratoIA: 'retratos/bia-ia.jpg',
     status: { F: 4, I: 2, V: 1, A: 3, P: 2 },
     pericias: ['Medicina 5', 'Luta 3', 'Pontaria 2'],
     itens: [],
     ataques: [['Espada de fogo', '+8', '-7', '1D12 + 2D4'], ['Círculo de fogo', '+10', '-9', '2D4'], ['Arco dourado', '+11', '-10', '1D6 + 1D4']],
   },
   mateus: {
-    personagem: 'Sam Seixeira', idade: 30, retrato: 'retratos/mateus.jpg', retratoIA: null,
+    personagem: 'Sam Seixeira', idade: 30, retrato: 'retratos/mateus.jpg', retratoIA: 'retratos/mateus-ia.jpg',
     status: { F: 2, I: 2, V: 2, A: 2, P: 2 },
     pericias: ['Luta 5', 'Furtividade 5'],
     itens: ['Faca (defesa pessoal)', 'Laser (ataque)'],
     ataques: [['Imobilização', '+6', '-5', '—'], ['Gancho de esquerda', '+7', '-6', '1D8'], ['Rasteira', '+7', '-6', '1D10']],
   },
   joao: {
-    personagem: 'Jane Vorhood', idade: 82, retrato: 'retratos/joao.jpg', retratoIA: null,
+    personagem: 'Jane Vorhood', idade: 82, retrato: 'retratos/joao.jpg', retratoIA: 'retratos/joao-ia.jpg',
     status: { F: 1, I: 4, V: 2, A: 2, P: 3 },
     pericias: [],
     itens: ['1 adaga de gelo'],
