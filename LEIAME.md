@@ -935,6 +935,8 @@ vez e os jogadores só veem o que ela liberou (imagem e nome).
   `https://testeefk-default-rtdb.firebaseio.com`, config em `mesa/firebase.js`). Usuária da mestre
   criada em Authentication (o e-mail fica só no Firebase e nas regras, não neste repositório
   público).
+  Regras publicadas e conferidas (leitura livre em `mesa`, escrita sem login recusada, resto do banco
+  fechado). Testado pelo Erick em 2026-11-22: liberar e esconder aparecem na hora no celular.
 
 Roteiro do Firebase (uma vez, conta Google do Erick):
 1. https://console.firebase.google.com → **Adicionar projeto** (ex.: `torneio-das-lendas`), sem
