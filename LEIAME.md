@@ -971,7 +971,8 @@ janela por cima (imagem ampliada, nova criatura, escolha da imagem) entra no his
 ganha uma bolinha vermelha e um aviso que leva até ela. Na ficha, **tocar na foto** escolhe entre o
 **desenho** e o **avatar da IA** (`retratoIA` em `mesa/fichas.js`, arquivo `mesa/retratos/<id>-ia.jpg`;
 escolha salva em `mesa/jogadores/<id>/avatar`); o **avatar da IA é o padrão** (Erick, 2026-11-22). Ao mudar `fichas.js` ou `firebase.js`, subir o `?v=` deles no `mesa/index.html` (cache do celular). Prompts dos avatares no Gemini: `03-prompts-imagens.md`,
-seção "Avatares dos jogadores" (anexando o desenho; nada de foto de pessoa de verdade). Avatares de Bia, Mateus e João gerados pelo Erick no Gemini em 2026-11-22 (originais em `img/avatares/`, fora do git; 600×600 em `mesa/retratos/`). **Elementos (2026-11-24):** os jogadores não veem o elemento até a mestre revelar. No painel
+seção "Avatares dos jogadores" (anexando o desenho; nada de foto de pessoa de verdade). Avatares de Bia, Mateus e João gerados pelo Erick no Gemini em 2026-11-22 (originais em `img/avatares/`, fora do git; 600×600 em `mesa/retratos/`). **Nome da Bia (2026-11-24):** a personagem é **Angi Momobami** (confirmado pela Milena; o caderno parecia "Amagi Mamabami"). 
+**Elementos (2026-11-24):** os jogadores não veem o elemento até a mestre revelar. No painel
 (aba **Mesa › Jogadores**), **Revelar os elementos** grava `mesa/elementos = {liberado, t, miguel,
 bia, mateus, joao}` e os quatro celulares abrem ao mesmo tempo uma tela de destaque (símbolo e nome
 na cor do elemento, com vibração); depois o elemento fica na ficha. Quem entra depois também vê o

@@ -315,10 +315,10 @@ glow, plain dark purple background. Suitable for a teen audience. No text, no le
 Square image, aspect ratio 1:1.
 ```
 
-**Bia: Amagi Mamabami** (anexar `mesa/retratos/bia.jpg`)
+**Bia: Angi Momobami** (anexar `mesa/retratos/bia.jpg`)
 
 ```
-The character is Amagi Mamabami, a 25-year-old woman: long straight black hair with blunt bangs,
+The character is Angi Momobami, a 25-year-old woman: long straight black hair with blunt bangs,
 striking red eyes, calm confident slight smile, a dark blue jacket with a small embroidered symbol
 on the chest over a black top.
 ```

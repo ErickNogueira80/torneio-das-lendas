@@ -847,7 +847,7 @@ gola alta e casaco preto.]*
 
 **FICHA DO: BEATRIZ**
 
-Nome: Am~~[ilegível]~~gi Mamabami [?]
+Nome: Am~~[ilegível]~~gi Mamabami [?] *[nota: a Milena confirmou em 24/11: **Angi Momobami**.]*
 Idade: 25
 
 STATUS

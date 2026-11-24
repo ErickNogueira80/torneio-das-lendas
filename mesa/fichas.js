@@ -6,7 +6,7 @@
 window.FICHAS = {
   miguel: null,   // p. 38: ficha ainda em branco
   bia: {
-    personagem: 'Amagi Mamabami', idade: 25, retrato: 'retratos/bia.jpg', retratoIA: 'retratos/bia-ia.jpg',
+    personagem: 'Angi Momobami', idade: 25, retrato: 'retratos/bia.jpg', retratoIA: 'retratos/bia-ia.jpg',
     status: { F: 4, I: 2, V: 1, A: 3, P: 2 },
     pericias: ['Medicina 5', 'Luta 3', 'Pontaria 2'],
     itens: [],
