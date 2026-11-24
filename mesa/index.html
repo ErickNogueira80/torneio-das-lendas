@@ -101,6 +101,18 @@ nav#barra button.novo i{display:block}
 #avatar .op:disabled{opacity:.5;cursor:not-allowed}
 #avatar .op .falta{width:128px;height:150px;border-radius:10px;border:1px dashed var(--line);display:flex;align-items:center;justify-content:center;
   margin:0 auto 8px;color:var(--muted);font-size:14px;padding:8px}
+/* elemento do jogador: revelado pela mestre */
+.elem{display:inline-flex;align-items:center;gap:6px;margin-top:6px;padding:3px 12px;border-radius:999px;border:1px solid var(--c);color:var(--c);
+  font-family:Cinzel,serif;font-weight:600;font-size:15px;background:color-mix(in srgb,var(--c) 14%,transparent)}
+#elemento{background:radial-gradient(circle at 50% 45%,color-mix(in srgb,var(--c) 45%,#000) 0%,rgba(8,6,14,.97) 62%)}
+#elemento .wrap{text-align:center}
+#elemento small{font-family:Cinzel,serif;letter-spacing:.2em;color:var(--gold);font-size:15px}
+#elemento .sim{font-size:120px;line-height:1.1;margin:18px 0 6px;animation:surge 1.6s cubic-bezier(.2,1.4,.4,1) both;filter:drop-shadow(0 0 28px var(--c))}
+#elemento h2{font-family:Cinzel,serif;font-size:46px;margin:0;color:var(--c);text-shadow:0 0 22px var(--c);animation:aparece 1s .9s both;letter-spacing:.06em}
+#elemento .aura{position:absolute;inset:0;pointer-events:none;background:radial-gradient(circle at 50% 45%,var(--c) 0,transparent 38%);opacity:0;animation:pulso 2.4s .3s ease-out}
+@keyframes surge{0%{transform:scale(.1) rotate(-30deg);opacity:0}100%{transform:none;opacity:1}}
+@keyframes aparece{0%{opacity:0;transform:translateY(16px)}100%{opacity:1;transform:none}}
+@keyframes pulso{0%{opacity:.9}100%{opacity:0}}
 #aviso-lista{position:fixed;left:50%;bottom:86px;transform:translateX(-50%);background:#e3b75a;color:#1b1408;font-weight:600;padding:10px 20px;
   border-radius:999px;display:none;z-index:16;box-shadow:0 4px 18px rgba(0,0,0,.5);text-align:center;max-width:90vw;cursor:pointer}
 </style>
@@ -119,6 +131,7 @@ nav#barra button.novo i{display:block}
 <div id="zoom" class="ov" data-ov="zoom"><img alt=""><p class="aviso">Toque para fechar</p></div>
 <div id="novo" class="ov" data-ov="novo"><div class="wrap"><small>NOVA CRIATURA</small><br><img alt=""><h2></h2><p class="aviso">Toque para fechar</p></div></div>
 <div id="avatar" class="ov" data-ov="avatar"></div>
+<div id="elemento" class="ov" data-ov="elemento"></div>
 <div id="aviso-lista"></div>
 
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
@@ -127,7 +140,7 @@ nav#barra button.novo i{display:block}
 <script src="fichas.js?v=2"></script>
 <script>
 (function () {
-  // Os quatro jogadores (caderno, p. 34). Sem elemento na tela (Erick, 2026-11-22). Cada nome fica
+  // Os quatro jogadores (caderno, p. 34). Elemento só depois que a mestre revela (Erick, 2026-11-24). Cada nome fica
   // reservado para o 1º celular que escolher (mesa/jogadores/<id> = {dev, avatar}); só a mestre libera.
   const JOGADORES = [
     { id: 'miguel', nome: 'Miguel' }, { id: 'bia', nome: 'Bia' }, { id: 'mateus', nome: 'Mateus' }, { id: 'joao', nome: 'João' },
@@ -152,7 +165,12 @@ nav#barra button.novo i{display:block}
 
   let dev = ler('tdl_dev'); if (!dev) { dev = Math.random().toString(36).slice(2) + Date.now().toString(36); gravar('tdl_dev', dev); }
   let eu = JOGADORES.find(j => j.id === ler('tdl_jogador')) || null;
-  let donos = null, bosses = null, lista = null, primeiraVez = false;
+  let donos = null, bosses = null, lista = null, elementos = null, primeiraVez = false;
+  // Elementos: só chegam quando a mestre revela (mesa/elementos); não ficam no código da página.
+  const ELEM = { fogo: ['🔥', 'Fogo', '#ff7a33'], terra: ['🌿', 'Terra', '#8fd15a'], ar: ['🌪️', 'Ar', '#bfe6ff'],
+    agua: ['🌊', 'Água', '#4fb3ff'], nenhum: ['✧', 'Nenhum', '#c9c2d6'] };
+  const meuElem = () => elementos && elementos.liberado && eu && ELEM[elementos[eu.id]] || null;
+  const seloElem = () => { const e = meuElem(); return e ? `<div><span class="elem" style="--c:${e[2]}">${e[0]} ${e[1]}</span></div>` : ''; };
   let vistos = null, letrasAntes = null, listaAntes = null;
   const novidade = { criaturas: false, lista: false };
 
@@ -180,11 +198,11 @@ nav#barra button.novo i{display:block}
     const f = ficha();
     const intro = primeiraVez ? `<p style="text-align:center;color:var(--muted);margin:0 0 14px">Esta é a sua ficha. Você pode voltar a ela quando quiser, em <b>Minha ficha</b>, aqui embaixo.</p>` : '';
     if (!f) return intro + `<div class="ficha"><small class="k">MINHA FICHA · ${esc(eu.nome).toUpperCase()}</small>
-      <p class="vazio">A sua ficha ainda está em branco no caderno da mestre. Combine com ela!</p></div>` + botaoComecar();
+      ${seloElem()}<p class="vazio">A sua ficha ainda está em branco no caderno da mestre. Combine com ela!</p></div>` + botaoComecar();
     const foto = fotoAtual();
     return intro + `<div class="ficha"><small class="k">MINHA FICHA · ${esc(eu.nome).toUpperCase()}</small>
       <div class="topo">${foto ? `<div class="foto" data-avatar title="Trocar a imagem"><img src="${foto}" alt=""><em>✎</em></div>` : ''}
-        <div><small class="k">PERSONAGEM</small><h2>${esc(f.personagem)}</h2><div>${f.idade} anos</div></div></div>
+        <div><small class="k">PERSONAGEM</small><h2>${esc(f.personagem)}</h2><div>${f.idade} anos</div>${seloElem()}</div></div>
       <h3>STATUS</h3><div class="st">${Object.entries(f.status).map(([k, v]) => `<div><b>${v}</b><span>${NOMES_ST[k]}</span></div>`).join('')}</div>
       <h3>PERÍCIAS</h3>${f.pericias.length ? `<ul>${f.pericias.map(x => `<li>${esc(x)}</li>`).join('')}</ul>` : '<p class="vazio">Nenhuma ainda</p>'}
       <h3>ITENS</h3>${f.itens.length ? `<ul>${f.itens.map(x => `<li>${esc(x)}</li>`).join('')}</ul>` : '<p class="vazio">Nenhum</p>'}
@@ -214,7 +232,7 @@ nav#barra button.novo i{display:block}
       return { ...(cur || {}), dev, t: Date.now() };
     }, (err, ok, snap) => {
       if (!err && ok && snap.val() && snap.val().dev === dev) {
-        eu = j; gravar('tdl_jogador', j.id); vistos = null; marcarPresenca(); primeiraVez = true; irPara('ficha');
+        eu = j; gravar('tdl_jogador', j.id); vistos = null; marcarPresenca(); primeiraVez = true; irPara('ficha'); mostrarElemento();
       } else aviso(j.nome + ' já foi escolhido por outro jogador');
     }, false);
   }
@@ -299,6 +317,21 @@ nav#barra button.novo i{display:block}
     app.innerHTML = v === 'lista' ? htmlLista() : htmlCriaturas();
   }
 
+  // revela o elemento com destaque uma vez por celular (vale também para quem entrar depois)
+  // (no próximo instante: deixa a troca de tela, como ir para a ficha, acontecer antes de abrir por cima)
+  function mostrarElemento() { setTimeout(revelarElemento, 0); }
+  function revelarElemento() {
+    const e = meuElem(); if (!e) return;
+    const chave = 'tdl_elem_' + eu.id + '_' + (elementos.t || 0);
+    if (ler(chave)) return; gravar(chave, '1');
+    const o = $('elemento'); o.style.setProperty('--c', e[2]);
+    o.innerHTML = `<div class="aura"></div><div class="wrap"><small>SEU ELEMENTO</small><div class="sim">${e[0]}</div><h2>${e[1]}</h2><p class="aviso">Toque para fechar</p></div>`;
+    if (history.state && history.state.ov) history.replaceState({ ov: 'elemento' }, '', location.hash || '#criaturas'), sincronizar();
+    else abrirJanela('elemento');
+    if (navigator.vibrate) navigator.vibrate([200, 80, 200, 80, 400]);
+  }
+  db.ref('mesa/elementos').on('value', s => { elementos = s.val(); render(); mostrarElemento(); });
+
   const falha = () => { app.innerHTML = ESPERA('Sem conexão com a mesa. Confira a internet.'); };
   db.ref('mesa/bosses').on('value', snap => {
     bosses = snap.val() || {};
@@ -335,7 +368,7 @@ nav#barra button.novo i{display:block}
     if (t.closest('[data-avatar]')) { abrirAvatar(); return; }
     const op = t.closest('[data-escolhe]'); if (op) { escolherAvatar(op.dataset.escolhe); return; }
     if (t.closest('#avatar')) { if (t.closest('[data-fechar]') || t.id === 'avatar') fecharJanela(); return; }
-    if (t.closest('#novo')) { fecharJanela(); return; }
+    if (t.closest('#novo') || t.closest('#elemento')) { fecharJanela(); return; }
     if (t.closest('#zoom')) { fecharJanela(); return; }
     const c = t.closest('.carta');
     if (c) { $('zoom').querySelector('img').src = c.dataset.src; abrirJanela('zoom'); }

@@ -489,6 +489,9 @@ async function loadMd(id, file){
 
 /* abas */
 /* mesa: painel da mestre (libera bosses para a tela dos jogadores, mesa/) */
+// Elementos dos jogadores (caderno, p. 34). Ficam só aqui (portal trancado) e vão para mesa/elementos
+// quando a mestre revela. Mateus é o "humano": aparece "nenhum" (Erick, 2026-11-24; no caderno ele é Ar/Câncer).
+const ELEMENTOS_MESA = { miguel: 'terra', bia: 'fogo', mateus: 'nenhum', joao: 'agua' };
 const MESA = { ok: false, user: null, lib: {} };
 function mesaRender(){
   const box = document.getElementById('mesa-box');
@@ -551,6 +554,10 @@ function listaHtml(){
     : `<span class="pill">${n} · livre</span>`).join(' &nbsp; ');
   return `<h2 style="margin-top:20px">Jogadores</h2>
     <p>${jog}</p>
+    <p>${MESA.elem && MESA.elem.liberado
+      ? `<span class="pill gold">Elementos revelados</span> <button class="btn" data-elem="esconder">Esconder os elementos</button>`
+      : `<span class="pill">Elementos escondidos</span> <button class="btn on" data-elem="liberar">Revelar os elementos</button>`}
+      <span class="note">Revela para os quatro ao mesmo tempo, com destaque na tela. O Mateus vê "Nenhum".</span></p>
     <p><button class="btn" data-nova-partida>Nova partida (zerar tudo)</button> <span class="note">Tudo fica salvo sozinho entre uma sessão e outra; use este botão só para começar do zero.</span></p>
     <h2 style="margin-top:20px">A lista do portão</h2>
     <div class="lista-mestre"><p>${st.entregue
@@ -567,6 +574,13 @@ document.addEventListener('click', e => {
     firebase.database().ref('mesa/jogadores/' + jl.dataset.jl).remove(); firebase.database().ref('mesa/online/' + jl.dataset.jl).remove(); return; }
   if (e.target.closest('[data-nova-partida]') && confirm('Começar uma partida nova? Some tudo dos celulares: criaturas, lista, dog tags e a escolha dos jogadores.')) {
     firebase.database().ref('mesa').remove(); firebase.database().ref('mestre').remove(); return; }
+  const el = e.target.closest('[data-elem]');
+  if (el) {
+    const ref = firebase.database().ref('mesa/elementos');
+    if (el.dataset.elem === 'liberar' && confirm('Revelar o elemento de cada jogador agora? Aparece com destaque em todos os celulares.'))
+      ref.set({ liberado: true, t: Date.now(), ...ELEMENTOS_MESA }).catch(() => alert('Não consegui gravar. Confira a internet.'));
+    if (el.dataset.elem === 'esconder' && confirm('Esconder os elementos de novo?')) ref.remove();
+    return; }
   const b = e.target.closest('[data-l]'); if (!b) return;
   const st = listaEstado(), m = b.dataset.l, x = st.itens[+b.dataset.i];
   if (m === 'entregar') st.entregue = true;
@@ -595,6 +609,7 @@ function mesaInit(){
   firebase.database().ref('mesa/lista').on('value', s => { MESA.lista = s.val() || {}; mesaRender(); });
   firebase.database().ref('mesa/jogadores').on('value', s => { MESA.donos = s.val() || {}; mesaRender(); });
   firebase.database().ref('mesa/online').on('value', s => { MESA.on = s.val() || {}; mesaRender(); });
+  firebase.database().ref('mesa/elementos').on('value', s => { MESA.elem = s.val(); mesaRender(); });
   firebase.auth().onAuthStateChanged(u => { if (u && !MESA.segredoOk) { MESA.segredoOk = true;
     firebase.database().ref('mestre/lista').on('value', s => { MESA.segredo = s.val() || {}; mesaRender(); }); } });
 }
