@@ -116,6 +116,33 @@ th{background:var(--bg2);font-family:Cinzel,serif;color:var(--gold);font-weight:
 .lista-mestre .mask{font-family:Cinzel,serif;letter-spacing:.12em;color:var(--gold2)}
 .lista-mestre .mask i{color:var(--muted);font-style:normal;opacity:.4}
 .lista-mestre .riscado{text-decoration:line-through;opacity:.7}
+/* painel da mestre em tela cheia (tablet): some o topo do portal, botões grandes */
+body.modo-mesa header.top, body.modo-mesa footer{display:none}
+body.modo-mesa main.wrap{max-width:1400px}
+.mesa-topo{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 0;margin-bottom:6px;
+  background:rgba(20,17,28,.95);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.mesa-topo b{font-family:Cinzel,serif;color:var(--gold2);font-size:20px;margin-right:auto}
+.mesa-topo a.chip{color:var(--text);text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:6px 14px;font-size:16px;background:var(--bg2)}
+.mesa-topo a.chip:active{background:var(--gold);color:#1b1408}
+body.modo-mesa #v-mesa .btn{font-size:18px;padding:9px 18px;min-height:44px}
+.bloco{background:var(--bg2);border:1px solid var(--line);border-radius:16px;padding:14px 16px;margin:16px 0;scroll-margin-top:80px}
+.bloco > h2{margin:0 0 4px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.bloco > h2 small{font-family:"Crimson Pro",serif;font-size:15px;color:var(--muted);font-weight:400}
+.rev{width:100%;border-collapse:collapse}
+.rev td,.rev th{padding:10px 8px;border-bottom:1px solid var(--line);vertical-align:middle;text-align:left}
+.rev th{font-family:Cinzel,serif;color:var(--gold);font-size:15px}
+.rev .const{width:42px;height:42px;vertical-align:middle}
+.rev .const line{stroke-width:2.5}
+.rev .const circle{r:4.5}
+.rev .feito .const{color:#1b1408!important;width:34px;height:34px}
+.rev .feito .const circle{fill:#1b1408}
+.rev .feito{display:inline-flex;align-items:center;gap:6px;color:#1b1408;background:var(--gold);border-radius:999px;padding:4px 12px;font-weight:600}
+.dot{display:inline-block;width:10px;height:10px;border-radius:50%;background:#5b536b;margin-right:6px}
+.dot.on{background:#6ee07a;box-shadow:0 0 8px #6ee07a}
+.mesa-msg textarea,.mesa-msg input{font:inherit;font-size:19px;width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--text);margin:6px 0}
+.mesa-msg textarea{min-height:110px}
+.modelos{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 8px}
+.modelos button{font:inherit;font-size:15px;border-radius:999px;border:1px dashed var(--line);background:transparent;color:var(--muted);padding:4px 12px;cursor:pointer}
 .mesa-form input{font:inherit;font-size:17px;padding:8px 10px;border-radius:8px;border:1px solid var(--line);background:var(--bg2);color:var(--text);margin:4px 8px 4px 0;max-width:100%}
 /* caderno */
 .thumbs{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
@@ -282,10 +309,20 @@ footer{border-top:1px solid var(--line);padding:22px 0;color:var(--muted);font-s
 
 <!-- MESA (painel da mestre) -->
 <section class="view" id="v-mesa">
-  <h1>Mesa</h1>
-  <p class="lead">Painel da mestre. Toque em <b>Liberar</b> e a criatura aparece na hora no celular dos jogadores, com a imagem e o nome. <b>Esconder</b> tira de novo.</p>
-  <p class="note">Link dos jogadores: <a id="mesa-link" href="mesa/">mesa/</a> · eles só veem o que estiver liberado aqui.</p>
+  <div class="mesa-topo"><b>✦ Painel da mestre</b>
+    <a class="chip" href="#mesa" data-ir="b-jog">Jogadores</a><a class="chip" href="#mesa" data-ir="b-rev">Marcas e elementos</a>
+    <a class="chip" href="#mesa" data-ir="b-loc">Locais</a><a class="chip" href="#mesa" data-ir="b-cri">Criaturas</a>
+    <a class="chip" href="#mesa" data-ir="b-lis">Lista</a><a class="chip" href="#mesa" data-ir="b-msg">Mensagem</a>
+    <a class="chip" href="#inicio">← Portal</a></div>
+  <p class="note">Tudo o que você tocar aqui aparece na hora no celular dos jogadores (link: <a id="mesa-link" href="mesa/">mesa/</a>). Eles só veem o que estiver liberado. Dica: no tablet, "Adicionar à tela inicial" deixa o painel como um app.</p>
   <div id="mesa-box"><p class="note">Carregando…</p></div>
+  <div class="bloco mesa-msg" id="b-msg" hidden>
+    <h2>Mensagem para os jogadores <small>aparece com destaque em todos os celulares</small></h2>
+    <div class="modelos"><button data-modelo="O portão diz">O portão diz…</button><button data-modelo="Uma voz em suas cabeças">Uma voz em suas cabeças…</button><button data-modelo="Atenção">Atenção</button></div>
+    <input id="msg-titulo" placeholder="Título (opcional), por exemplo: O portão diz" maxlength="60">
+    <textarea id="msg-txt" placeholder="Escreva a mensagem…" maxlength="600"></textarea>
+    <p><button class="btn on" data-msg="enviar">Enviar para todos</button> <button class="btn" data-msg="apagar">Apagar a mensagem</button> <span class="note" id="msg-atual"></span></p>
+  </div>
 </section>
 
 <!-- CADERNO -->
@@ -326,6 +363,7 @@ footer{border-top:1px solid var(--line);padding:22px 0;color:var(--muted);font-s
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script src="mesa/firebase.js"></script>
+<script src="mesa/estrelas.js?v=1"></script>
 <script>
 const L = 'web/locais/', B = 'web/bestiario/';
 
@@ -489,9 +527,20 @@ async function loadMd(id, file){
 
 /* abas */
 /* mesa: painel da mestre (libera bosses para a tela dos jogadores, mesa/) */
-// Elementos dos jogadores (caderno, p. 34). Ficam só aqui (portal trancado) e vão para mesa/elementos
-// quando a mestre revela. Mateus é o "humano": aparece "nenhum" (Erick, 2026-11-24; no caderno ele é Ar/Câncer).
-const ELEMENTOS_MESA = { miguel: 'terra', bia: 'fogo', mateus: 'nenhum', joao: 'agua' };
+// Signo e elemento de cada jogador (Erick e Milena, 2026-11-25). Ficam só aqui (portal trancado); vão
+// para mesa/constelacoes/<id> e mesa/elementos/<id> = {v, t} quando a mestre revela, um a um.
+// Mateus é Câncer (Ar), o "humano": a marca dele "não aparece" e o elemento aparece "Nenhum"; a virada
+// (Câncer e Ar de verdade) fica em botões à parte.
+const JOG_MESA = [
+  { id: 'bia', nome: 'Bia', marca: 'sagitario', elem: 'fogo' },
+  { id: 'miguel', nome: 'Miguel', marca: 'capricornio', elem: 'terra' },
+  { id: 'joao', nome: 'João', marca: 'aries', elem: 'agua' },
+  { id: 'mateus', nome: 'Mateus', marca: 'oculta', elem: 'nenhum', virada: { marca: 'cancer', elem: 'ar' } },
+];
+const ELEM_NOME = { fogo: '🔥 Fogo', terra: '🌿 Terra', agua: '🌊 Água', ar: '🌪️ Ar', nenhum: '✧ Nenhum' };
+const marcaNome = v => v === 'oculta' ? 'não aparece' : (window.CONSTELACOES && CONSTELACOES[v] ? CONSTELACOES[v].nome : v);
+const marcaSvg = v => window.svgConstelacao ? svgConstelacao(v === 'oculta' ? 'vazia' : v).svg : '';
+const itemDe = (o, id) => { const x = o && o[id]; if (!x) return null; return typeof x === 'string' ? (o.liberado ? { v: x } : null) : x; };
 const MESA = { ok: false, user: null, lib: {} };
 function mesaRender(){
   const box = document.getElementById('mesa-box');
@@ -503,13 +552,52 @@ function mesaRender(){
       <button class="btn on">Entrar</button> <span class="note" id="mesa-erro"></span></form>`;
     return;
   }
-  const n = Object.keys(MESA.lib).length;
-  box.innerHTML = listaHtml() + `<h2 style="margin-top:26px">Criaturas</h2><p><span class="pill gold">${n} de ${BEASTS.filter(b=>b.img).length} liberadas</span>
-      <button class="btn" data-m="todos">Esconder todas</button> <button class="btn" data-m="sair">Sair</button></p>
+  const n = Object.keys(MESA.lib).length, nl = Object.keys(MESA.locais || {}).length;
+  document.getElementById('b-msg').hidden = false;
+  const g = MESA.msg; document.getElementById('msg-atual').textContent = g && g.txt ? 'No ar: "' + g.txt.slice(0, 60) + (g.txt.length > 60 ? '…' : '') + '"' : 'Nenhuma mensagem no ar.';
+  box.innerHTML = jogadoresHtml() + revelacoesHtml()
+    + `<div class="bloco" id="b-loc"><h2>Locais <small>${nl} de ${SCENES.length} revelados · na ordem da aventura</small></h2>
+    <p><button class="btn" data-loc="todos">Esconder todos</button></p>
+    <div class="mesa-grid">${SCENES.map((x,i) => { const on = !!(MESA.locais || {})[x.img]; return `
+      <div class="mesa-card${on?' lib':''}"><img loading="lazy" src="${L+x.img}.jpg" alt="">
+        <div class="pad"><h3>${esc(x.t)}</h3><small class="note">${esc(x.p)}</small><br>
+        <button class="btn${on?' on':''}" data-loc="${on?'esconder':'liberar'}" data-i="${i}">${on?'✓ Revelado · esconder':'Revelar'}</button></div></div>`; }).join('')}</div></div>`
+    + `<div class="bloco" id="b-cri"><h2>Criaturas <small>${n} de ${BEASTS.filter(b=>b.img).length} liberadas</small></h2>
+    <p><button class="btn" data-m="todos">Esconder todas</button></p>
     <div class="mesa-grid">${BEASTS.filter(b=>b.img).map((b,i) => { const on = !!MESA.lib[b.img]; return `
       <div class="mesa-card${on?' lib':''}"><img loading="lazy" src="${B+b.img}.jpg" alt="">
         <div class="pad"><h3>${esc(b.nome)}</h3><small class="note">${esc(b.comb)}</small><br>
-        <button class="btn${on?' on':''}" data-m="${on?'esconder':'liberar'}" data-i="${i}">${on?'✓ Liberada · esconder':'Liberar'}</button></div></div>`; }).join('')}</div>`;
+        <button class="btn${on?' on':''}" data-m="${on?'esconder':'liberar'}" data-i="${i}">${on?'✓ Liberada · esconder':'Liberar'}</button></div></div>`; }).join('')}</div></div>`
+    + listaHtml();
+}
+function jogadoresHtml(){
+  const donos = MESA.donos || {}, on = MESA.on || {};
+  const jog = JOG_MESA.map(j => donos[j.id]
+    ? `<span class="pill${on[j.id] ? ' gold' : ''}" title="${on[j.id] ? 'conectado agora' : 'escolhido, mas sem conexão agora'}">${j.nome} ${on[j.id] ? '● na mesa' : '○ fora'}</span> <button class="btn" data-jl="${j.id}" title="Libera o nome para outro celular escolher">Liberar</button>`
+    : `<span class="pill">${j.nome} · livre</span>`).join(' &nbsp; ');
+  return `<div class="bloco" id="b-jog"><h2>Jogadores</h2><p>${jog}</p>
+    <p><button class="btn" data-nova-partida>Nova partida (zerar tudo)</button> <button class="btn" data-m="sair">Sair</button>
+    <span class="note">Tudo fica salvo sozinho entre uma sessão e outra; "Nova partida" só para começar do zero.</span></p></div>`;
+}
+function revelacoesHtml(){
+  const on = MESA.on || {};
+  const cel = (tipo, j, atual, padrao, virada, nomeDe, svg) => {
+    const bt = (v, txt, cls) => `<button class="btn${cls ? ' on' : ''}" data-rev="${tipo}" data-j="${j.id}" data-v="${v}">${txt}</button>`;
+    if (!atual) return bt(padrao, padrao === 'oculta' ? 'Revelar (não aparece)' : 'Revelar ' + nomeDe(padrao), true) + (virada ? ' ' + bt(virada, nomeDe(virada) + ' (virada)') : '');
+    return `<span class="feito">${svg ? marcaSvg(atual.v) : ''}✓ ${nomeDe(atual.v)}</span> `
+      + (virada && atual.v !== virada ? bt(virada, 'Revelar ' + nomeDe(virada) + ' (virada)', true) + ' ' : '')
+      + `<button class="btn" data-rev="${tipo}" data-j="${j.id}" data-v="">esconder</button>`;
+  };
+  const linhas = JOG_MESA.map(j => {
+    const m = itemDe(MESA.marcas, j.id), e = itemDe(MESA.elem, j.id), v = j.virada || {};
+    return `<tr><td><span class="dot${on[j.id] ? ' on' : ''}"></span><b>${j.nome}</b></td>
+      <td>${cel('marca', j, m, j.marca, v.marca, marcaNome, true)}</td>
+      <td>${cel('elem', j, e, j.elem, v.elem, x => ELEM_NOME[x] || x, false)}</td></tr>`;
+  }).join('');
+  return `<div class="bloco" id="b-rev"><h2>Marcas e elementos <small>um a um, ou todos de uma vez · cada revelação aparece com efeito no celular daquele jogador</small></h2>
+    <table class="rev"><tr><th>Jogador</th><th>Marca (constelação)</th><th>Elemento</th></tr>${linhas}
+    <tr><td></td><td><button class="btn" data-rev-todos="marca">Revelar todas as marcas</button></td><td><button class="btn" data-rev-todos="elem">Revelar todos os elementos</button></td></tr></table>
+    <p class="note">O Mateus é o "humano": a marca dele não aparece e o elemento é "Nenhum". Os botões "(virada)" revelam Câncer e Ar quando chegar a hora.</p></div>`;
 }
 /* lista do portão (p. 11 a 13): o portão entrega a lista depois do Boitatá e do Robin Hood; cada dog
    tag revela uma letra sorteada em cada nome ainda escondido; boss morto = nome inteiro e riscado.
@@ -547,40 +635,46 @@ function listaHtml(){
         ? `<button class="btn" data-l="vivo" data-i="${i}">Desfazer</button>`
         : `${faltam ? `<button class="btn" data-l="inteiro" data-i="${i}">Revelar nome</button> ` : ''}<button class="btn on" data-l="morto" data-i="${i}">Riscar (morto)</button>`}</td></tr>`;
   }).join('');
-  const NOMES_J = [['miguel', '🌿 Miguel'], ['bia', '🔥 Bia'], ['mateus', '🌪️ Mateus'], ['joao', '🌊 João']];
-  const donos = MESA.donos || {}, on = MESA.on || {};
-  const jog = NOMES_J.map(([id, n]) => donos[id]
-    ? `<span class="pill${on[id] ? ' gold' : ''}" title="${on[id] ? 'conectado agora' : 'escolhido, mas sem conexão agora'}">${n} ${on[id] ? '● na mesa' : '○ fora'}</span> <button class="btn" data-jl="${id}" title="Libera o nome para outro celular escolher">Liberar</button>`
-    : `<span class="pill">${n} · livre</span>`).join(' &nbsp; ');
-  return `<h2 style="margin-top:20px">Jogadores</h2>
-    <p>${jog}</p>
-    <p>${MESA.elem && MESA.elem.liberado
-      ? `<span class="pill gold">Elementos revelados</span> <button class="btn" data-elem="esconder">Esconder os elementos</button>`
-      : `<span class="pill">Elementos escondidos</span> <button class="btn on" data-elem="liberar">Revelar os elementos</button>`}
-      <span class="note">Revela para os quatro ao mesmo tempo, com destaque na tela. O Mateus vê "Nenhum".</span></p>
-    <p><button class="btn" data-nova-partida>Nova partida (zerar tudo)</button> <span class="note">Tudo fica salvo sozinho entre uma sessão e outra; use este botão só para começar do zero.</span></p>
-    <h2 style="margin-top:20px">A lista do portão</h2>
-    <div class="lista-mestre"><p>${st.entregue
+  return `<div class="bloco" id="b-lis"><h2>A lista do portão</h2>
+    <div class="lista-mestre" style="margin:8px 0 0;border:0;padding:0"><p>${st.entregue
       ? `<span class="pill gold">Entregue aos jogadores</span> <button class="btn" data-l="recolher">Recolher</button>`
       : `<span class="pill">Ainda não entregue</span> <button class="btn on" data-l="entregar">Entregar a lista</button>`}
       <button class="btn on" data-l="dogtag">Nova dog tag (${st.dogtags})</button>
       <button class="btn" data-l="zerar">Zerar a lista</button></p>
       <p class="note">Você vê os nomes inteiros: em dourado o que os jogadores já veem, apagado o que ainda está escondido. "Nova dog tag" sorteia uma letra nova em cada nome escondido. Os jogadores veem só as letras já reveladas, sem saber o tamanho do nome.</p>
-      <table>${linhas}</table></div>`;
+      <table>${linhas}</table></div></div>`;
 }
 document.addEventListener('click', e => {
   const jl = e.target.closest('[data-jl]');
   if (jl && confirm('Liberar este nome? Outro celular poderá escolhê-lo.')) {
     firebase.database().ref('mesa/jogadores/' + jl.dataset.jl).remove(); firebase.database().ref('mesa/online/' + jl.dataset.jl).remove(); return; }
-  if (e.target.closest('[data-nova-partida]') && confirm('Começar uma partida nova? Some tudo dos celulares: criaturas, lista, dog tags e a escolha dos jogadores.')) {
+  if (e.target.closest('[data-nova-partida]') && confirm('Começar uma partida nova? Some tudo dos celulares: criaturas, locais, lista, dog tags, marcas, elementos, mensagem e a escolha dos jogadores.')) {
     firebase.database().ref('mesa').remove(); firebase.database().ref('mestre').remove(); return; }
-  const el = e.target.closest('[data-elem]');
-  if (el) {
-    const ref = firebase.database().ref('mesa/elementos');
-    if (el.dataset.elem === 'liberar' && confirm('Revelar o elemento de cada jogador agora? Aparece com destaque em todos os celulares.'))
-      ref.set({ liberado: true, t: Date.now(), ...ELEMENTOS_MESA }).catch(() => alert('Não consegui gravar. Confira a internet.'));
-    if (el.dataset.elem === 'esconder' && confirm('Esconder os elementos de novo?')) ref.remove();
+  const db = { ref: c => firebase.database().ref(c) }, erro = () => alert('Não consegui gravar. Confira a internet e se você entrou como mestre.');
+  const ir = e.target.closest('[data-ir]');
+  if (ir) { e.preventDefault(); const alvo = document.getElementById(ir.dataset.ir); if (alvo) alvo.scrollIntoView({ behavior: 'smooth' }); return; }
+  const rv = e.target.closest('[data-rev]');
+  if (rv) { const ref = db.ref((rv.dataset.rev === 'marca' ? 'mesa/constelacoes/' : 'mesa/elementos/') + rv.dataset.j);
+    (rv.dataset.v ? ref.set({ v: rv.dataset.v, t: Date.now() }) : ref.remove()).catch(erro); return; }
+  const rt = e.target.closest('[data-rev-todos]');
+  if (rt) { const marca = rt.dataset.revTodos === 'marca', t = Date.now(), up = {};
+    if (!confirm(marca ? 'Revelar a marca dos quatro agora?' : 'Revelar o elemento dos quatro agora?')) return;
+    JOG_MESA.forEach(j => { up[j.id] = { v: marca ? j.marca : j.elem, t }; });
+    db.ref(marca ? 'mesa/constelacoes' : 'mesa/elementos').set(up).catch(erro); return; }
+  const lc = e.target.closest('[data-loc]');
+  if (lc) { const ref = db.ref('mesa/locais'), m = lc.dataset.loc, x = SCENES[+lc.dataset.i];
+    if (m === 'todos') { if (confirm('Esconder todos os locais dos jogadores?')) ref.remove().catch(erro); return; }
+    if (m === 'liberar') ref.child(x.img).set({ nome: x.t, img: x.img, t: Date.now() }).catch(erro);
+    if (m === 'esconder') ref.child(x.img).remove().catch(erro);
     return; }
+  const md = e.target.closest('[data-modelo]');
+  if (md) { document.getElementById('msg-titulo').value = md.dataset.modelo; document.getElementById('msg-txt').focus(); return; }
+  const ms = e.target.closest('[data-msg]');
+  if (ms) { const ref = db.ref('mesa/mensagem');
+    if (ms.dataset.msg === 'apagar') { ref.remove().catch(erro); return; }
+    const txt = document.getElementById('msg-txt').value.trim(), titulo = document.getElementById('msg-titulo').value.trim();
+    if (!txt) { alert('Escreva a mensagem primeiro.'); return; }
+    ref.set({ txt, titulo, t: Date.now() }).then(() => { document.getElementById('msg-txt').value = ''; }).catch(erro); return; }
   const b = e.target.closest('[data-l]'); if (!b) return;
   const st = listaEstado(), m = b.dataset.l, x = st.itens[+b.dataset.i];
   if (m === 'entregar') st.entregue = true;
@@ -610,6 +704,9 @@ function mesaInit(){
   firebase.database().ref('mesa/jogadores').on('value', s => { MESA.donos = s.val() || {}; mesaRender(); });
   firebase.database().ref('mesa/online').on('value', s => { MESA.on = s.val() || {}; mesaRender(); });
   firebase.database().ref('mesa/elementos').on('value', s => { MESA.elem = s.val(); mesaRender(); });
+  firebase.database().ref('mesa/constelacoes').on('value', s => { MESA.marcas = s.val(); mesaRender(); });
+  firebase.database().ref('mesa/locais').on('value', s => { MESA.locais = s.val() || {}; mesaRender(); });
+  firebase.database().ref('mesa/mensagem').on('value', s => { MESA.msg = s.val(); mesaRender(); });
   firebase.auth().onAuthStateChanged(u => { if (u && !MESA.segredoOk) { MESA.segredoOk = true;
     firebase.database().ref('mestre/lista').on('value', s => { MESA.segredo = s.val() || {}; mesaRender(); }); } });
 }
@@ -639,6 +736,7 @@ function show(){
   document.querySelectorAll('#tabs a').forEach(a => a.classList.toggle('on', a.getAttribute('href') === '#'+v));
   if (v==='transcricao') loadMd('md-transcricao','01-transcricao-integral.md');
   if (v==='sugestoes') loadMd('md-sugestoes','02-sugestoes.md');
+  document.body.classList.toggle('modo-mesa', v==='mesa');
   if (v==='mesa') mesaInit();
   window.scrollTo({top:0});
 }

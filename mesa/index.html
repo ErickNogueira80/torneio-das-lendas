@@ -101,18 +101,43 @@ nav#barra button.novo i{display:block}
 #avatar .op:disabled{opacity:.5;cursor:not-allowed}
 #avatar .op .falta{width:128px;height:150px;border-radius:10px;border:1px dashed var(--line);display:flex;align-items:center;justify-content:center;
   margin:0 auto 8px;color:var(--muted);font-size:14px;padding:8px}
-/* elemento do jogador: revelado pela mestre */
-.elem{display:inline-flex;align-items:center;gap:6px;margin-top:6px;padding:3px 12px;border-radius:999px;border:1px solid var(--c);color:var(--c);
+/* revelações da mestre (marca, elemento, mensagem): tela cheia com efeito */
+.selos{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.elem,.marca{display:inline-flex;align-items:center;gap:6px;padding:3px 12px;border-radius:999px;border:1px solid var(--c);color:var(--c);
   font-family:Cinzel,serif;font-weight:600;font-size:15px;background:color-mix(in srgb,var(--c) 14%,transparent)}
-#elemento{background:radial-gradient(circle at 50% 45%,color-mix(in srgb,var(--c) 45%,#000) 0%,rgba(8,6,14,.97) 62%)}
-#elemento .wrap{text-align:center}
-#elemento small{font-family:Cinzel,serif;letter-spacing:.2em;color:var(--gold);font-size:15px}
-#elemento .sim{font-size:120px;line-height:1.1;margin:18px 0 6px;animation:surge 1.6s cubic-bezier(.2,1.4,.4,1) both;filter:drop-shadow(0 0 28px var(--c))}
-#elemento h2{font-family:Cinzel,serif;font-size:46px;margin:0;color:var(--c);text-shadow:0 0 22px var(--c);animation:aparece 1s .9s both;letter-spacing:.06em}
-#elemento .aura{position:absolute;inset:0;pointer-events:none;background:radial-gradient(circle at 50% 45%,var(--c) 0,transparent 38%);opacity:0;animation:pulso 2.4s .3s ease-out}
-@keyframes surge{0%{transform:scale(.1) rotate(-30deg);opacity:0}100%{transform:none;opacity:1}}
-@keyframes aparece{0%{opacity:0;transform:translateY(16px)}100%{opacity:1;transform:none}}
-@keyframes pulso{0%{opacity:.9}100%{opacity:0}}
+.marca{padding:1px 12px 1px 4px}
+.marca .const{width:30px;height:30px}
+.marca .const line{stroke-width:3}
+.marca .const circle{r:5}
+#revela{background:radial-gradient(circle at 50% 45%,color-mix(in srgb,var(--c) 38%,#000) 0%,#05040a 68%);overflow:hidden}
+#revela .ceu{position:absolute;inset:0;pointer-events:none}
+#revela .ceu b{position:absolute;width:2px;height:2px;border-radius:50%;background:#fff;opacity:.15;animation:rv-pisca var(--d) ease-in-out infinite alternate}
+#revela .wrap{position:relative;z-index:1;text-align:center}
+#revela small{display:block;font-family:Cinzel,serif;letter-spacing:.25em;color:var(--gold);font-size:15px;animation:rv-sobe .8s both}
+#revela .sim{font-size:120px;line-height:1.1;margin:14px 0 4px;animation:rv-surge 1.4s .4s cubic-bezier(.2,1.5,.4,1) both;filter:drop-shadow(0 0 28px var(--c))}
+#revela .const{width:min(76vw,340px);height:min(76vw,340px);display:block;margin:6px auto 0;overflow:visible;filter:drop-shadow(0 0 6px var(--c)) drop-shadow(0 0 18px var(--c))}
+#revela .const .e{transform-box:fill-box;transform-origin:center;animation:rv-estrela .7s cubic-bezier(.2,1.8,.4,1) both;animation-delay:var(--t)}
+#revela .const .ln{stroke-dasharray:1;stroke-dashoffset:1;animation:rv-traco .5s ease-out forwards}
+#revela h2{font-family:Cinzel,serif;font-size:44px;margin:4px 0 0;color:var(--c);text-shadow:0 0 22px var(--c),0 0 4px #fff;letter-spacing:.06em;animation:rv-sobe 1s both}
+#revela .sub{color:#d9d2e6;font-size:20px;font-style:italic;margin:10px 0 0;animation:rv-sobe 1.2s both}
+#revela .msg{font-family:'IM Fell English',serif;font-size:27px;line-height:1.35;color:#f6e7c6;max-width:620px;margin:14px auto 0;text-shadow:0 0 18px rgba(227,183,90,.5);animation:rv-sobe 1.2s both}
+#revela .flash{position:absolute;inset:0;background:radial-gradient(circle at 50% 45%,#fff 0,var(--c) 20%,transparent 62%);opacity:0;animation:rv-flash 1.6s both;pointer-events:none}
+#revela .anel{position:absolute;left:50%;top:45%;width:40px;height:40px;margin:-20px;border:3px solid var(--c);border-radius:50%;opacity:0;animation:rv-anel 1.8s ease-out both;pointer-events:none}
+#revela .faisca{position:absolute;left:50%;top:45%;width:7px;height:7px;margin:-3px;border-radius:50%;background:var(--c);box-shadow:0 0 10px var(--c),0 0 3px #fff;opacity:0;animation:rv-faisca 1.7s ease-out both;pointer-events:none}
+#revela .toque{position:absolute;bottom:24px;left:0;right:0;animation:rv-sobe 1s both}
+/* a marca que não aparece (Câncer): estrelas fracas tremem e somem */
+#revela.oculta .const{filter:none;animation:rv-some 1.4s 3s forwards}
+#revela.oculta .const .e{opacity:.5;animation:rv-estrela .7s both,rv-falha .2s steps(2) 6;animation-delay:var(--t),2s}
+@keyframes rv-pisca{to{opacity:.9}}
+@keyframes rv-sobe{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+@keyframes rv-surge{0%{transform:scale(.1) rotate(-40deg);opacity:0}100%{transform:none;opacity:1}}
+@keyframes rv-estrela{0%{transform:scale(0);opacity:0}60%{transform:scale(2.4);opacity:1}100%{transform:scale(1);opacity:1}}
+@keyframes rv-traco{to{stroke-dashoffset:0}}
+@keyframes rv-flash{0%{opacity:0}12%{opacity:.95}100%{opacity:0}}
+@keyframes rv-anel{0%{opacity:.9;transform:scale(.2)}100%{opacity:0;transform:scale(16)}}
+@keyframes rv-faisca{0%{opacity:1;transform:none}100%{opacity:0;transform:translate(var(--dx),var(--dy)) scale(.3)}}
+@keyframes rv-some{to{opacity:.05;filter:blur(4px)}}
+@keyframes rv-falha{50%{opacity:.1}}
 #aviso-lista{position:fixed;left:50%;bottom:86px;transform:translateX(-50%);background:#e3b75a;color:#1b1408;font-weight:600;padding:10px 20px;
   border-radius:999px;display:none;z-index:16;box-shadow:0 4px 18px rgba(0,0,0,.5);text-align:center;max-width:90vw;cursor:pointer}
 </style>
@@ -125,22 +150,24 @@ nav#barra button.novo i{display:block}
 <main id="app"><div class="espera"><div class="estrela">✦</div><p>Conectando…</p></div></main>
 <nav id="barra">
   <button data-v="criaturas"><i></i><span>🐉</span><small>Criaturas</small></button>
+  <button data-v="locais" hidden><i></i><span>🗺️</span><small>Locais</small></button>
   <button data-v="lista" hidden><i></i><span>📜</span><small>Lista</small></button>
   <button data-v="ficha"><i></i><span>🧾</span><small>Minha ficha</small></button>
 </nav>
 <div id="zoom" class="ov" data-ov="zoom"><img alt=""><p class="aviso">Toque para fechar</p></div>
 <div id="novo" class="ov" data-ov="novo"><div class="wrap"><small>NOVA CRIATURA</small><br><img alt=""><h2></h2><p class="aviso">Toque para fechar</p></div></div>
 <div id="avatar" class="ov" data-ov="avatar"></div>
-<div id="elemento" class="ov" data-ov="elemento"></div>
+<div id="revela" class="ov" data-ov="revela"></div>
 <div id="aviso-lista"></div>
 
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script src="firebase.js?v=2"></script>
 <script src="fichas.js?v=3"></script>
+<script src="estrelas.js?v=1"></script>
 <script>
 (function () {
-  // Os quatro jogadores (caderno, p. 34). Elemento só depois que a mestre revela (Erick, 2026-11-24). Cada nome fica
+  // Os quatro jogadores (caderno, p. 34). Marca e elemento só depois que a mestre revela, um a um (Erick, 2026-11-25). Cada nome fica
   // reservado para o 1º celular que escolher (mesa/jogadores/<id> = {dev, avatar}); só a mestre libera.
   const JOGADORES = [
     { id: 'miguel', nome: 'Miguel' }, { id: 'bia', nome: 'Bia' }, { id: 'mateus', nome: 'Mateus' }, { id: 'joao', nome: 'João' },
@@ -148,12 +175,13 @@ nav#barra button.novo i{display:block}
   // Navegação: cada aba é um endereço (#criaturas, #lista, #ficha) e cada janela por cima (imagem
   // ampliada, nova criatura, escolha do avatar) é um passo no histórico. Assim o "voltar" do Android
   // fecha a janela ou volta de aba, em vez de sair da página.
-  const ABAS = ['criaturas', 'lista', 'ficha'];
+  const ABAS = ['criaturas', 'locais', 'lista', 'ficha'];
   const $ = id => document.getElementById(id);
   const app = $('app'), sub = $('sub'), barra = $('barra'), avisoEl = $('aviso-lista');
   const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
   const src = b => '../web/bestiario/' + encodeURIComponent(b.img) + '.jpg';
-  const carta = b => `<div class="carta" data-src="${src(b)}"><img src="${src(b)}" alt="${esc(b.nome)}"><h2>${esc(b.nome)}</h2></div>`;
+  const srcL = b => '../web/locais/' + encodeURIComponent(b.img) + '.jpg';
+  const carta = (b, f) => { const u = (f || src)(b); return `<div class="carta" data-src="${u}"><img src="${u}" alt="${esc(b.nome)}"><h2>${esc(b.nome)}</h2></div>`; };
   const ESPERA = t => `<div class="espera"><div class="estrela">✦</div><p>${t}</p></div>`;
   const ler = k => { try { return localStorage.getItem(k); } catch (e) { return null; } };
   const gravar = (k, v) => { try { v == null ? localStorage.removeItem(k) : localStorage.setItem(k, v); } catch (e) {} };
@@ -165,24 +193,34 @@ nav#barra button.novo i{display:block}
 
   let dev = ler('tdl_dev'); if (!dev) { dev = Math.random().toString(36).slice(2) + Date.now().toString(36); gravar('tdl_dev', dev); }
   let eu = JOGADORES.find(j => j.id === ler('tdl_jogador')) || null;
-  let donos = null, bosses = null, lista = null, elementos = null, primeiraVez = false;
-  // Elementos: só chegam quando a mestre revela (mesa/elementos); não ficam no código da página.
+  let donos = null, bosses = null, lista = null, locais = null, primeiraVez = false;
+  // Revelações da mestre: chegam só quando ela libera (mesa/constelacoes, mesa/elementos, mesa/mensagem).
+  // Quem é de qual signo/elemento não fica no código desta página, só no portal trancado.
+  let elementos = null, constelacoes = null, mensagem = null;
   const ELEM = { fogo: ['🔥', 'Fogo', '#ff7a33'], terra: ['🌿', 'Terra', '#8fd15a'], ar: ['🌪️', 'Ar', '#bfe6ff'],
     agua: ['🌊', 'Água', '#4fb3ff'], nenhum: ['✧', 'Nenhum', '#c9c2d6'] };
-  const meuElem = () => elementos && elementos.liberado && eu && ELEM[elementos[eu.id]] || null;
-  const seloElem = () => { const e = meuElem(); return e ? `<div><span class="elem" style="--c:${e[2]}">${e[0]} ${e[1]}</span></div>` : ''; };
+  // um item por jogador ({v, t}); aceita também o formato antigo (todos de uma vez, com "liberado")
+  const itemDe = (o, id) => { const x = o && o[id]; if (!x) return null; return typeof x === 'string' ? (o.liberado ? { v: x, t: o.t || 0 } : null) : x; };
+  const meuElem = () => { const x = eu && itemDe(elementos, eu.id); return x && ELEM[x.v] ? { ...x, e: ELEM[x.v] } : null; };
+  const minhaMarca = () => { const x = eu && itemDe(constelacoes, eu.id); return x && (x.v === 'oculta' || (window.CONSTELACOES || {})[x.v]) ? x : null; };
+  function selos() {
+    const e = meuElem(), m = minhaMarca(); if (!e && !m) return '';
+    const sm = !m ? '' : m.v === 'oculta' ? `<span class="marca" style="--c:#9a90ad">${svgConstelacao('vazia').svg} Marca: não apareceu</span>`
+      : `<span class="marca" style="--c:${CONSTELACOES[m.v].cor}">${svgConstelacao(m.v).svg} ${CONSTELACOES[m.v].nome}</span>`;
+    return `<div class="selos">${sm}${e ? `<span class="elem" style="--c:${e.e[2]}">${e.e[0]} ${e.e[1]}</span>` : ''}</div>`;
+  }
   let vistos = null, letrasAntes = null, listaAntes = null;
-  const novidade = { criaturas: false, lista: false };
+  const novidade = { criaturas: false, locais: false, lista: false };
 
   // ---------- navegação ----------
-  const aba = () => { const h = location.hash.slice(1); return ABAS.includes(h) && !(h === 'lista' && !(lista && lista.entregue)) ? h : 'criaturas'; };
+  const aba = () => { const h = location.hash.slice(1); return ABAS.includes(h) && !(h === 'lista' && !(lista && lista.entregue)) && !(h === 'locais' && !listaLocais().length) ? h : 'criaturas'; };
   function irPara(v) { if (v !== aba() || location.hash !== '#' + v) { history.pushState(null, '', '#' + v); sincronizar(); } }
   function abrirJanela(ov) { history.pushState({ ov }, '', location.hash || '#criaturas'); sincronizar(); }
   function fecharJanela() { if (history.state && history.state.ov) history.back(); }
   function sincronizar() {
     const ov = history.state && history.state.ov;
     document.querySelectorAll('.ov').forEach(o => o.classList.toggle('on', o.dataset.ov === ov));
-    if (!ov) { novidade[aba()] = false; render(); window.scrollTo({ top: 0 }); }
+    if (!ov) { novidade[aba()] = false; render(); window.scrollTo({ top: 0 }); setTimeout(proxima, 400); }
   }
   addEventListener('popstate', sincronizar);
 
@@ -198,11 +236,11 @@ nav#barra button.novo i{display:block}
     const f = ficha();
     const intro = primeiraVez ? `<p style="text-align:center;color:var(--muted);margin:0 0 14px">Esta é a sua ficha. Você pode voltar a ela quando quiser, em <b>Minha ficha</b>, aqui embaixo.</p>` : '';
     if (!f) return intro + `<div class="ficha"><small class="k">MINHA FICHA · ${esc(eu.nome).toUpperCase()}</small>
-      ${seloElem()}<p class="vazio">A sua ficha ainda está em branco no caderno da mestre. Combine com ela!</p></div>` + botaoComecar();
+      ${selos()}<p class="vazio">A sua ficha ainda está em branco no caderno da mestre. Combine com ela!</p></div>` + botaoComecar();
     const foto = fotoAtual();
     return intro + `<div class="ficha"><small class="k">MINHA FICHA · ${esc(eu.nome).toUpperCase()}</small>
       <div class="topo">${foto ? `<div class="foto" data-avatar title="Trocar a imagem"><img src="${foto}" alt=""><em>✎</em></div>` : ''}
-        <div><small class="k">PERSONAGEM</small><h2>${esc(f.personagem)}</h2><div>${f.idade} anos</div>${seloElem()}</div></div>
+        <div><small class="k">PERSONAGEM</small><h2>${esc(f.personagem)}</h2><div>${f.idade} anos</div>${selos()}</div></div>
       <h3>STATUS</h3><div class="st">${Object.entries(f.status).map(([k, v]) => `<div><b>${v}</b><span>${NOMES_ST[k]}</span></div>`).join('')}</div>
       <h3>PERÍCIAS</h3>${f.pericias.length ? `<ul>${f.pericias.map(x => `<li>${esc(x)}</li>`).join('')}</ul>` : '<p class="vazio">Nenhuma ainda</p>'}
       <h3>ITENS</h3>${f.itens.length ? `<ul>${f.itens.map(x => `<li>${esc(x)}</li>`).join('')}</ul>` : '<p class="vazio">Nenhum</p>'}
@@ -232,7 +270,7 @@ nav#barra button.novo i{display:block}
       return { ...(cur || {}), dev, t: Date.now() };
     }, (err, ok, snap) => {
       if (!err && ok && snap.val() && snap.val().dev === dev) {
-        eu = j; gravar('tdl_jogador', j.id); vistos = null; marcarPresenca(); primeiraVez = true; irPara('ficha'); mostrarElemento();
+        eu = j; gravar('tdl_jogador', j.id); vistos = null; marcarPresenca(); primeiraVez = true; irPara('ficha'); verificar();
       } else aviso(j.nome + ' já foi escolhido por outro jogador');
     }, false);
   }
@@ -285,6 +323,13 @@ nav#barra button.novo i{display:block}
     }).join('')}</ol>${lista.dogtags ? `<div class="dogtags">Dog tags: ${lista.dogtags}</div>` : ''}</div>`;
   }
   function listaBosses() { return Object.entries(bosses || {}).map(([id, b]) => ({ id, ...b })).sort((a, b) => (b.t || 0) - (a.t || 0)); }
+  function listaLocais() { return Object.entries(locais || {}).map(([id, b]) => ({ id, ...b })).sort((a, b) => (b.t || 0) - (a.t || 0)); }
+  function htmlLocais() {
+    const [atual, ...resto] = listaLocais();
+    if (!atual) return ESPERA('Nenhum local revelado ainda.');
+    return `<div class="atual">${carta(atual, srcL)}</div>` +
+      (resto.length ? `<p class="rotulo">JÁ VISITADOS</p><div class="lista">${resto.map(b => carta(b, srcL)).join('')}</div>` : '');
+  }
   function htmlCriaturas() {
     const bl = listaBosses();
     if (!bl.length) return ESPERA('Aguardando a mestre revelar a primeira criatura…');
@@ -311,33 +356,81 @@ nav#barra button.novo i{display:block}
       b.classList.toggle('on', b.dataset.v === v);
       b.classList.toggle('novo', !!novidade[b.dataset.v] && b.dataset.v !== v);
       if (b.dataset.v === 'lista') b.hidden = !temLista;
+      if (b.dataset.v === 'locais') b.hidden = !listaLocais().length;
     });
     if (v === 'ficha') { app.innerHTML = htmlFicha(); return; }
     if (bosses === null || lista === null) { app.innerHTML = ESPERA('Conectando…'); return; }
-    app.innerHTML = v === 'lista' ? htmlLista() : htmlCriaturas();
+    app.innerHTML = v === 'lista' ? htmlLista() : v === 'locais' ? htmlLocais() : htmlCriaturas();
   }
 
-  // revela o elemento com destaque uma vez por celular (vale também para quem entrar depois)
-  // (no próximo instante: deixa a troca de tela, como ir para a ficha, acontecer antes de abrir por cima)
-  function mostrarElemento() { setTimeout(revelarElemento, 0); }
-  function revelarElemento() {
-    const e = meuElem(); if (!e) return;
-    const chave = 'tdl_elem_' + eu.id + '_' + (elementos.t || 0);
-    if (ler(chave)) return; gravar(chave, '1');
-    const o = $('elemento'); o.style.setProperty('--c', e[2]);
-    o.innerHTML = `<div class="aura"></div><div class="wrap"><small>SEU ELEMENTO</small><div class="sim">${e[0]}</div><h2>${e[1]}</h2><p class="aviso">Toque para fechar</p></div>`;
-    if (history.state && history.state.ov) history.replaceState({ ov: 'elemento' }, '', location.hash || '#criaturas'), sincronizar();
-    else abrirJanela('elemento');
-    if (navigator.vibrate) navigator.vibrate([200, 80, 200, 80, 400]);
+  // ---------- revelações: uma de cada vez, com efeito, uma vez por celular ----------
+  const fila = [];
+  function enfileirar(chave, montar) { if (ler(chave) || fila.some(f => f.chave === chave)) return; fila.push({ chave, montar }); setTimeout(proxima, 0); }
+  function proxima() {
+    if (!eu || !fila.length || (history.state && history.state.ov)) return;
+    const f = fila.shift(); gravar(f.chave, '1');
+    const r = f.montar(), o = $('revela');
+    o.className = 'ov ' + (r.cls || ''); o.style.setProperty('--c', r.cor);
+    o.innerHTML = ceu() + r.html + `<p class="aviso toque" style="animation-delay:${r.fim.toFixed(1)}s">Toque para fechar</p>`;
+    abrirJanela('revela');
+    if (navigator.vibrate) navigator.vibrate(r.vib || [200, 80, 200, 80, 500]);
   }
-  db.ref('mesa/elementos').on('value', s => { elementos = s.val(); render(); mostrarElemento(); });
+  function verificar() {
+    if (!eu) return;
+    const m = minhaMarca(); if (m) enfileirar('tdl_marca_' + eu.id + '_' + (m.t || 0), () => montarMarca(m));
+    const e = meuElem(); if (e) enfileirar('tdl_elem_' + eu.id + '_' + (e.t || 0), () => montarElem(e));
+    if (mensagem && mensagem.txt) { const g = mensagem; enfileirar('tdl_msg_' + (g.t || 0), () => montarMsg(g)); }
+  }
+  const rnd = (a, b) => a + Math.random() * (b - a);
+  function ceu() { let h = '<div class="ceu">'; for (let i = 0; i < 70; i++) h += `<b style="left:${rnd(0, 100).toFixed(1)}%;top:${rnd(0, 100).toFixed(1)}%;--d:${rnd(1, 3.5).toFixed(1)}s;animation-delay:-${rnd(0, 3).toFixed(1)}s"></b>`; return h + '</div>'; }
+  function fx(t) {   // clarão, dois anéis e faíscas saindo do centro
+    let h = `<div class="flash" style="animation-delay:${t.toFixed(2)}s"></div><div class="anel" style="animation-delay:${t.toFixed(2)}s"></div><div class="anel" style="animation-delay:${(t + .3).toFixed(2)}s"></div>`;
+    for (let i = 0; i < 32; i++) { const a = rnd(0, 6.283), d = rnd(110, 300);
+      h += `<i class="faisca" style="--dx:${(Math.cos(a) * d) | 0}px;--dy:${(Math.sin(a) * d) | 0}px;animation-delay:${(t + rnd(0, .25)).toFixed(2)}s"></i>`; }
+    return h;
+  }
+  function montarMarca(m) {
+    if (m.v === 'oculta') { const c = svgConstelacao('vazia', { anim: true });
+      return { cor: '#9a90ad', cls: 'oculta', vib: [60, 90, 60, 90, 60], fim: 4.6,
+        html: `<div class="wrap"><small>SUA MARCA</small>${c.svg}<p class="sub" style="animation-delay:3.8s">A sua marca… não apareceu.</p></div>` }; }
+    const c = svgConstelacao(m.v, { anim: true }), k = CONSTELACOES[m.v], t = c.fim + .2;
+    return { cor: k.cor, fim: t + 1.4, html: fx(t) + `<div class="wrap"><small>SUA MARCA</small>${c.svg}<h2 style="animation-delay:${(t + .25).toFixed(2)}s">${k.nome}</h2></div>` };
+  }
+  function montarElem(x) {
+    const [sim, nome, cor] = x.e, nada = x.v === 'nenhum';
+    return { cor, fim: 2.6, vib: nada ? [120, 80, 120] : null,
+      html: (nada ? '' : fx(1)) + `<div class="wrap"><small>SEU ELEMENTO</small><div class="sim">${sim}</div><h2 style="animation-delay:1.1s">${nome}</h2></div>` };
+  }
+  function montarMsg(g) {
+    return { cor: '#e3b75a', fim: 2, vib: [150, 60, 150],
+      html: fx(.3) + `<div class="wrap"><small>${esc(g.titulo || 'MENSAGEM DA MESTRE').toUpperCase()}</small><p class="msg" style="animation-delay:.5s">${esc(g.txt).replace(/\n/g, '<br>')}</p></div>` };
+  }
+  db.ref('mesa/constelacoes').on('value', s => { constelacoes = s.val(); render(); verificar(); });
+  db.ref('mesa/elementos').on('value', s => { elementos = s.val(); render(); verificar(); });
+  db.ref('mesa/mensagem').on('value', s => { mensagem = s.val(); verificar(); });
+
+  // ---------- locais liberados pela mestre (mesa/locais/<img> = {nome, img, t}) ----------
+  let vistosL = null;
+  db.ref('mesa/locais').on('value', snap => {
+    locais = snap.val() || {};
+    const ll = listaLocais(), atual = ll[0];
+    if (eu && vistosL && atual && !vistosL.has(atual.id)) {
+      const n = $('novo'); n.querySelector('small').textContent = 'NOVO LOCAL';
+      n.querySelector('img').src = srcL(atual); n.querySelector('h2').textContent = atual.nome;
+      if (aba() !== 'locais') novidade.locais = true;
+      abrirJanela('novo');
+      if (navigator.vibrate) navigator.vibrate([120, 60, 120]);
+    }
+    vistosL = new Set(ll.map(b => b.id));
+    render();
+  });
 
   const falha = () => { app.innerHTML = ESPERA('Sem conexão com a mesa. Confira a internet.'); };
   db.ref('mesa/bosses').on('value', snap => {
     bosses = snap.val() || {};
     const bl = listaBosses(), atual = bl[0];
     if (eu && vistos && atual && !vistos.has(atual.id)) {
-      const n = $('novo'); n.querySelector('img').src = src(atual); n.querySelector('h2').textContent = atual.nome;
+      const n = $('novo'); n.querySelector('small').textContent = 'NOVA CRIATURA'; n.querySelector('img').src = src(atual); n.querySelector('h2').textContent = atual.nome;
       if (aba() !== 'criaturas') novidade.criaturas = true;
       abrirJanela('novo');
       if (navigator.vibrate) navigator.vibrate([120, 60, 120]);
@@ -368,7 +461,7 @@ nav#barra button.novo i{display:block}
     if (t.closest('[data-avatar]')) { abrirAvatar(); return; }
     const op = t.closest('[data-escolhe]'); if (op) { escolherAvatar(op.dataset.escolhe); return; }
     if (t.closest('#avatar')) { if (t.closest('[data-fechar]') || t.id === 'avatar') fecharJanela(); return; }
-    if (t.closest('#novo') || t.closest('#elemento')) { fecharJanela(); return; }
+    if (t.closest('#novo') || t.closest('#revela')) { fecharJanela(); return; }
     if (t.closest('#zoom')) { fecharJanela(); return; }
     const c = t.closest('.carta');
     if (c) { $('zoom').querySelector('img').src = c.dataset.src; abrirJanela('zoom'); }

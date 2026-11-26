@@ -972,6 +972,27 @@ ganha uma bolinha vermelha e um aviso que leva até ela. Na ficha, **tocar na fo
 **desenho** e o **avatar da IA** (`retratoIA` em `mesa/fichas.js`, arquivo `mesa/retratos/<id>-ia.jpg`;
 escolha salva em `mesa/jogadores/<id>/avatar`); o **avatar da IA é o padrão** (Erick, 2026-11-22). Ao mudar `fichas.js` ou `firebase.js`, subir o `?v=` deles no `mesa/index.html` (cache do celular). Prompts dos avatares no Gemini: `03-prompts-imagens.md`,
 seção "Avatares dos jogadores" (anexando o desenho; nada de foto de pessoa de verdade). Avatares de Bia, Mateus e João gerados pelo Erick no Gemini em 2026-11-22 (originais em `img/avatares/`, fora do git; 600×600 em `mesa/retratos/`). **Nome da Bia (2026-11-24):** a personagem é **Angi Momobami** (confirmado pela Milena; o caderno parecia "Amagi Mamabami"). 
+**Painel da mestre para tablet (2026-11-25):** a aba **Mesa** do portal vira um painel em tela cheia
+(some o topo do portal, botões grandes, atalhos no alto: Jogadores, Marcas e elementos, Locais,
+Criaturas, Lista, Mensagem). Link direto para a Milena salvar na tela inicial do tablet:
+https://ericknogueira80.github.io/torneio-das-lendas/#mesa (senha do portal + login de mestre).
+O que ela libera, **um a um** ou todos de uma vez, e o que o jogador vê:
+- **Marcas (constelações):** Bia Sagitário, Miguel Capricórnio, João Áries, Mateus Câncer (Erick e
+  Milena, 2026-11-25). `mesa/constelacoes/<id> = {v, t}`. No celular: céu estrelado, as estrelas
+  acendem uma a uma, as linhas se desenham, clarão, anéis e faíscas na cor do signo, e o nome. A do
+  Mateus sai como **"não aparece"** (estrelas soltas que tremem e somem; não entrega o desenho de
+  Câncer); o botão **Câncer (virada)** revela a de verdade. Desenhos em `mesa/estrelas.js` (sem IA).
+- **Elementos:** `mesa/elementos/<id> = {v, t}`, mesmo efeito; Mateus **Nenhum**, com **Ar (virada)**.
+- **Locais:** as 13 cenas de `web/locais/`, na ordem da aventura; `mesa/locais/<img>`. O jogador ganha
+  a aba **Locais** e um aviso "NOVO LOCAL".
+- **Criaturas** e **lista do portão**: como antes.
+- **Mensagem:** texto livre com título opcional (modelos "O portão diz…", "Uma voz em suas
+  cabeças…"); `mesa/mensagem = {titulo, txt, t}`; aparece com destaque em todos os celulares.
+Cada revelação aparece uma vez por celular (quem entra depois também vê) e, se vierem várias juntas,
+uma de cada vez. Quem é de qual signo/elemento fica só no portal trancado (`JOG_MESA` em
+`fonte/portal.html`). Para acrescentar outra coisa a liberar, o caminho é o mesmo: um bloco no painel
+gravando em `mesa/<coisa>` e a página `mesa/` ouvindo esse caminho (as regras do Firebase já cobrem
+tudo dentro de `mesa`).
 **Elementos (2026-11-24):** os jogadores não veem o elemento até a mestre revelar. No painel
 (aba **Mesa › Jogadores**), **Revelar os elementos** grava `mesa/elementos = {liberado, t, miguel,
 bia, mateus, joao}` e os quatro celulares abrem ao mesmo tempo uma tela de destaque (símbolo e nome
