@@ -138,6 +138,13 @@ nav#barra button.novo i{display:block}
 @keyframes rv-faisca{0%{opacity:1;transform:none}100%{opacity:0;transform:translate(var(--dx),var(--dy)) scale(.3)}}
 @keyframes rv-some{to{opacity:.05;filter:blur(4px)}}
 @keyframes rv-falha{50%{opacity:.1}}
+/* nova criatura: surge do clarão e a tela treme */
+#revela img.bicho{display:block;max-width:min(92vw,560px);max-height:56vh;margin:12px auto 0;border-radius:14px;box-shadow:0 0 36px var(--c),0 0 4px #fff;animation:rv-bicho 1.4s .35s both}
+#revela.treme .wrap{animation:rv-treme .55s .55s both}
+@keyframes rv-bicho{0%{opacity:0;transform:scale(.55);filter:blur(16px) brightness(3)}55%{opacity:1;filter:blur(0) brightness(1.7)}100%{transform:none;filter:none}}
+@keyframes rv-treme{0%,100%{transform:none}15%{transform:translate(-9px,4px)}30%{transform:translate(8px,-5px)}45%{transform:translate(-7px,-3px)}60%{transform:translate(6px,5px)}75%{transform:translate(-4px,2px)}}
+#som{position:fixed;top:calc(10px + env(safe-area-inset-top));right:12px;z-index:16;font-size:20px;background:rgba(28,22,38,.9);border:1px solid var(--line);
+  border-radius:50%;width:40px;height:40px;cursor:pointer;color:var(--text);padding:0}
 #aviso-lista{position:fixed;left:50%;bottom:86px;transform:translateX(-50%);background:#e3b75a;color:#1b1408;font-weight:600;padding:10px 20px;
   border-radius:999px;display:none;z-index:16;box-shadow:0 4px 18px rgba(0,0,0,.5);text-align:center;max-width:90vw;cursor:pointer}
 </style>
@@ -147,6 +154,7 @@ nav#barra button.novo i{display:block}
   <h1>✦ Torneio das Lendas</h1>
   <div id="sub">As criaturas que vocês encontraram</div>
 </header>
+<button id="som" title="Som ligado/desligado">🔊</button>
 <main id="app"><div class="espera"><div class="estrela">✦</div><p>Conectando…</p></div></main>
 <nav id="barra">
   <button data-v="criaturas"><i></i><span>🐉</span><small>Criaturas</small></button>
@@ -363,6 +371,46 @@ nav#barra button.novo i{display:block}
     app.innerHTML = v === 'lista' ? htmlLista() : v === 'locais' ? htmlLocais() : htmlCriaturas();
   }
 
+  // ---------- sons (Web Audio, gerados na hora; o celular só toca depois do primeiro toque na tela) ----------
+  let ac = null, somLigado = ler('tdl_som') !== '0';
+  const botaoSom = $('som'); botaoSom.textContent = somLigado ? '🔊' : '🔇';
+  function destravar() { try { if (!ac) ac = new (window.AudioContext || window.webkitAudioContext)(); if (ac.state === 'suspended') ac.resume(); } catch (e) {} }
+  addEventListener('pointerdown', destravar, true);
+  function nota(f, ini, dur, tipo, vol, fFim) {
+    const o = ac.createOscillator(), g = ac.createGain(), t0 = ac.currentTime + ini;
+    o.type = tipo || 'sine'; o.frequency.setValueAtTime(f, t0); if (fFim) o.frequency.exponentialRampToValueAtTime(fFim, t0 + dur);
+    g.gain.setValueAtTime(0.0001, t0); g.gain.exponentialRampToValueAtTime(vol || .2, t0 + .02); g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+    o.connect(g).connect(ac.destination); o.start(t0); o.stop(t0 + dur + .05);
+  }
+  function ruido(ini, dur, vol, filtro, fIni, fFim, q) {
+    const n = Math.floor(ac.sampleRate * dur), b = ac.createBuffer(1, n, ac.sampleRate), d = b.getChannelData(0);
+    for (let i = 0; i < n; i++) d[i] = Math.random() * 2 - 1;
+    const s = ac.createBufferSource(), f = ac.createBiquadFilter(), g = ac.createGain(), t0 = ac.currentTime + ini;
+    s.buffer = b; f.type = filtro; f.Q.value = q || 1; f.frequency.setValueAtTime(fIni, t0); f.frequency.exponentialRampToValueAtTime(fFim, t0 + dur);
+    g.gain.setValueAtTime(0.0001, t0); g.gain.exponentialRampToValueAtTime(vol, t0 + dur * .15); g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+    s.connect(f).connect(g).connect(ac.destination); s.start(t0);
+  }
+  const SONS = {
+    brilho(i, dur) { const esc = [1047, 1175, 1319, 1568, 1760, 2093, 2349]; const n = Math.max(4, Math.round(dur * 5));
+      for (let k = 0; k < n; k++) nota(esc[k % esc.length] * (k % 3 ? 1 : 2), i + dur * k / n, .5, 'sine', .07); },
+    subida(i, dur) { nota(220, i, dur, 'triangle', .12, 880); ruido(i, dur, .06, 'bandpass', 400, 3000, 2); },
+    explosao(i) { nota(140, i, .9, 'sine', .45, 38); ruido(i, .9, .35, 'lowpass', 2500, 120);
+      [523, 659, 784, 1047].forEach((f, k) => nota(f, i + .05 + k * .04, 1.8, 'triangle', .09)); },
+    falha(i) { [311, 330, 349].forEach((f, k) => nota(f, i + k * .18, .9, 'sawtooth', .04, f * .7)); ruido(i, 1.4, .05, 'highpass', 3000, 6000); },
+    rugido(i) { nota(70, i, 1.3, 'sawtooth', .22, 38); nota(104, i + .05, 1.2, 'sawtooth', .12, 52); ruido(i, 1.3, .25, 'lowpass', 900, 150, 4);
+      [220, 262, 330].forEach(f => nota(f, i + .7, 1.6, 'sawtooth', .05)); },
+    vento(i) { ruido(i, 1.6, .18, 'bandpass', 300, 2200, 1.5); [392, 494, 587].forEach((f, k) => nota(f, i + .4 + k * .08, 1.4, 'sine', .07)); },
+    sino(i) { [0, .45].forEach(d => { nota(880, i + d, 1.6, 'sine', .14); nota(1320, i + d, 1.1, 'sine', .06); nota(2210, i + d, .6, 'sine', .03); }); },
+    dogtag(i) { [0, .13].forEach((d, k) => { nota(k ? 3150 : 2600, i + d, .35, 'triangle', .12); nota(k ? 4700 : 3900, i + d, .2, 'sine', .05); }); },
+    plim(i) { nota(1319, i, .4, 'sine', .1); nota(1760, i + .1, .5, 'sine', .08); },
+  };
+  function som(lista) {   // lista: [[nome, inicio, duração], ...]
+    if (!somLigado) return; destravar(); if (!ac) return;
+    try { lista.forEach(([n, i, d]) => SONS[n] && SONS[n](i || 0, d || 1)); } catch (e) {}
+  }
+  botaoSom.addEventListener('click', e => { e.stopPropagation(); somLigado = !somLigado; gravar('tdl_som', somLigado ? '1' : '0');
+    botaoSom.textContent = somLigado ? '🔊' : '🔇'; if (somLigado) som([['plim']]); });
+
   // ---------- revelações: uma de cada vez, com efeito, uma vez por celular ----------
   const fila = [];
   function enfileirar(chave, montar) { if (ler(chave) || fila.some(f => f.chave === chave)) return; fila.push({ chave, montar }); setTimeout(proxima, 0); }
@@ -374,12 +422,14 @@ nav#barra button.novo i{display:block}
     o.innerHTML = ceu() + r.html + `<p class="aviso toque" style="animation-delay:${r.fim.toFixed(1)}s">Toque para fechar</p>`;
     abrirJanela('revela');
     if (navigator.vibrate) navigator.vibrate(r.vib || [200, 80, 200, 80, 500]);
+    if (r.sons) som(r.sons);
   }
   function verificar() {
     if (!eu) return;
     const m = minhaMarca(); if (m) enfileirar('tdl_marca_' + eu.id + '_' + (m.t || 0), () => montarMarca(m));
     const e = meuElem(); if (e) enfileirar('tdl_elem_' + eu.id + '_' + (e.t || 0), () => montarElem(e));
-    if (mensagem && mensagem.txt) { const g = mensagem; enfileirar('tdl_msg_' + (g.t || 0), () => montarMsg(g)); }
+    const para = mensagem && mensagem.para ? Object.values(mensagem.para) : null;   // sem "para" = todos
+    if (mensagem && mensagem.txt && (!para || para.includes(eu.id))) { const g = mensagem; enfileirar('tdl_msg_' + (g.t || 0), () => montarMsg(g)); }
   }
   const rnd = (a, b) => a + Math.random() * (b - a);
   function ceu() { let h = '<div class="ceu">'; for (let i = 0; i < 70; i++) h += `<b style="left:${rnd(0, 100).toFixed(1)}%;top:${rnd(0, 100).toFixed(1)}%;--d:${rnd(1, 3.5).toFixed(1)}s;animation-delay:-${rnd(0, 3).toFixed(1)}s"></b>`; return h + '</div>'; }
@@ -391,19 +441,23 @@ nav#barra button.novo i{display:block}
   }
   function montarMarca(m) {
     if (m.v === 'oculta') { const c = svgConstelacao('vazia', { anim: true });
-      return { cor: '#9a90ad', cls: 'oculta', vib: [60, 90, 60, 90, 60], fim: 4.6,
+      return { cor: '#9a90ad', cls: 'oculta', vib: [60, 90, 60, 90, 60], fim: 4.6, sons: [['brilho', 0, 1.8], ['falha', 2]],
         html: `<div class="wrap"><small>SUA MARCA</small>${c.svg}<p class="sub" style="animation-delay:3.8s">A sua marca… não apareceu.</p></div>` }; }
     const c = svgConstelacao(m.v, { anim: true }), k = CONSTELACOES[m.v], t = c.fim + .2;
-    return { cor: k.cor, fim: t + 1.4, html: fx(t) + `<div class="wrap"><small>SUA MARCA</small>${c.svg}<h2 style="animation-delay:${(t + .25).toFixed(2)}s">${k.nome}</h2></div>` };
+    return { cor: k.cor, fim: t + 1.4, sons: [['brilho', 0, c.fim], ['explosao', t]], html: fx(t) + `<div class="wrap"><small>SUA MARCA</small>${c.svg}<h2 style="animation-delay:${(t + .25).toFixed(2)}s">${k.nome}</h2></div>` };
   }
   function montarElem(x) {
     const [sim, nome, cor] = x.e, nada = x.v === 'nenhum';
-    return { cor, fim: 2.6, vib: nada ? [120, 80, 120] : null,
+    return { cor, fim: 2.6, vib: nada ? [120, 80, 120] : null, sons: nada ? [['falha', .6]] : [['subida', 0, 1], ['explosao', 1]],
       html: (nada ? '' : fx(1)) + `<div class="wrap"><small>SEU ELEMENTO</small><div class="sim">${sim}</div><h2 style="animation-delay:1.1s">${nome}</h2></div>` };
   }
   function montarMsg(g) {
-    return { cor: '#e3b75a', fim: 2, vib: [150, 60, 150],
+    return { cor: '#e3b75a', fim: 2, vib: [150, 60, 150], sons: [['sino', .2]],
       html: fx(.3) + `<div class="wrap"><small>${esc(g.titulo || 'MENSAGEM DA MESTRE').toUpperCase()}</small><p class="msg" style="animation-delay:.5s">${esc(g.txt).replace(/\n/g, '<br>')}</p></div>` };
+  }
+  function montarCriatura(b) {
+    return { cor: '#ff6a3d', cls: 'treme', fim: 2.2, vib: [250, 60, 250, 60, 600], sons: [['rugido', 0], ['explosao', .6]],
+      html: fx(.6) + `<div class="wrap"><small>NOVA CRIATURA</small><img class="bicho" src="${src(b)}" alt=""><h2 style="animation-delay:1s">${esc(b.nome)}</h2></div>` };
   }
   db.ref('mesa/constelacoes').on('value', s => { constelacoes = s.val(); render(); verificar(); });
   db.ref('mesa/elementos').on('value', s => { elementos = s.val(); render(); verificar(); });
@@ -420,6 +474,7 @@ nav#barra button.novo i{display:block}
       if (aba() !== 'locais') novidade.locais = true;
       abrirJanela('novo');
       if (navigator.vibrate) navigator.vibrate([120, 60, 120]);
+      som([['vento', 0]]);
     }
     vistosL = new Set(ll.map(b => b.id));
     render();
@@ -430,10 +485,8 @@ nav#barra button.novo i{display:block}
     bosses = snap.val() || {};
     const bl = listaBosses(), atual = bl[0];
     if (eu && vistos && atual && !vistos.has(atual.id)) {
-      const n = $('novo'); n.querySelector('small').textContent = 'NOVA CRIATURA'; n.querySelector('img').src = src(atual); n.querySelector('h2').textContent = atual.nome;
       if (aba() !== 'criaturas') novidade.criaturas = true;
-      abrirJanela('novo');
-      if (navigator.vibrate) navigator.vibrate([120, 60, 120]);
+      const b = atual; enfileirar('tdl_boss_' + b.id + '_' + (b.t || 0), () => montarCriatura(b));
     }
     vistos = new Set(bl.map(b => b.id));
     render();
@@ -446,7 +499,8 @@ nav#barra button.novo i{display:block}
       if (nova.entregue && !listaAntes.entregue) t = 'O portão entregou a lista!';
       else if (nova.entregue && (nova.dogtags || 0) > (listaAntes.dogtags || 0)) t = 'Nova dog tag: letras reveladas!';
       else if (nova.entregue && JSON.stringify(letras) !== JSON.stringify(letrasAntes)) t = 'A lista mudou';
-      if (t) { if (aba() !== 'lista') { novidade.lista = true; t += ' Toque para ver.'; } aviso(t, 'lista'); }
+      if (t) { if (aba() !== 'lista') { novidade.lista = true; t += ' Toque para ver.'; } aviso(t, 'lista');
+        som([[t.startsWith('Nova dog tag') ? 'dogtag' : t.startsWith('O portão') ? 'sino' : 'plim', 0]]); }
     }
     lista = nova; render();
     letrasAntes = letras; listaAntes = nova;

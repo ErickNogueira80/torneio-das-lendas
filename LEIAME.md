@@ -993,6 +993,18 @@ uma de cada vez. Quem é de qual signo/elemento fica só no portal trancado (`JO
 `fonte/portal.html`). Para acrescentar outra coisa a liberar, o caminho é o mesmo: um bloco no painel
 gravando em `mesa/<coisa>` e a página `mesa/` ouvindo esse caminho (as regras do Firebase já cobrem
 tudo dentro de `mesa`).
+**Pedidos do Erick (2026-11-25, noite):**
+- **Dog tag por boss:** o botão geral "Nova dog tag" saiu; na lista do portão, cada boss riscado (morto) ganha o botão
+  **Dog tag**, que vale uma vez (sorteia uma letra nova em cada nome escondido; `mestre/lista/itens[i].dog`). Os 3 que já
+  começam riscados também ganham o botão; a mestre usa se a história der a dog tag deles.
+- **Mensagem por jogador:** caixas "Todos" e uma por jogador; `mesa/mensagem.para` (lista de ids) quando não é para
+  todos. O celular de quem não foi marcado ignora a mensagem.
+- **Criatura com efeito:** a criatura liberada aparece na tela de revelação (clarão, anéis, faíscas, tela tremendo),
+  na mesma fila das marcas e elementos, uma vez por celular.
+- **Sons:** gerados no próprio celular (Web Audio, sem arquivos): estrelas e explosão nas marcas, subida e explosão no
+  elemento, falha no "não aparece"/"Nenhum", rugido na criatura, vento no local, sino na mensagem e na entrega da
+  lista, tilintar na dog tag. O celular só toca depois do primeiro toque na tela; botão 🔊/🔇 no alto (fica salvo).
+
 **Elementos (2026-11-24):** os jogadores não veem o elemento até a mestre revelar. No painel
 (aba **Mesa › Jogadores**), **Revelar os elementos** grava `mesa/elementos = {liberado, t, miguel,
 bia, mateus, joao}` e os quatro celulares abrem ao mesmo tempo uma tela de destaque (símbolo e nome

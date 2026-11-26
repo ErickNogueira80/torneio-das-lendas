@@ -141,6 +141,10 @@ body.modo-mesa #v-mesa .btn{font-size:18px;padding:9px 18px;min-height:44px}
 .dot.on{background:#6ee07a;box-shadow:0 0 8px #6ee07a}
 .mesa-msg textarea,.mesa-msg input{font:inherit;font-size:19px;width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--text);margin:6px 0}
 .mesa-msg textarea{min-height:110px}
+.msg-para{display:flex;flex-wrap:wrap;gap:8px;margin:2px 0 4px}
+.msg-para label{display:flex;align-items:center;gap:8px;font-size:18px;border:1px solid var(--line);border-radius:999px;padding:8px 16px;cursor:pointer;user-select:none}
+.msg-para label.todos{border-color:var(--gold)}
+.mesa-msg .msg-para input{width:22px;height:22px;margin:0;padding:0;accent-color:var(--gold)}
 .modelos{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 8px}
 .modelos button{font:inherit;font-size:15px;border-radius:999px;border:1px dashed var(--line);background:transparent;color:var(--muted);padding:4px 12px;cursor:pointer}
 .mesa-form input{font:inherit;font-size:17px;padding:8px 10px;border-radius:8px;border:1px solid var(--line);background:var(--bg2);color:var(--text);margin:4px 8px 4px 0;max-width:100%}
@@ -317,11 +321,12 @@ footer{border-top:1px solid var(--line);padding:22px 0;color:var(--muted);font-s
   <p class="note">Tudo o que você tocar aqui aparece na hora no celular dos jogadores (link: <a id="mesa-link" href="mesa/">mesa/</a>). Eles só veem o que estiver liberado. Dica: no tablet, "Adicionar à tela inicial" deixa o painel como um app.</p>
   <div id="mesa-box"><p class="note">Carregando…</p></div>
   <div class="bloco mesa-msg" id="b-msg" hidden>
-    <h2>Mensagem para os jogadores <small>aparece com destaque em todos os celulares</small></h2>
+    <h2>Mensagem para os jogadores <small>aparece com destaque no celular de quem você marcar</small></h2>
     <div class="modelos"><button data-modelo="O portão diz">O portão diz…</button><button data-modelo="Uma voz em suas cabeças">Uma voz em suas cabeças…</button><button data-modelo="Atenção">Atenção</button></div>
     <input id="msg-titulo" placeholder="Título (opcional), por exemplo: O portão diz" maxlength="60">
     <textarea id="msg-txt" placeholder="Escreva a mensagem…" maxlength="600"></textarea>
-    <p><button class="btn on" data-msg="enviar">Enviar para todos</button> <button class="btn" data-msg="apagar">Apagar a mensagem</button> <span class="note" id="msg-atual"></span></p>
+    <div class="msg-para" id="msg-para"></div>
+    <p><button class="btn on" data-msg="enviar" id="msg-enviar">Enviar para todos</button> <button class="btn" data-msg="apagar">Apagar a mensagem</button> <span class="note" id="msg-atual"></span></p>
   </div>
 </section>
 
@@ -554,7 +559,12 @@ function mesaRender(){
   }
   const n = Object.keys(MESA.lib).length, nl = Object.keys(MESA.locais || {}).length;
   document.getElementById('b-msg').hidden = false;
-  const g = MESA.msg; document.getElementById('msg-atual').textContent = g && g.txt ? 'No ar: "' + g.txt.slice(0, 60) + (g.txt.length > 60 ? '…' : '') + '"' : 'Nenhuma mensagem no ar.';
+  const mp = document.getElementById('msg-para');
+  if (!mp.innerHTML) mp.innerHTML = `<label class="todos"><input type="checkbox" data-para="todos" checked> Todos</label>`
+    + JOG_MESA.map(j => `<label><input type="checkbox" data-para="${j.id}" checked> ${j.nome}</label>`).join('');
+  const g = MESA.msg, paraG = g && g.para ? Object.values(g.para) : null;
+  document.getElementById('msg-atual').textContent = g && g.txt ? 'No ar' + (paraG ? ' (para ' + JOG_MESA.filter(j => paraG.includes(j.id)).map(j => j.nome).join(', ') + ')' : ' (para todos)')
+    + ': "' + g.txt.slice(0, 60) + (g.txt.length > 60 ? '…' : '') + '"' : 'Nenhuma mensagem no ar.';
   box.innerHTML = jogadoresHtml() + revelacoesHtml()
     + `<div class="bloco" id="b-loc"><h2>Locais <small>${nl} de ${SCENES.length} revelados · na ordem da aventura</small></h2>
     <p><button class="btn" data-loc="todos">Esconder todos</button></p>
@@ -610,7 +620,7 @@ function listaEstado(){
   const pub = MESA.lista || {}, it = (MESA.segredo && MESA.segredo.itens) || {};
   const st = pub;
   return { entregue: !!st.entregue, dogtags: st.dogtags || 0,
-    itens: LISTA.map((n, i) => ({ pos: (it[i] && it[i].pos) || [], morto: it[i] ? !!it[i].morto : i < LISTA_MORTOS })) };
+    itens: LISTA.map((n, i) => ({ pos: (it[i] && it[i].pos) || [], morto: it[i] ? !!it[i].morto : i < LISTA_MORTOS, dog: !!(it[i] && it[i].dog) })) };
 }
 function listaGravar(st){
   const letrasDe = i => [...LISTA[i]].map((c, k) => k).filter(k => LISTA[i][k] !== ' ');
@@ -620,7 +630,7 @@ function listaGravar(st){
   });
   const erro = () => alert('Não consegui gravar. Confira a internet e se você entrou como mestre.');
   return Promise.all([
-    firebase.database().ref('mestre/lista').set({ itens: st.itens.map(x => ({ pos: x.pos, morto: x.morto })) }),
+    firebase.database().ref('mestre/lista').set({ itens: st.itens.map(x => ({ pos: x.pos, morto: x.morto, dog: !!x.dog })) }),
     firebase.database().ref('mesa/lista').set({ entregue: st.entregue, dogtags: st.dogtags, itens: pub }),
   ]).catch(erro);
 }
@@ -632,16 +642,17 @@ function listaHtml(){
     return `<tr><td class="mask${x.morto ? ' riscado' : ''}" title="Dourado = já aparece para os jogadores">${mask}</td>
       <td>${x.morto ? '<b>Morto</b>' : faltam ? `<small class="note">faltam ${faltam}</small>` : '<small class="note">nome completo</small>'}</td>
       <td style="text-align:right;white-space:nowrap">${x.morto
-        ? `<button class="btn" data-l="vivo" data-i="${i}">Desfazer</button>`
+        ? (x.dog ? '<small class="note">✓ dog tag entregue</small> ' : `<button class="btn on" data-l="dogtag" data-i="${i}" title="Sorteia uma letra nova em cada nome ainda escondido">Dog tag</button> `)
+          + `<button class="btn" data-l="vivo" data-i="${i}">Desfazer</button>`
         : `${faltam ? `<button class="btn" data-l="inteiro" data-i="${i}">Revelar nome</button> ` : ''}<button class="btn on" data-l="morto" data-i="${i}">Riscar (morto)</button>`}</td></tr>`;
   }).join('');
   return `<div class="bloco" id="b-lis"><h2>A lista do portão</h2>
     <div class="lista-mestre" style="margin:8px 0 0;border:0;padding:0"><p>${st.entregue
       ? `<span class="pill gold">Entregue aos jogadores</span> <button class="btn" data-l="recolher">Recolher</button>`
       : `<span class="pill">Ainda não entregue</span> <button class="btn on" data-l="entregar">Entregar a lista</button>`}
-      <button class="btn on" data-l="dogtag">Nova dog tag (${st.dogtags})</button>
+      <span class="pill">Dog tags: ${st.dogtags}</span>
       <button class="btn" data-l="zerar">Zerar a lista</button></p>
-      <p class="note">Você vê os nomes inteiros: em dourado o que os jogadores já veem, apagado o que ainda está escondido. "Nova dog tag" sorteia uma letra nova em cada nome escondido. Os jogadores veem só as letras já reveladas, sem saber o tamanho do nome.</p>
+      <p class="note">Você vê os nomes inteiros: em dourado o que os jogadores já veem, apagado o que ainda está escondido. Cada boss riscado (morto) ganha o botão "Dog tag", que vale uma vez: sorteia uma letra nova em cada nome escondido. Os jogadores veem só as letras já reveladas, sem saber o tamanho do nome.</p>
       <table>${linhas}</table></div></div>`;
 }
 document.addEventListener('click', e => {
@@ -674,7 +685,10 @@ document.addEventListener('click', e => {
     if (ms.dataset.msg === 'apagar') { ref.remove().catch(erro); return; }
     const txt = document.getElementById('msg-txt').value.trim(), titulo = document.getElementById('msg-titulo').value.trim();
     if (!txt) { alert('Escreva a mensagem primeiro.'); return; }
-    ref.set({ txt, titulo, t: Date.now() }).then(() => { document.getElementById('msg-txt').value = ''; }).catch(erro); return; }
+    const para = [...document.querySelectorAll('#msg-para [data-para]:not([data-para="todos"]):checked')].map(c => c.dataset.para);
+    if (!para.length) { alert('Marque pelo menos um jogador.'); return; }
+    const msg = { txt, titulo, t: Date.now() }; if (para.length < JOG_MESA.length) msg.para = para;
+    ref.set(msg).then(() => { document.getElementById('msg-txt').value = ''; }).catch(erro); return; }
   const b = e.target.closest('[data-l]'); if (!b) return;
   const st = listaEstado(), m = b.dataset.l, x = st.itens[+b.dataset.i];
   if (m === 'entregar') st.entregue = true;
@@ -682,7 +696,8 @@ document.addEventListener('click', e => {
   if (m === 'zerar') { if (!confirm('Zerar a lista? Some dos celulares e as letras voltam a ficar escondidas.')) return;
     firebase.database().ref('mesa/lista').remove(); firebase.database().ref('mestre/lista').remove(); return; }
   if (m === 'dogtag') {
-    st.dogtags++;
+    if (!x || !x.morto || x.dog) return;
+    x.dog = true; st.dogtags++;
     st.itens.forEach((it, i) => {
       if (it.morto) return;
       const livres = [...LISTA[i]].map((c, k) => k).filter(k => LISTA[i][k] !== ' ' && !it.pos.includes(k));
@@ -693,6 +708,15 @@ document.addEventListener('click', e => {
   if (m === 'vivo') x.morto = false;
   if (m === 'inteiro') x.pos = [...LISTA[+b.dataset.i]].map((c, k) => k).filter(k => LISTA[+b.dataset.i][k] !== ' ');
   listaGravar(st);
+});
+document.addEventListener('change', e => {
+  const c = e.target.closest('#msg-para [data-para]'); if (!c) return;
+  const box = document.getElementById('msg-para'), cada = [...box.querySelectorAll('[data-para]:not([data-para="todos"])')];
+  if (c.dataset.para === 'todos') cada.forEach(x => x.checked = c.checked);
+  const marcados = cada.filter(x => x.checked);
+  box.querySelector('[data-para="todos"]').checked = marcados.length === cada.length;
+  document.getElementById('msg-enviar').textContent = marcados.length === cada.length ? 'Enviar para todos'
+    : marcados.length ? 'Enviar para ' + JOG_MESA.filter(j => marcados.some(x => x.dataset.para === j.id)).map(j => j.nome).join(', ') : 'Enviar (marque alguém)';
 });
 function mesaInit(){
   if (MESA.ok || !window.FIREBASE_CONFIG) { mesaRender(); return; }
