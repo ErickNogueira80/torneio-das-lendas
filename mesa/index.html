@@ -224,7 +224,15 @@ nav#barra button.novo i{display:block}
   const aba = () => { const h = location.hash.slice(1); return ABAS.includes(h) && !(h === 'lista' && !(lista && lista.entregue)) && !(h === 'locais' && !listaLocais().length) ? h : 'criaturas'; };
   function irPara(v) { if (v !== aba() || location.hash !== '#' + v) { history.pushState(null, '', '#' + v); sincronizar(); } }
   function abrirJanela(ov) { history.pushState({ ov }, '', location.hash || '#criaturas'); sincronizar(); }
-  function fecharJanela() { if (history.state && history.state.ov) history.back(); }
+  // As revelações abrem sozinhas (a mestre aperta lá no painel), sem toque do jogador; o Chrome do
+  // Android pula entradas de histórico criadas assim, e o "voltar" falhava ao fechar. Por isso a
+  // revelação não cria entrada nova: marca a entrada atual e fecha trocando de volta (Erick, 2026-11-26).
+  function abrirRevelacao() { history.replaceState({ ov: 'revela', rev: 1 }, '', location.hash || '#criaturas'); sincronizar(); }
+  function fecharJanela() {
+    if (history.state && history.state.rev) { history.replaceState(null, '', location.hash || '#criaturas'); sincronizar(); return; }
+    if (history.state && history.state.ov) history.back();
+    else sincronizar();
+  }
   function sincronizar() {
     const ov = history.state && history.state.ov;
     document.querySelectorAll('.ov').forEach(o => o.classList.toggle('on', o.dataset.ov === ov));
@@ -299,7 +307,8 @@ nav#barra button.novo i{display:block}
       const d = donos[eu.id];
       // a reserva sumiu (a mestre liberou o nome ou fez Nova partida) ou é de outro celular: volta para "Quem é você?"
       if (!d || d.dev !== dev) { eu = null; gravar('tdl_jogador', null); marcarPresenca(); primeiraVez = false;
-        if (location.hash) history.replaceState(null, '', location.pathname + location.search); }
+        if (location.hash || (history.state && history.state.ov)) history.replaceState(null, '', location.pathname + location.search);
+        document.querySelectorAll('.ov.on').forEach(o => o.classList.remove('on')); }
     }
     render();
   });
@@ -420,7 +429,7 @@ nav#barra button.novo i{display:block}
     const r = f.montar(), o = $('revela');
     o.className = 'ov ' + (r.cls || ''); o.style.setProperty('--c', r.cor);
     o.innerHTML = ceu() + r.html + `<p class="aviso toque" style="animation-delay:${r.fim.toFixed(1)}s">Toque para fechar</p>`;
-    abrirJanela('revela');
+    abrirRevelacao();
     if (navigator.vibrate) navigator.vibrate(r.vib || [200, 80, 200, 80, 500]);
     if (r.sons) som(r.sons);
   }

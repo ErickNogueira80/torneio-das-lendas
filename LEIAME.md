@@ -993,6 +993,11 @@ uma de cada vez. Quem é de qual signo/elemento fica só no portal trancado (`JO
 `fonte/portal.html`). Para acrescentar outra coisa a liberar, o caminho é o mesmo: um bloco no painel
 gravando em `mesa/<coisa>` e a página `mesa/` ouvindo esse caminho (as regras do Firebase já cobrem
 tudo dentro de `mesa`).
+**"Toque para fechar" das revelações (2026-11-26):** no celular, a revelação (marca, elemento,
+criatura, mensagem) às vezes não fechava. Ela abre sozinha, pelo painel da mestre, sem toque do
+jogador, e o Chrome do Android pula entradas de histórico criadas assim; o `history.back()` usado
+para fechar falhava. Agora a revelação não cria entrada: marca a atual (`replaceState {ov, rev}`) e
+fecha trocando de volta. O "voltar" do Android com a revelação aberta volta à aba anterior.
 **Correções de 2026-11-26:** (1) as abas **Criaturas** e **Locais** do celular travavam quando havia
 mais de uma criatura liberada (a lista de "já encontradas" chamava `carta` com o índice do `map`
 como segundo parâmetro); corrigido. (2) Painel padronizado: todo botão com 46 px de altura, ações
