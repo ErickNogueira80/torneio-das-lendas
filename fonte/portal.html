@@ -124,19 +124,37 @@ body.modo-mesa main.wrap{max-width:1400px}
 .mesa-topo b{font-family:Cinzel,serif;color:var(--gold2);font-size:20px;margin-right:auto}
 .mesa-topo a.chip{color:var(--text);text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:6px 14px;font-size:16px;background:var(--bg2)}
 .mesa-topo a.chip:active{background:var(--gold);color:#1b1408}
-body.modo-mesa #v-mesa .btn{font-size:18px;padding:9px 18px;min-height:44px}
+/* painel: todo botão com a mesma altura e o mesmo jeito; ações sempre em linha, com espaço igual */
+#v-mesa .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;height:46px;padding:0 18px;margin:0;
+  font-size:17px;line-height:1;white-space:nowrap;box-sizing:border-box;vertical-align:middle}
+#v-mesa .acoes{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:10px 0 0}
+#v-mesa .acoes .note{flex-basis:100%;margin:2px 0 0}
+#v-mesa .slot{min-width:230px}
+#v-mesa .sec{min-width:120px}
+#v-mesa .estado{display:inline-flex;align-items:center;gap:6px;height:46px;padding:0 16px;border-radius:999px;box-sizing:border-box;
+  border:1px solid var(--line);color:var(--muted);font-size:16px;white-space:nowrap}
+#v-mesa .estado.gold{background:var(--gold);border-color:var(--gold);color:#1b1408;font-weight:600}
+.jog-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px;margin-top:10px}
+.jog-card{border:1px solid var(--line);border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:10px;background:var(--bg)}
+.jog-card b{font-family:Cinzel,serif;font-size:18px;color:var(--gold2)}
+.jog-card .st{color:var(--muted);font-size:15px}
+.jog-card .btn{width:100%}
+.mesa-card{display:flex;flex-direction:column}
+.mesa-card .pad{flex:1;display:flex;flex-direction:column}
+#v-mesa .mesa-card .pad .btn{width:100%;margin-top:auto}
+.mesa-card .pad small{display:block;margin-bottom:10px}
 .bloco{background:var(--bg2);border:1px solid var(--line);border-radius:16px;padding:14px 16px;margin:16px 0;scroll-margin-top:80px}
 .bloco > h2{margin:0 0 4px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .bloco > h2 small{font-family:"Crimson Pro",serif;font-size:15px;color:var(--muted);font-weight:400}
 .rev{width:100%;border-collapse:collapse}
-.rev td,.rev th{padding:10px 8px;border-bottom:1px solid var(--line);vertical-align:middle;text-align:left}
+.rev td,.rev th{padding:8px 8px;border-bottom:1px solid var(--line);vertical-align:middle;text-align:left}
 .rev th{font-family:Cinzel,serif;color:var(--gold);font-size:15px}
 .rev .const{width:42px;height:42px;vertical-align:middle}
 .rev .const line{stroke-width:2.5}
 .rev .const circle{r:4.5}
 .rev .feito .const{color:#1b1408!important;width:34px;height:34px}
 .rev .feito .const circle{fill:#1b1408}
-.rev .feito{display:inline-flex;align-items:center;gap:6px;color:#1b1408;background:var(--gold);border-radius:999px;padding:4px 12px;font-weight:600}
+.rev .feito{height:46px;box-sizing:border-box;padding:0 14px!important;justify-content:center;display:inline-flex;align-items:center;gap:6px;color:#1b1408;background:var(--gold);border-radius:999px;padding:4px 12px;font-weight:600}
 .dot{display:inline-block;width:10px;height:10px;border-radius:50%;background:#5b536b;margin-right:6px}
 .dot.on{background:#6ee07a;box-shadow:0 0 8px #6ee07a}
 .mesa-msg textarea,.mesa-msg input{font:inherit;font-size:19px;width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--text);margin:6px 0}
@@ -246,7 +264,7 @@ footer{border-top:1px solid var(--line);padding:22px 0;color:var(--muted);font-s
 
   <h2 style="margin-top:34px">Como está o projeto</h2>
   <p><span class="pill gold">Parte 1 escrita</span><span class="pill">Jogo: fases do Boitatá e da Vaca (protótipo)</span><span class="pill">Parte 2: o torneio (a escrever)</span><span class="pill">13 locais ilustrados</span><span class="pill">Bestiário com tentativa e dano</span><span class="pill gold">11 de 11 criaturas ilustradas</span></p>
-  <p class="note">Novidades de 22/11: tentativa e dano de todos os monstros, as fichas do Grifo, do Kallikántzaros e da Hidra, as fichas dos jogadores e o Purgatório com o Cérberus. Ainda faltam: a cena do museu, a luta do pesadelo, os ataques do Cérberus e a ficha do Miguel.</p>
+  <p class="note">Novidades de 22/11: tentativa e dano de todos os monstros, as fichas do Grifo, do Kallikántzaros e da Hidra, as fichas dos jogadores e o Purgatório com o Cérberus. Ainda faltam: a cena do museu, a luta do pesadelo e os ataques do Cérberus. A ficha do Miguel chegou em 25/11.</p>
 </section>
 
 <!-- AVENTURA -->
@@ -297,7 +315,7 @@ footer{border-top:1px solid var(--line);padding:22px 0;color:var(--muted);font-s
     <tr><th>Jogador</th><th>Elemento</th><th>Personagem</th><th>F I V A P</th><th>Perícias</th><th>Itens</th><th>Ataques (1D20 · S · N · dano)</th></tr>
     <tr><td>Beatriz</td><td>🔥 Fogo</td><td>Angi Momobami, 25 anos</td><td>4 2 1 3 2</td><td>Medicina 5, Luta 3, Pontaria 2</td><td>Nenhum</td><td>Espada de fogo (+8 · -7 · 1D12+2D4)<br>Círculo de fogo (+10 · -9 · 2D4)<br>Arco dourado (+11 · -10 · 1D6+1D4)</td></tr>
     <tr><td>Mateus</td><td>🌪️ Ar</td><td>[?]am Seixeira [?], 30 anos</td><td>2 2 2 2 2</td><td>Luta 5, Furtividade 5</td><td>Faca (defesa pessoal), laser (ataque)</td><td>Imobilização (+6 · -5 · sem dano)<br>Gancho de esquerda (+7 · -6 · 1D8)<br>Rasteira (+7 · -6 · 1D10)</td></tr>
-    <tr><td>Miguel</td><td>🌿 Terra</td><td colspan="5"><i>Ficha ainda em branco (página 38).</i></td></tr>
+    <tr><td>Miguel</td><td>🌿 Terra</td><td>José Carlos, 27 anos</td><td>4 2 3 2 1</td><td>Atletismo, Intimidação, Sobrevivência, Luta</td><td>Colar, kit de sobrevivência</td><td>Adrenalina (+10 · -9 · sem dano)<br>Pedra do chão (+12 · -11 · 1D12+1D6)<br>Pedra no corpo (+13 · -12 · +1D4 nos ataques; leva 1 rodada)</td></tr>
     <tr><td>João Felipe</td><td>🌊 Água</td><td>Jane Vorhood [?], 82 anos</td><td>1 4 2 2 3</td><td>—</td><td>1 adaga de gelo</td><td>Manipulação de água (+7 · -6 · 1D6+1D4)<br>Facada (+10 · -9 · 1D10 [?])<br>Ataque de gelo (+12 · -11 · 1D12+1D6)</td></tr>
   </table></div>
   <p class="note">[?] = leitura incerta. O nome do personagem do Mateus fica em parte embaixo do desenho colado na ficha.</p>
@@ -326,7 +344,7 @@ footer{border-top:1px solid var(--line);padding:22px 0;color:var(--muted);font-s
     <input id="msg-titulo" placeholder="Título (opcional), por exemplo: O portão diz" maxlength="60">
     <textarea id="msg-txt" placeholder="Escreva a mensagem…" maxlength="600"></textarea>
     <div class="msg-para" id="msg-para"></div>
-    <p><button class="btn on" data-msg="enviar" id="msg-enviar">Enviar para todos</button> <button class="btn" data-msg="apagar">Apagar a mensagem</button> <span class="note" id="msg-atual"></span></p>
+    <div class="acoes"><button class="btn on slot" data-msg="enviar" id="msg-enviar">Enviar para todos</button><button class="btn slot" data-msg="apagar">Apagar a mensagem</button><span class="note" id="msg-atual"></span></div>
   </div>
 </section>
 
@@ -567,36 +585,39 @@ function mesaRender(){
     + ': "' + g.txt.slice(0, 60) + (g.txt.length > 60 ? '…' : '') + '"' : 'Nenhuma mensagem no ar.';
   box.innerHTML = jogadoresHtml() + revelacoesHtml()
     + `<div class="bloco" id="b-loc"><h2>Locais <small>${nl} de ${SCENES.length} revelados · na ordem da aventura</small></h2>
-    <p><button class="btn" data-loc="todos">Esconder todos</button></p>
+    <div class="acoes"><button class="btn slot" data-loc="todos">Esconder todos os locais</button></div>
     <div class="mesa-grid">${SCENES.map((x,i) => { const on = !!(MESA.locais || {})[x.img]; return `
       <div class="mesa-card${on?' lib':''}"><img loading="lazy" src="${L+x.img}.jpg" alt="">
-        <div class="pad"><h3>${esc(x.t)}</h3><small class="note">${esc(x.p)}</small><br>
+        <div class="pad"><h3>${esc(x.t)}</h3><small class="note">${esc(x.p)}</small>
         <button class="btn${on?' on':''}" data-loc="${on?'esconder':'liberar'}" data-i="${i}">${on?'✓ Revelado · esconder':'Revelar'}</button></div></div>`; }).join('')}</div></div>`
     + `<div class="bloco" id="b-cri"><h2>Criaturas <small>${n} de ${BEASTS.filter(b=>b.img).length} liberadas</small></h2>
-    <p><button class="btn" data-m="todos">Esconder todas</button></p>
+    <div class="acoes"><button class="btn slot" data-m="todos">Esconder todas as criaturas</button></div>
     <div class="mesa-grid">${BEASTS.filter(b=>b.img).map((b,i) => { const on = !!MESA.lib[b.img]; return `
       <div class="mesa-card${on?' lib':''}"><img loading="lazy" src="${B+b.img}.jpg" alt="">
-        <div class="pad"><h3>${esc(b.nome)}</h3><small class="note">${esc(b.comb)}</small><br>
+        <div class="pad"><h3>${esc(b.nome)}</h3><small class="note">${esc(b.comb)}</small>
         <button class="btn${on?' on':''}" data-m="${on?'esconder':'liberar'}" data-i="${i}">${on?'✓ Liberada · esconder':'Liberar'}</button></div></div>`; }).join('')}</div></div>`
     + listaHtml();
 }
 function jogadoresHtml(){
   const donos = MESA.donos || {}, on = MESA.on || {};
-  const jog = JOG_MESA.map(j => donos[j.id]
-    ? `<span class="pill${on[j.id] ? ' gold' : ''}" title="${on[j.id] ? 'conectado agora' : 'escolhido, mas sem conexão agora'}">${j.nome} ${on[j.id] ? '● na mesa' : '○ fora'}</span> <button class="btn" data-jl="${j.id}" title="Libera o nome para outro celular escolher">Liberar</button>`
-    : `<span class="pill">${j.nome} · livre</span>`).join(' &nbsp; ');
-  return `<div class="bloco" id="b-jog"><h2>Jogadores</h2><p>${jog}</p>
-    <p><button class="btn" data-nova-partida>Nova partida (zerar tudo)</button> <button class="btn" data-m="sair">Sair</button>
-    <span class="note">Tudo fica salvo sozinho entre uma sessão e outra; "Nova partida" só para começar do zero.</span></p></div>`;
+  const jog = JOG_MESA.map(j => `<div class="jog-card"><div><span class="dot${on[j.id] ? ' on' : ''}"></span><b>${j.nome}</b><br>
+      <span class="st">${!donos[j.id] ? 'livre (ninguém escolheu)' : on[j.id] ? 'na mesa agora' : 'escolhido, fora da mesa'}</span></div>
+      ${donos[j.id] ? `<button class="btn" data-jl="${j.id}" title="Libera o nome para outro celular escolher">Liberar o nome</button>`
+        : `<button class="btn" disabled style="opacity:.4">Liberar o nome</button>`}</div>`).join('');
+  return `<div class="bloco" id="b-jog"><h2>Jogadores</h2><div class="jog-grid">${jog}</div>
+    <div class="acoes"><button class="btn slot" data-nova-partida>Nova partida (zerar tudo)</button><button class="btn sec" data-m="sair">Sair</button>
+    <span class="note">Tudo fica salvo sozinho entre uma sessão e outra; "Nova partida" só para começar do zero.</span></div></div>`;
 }
 function revelacoesHtml(){
   const on = MESA.on || {};
   const cel = (tipo, j, atual, padrao, virada, nomeDe, svg) => {
-    const bt = (v, txt, cls) => `<button class="btn${cls ? ' on' : ''}" data-rev="${tipo}" data-j="${j.id}" data-v="${v}">${txt}</button>`;
-    if (!atual) return bt(padrao, padrao === 'oculta' ? 'Revelar (não aparece)' : 'Revelar ' + nomeDe(padrao), true) + (virada ? ' ' + bt(virada, nomeDe(virada) + ' (virada)') : '');
-    return `<span class="feito">${svg ? marcaSvg(atual.v) : ''}✓ ${nomeDe(atual.v)}</span> `
-      + (virada && atual.v !== virada ? bt(virada, 'Revelar ' + nomeDe(virada) + ' (virada)', true) + ' ' : '')
-      + `<button class="btn" data-rev="${tipo}" data-j="${j.id}" data-v="">esconder</button>`;
+    const bt = (v, txt, cls, w) => `<button class="btn ${w || 'slot'}${cls ? ' on' : ''}" data-rev="${tipo}" data-j="${j.id}" data-v="${v}">${txt}</button>`;
+    // 1ª posição: revelar ou o que já foi revelado; 2ª: esconder; 3ª: a virada (só o Mateus)
+    const princ = !atual ? bt(padrao, padrao === 'oculta' ? 'Revelar (não aparece)' : 'Revelar ' + nomeDe(padrao), true)
+      : `<span class="feito slot">${svg ? marcaSvg(atual.v) : ''}✓ ${nomeDe(atual.v)}</span>`;
+    const esconder = atual ? bt('', 'esconder', false, 'sec') : '';
+    const vir = virada && (!atual || atual.v !== virada) ? bt(virada, nomeDe(virada) + ' (virada)', !!atual) : '';
+    return `<div class="acoes" style="margin:0">${princ}${esconder}${vir}</div>`;
   };
   const linhas = JOG_MESA.map(j => {
     const m = itemDe(MESA.marcas, j.id), e = itemDe(MESA.elem, j.id), v = j.virada || {};
@@ -605,8 +626,9 @@ function revelacoesHtml(){
       <td>${cel('elem', j, e, j.elem, v.elem, x => ELEM_NOME[x] || x, false)}</td></tr>`;
   }).join('');
   return `<div class="bloco" id="b-rev"><h2>Marcas e elementos <small>um a um, ou todos de uma vez · cada revelação aparece com efeito no celular daquele jogador</small></h2>
-    <table class="rev"><tr><th>Jogador</th><th>Marca (constelação)</th><th>Elemento</th></tr>${linhas}
-    <tr><td></td><td><button class="btn" data-rev-todos="marca">Revelar todas as marcas</button></td><td><button class="btn" data-rev-todos="elem">Revelar todos os elementos</button></td></tr></table>
+    <table class="rev"><tr><th style="width:130px">Jogador</th><th>Marca (constelação)</th><th>Elemento</th></tr>${linhas}
+    </table>
+    <div class="acoes"><button class="btn slot" data-rev-todos="marca">Revelar todas as marcas</button><button class="btn slot" data-rev-todos="elem">Revelar todos os elementos</button></div>
     <p class="note">O Mateus é o "humano": a marca dele não aparece e o elemento é "Nenhum". Os botões "(virada)" revelam Câncer e Ar quando chegar a hora.</p></div>`;
 }
 /* lista do portão (p. 11 a 13): o portão entrega a lista depois do Boitatá e do Robin Hood; cada dog
@@ -641,17 +663,18 @@ function listaHtml(){
     const faltam = [...LISTA[i]].filter((c, k) => c !== ' ' && !x.pos.includes(k)).length;
     return `<tr><td class="mask${x.morto ? ' riscado' : ''}" title="Dourado = já aparece para os jogadores">${mask}</td>
       <td>${x.morto ? '<b>Morto</b>' : faltam ? `<small class="note">faltam ${faltam}</small>` : '<small class="note">nome completo</small>'}</td>
-      <td style="text-align:right;white-space:nowrap">${x.morto
-        ? (x.dog ? '<small class="note">✓ dog tag entregue</small> ' : `<button class="btn on" data-l="dogtag" data-i="${i}" title="Sorteia uma letra nova em cada nome ainda escondido">Dog tag</button> `)
-          + `<button class="btn" data-l="vivo" data-i="${i}">Desfazer</button>`
-        : `${faltam ? `<button class="btn" data-l="inteiro" data-i="${i}">Revelar nome</button> ` : ''}<button class="btn on" data-l="morto" data-i="${i}">Riscar (morto)</button>`}</td></tr>`;
+      <td><div class="acoes" style="margin:0;justify-content:flex-end">${x.morto
+        ? (x.dog ? '<span class="estado gold" style="min-width:170px;justify-content:center">✓ dog tag entregue</span>' : `<button class="btn on" style="min-width:170px" data-l="dogtag" data-i="${i}" title="Sorteia uma letra nova em cada nome ainda escondido">Dog tag</button>`)
+          + `<button class="btn" style="min-width:170px" data-l="vivo" data-i="${i}">Desfazer</button>`
+        : (faltam ? `<button class="btn" style="min-width:170px" data-l="inteiro" data-i="${i}">Revelar nome</button>` : '<span style="min-width:170px"></span>')
+          + `<button class="btn on" style="min-width:170px" data-l="morto" data-i="${i}">Riscar (morto)</button>`}</div></td></tr>`;
   }).join('');
   return `<div class="bloco" id="b-lis"><h2>A lista do portão</h2>
-    <div class="lista-mestre" style="margin:8px 0 0;border:0;padding:0"><p>${st.entregue
-      ? `<span class="pill gold">Entregue aos jogadores</span> <button class="btn" data-l="recolher">Recolher</button>`
-      : `<span class="pill">Ainda não entregue</span> <button class="btn on" data-l="entregar">Entregar a lista</button>`}
-      <span class="pill">Dog tags: ${st.dogtags}</span>
-      <button class="btn" data-l="zerar">Zerar a lista</button></p>
+    <div class="lista-mestre" style="margin:8px 0 0;border:0;padding:0"><div class="acoes" style="margin:0 0 10px">${st.entregue
+      ? `<span class="estado gold">✓ Entregue aos jogadores</span><button class="btn sec" data-l="recolher">Recolher</button>`
+      : `<span class="estado">Ainda não entregue</span><button class="btn on slot" data-l="entregar">Entregar a lista</button>`}
+      <span class="estado">Dog tags: ${st.dogtags}</span>
+      <button class="btn sec" data-l="zerar">Zerar a lista</button></div>
       <p class="note">Você vê os nomes inteiros: em dourado o que os jogadores já veem, apagado o que ainda está escondido. Cada boss riscado (morto) ganha o botão "Dog tag", que vale uma vez: sorteia uma letra nova em cada nome escondido. Os jogadores veem só as letras já reveladas, sem saber o tamanho do nome.</p>
       <table>${linhas}</table></div></div>`;
 }

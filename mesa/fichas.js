@@ -4,7 +4,13 @@
 // Sem o elemento (Erick, 2026-11-22: não mostrar o "atributo principal"). Ataques: [nome, S, N, dano].
 // Leituras incertas do caderno estão como foram lidas; corrigir aqui quando a Milena confirmar.
 window.FICHAS = {
-  miguel: null,   // p. 38: ficha ainda em branco
+  miguel: {   // p. 38, preenchida depois (foto de 25/11/2026). Sem desenho: avatar genérico (encapuzado) no Gemini.
+    personagem: 'José Carlos', idade: 27, retrato: null, retratoIA: null,
+    status: { F: 4, I: 2, V: 3, A: 2, P: 1 },
+    pericias: ['Atletismo', 'Intimidação', 'Sobrevivência', 'Luta'],
+    itens: ['Colar', 'Kit de sobrevivência'],
+    ataques: [['Adrenalina', '+10', '-9', '—'], ['Pedra do chão', '+12', '-11', '1D12 + 1D6'], ['Pedra no corpo', '+13', '-12', '+1D4 nos ataques (leva 1 rodada)']],
+  },
   bia: {
     personagem: 'Angi Momobami', idade: 25, retrato: 'retratos/bia.jpg', retratoIA: 'retratos/bia-ia.jpg',
     status: { F: 4, I: 2, V: 1, A: 3, P: 2 },

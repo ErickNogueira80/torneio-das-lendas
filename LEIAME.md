@@ -961,7 +961,7 @@ painel); quando ela libera ou faz **Nova partida**, o celular volta para "Quem �
 caderno (p. 37 a 40: personagem, idade, retrato desenhado pela Milena, status, perícias, itens,
 ataques), **sem o elemento** (o "atributo principal", Erick; também protege a virada do
 humano/Câncer); o botão **Minha ficha** reabre quando quiser. Fichas em `mesa/fichas.js`, retratos em
-`mesa/retratos/` (recortados das fotos; o do João chegou depois, em papel solto, foto `22.11.26`). A ficha do Miguel está em branco no caderno. O progresso
+`mesa/retratos/` (recortados das fotos; o do João chegou depois, em papel solto, foto `22.11.26`). A ficha do Miguel chegou em 25/11 (José Carlos, 27; sem desenho: avatar genérico de encapuzado, prompt em `03-prompts-imagens.md`). O progresso
 (criaturas, lista, dog tags, jogadores) fica salvo no Firebase entre sessões; **Nova partida** no
 painel zera tudo.
 **Navegação (2026-11-22, 3º pedido):** barra embaixo com **Criaturas**, **Lista** (só depois que o
@@ -993,6 +993,11 @@ uma de cada vez. Quem é de qual signo/elemento fica só no portal trancado (`JO
 `fonte/portal.html`). Para acrescentar outra coisa a liberar, o caminho é o mesmo: um bloco no painel
 gravando em `mesa/<coisa>` e a página `mesa/` ouvindo esse caminho (as regras do Firebase já cobrem
 tudo dentro de `mesa`).
+**Correções de 2026-11-26:** (1) as abas **Criaturas** e **Locais** do celular travavam quando havia
+mais de uma criatura liberada (a lista de "já encontradas" chamava `carta` com o índice do `map`
+como segundo parâmetro); corrigido. (2) Painel padronizado: todo botão com 46 px de altura, ações
+sempre em linha com o mesmo espaço, larguras fixas nas colunas (marcas/elementos, lista do portão),
+jogadores em cartões iguais e o botão no pé de cada card de local/criatura.
 **Pedidos do Erick (2026-11-25, noite):**
 - **Dog tag por boss:** o botão geral "Nova dog tag" saiu; na lista do portão, cada boss riscado (morto) ganha o botão
   **Dog tag**, que vale uma vez (sorteia uma letra nova em cada nome escondido; `mestre/lista/itens[i].dog`). Os 3 que já
@@ -1167,7 +1172,7 @@ Milena decidir e anote a decisão na frente.
 - [ ] **Purgatório (p. 41) e Cérberus (p. 42), fotos de 22/11:** sair tirando 1 ou 20 nos dois
   dados é só 1% por vez; "1 da vida original" parece fração sem o número de baixo; Cérberus sem
   ataques (sugestão 2.10).
-- [ ] **Fichas dos jogadores (p. 37 a 40):** a do Miguel está em branco; o Mateus (Ar) não tem
+- [ ] **Fichas dos jogadores (p. 37 a 40):** a do Miguel chegou em 25/11 (falta o avatar); o Mateus (Ar) não tem
   ataque de elemento (talvez seja o humano/Câncer, que na tabela dela é de Ar); somas de status
   diferentes (10 e 12) (sugestões 1.11 e 2.11).
 - [ ] **Maldição do barqueiro (p. 9):** do jeito que está, tirar 16 tira e dá ponto de azar ao
@@ -1200,7 +1205,7 @@ Milena decidir e anote a decisão na frente.
 ### O que falta escrever
 
 - [x] Fichas do Grifo, do Kallikántzaros (Leprechaun) e da Hidra: feitas (fotos de 22/11).
-- [ ] Ataques do Cérberus (p. 42) e ficha do Miguel (p. 38).
+- [ ] Ataques do Cérberus (p. 42). Avatar do Miguel (encapuzado, Gemini) a gravar em `mesa/retratos/miguel-ia.jpg` e ligar em `retratoIA`.
 - [ ] Cena do museu.
 - [ ] A luta contra o Freddy (p. 18 tem só o teste inicial).
 - [ ] Parte 2: o Torneio das Lendas. Ideias: os outros oito signos como rivais, semideuses como

@@ -338,8 +338,23 @@ brown hair with a small bun on top, eyes closed in a peaceful happy smile, rosy 
 blouse with a white collar. Sweet grandmother look, with a hint of hidden power.
 ```
 
-**Miguel:** a ficha ainda está em branco no caderno; quando houver desenho, usar o começo comum e
-descrever o que estiver no desenho.
+**Miguel: José Carlos** (sem desenho; **não usar o começo comum**, este prompt é completo e não
+anexa nada). Pedido do Erick em 25/11: um encapuzado genérico, sem mostrar os olhos. Sem pistas do
+elemento (Terra), que só aparece quando a mestre revela.
+
+```
+Create an image. A polished character portrait for a fantasy tabletop RPG, matching a set of
+semi-realistic digital paintings: soft painterly brushwork, warm dramatic light, a slightly mystical
+glow, plain dark purple background. Head and shoulders, facing the viewer, centered.
+The character is José Carlos, a mysterious 27-year-old man wearing a deep hood of rough dark brown
+cloth that casts a heavy shadow over the upper half of his face: his eyes are completely hidden in
+darkness, only the lower face is visible, with a strong jaw, short dark stubble and a calm, serious
+closed mouth. Broad athletic shoulders, a weathered traveler's cloak over a simple dark tunic, a
+worn leather strap of a survival pack across one shoulder, and a simple old cord necklace with a
+small rough stone pendant resting on his chest. Rugged survivor look, quiet and intimidating, with
+an air of secrecy. Suitable for a teen audience. No text, no letters, no frame. Square image,
+aspect ratio 1:1.
+```
 
 ---
 

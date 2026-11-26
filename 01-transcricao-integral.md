@@ -839,7 +839,30 @@ gola alta e casaco preto.]*
 
 **FICHA DO: MIGUEL**
 
-*[página em branco, só com o título]*
+*[nas fotos de 22/11 a página estava em branco; preenchida depois, foto `WhatsApp Image 2026-11-25 at 23.08.40`]*
+
+Nome: José Carlos
+Idade: 27
+
+STATUS
+
+F | 4
+I | 2
+V | 3
+A | 2
+P | 1
+
+Perícias: Atletismo, Intimidação, Sobrevivência, Luta
+
+Itens: Colar, Kit de sobrevivência
+
+| ATAQUES | TENTATIVA | DANO |
+|---|---|---|
+| Adrenalina | 1D20 · S: +10 · N: -9 | — |
+| PEDRA do chão | 1D20 · S: +12 · N: -11 | 1D12 + 1D6 |
+| pedra no corpo (LEVA 1 rodada) | 1D20 · S: +13 · N: -12 | +1D4 nos ataques |
+
+*[nota: sem desenho do personagem; o retrato será um avatar genérico.]*
 
 ---
 
