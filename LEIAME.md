@@ -1205,7 +1205,8 @@ Milena decidir e anote a decisão na frente.
 ### O que falta escrever
 
 - [x] Fichas do Grifo, do Kallikántzaros (Leprechaun) e da Hidra: feitas (fotos de 22/11).
-- [ ] Ataques do Cérberus (p. 42). Avatar do Miguel (encapuzado, Gemini) a gravar em `mesa/retratos/miguel-ia.jpg` e ligar em `retratoIA`.
+- [ ] Ataques do Cérberus (p. 42).
+- [ ] Avatar do Miguel é **temporário** (encapuzado do Gemini, 26/11, `mesa/retratos/miguel-ia.jpg`); trocar se ele mandar desenho.
 - [ ] Cena do museu.
 - [ ] A luta contra o Freddy (p. 18 tem só o teste inicial).
 - [ ] Parte 2: o Torneio das Lendas. Ideias: os outros oito signos como rivais, semideuses como

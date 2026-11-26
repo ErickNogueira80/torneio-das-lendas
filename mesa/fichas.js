@@ -5,7 +5,7 @@
 // Leituras incertas do caderno estão como foram lidas; corrigir aqui quando a Milena confirmar.
 window.FICHAS = {
   miguel: {   // p. 38, preenchida depois (foto de 25/11/2026). Sem desenho: avatar genérico (encapuzado) no Gemini.
-    personagem: 'José Carlos', idade: 27, retrato: null, retratoIA: null,
+    personagem: 'José Carlos', idade: 27, retrato: null, retratoIA: 'retratos/miguel-ia.jpg',
     status: { F: 4, I: 2, V: 3, A: 2, P: 1 },
     pericias: ['Atletismo', 'Intimidação', 'Sobrevivência', 'Luta'],
     itens: ['Colar', 'Kit de sobrevivência'],
