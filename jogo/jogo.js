@@ -36,10 +36,13 @@ const DEMO = params.has('demo');
 const START_BOSS = params.has('boss') || DEMO;
 
 // ---------- dados ----------
-const HEROI_ID = HEROIS[params.get('heroi')] ? params.get('heroi') : 'humano';
+// (2026-11-28, Erick) o jogo lembra o último herói e o último local (sem parâmetro na URL, volta neles)
+const lembrar = (k, v) => { try { if (v === undefined) return localStorage.getItem('tdl_' + k); localStorage.setItem('tdl_' + k, v); } catch (_) { return null; } };
+const HEROI_ID = HEROIS[params.get('heroi')] ? params.get('heroi')
+  : (HEROIS[lembrar('heroi')] && HEROIS[lembrar('heroi')].disponivel ? lembrar('heroi') : 'humano');
 const HEROI = HEROIS[HEROI_ID];
 const PODER_ID = HEROI.poder, PODER = PODERES[PODER_ID];
-const FASE_ID = FASES[params.get('fase')] ? params.get('fase') : 'boitata';
+const FASE_ID = FASES[params.get('fase')] ? params.get('fase') : FASES[lembrar('fase')] ? lembrar('fase') : 'boitata';
 // Objetos-plataforma do pasto (kit no estilo Magibot, 2026-11-20): w x h em px da arte (a tela é o dobro)
 // e onde se pisa ([x0, x1, y] em px da arte, medidos no perfil de cima de cada imagem). Se a ferramenta
 // gerar a imagem com outro tamanho, medir de novo. São plataformas de mão única: o herói passa na frente
@@ -188,6 +191,7 @@ addEventListener('keydown', e => {
   if (e.repeat) return;
   keys[e.code] = true;
   if (state !== 'play') { menuKey(e.code); return; }
+  if (e.code === 'Escape' || e.code === 'KeyP') { pausar(); return; }
   if (PASTO && params.has('limpo') && /^Digit[1-7]$/.test(e.code)) trocarEstilo(+e.code[5] - 1);   // teste de estilos (só na tela de teste)
   if (JUMP_KEYS.includes(e.code)) jumpPressed = true;
   if (SWORD_KEYS.includes(e.code)) swordPressed = true;
@@ -223,6 +227,7 @@ cv.addEventListener('pointerdown', e => {
   if (e.pointerType === 'touch') showTouch = true;
   const p = toVirtual(e);
   if (state !== 'play' || portrait) { menuTap(p); return; }
+  if (overlap({ x: p.x, y: p.y, w: 1, h: 1 }, { x: BOTAO_PAUSA.x - 6, y: BOTAO_PAUSA.y - 6, w: BOTAO_PAUSA.w + 12, h: BOTAO_PAUSA.h + 12 })) { pausar(); return; }
   const id = showTouch ? btnAt(p) : null;
   pointers.set(e.pointerId, id);
   if (id) press(id);
@@ -2479,7 +2484,8 @@ function chooseLevel(i) {
 }
 function menuTap(p) {
   if (portrait) return;
-  if (state === 'title') { goFullscreen(); abrirHerois(); }
+  if (state === 'title') { if (overlap({ x: p.x, y: p.y, w: 1, h: 1 }, BOTAO_BEST)) { abrirBestiario('title'); return; } goFullscreen(); abrirHerois(); }
+  else if (state === 'pausa') tocarPausa(p);
   else if (state === 'herois') { tocarHerois(p); }
   else if (state === 'intro') { state = 'play'; }
   else if (state === 'mapa') { tocarMapa(p); }
@@ -2489,6 +2495,8 @@ function menuTap(p) {
   else if (state === 'levelup') { for (let i = 0; i < 4; i++) if (overlap({ x: p.x, y: p.y, w: 1, h: 1 }, lvCard(i))) chooseLevel(i); }
 }
 function menuKey(code) {
+  if (state === 'title' && code === 'KeyB') { abrirBestiario('title'); return; }
+  if (state === 'pausa') { teclaPausa(code); return; }
   if (state === 'mapa') { teclaMapa(code); return; }
   if (state === 'bestiario') { teclaBestiario(code); return; }
   if (state === 'herois') { teclaHerois(code); return; }
@@ -2519,12 +2527,14 @@ function posCartao() {
 }
 function entrarLocal(l) {
   if (!l || !l.fase) return;
+  lembrar('fase', l.fase);
   if (l.fase === FASE_ID) newGame();
   else location.search = '?heroi=' + HEROI_ID + '&fase=' + l.fase + '&play';   // (2026-11-28) mantém o herói
 }
-const BOTAO_BEST = { x: 16, y: H - 56, w: 150, h: 40 };
+const BOTAO_BEST = { x: 16, y: H - 56, w: 150, h: 40 }, BOTAO_MAPA_HEROIS = { x: 16, y: 12, w: 130, h: 36 };
 function tocarMapa(p) {
   if (overlap({ x: p.x, y: p.y, w: 1, h: 1 }, BOTAO_BEST)) { abrirBestiario(); return; }
+  if (overlap({ x: p.x, y: p.y, w: 1, h: 1 }, BOTAO_MAPA_HEROIS)) { abrirHerois(); return; }
   posCartao();
   const l = LOCAIS[mapaSel];
   if (l && l.fase && overlap({ x: p.x, y: p.y, w: 1, h: 1 }, BOTAO)) { entrarLocal(l); return; }
@@ -2534,8 +2544,10 @@ function tocarMapa(p) {
 }
 function teclaMapa(code) {
   if (code === 'KeyB') { abrirBestiario(); return; }
-  if (code === 'ArrowRight' || code === 'KeyD' || code === 'ArrowUp') mapaSel = (mapaSel + 1) % LOCAIS.length;
-  else if (code === 'ArrowLeft' || code === 'KeyA' || code === 'ArrowDown') mapaSel = (mapaSel + LOCAIS.length - 1) % LOCAIS.length;
+  if (['Escape', 'Backspace'].includes(code)) { abrirHerois(); return; }   // volta para a escolha de herói
+  // (2026-11-28, Erick) as setas passam só pelos locais liberados (os bloqueados abrem tocando neles)
+  const passo = code === 'ArrowRight' || code === 'KeyD' || code === 'ArrowUp' ? 1 : code === 'ArrowLeft' || code === 'KeyA' || code === 'ArrowDown' ? -1 : 0;
+  if (passo) for (let k = 1; k <= LOCAIS.length; k++) { const i = ((mapaSel + passo * k) % LOCAIS.length + LOCAIS.length) % LOCAIS.length; if (LOCAIS[i].fase) { mapaSel = i; break; } }
   else if (['Enter', 'Space', 'KeyJ', 'KeyZ'].includes(code)) entrarLocal(LOCAIS[mapaSel]);
   if (LOCAIS[mapaSel]) imgLocal(LOCAIS[mapaSel]);
 }
@@ -2612,11 +2624,12 @@ function drawMapa() {
   ctx.textAlign = 'center'; ctx.fillStyle = '#f5d48a'; ctx.font = 'bold 26px Cinzel, serif';
   ctx.fillText((window.MAPA && MAPA.titulo) || 'Mapa', W / 2, H - 28);
   ctx.fillStyle = '#b3a88f'; ctx.font = '13px "Crimson Pro", serif';
-  ctx.fillText(showTouch ? 'Toque num local · toque de novo para entrar' : 'Setas escolhem o local · Enter entra', W / 2, H - 10);
+  ctx.fillText(showTouch ? 'Toque num local · toque de novo para entrar' : 'Setas escolhem o local · Enter entra · Esc volta', W / 2, H - 10);
   // botão do bestiário
   { const B = BOTAO_BEST; ctx.fillStyle = 'rgba(14,10,20,.85)'; roundRect(B.x, B.y, B.w, B.h, 10); ctx.fill();
     ctx.strokeStyle = '#c9a24e'; ctx.lineWidth = 1.5; ctx.stroke();
     ctx.fillStyle = '#f5d48a'; ctx.textAlign = 'center'; ctx.font = 'bold 16px Cinzel, serif'; ctx.fillText('Bestiário', B.x + B.w / 2, B.y + 26); }
+  botaoMenu(BOTAO_MAPA_HEROIS, '← Heróis');
   // cartão do local escolhido
   const l = LOCAIS[mapaSel]; if (!l) return;
   posCartao();
@@ -2667,10 +2680,12 @@ let bestSel = 0;
 const bestImgs = {};
 const tileBest = i => ({ x: 22 + (i % 3) * 100, y: 66 + Math.floor(i / 3) * 96, w: 92, h: 88 });
 const BOTAO_VOLTAR = { x: 22, y: H - 50, w: 140, h: 38 };
-function abrirBestiario() { state = 'bestiario'; pointers.clear(); REG = registro(); }
+let bestDe = 'mapa';   // de onde o bestiário foi aberto: 'mapa' ou 'title'
+function abrirBestiario(de = 'mapa') { bestDe = de; state = 'bestiario'; pointers.clear(); REG = registro(); }
+function sairBestiario() { if (bestDe === 'title') { state = 'title'; pointers.clear(); } else abrirMapa(); }
 function tocarBestiario(p) {
   const pt = { x: p.x, y: p.y, w: 1, h: 1 };
-  if (overlap(pt, BOTAO_VOLTAR)) { abrirMapa(); return; }
+  if (overlap(pt, BOTAO_VOLTAR)) { sairBestiario(); return; }
   BEST.forEach((b, i) => { if (overlap(pt, tileBest(i))) bestSel = i; });
 }
 function teclaBestiario(code) {
@@ -2678,7 +2693,7 @@ function teclaBestiario(code) {
   else if (code === 'ArrowLeft' || code === 'KeyA') bestSel = (bestSel + BEST.length - 1) % BEST.length;
   else if (code === 'ArrowDown' || code === 'KeyS') bestSel = Math.min(BEST.length - 1, bestSel + 3);
   else if (code === 'ArrowUp' || code === 'KeyW') bestSel = Math.max(0, bestSel - 3);
-  else if (['Escape', 'Backspace', 'KeyB'].includes(code)) abrirMapa();
+  else if (['Escape', 'Backspace', 'KeyB'].includes(code)) sairBestiario();
 }
 // imagem de uma criatura dentro de uma caixa (sprite do jogo ou ilustração)
 function imagemCriatura(b, x, y, w, h) {
@@ -2741,7 +2756,7 @@ function drawBestiario() {
   }
   const V = BOTAO_VOLTAR; ctx.fillStyle = 'rgba(14,10,20,.85)'; roundRect(V.x, V.y, V.w, V.h, 10); ctx.fill();
   ctx.strokeStyle = '#c9a24e'; ctx.lineWidth = 1.5; ctx.stroke();
-  ctx.fillStyle = '#f5d48a'; ctx.font = 'bold 15px Cinzel, serif'; ctx.fillText('← Mapa', V.x + V.w / 2, V.y + 25);
+  ctx.fillStyle = '#f5d48a'; ctx.font = 'bold 15px Cinzel, serif'; ctx.fillText(bestDe === 'title' ? '← Início' : '← Mapa', V.x + V.w / 2, V.y + 25);
 }
 
 // ---------- seleção de herói ----------
@@ -2757,11 +2772,14 @@ function abrirHerois() { state = 'herois'; pointers.clear(); }
 function escolherHeroi() {
   const id = SEL[heroiSel], h = HEROIS[id];
   if (!h || !h.disponivel) return;
+  lembrar('heroi', id);
   if (id !== HEROI_ID) { location.search = '?heroi=' + id + '&mapa'; return; }   // recarrega com o herói
   abrirMapa();
 }
+const BOTAO_HEROIS_VOLTAR = { x: 16, y: H - 56, w: 140, h: 40 };
 function tocarHerois(p) {
   const pt = { x: p.x, y: p.y, w: 1, h: 1 };
+  if (overlap(pt, BOTAO_HEROIS_VOLTAR)) { state = 'title'; pointers.clear(); return; }
   if (overlap(pt, BOTAO_HEROI)) { escolherHeroi(); return; }
   SEL.forEach((id, i) => { if (overlap(pt, cartaoHeroi(i))) { if (i === heroiSel) escolherHeroi(); else heroiSel = i; } });
 }
@@ -2769,6 +2787,7 @@ function teclaHerois(code) {
   if (code === 'ArrowRight' || code === 'KeyD') heroiSel = (heroiSel + 1) % SEL.length;
   else if (code === 'ArrowLeft' || code === 'KeyA') heroiSel = (heroiSel + SEL.length - 1) % SEL.length;
   else if (['Enter', 'Space', 'KeyJ', 'KeyZ'].includes(code)) escolherHeroi();
+  else if (['Escape', 'Backspace'].includes(code)) state = 'title';
 }
 // retrato do herói, ou a silhueta do retrato do humano tingida com a cor do elemento
 const silhuetas = {};
@@ -2834,6 +2853,7 @@ function drawHerois() {
   ctx.fillStyle = h.disponivel ? 'rgba(227,183,90,.92)' : 'rgba(120,110,130,.35)'; roundRect(B.x, B.y, B.w, B.h, 10); ctx.fill();
   ctx.fillStyle = h.disponivel ? '#1a1424' : '#8a8296'; ctx.font = 'bold 18px Cinzel, serif';
   ctx.fillText(h.disponivel ? 'Escolher' : 'Bloqueado', B.x + B.w / 2, B.y + 28);
+  botaoMenu(BOTAO_HEROIS_VOLTAR, '← Início');
 }
 
 // ---------- desenho ----------
@@ -5056,6 +5076,40 @@ function drawTitle() {
   ctx.fillText(showTouch ? 'Use o celular deitado. Botões: ◀ ▶ andar · pular · ataque · poder'
     : 'Setas ou A/D andam · ↑, W ou Espaço pulam · J ou Z ataque · K ou X poder', W / 2, 440);
   ctx.fillText('Escolha seu herói, escolha um local no mundo espiritual e enfrente a lenda que vive lá.', W / 2, 464);
+  botaoMenu(BOTAO_BEST, 'Bestiário');
+}
+
+// botão simples das telas de menu
+function botaoMenu(B, texto, cheio = false) {
+  ctx.fillStyle = cheio ? 'rgba(227,183,90,.92)' : 'rgba(14,10,20,.85)'; roundRect(B.x, B.y, B.w, B.h, 10); ctx.fill();
+  ctx.strokeStyle = '#c9a24e'; ctx.lineWidth = 1.5; ctx.stroke();
+  ctx.fillStyle = cheio ? '#1a1424' : '#f5d48a'; ctx.textAlign = 'center'; ctx.font = `bold ${B.h > 40 ? 18 : 15}px Cinzel, serif`;
+  ctx.fillText(texto, B.x + B.w / 2, B.y + B.h / 2 + 6);
+}
+// pausa (2026-11-28, Erick): botão de pausa no canto (ou Esc/P) para continuar, voltar ao mapa ou trocar de herói
+const BOTAO_PAUSA = { x: W - 60, y: 34, w: 44, h: 38 };
+const PAUSA_OPC = [['Continuar', () => { state = 'play'; }], ['Voltar ao mapa', () => abrirMapa()], ['Trocar herói', () => abrirHerois()]];
+const opcPausa = i => ({ x: W / 2 - 150, y: 196 + i * 62, w: 300, h: 48 });
+let pausaSel = 0;
+function pausar() { if (state !== 'play') return; state = 'pausa'; pausaSel = 0; pointers.clear(); keys.ArrowLeft = keys.ArrowRight = keys.KeyA = keys.KeyD = false; }
+function tocarPausa(p) { PAUSA_OPC.forEach(([, f], i) => { if (overlap({ x: p.x, y: p.y, w: 1, h: 1 }, opcPausa(i))) f(); }); }
+function teclaPausa(code) {
+  if (['Escape', 'KeyP'].includes(code)) state = 'play';
+  else if (code === 'ArrowDown' || code === 'KeyS') pausaSel = (pausaSel + 1) % PAUSA_OPC.length;
+  else if (code === 'ArrowUp' || code === 'KeyW') pausaSel = (pausaSel + PAUSA_OPC.length - 1) % PAUSA_OPC.length;
+  else if (['Enter', 'Space', 'KeyJ', 'KeyZ'].includes(code)) PAUSA_OPC[pausaSel][1]();
+}
+function drawPausa() {
+  ctx.fillStyle = 'rgba(10,6,16,.7)'; ctx.fillRect(0, 0, W, H);
+  ctx.textAlign = 'center'; ctx.fillStyle = '#f5d48a'; ctx.font = 'bold 40px Cinzel, serif'; ctx.fillText('Pausa', W / 2, 150);
+  PAUSA_OPC.forEach(([t], i) => botaoMenu(opcPausa(i), t, i === pausaSel));
+  ctx.fillStyle = '#b3a88f'; ctx.font = '14px "Crimson Pro", serif';
+  ctx.fillText('Voltar ao mapa ou trocar de herói recomeça a fase.', W / 2, 400);
+}
+function drawBotaoPausa() {
+  const B = BOTAO_PAUSA; ctx.fillStyle = 'rgba(14,10,20,.55)'; roundRect(B.x, B.y, B.w, B.h, 9); ctx.fill();
+  ctx.strokeStyle = 'rgba(201,162,78,.7)'; ctx.lineWidth = 1.2; ctx.stroke();
+  ctx.fillStyle = '#f5d48a'; ctx.fillRect(B.x + 15, B.y + 10, 5, 18); ctx.fillRect(B.x + 25, B.y + 10, 5, 18);
 }
 
 // apresentação da fase (2026-11-28): ao entrar, o nome, o guardião e a descrição do caderno; toque começa
@@ -5185,6 +5239,8 @@ function draw() {
     const agora = performance.now() / 1000; fpsN++; if (agora - fpsT >= 1) { fps = Math.round(fpsN / (agora - fpsT)); fpsN = 0; fpsT = agora; }
     ctx.fillStyle = '#9f9'; ctx.font = 'bold 16px sans-serif'; ctx.textAlign = 'right'; ctx.fillText(fps + ' fps', W - 12, 46);
   }
+  if (state === 'play') drawBotaoPausa();
+  if (state === 'pausa') drawPausa();
   if (state === 'intro') drawIntroFase();
   if (state === 'levelup') drawLevelUp();
   if (state === 'dead') drawDead();

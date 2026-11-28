@@ -447,6 +447,12 @@ Pessoal (família).
   apresentação dela (nome, guardião, herói, descrição do caderno; estado `intro`, toque/Enter começa; os
   testes pela URL com `x`, `boss`, `demo`, `sala`, `ff` ou `limpo` pulam). O cartão do mapa mostra o
   guardião do local liberado. Trocar de fase pelo mapa mantém o herói escolhido (`?heroi=` na URL).
+- **Navegação, parte 2 (2026-11-28, Erick aprovou as 5 sugestões):** (1) **pausa** na fase: botão no canto
+  de cima à direita (ou Esc/P) com Continuar, Voltar ao mapa e Trocar herói (estado `pausa`; sair recomeça a
+  fase); (2) **voltar**: mapa tem "← Heróis" (e Esc), heróis tem "← Início" (e Esc); (3) **setas do mapa só
+  nos locais liberados** (bloqueados abrem tocando); (4) o jogo **lembra o último herói e o último local**
+  (`localStorage` `tdl_heroi` e `tdl_fase`; parâmetro na URL tem prioridade); (5) **Bestiário na tela
+  inicial** (botão ou B), e o "voltar" dele leva para onde veio (início ou mapa).
 - **Publicar o jogo:** trocar o `?v=` dos três scripts em `jogo/index.html` (qualquer valor novo,
   ex.: o hash do commit), para o celular não misturar arquivos novos com antigos do cache. Erros do
   jogo aparecem numa faixa vermelha embaixo da tela, com o navegador do aparelho. Erros de extensões
