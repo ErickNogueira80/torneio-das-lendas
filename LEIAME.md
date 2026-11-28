@@ -424,6 +424,14 @@ Pessoal (família).
   usa 0,78). Só se vê em volta das fontes de luz: o herói, a lua, os poderes (`corLuz` em
   `PODERES`), os inimigos (`luz` e `corLuz` em `INIMIGOS`), o chão em chamas, os pontos de
   controle, o pingente e o chefe (função `luzes` no módulo do chefe). (As bordas de brasa no chão e nos galhos saíram em 2026-11-08, a pedido do Erick.)
+- **Heróis = personagens da mesa (2026-11-28, Erick):** os 4 cartões da escolha são Sam Seixeira (o
+  humano, sem constelação), Jane Vorhood (Áries · Água), Angi Momobami (Sagitário · Fogo) e José Carlos
+  (Capricórnio · Terra), com os atributos das fichas da Milena (status F, I, V, A; o P da ficha fica fora).
+  O cartão mostra nome e "signo · elemento" mesmo bloqueado (o jogo de plataforma é à parte da mesa e os
+  jogadores só recebem o link da mesa). Jane, Angi e José ficam "em breve" até chegar a arte: prompts na
+  seção 0.1 de `04-prompts-sprites.md` (retrato do cartão no Gemini/ChatGPT anexando o avatar da mesa e
+  boneco no PixelLab, pastas `herois/jane`, `herois/angi`, `herois/jose`; o Sam substitui o encapuzado em
+  `herois/humano`).
 - **Publicar o jogo:** trocar o `?v=` dos três scripts em `jogo/index.html` (qualquer valor novo,
   ex.: o hash do commit), para o celular não misturar arquivos novos com antigos do cache. Erros do
   jogo aparecem numa faixa vermelha embaixo da tela, com o navegador do aparelho. Erros de extensões

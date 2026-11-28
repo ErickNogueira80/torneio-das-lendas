@@ -2807,9 +2807,9 @@ function drawHerois() {
     ctx.restore();
     // nome, signo, elemento
     ctx.fillStyle = livre ? '#f5d48a' : '#a89cb8'; ctx.font = 'bold 16px Cinzel, serif';
-    ctx.fillText(livre ? h.nome : (h.signo || h.nome), C.x + C.w / 2, C.y + 226 + lift);
+    ctx.fillText(h.nome, C.x + C.w / 2, C.y + 226 + lift);   // (2026-11-28) nome do personagem da mesa em todos os cartões
     ctx.fillStyle = cor; ctx.font = '13px "Crimson Pro", serif';
-    ctx.fillText(h.elemento ? 'Elemento: ' + NOME_ELEM[h.elemento] : 'Sem constelação · difícil', C.x + C.w / 2, C.y + 244 + lift);
+    ctx.fillText(h.elemento ? h.signo + ' · ' + NOME_ELEM[h.elemento] : 'Sem constelação · difícil', C.x + C.w / 2, C.y + 244 + lift);
     // atributos
     const nomes = { V: 'Vigor', F: 'Força', I: 'Intelecto', A: 'Agilidade' };
     Object.keys(nomes).forEach((k, j) => {

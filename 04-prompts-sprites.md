@@ -201,6 +201,114 @@ ferramenta, confere no jogo, ajusta e publica.
 
 ---
 
+## 0.1 Os 4 heróis da mesa (2026-11-28)
+
+Pedido do Erick: os heróis do jogo passam a ser os personagens da mesa da Milena, com o visual das
+fichas (`mesa/fichas.js` e os avatares em `mesa/retratos/`). Os dados já estão em `jogo/dados/herois.js`.
+Cada herói precisa de duas coisas:
+
+1. **Retrato do cartão** (Gemini ou ChatGPT, pintado como o do humano). **Anexar o avatar da mesa**
+   (`mesa/retratos/<nome>-ia.jpg`) para manter o rosto. Salvar em `img/sprites/herois/<pasta>/retrato.png`.
+   Só com o retrato o cartão já deixa de ser silhueta.
+2. **Boneco no PixelLab** (Create Character, 56 px, vista lateral, como o humano; animações da tabela da
+   seção 0, trocando "short steel sword" pela arma de cada um). Salvar em `img/sprites/herois/<pasta>/`.
+   Com `parado` e `correr` o herói já pode ser liberado na escolha.
+
+| Herói | Pasta | Signo · elemento | Arma no jogo | Avatar para anexar |
+|---|---|---|---|---|
+| Sam Seixeira (o humano) | `humano` (substitui o encapuzado) | sem constelação | faca de combate | `mateus-ia.jpg` |
+| Jane Vorhood | `jane` | Áries · Água | adaga de gelo | `joao-ia.jpg` |
+| Angi Momobami | `angi` | Sagitário · Fogo | espada (o fogo é o poder) | `bia-ia.jpg` |
+| José Carlos | `jose` | Capricórnio · Terra | os punhos (enfaixados) | `miguel-ia.jpg` |
+
+**Começo comum dos retratos** (colar antes da descrição de cada um, com o avatar anexado):
+
+```
+Create an image. Full-body character art for the hero selection screen of a 2D fantasy RPG
+platformer. Same face, hair and colors as the attached portrait. Semi-realistic hand-painted look,
+clean readable silhouette, rich colors, soft rim light. Standing in a confident relaxed pose,
+three-quarter view, whole body visible from head to boots with free space around, centered, plain
+solid #00FF00 green background, no shadow, no ground, no text, no frame. No green on the character.
+```
+
+**Sam Seixeira** (anexar `mesa/retratos/mateus-ia.jpg`):
+
+```
+The character is Sam Seixeira, a 30-year-old man, ordinary human with no magic marks: short messy
+orange-red hair, yellow-green eyes, light freckles, a relaxed half smile. White ribbed turtleneck
+sweater under an open black jacket, dark grey trousers, black boots, a simple dark belt with a combat
+knife in a sheath. Light on his feet, like a stealthy street fighter.
+```
+
+**Jane Vorhood** (anexar `mesa/retratos/joao-ia.jpg`):
+
+```
+The character is Jane Vorhood, a kind 82-year-old woman, small and slightly hunched but lively: big
+voluminous curly brown hair with a small bun on top, gentle wrinkles, eyes closed in a peaceful happy
+smile, rosy cheeks. Pink blouse with a white collar, a long soft lilac skirt, a light knitted shawl,
+comfortable brown shoes. She holds a small dagger made of clear blue ice, and a few drops of water
+float around her hand. Sweet grandmother look, with a hint of hidden power.
+```
+
+**Angi Momobami** (anexar `mesa/retratos/bia-ia.jpg`):
+
+```
+The character is Angi Momobami, a 25-year-old woman: long straight black hair with blunt bangs,
+striking red eyes, calm confident slight smile. Dark blue high-collared jacket with a small embroidered
+symbol on the chest over a black top, dark fitted trousers, tall black boots, a small field medic
+pouch on the belt. She holds a slim sword whose blade glows faintly orange like embers, and a golden
+bow is slung across her back.
+```
+
+**José Carlos** (anexar `mesa/retratos/miguel-ia.jpg`):
+
+```
+The character is José Carlos, a mysterious 27-year-old man: a deep hood of rough dark brown cloth
+casts a heavy shadow over the upper half of his face, his eyes completely hidden in darkness, only a
+strong jaw with short dark stubble visible. Broad athletic build, a weathered sleeveless traveler's
+cloak over a simple dark tunic, bare muscular arms with hands wrapped in worn cloth bandages, a
+leather strap of a survival pack across the chest, a cord necklace with a small rough stone pendant,
+dark trousers and worn boots. No weapon: he fights with his fists.
+```
+
+**PixelLab: descrição de cada personagem** (Create Character, 56 px, side view, como o humano):
+
+```
+Sam Seixeira: Young adult man, 30, fantasy RPG hero. Short messy orange-red hair, light freckles,
+relaxed confident face. White ribbed turtleneck sweater under an open black jacket, dark grey
+trousers, black boots, dark belt. Holds a short combat knife in his right hand, pointing down.
+No green on the character. Clean readable silhouette, rich colors, 16-bit detailed pixel art.
+```
+
+```
+Jane Vorhood: Kind old woman, 82, fantasy RPG hero, small and lively. Big voluminous curly brown
+hair with a small bun on top, eyes closed with a happy smile, rosy cheeks. Pink blouse with a white
+collar, long lilac skirt, light knitted shawl, brown shoes. Holds a small clear blue ice dagger in
+her right hand. No green on the character. Clean readable silhouette, rich colors, 16-bit detailed
+pixel art.
+```
+
+```
+Angi Momobami: Young woman, 25, fantasy RPG hero. Long straight black hair with blunt bangs, red
+eyes. Dark blue high-collared jacket over a black top, dark trousers, tall black boots, small pouch
+on the belt, golden bow on her back. Holds a slim sword with a faint orange ember glow in her right
+hand, pointing down. No green on the character. Clean readable silhouette, rich colors, 16-bit
+detailed pixel art.
+```
+
+```
+José Carlos: Strong young man, 27, fantasy RPG hero. Deep rough dark brown hood shadowing his eyes,
+short dark stubble. Sleeveless weathered brown cloak over a dark tunic, bare muscular arms, hands
+wrapped in cloth bandages, survival pack strap across the chest, small stone pendant, dark trousers,
+worn boots. No weapon, fists ready. No green on the character. Clean readable silhouette, rich
+colors, 16-bit detailed pixel art.
+```
+
+Animações: a tabela da seção 0, trocando a arma no texto. Para o José Carlos, `espada` vira soco:
+Combat → **Cross Punch** com `Punching forward hard with the bandaged right fist.`; nas outras, tirar a
+frase da espada. Para a Jane, a arma é `small ice dagger`; para o Sam, `short combat knife`; para a
+Angi, `slim ember sword`.
+
 ## 1. O herói: "o humano"
 
 O humano é o 4º jogador: o "normal", sem constelação e sem atributo forte, com a jogabilidade

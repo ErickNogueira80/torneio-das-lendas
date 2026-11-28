@@ -10,50 +10,52 @@
 window.SELECAO_HEROIS = ['humano', 'agua', 'fogo', 'terra'];
 
 window.HEROIS = {
+  // (2026-11-28, Erick) os 4 heróis são os personagens da mesa da Milena (mesa/fichas.js): nome, visual
+  // e atributos da ficha (status F, I, V, A; o P da ficha não existe no jogo). As chaves continuam pelo
+  // elemento. Imagens: prompts em 04-prompts-sprites.md, seção "Os 4 heróis da mesa". Sem imagem própria,
+  // o cartão mostra a silhueta e o herói fica "em breve" (disponivel: false).
   // O 4º jogador (definição do Erick, 2026-11-07): o "normal", sem constelação e sem atributo
   // forte (todos em 2). Jogabilidade mais difícil. Na história, é o Câncer escondido.
-  // Por enquanto usa o poder da água só para teste; na tela de escolha (etapa 3) ele fica sem
-  // poder de elemento e ganha o vento quando despertar o Câncer (ver a ficha 'ar' abaixo).
+  // Por enquanto usa o poder da água só para teste e o boneco encapuzado (herois/humano) até chegar o do Sam.
   humano: {
-    nome: 'O humano', signo: null, elemento: null, disponivel: true, dificil: true,
+    nome: 'Sam Seixeira', signo: null, elemento: null, disponivel: true, dificil: true,
     descricao: 'Sem constelação no braço e sem atributo forte. Os outros devem protegê-lo... ou será o contrário?',
     attr: { V: 2, F: 2, I: 2, A: 2 },
     poder: 'agua',
-    cores: { capa: '#1f3f63', roupa: '#2e5c8a', cinto: '#c8a24a', pele: '#f0c9a0', cabelo: '#2a1c18' },
+    cores: { capa: '#141018', roupa: '#eee8dc', cinto: '#3a3040', pele: '#f2c9a8', cabelo: '#d2602a' },
     marca: false,
     sprite: 'herois/humano',
   },
 
-  // ---- Os 3 heróis com constelação: a Milena preenche nome, aparência, poder e atributo forte.
-  // Os signos e elementos abaixo seguem a tabela do caderno (p. 1) e podem mudar.
-  agua: {
-    nome: 'Herói de Água', signo: 'Áries', elemento: 'agua', disponivel: false,
-    descricao: '(a definir pela Milena)',
-    attr: { V: 2, F: 2, I: 3, A: 2 }, poder: 'agua',
-    cores: { capa: '#1d4e7a', roupa: '#3a8ad6', cinto: '#d8dee8', pele: '#e8bf98', cabelo: '#1a1a2a' },
-    marca: true, sprite: 'herois/agua',
+  // ---- Os 3 heróis com constelação (signo e elemento os mesmos da mesa)
+  agua: {   // ficha: F1 I4 V2 A2; manipulação de água, adaga de gelo
+    nome: 'Jane Vorhood', signo: 'Áries', elemento: 'agua', disponivel: false,
+    descricao: 'Uma senhora de 82 anos, doce como uma avó. Mas a água e o gelo obedecem a ela.',
+    attr: { V: 2, F: 1, I: 4, A: 2 }, poder: 'agua',
+    cores: { capa: '#e8a6b8', roupa: '#d97a98', cinto: '#f4f0ea', pele: '#f0c9a8', cabelo: '#7a4a2a' },
+    marca: true, sprite: 'herois/jane',
   },
-  fogo: {
-    nome: 'Herói de Fogo', signo: 'Sagitário', elemento: 'fogo', disponivel: false,
-    descricao: '(a definir pela Milena)',
-    attr: { V: 2, F: 3, I: 2, A: 2 }, poder: 'fogo',
-    cores: { capa: '#7a1e10', roupa: '#d4471a', cinto: '#ffcf6a', pele: '#e8bf98', cabelo: '#3a1408' },
-    marca: true, sprite: 'herois/fogo',
+  fogo: {   // ficha: F4 I2 V1 A3; espada de fogo, círculo de fogo, arco dourado; Medicina
+    nome: 'Angi Momobami', signo: 'Sagitário', elemento: 'fogo', disponivel: false,
+    descricao: 'Médica e espadachim de olhos vermelhos. Luta com uma espada de fogo e um arco dourado.',
+    attr: { V: 1, F: 4, I: 2, A: 3 }, poder: 'fogo',
+    cores: { capa: '#1c2a4a', roupa: '#2a3c66', cinto: '#d8a940', pele: '#efc6a4', cabelo: '#0e0c12' },
+    marca: true, sprite: 'herois/angi',
   },
-  terra: {
-    nome: 'Herói de Terra', signo: 'Capricórnio', elemento: 'terra', disponivel: false,
-    descricao: '(a definir pela Milena)',
-    attr: { V: 3, F: 2, I: 2, A: 2 }, poder: 'terra',
-    cores: { capa: '#4a3420', roupa: '#7a5a34', cinto: '#a8c070', pele: '#d9a77e', cabelo: '#2a1c10' },
-    marca: true, sprite: 'herois/terra',
+  terra: {   // ficha: F4 I2 V3 A2; adrenalina, pedra do chão, pedra no corpo; colar e kit de sobrevivência
+    nome: 'José Carlos', signo: 'Capricórnio', elemento: 'terra', disponivel: false,
+    descricao: 'Sobrevivente encapuzado, forte e calado. Arranca pedras do chão para lutar.',
+    attr: { V: 3, F: 4, I: 2, A: 2 }, poder: 'terra',
+    cores: { capa: '#4a3826', roupa: '#3a3630', cinto: '#7a5232', pele: '#c99872', cabelo: '#1e1610' },
+    marca: true, sprite: 'herois/jose',
   },
   ar: {
-    // Não é um 5º herói: é o humano depois de despertar a entidade de Câncer (a virada da
+    // Não é um 5º herói: é o Sam depois de despertar a entidade de Câncer (a virada da
     // história). Fica aqui para testar o poder do vento (?heroi=ar).
-    nome: 'O humano desperto (Câncer)', signo: 'Câncer', elemento: 'ar', disponivel: false,
+    nome: 'Sam desperto (Câncer)', signo: 'Câncer', elemento: 'ar', disponivel: false,
     descricao: 'A constelação apagada finalmente brilha.',
     attr: { V: 2, F: 2, I: 2, A: 3 }, poder: 'ar',
-    cores: { capa: '#5a6a8a', roupa: '#c8d4e8', cinto: '#7ab0d8', pele: '#f0c9a0', cabelo: '#d8c8a0' },
+    cores: { capa: '#5a6a8a', roupa: '#c8d4e8', cinto: '#7ab0d8', pele: '#f2c9a8', cabelo: '#d2602a' },
     marca: true, sprite: 'herois/ar',
   },
 };
