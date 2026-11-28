@@ -205,10 +205,12 @@ window.FASES = {
     controles: [80, 4250, 8300],
     inimigos: [
       // besouros grandes: caminho longo (longe dos buracos, passando pelas raízes) e um trecho de mato no meio
-      { tipo: 'besouro', x: 1700, x1: 1350, x2: 2040, vel: 55, vida: 999, moita: [1940, 120] },
-      { tipo: 'besouro', x: 2900, x1: 2540, x2: 3540, vel: 55, vida: 999, moita: [3060, 130] },
-      { tipo: 'besouro', x: 4600, x1: 4030, x2: 4940, vel: 60, vida: 999, moita: [4100, 120] },
-      { tipo: 'besouro', x: 5800, x1: 5450, x2: 6370, vel: 60, vida: 999, moita: [6290, 120] },
+      // (2026-11-28, Erick) mato fora de cima dos objetos: 1º entre a pilha de feno e o tronco, 2º entre a
+      // carroça e a pedra, 3º longe da beirada do buraco (perto do tronco), 4º entre a pilha de feno e a pedra
+      { tipo: 'besouro', x: 1700, x1: 1350, x2: 2040, vel: 55, vida: 999, moita: [1660, 120] },
+      { tipo: 'besouro', x: 2900, x1: 2540, x2: 3540, vel: 55, vida: 999, moita: [2870, 130] },
+      { tipo: 'besouro', x: 4600, x1: 4030, x2: 4940, vel: 60, vida: 999, moita: [4250, 120] },
+      { tipo: 'besouro', x: 5800, x1: 5450, x2: 6370, vel: 60, vida: 999, moita: [6100, 120] },
       { tipo: 'besouro', x: 7950, x1: 7820, x2: 8400, vel: 55, vida: 999, moita: [8310, 120] },
       { tipo: 'pombo', x: 1150, y: 300, vida: 10, t: 0 },
       { tipo: 'pombo', x: 2350, y: 240, vida: 12, t: 2 },

@@ -58,7 +58,7 @@ function platsDosObjetos(objs) {
   for (const o of objs) {
     const O = OBJETOS_PASTO[o.tipo]; if (!O) continue;
     const topo = 460 + (O.base ?? OBJ_BASE) - O.h * 2;
-    for (const [a, b, y] of O.pisos) out.push({ x: o.x + a * 2, y: topo + y * 2, w: (b - a) * 2, obj: true });
+    for (const [a, b, y] of O.pisos) out.push({ x: o.x + a * 2, y: topo + y * 2, w: (b - a) * 2, obj: true, tipo: o.tipo });
   }
   return out;
 }
@@ -327,7 +327,7 @@ function newGame() {
 }
 
 function respawn() {
-  Object.assign(player, { x: CHECKS[checkpoint], y: GROUND - 44, vx: 0, vy: 0, inv: 1.2, poison: 0, face: 1, swordT: 0 });
+  Object.assign(player, { x: CHECKS[checkpoint], y: GROUND - 44, vx: 0, vy: 0, inv: 1.2, poison: 0, face: 1, swordT: 0, noFeno: null });
   player.hp = maxHp(); player.pe = maxPe();
   shots = []; fireballs = [];
   for (const e of enemies) if (e.T.paz) { e.golpes = 0; e.carga = null; }   // depois de cair, os bichos do pasto se acalmam
@@ -2154,6 +2154,31 @@ function demoInput(dt) {
   return fake;
 }
 
+// carroça de feno (2026-11-28, Erick): ▼ em cima dela mergulha no feno. Lá dentro só o topo da cabeça
+// aparece, os inimigos não o acham (escondido()) e não dá para atacar. Pulo ou ◀ ▶ saem com um pulinho.
+const FENO_CORES = ['#f2d27a', '#d9a940', '#b8862c', '#fff0b8'];
+function entrarNoFeno(p) {
+  p.noFeno = p.onPlat; p.fenoT = 0; p.vx = 0; p.vy = 0; p.dropT = 0;
+  burst(p.x + p.w / 2, p.noFeno.y, 16, FENO_CORES, 150, .6, 260, 3);
+}
+function ficarNoFeno(p, dir, dt) {
+  const pl = p.noFeno;
+  p.fenoT += dt;
+  if (p.fenoT > .3 && (jumpPressed || dir)) {   // sai com um pulinho
+    p.noFeno = null; p.onGround = false; p.onPlat = false; p.coyote = 0; p.jumpBuf = 0;
+    p.vy = -JUMP_V * .8; p.vx = dir * speed(); if (dir) p.face = dir;
+    burst(p.x + p.w / 2, pl.y, 14, FENO_CORES, 160, .6, 260, 3);
+    return false;
+  }
+  p.vx = 0; p.vy = 0; p.onGround = true; p.onPlat = pl; p.plano = 0;
+  p.x = clamp(p.x, pl.x - p.w / 2, pl.x + pl.w - p.w / 2); p.y = pl.y - p.h;
+  if (Math.random() < dt * 1.2) burst(p.x + p.w / 2 + rnd(-14, 14), pl.y + 2, 2, FENO_CORES, 50, .5, 200, 2);   // o feno mexe de leve
+  p.pe = Math.min(maxPe(), p.pe + 11 * dt);
+  p.inv = Math.max(0, p.inv - dt);
+  p.swordCd -= dt; p.powerCd -= dt;
+  return true;
+}
+
 function updatePlayer(dt) {
   const p = player;
   let left = keys.ArrowLeft || keys.KeyA || held('left');
@@ -2162,6 +2187,7 @@ function updatePlayer(dt) {
   if (DEMO) { const f = demoInput(dt); left = f.left; right = f.right; jumpHeld = true; }
 
   const dir = (right ? 1 : 0) - (left ? 1 : 0);
+  if (p.noFeno && ficarNoFeno(p, dir, dt)) return;
   if (dir) p.face = dir;
   const target = dir * speed();
   const acc = p.onGround ? 2600 : 1600;
@@ -2195,7 +2221,11 @@ function updatePlayer(dt) {
   p.naMola = !!SALA && p.onGround && Math.abs(p.y + p.h - SALA.chao) < 2 && Math.abs(p.x + p.w / 2 - SALA.mola) < 30;
   if (p.naMola && !wasGround && fallV > 300) { p.vy = -fallV * .45; p.onGround = false; p.naMola = false; SALA.aperto = .7; }
   // ▼ (ou seta para baixo) em cima de uma plataforma: desce por ela
-  if (downPressed && p.onPlat && wasGround) { p.dropT = 0.22; p.onPlat = false; }
+  // (2026-11-28, Erick) em cima da carroça de feno, ▼ mergulha no feno: escondido, como no mato
+  if (downPressed && p.onPlat && wasGround) {
+    if (p.onPlat.tipo === 'carroca') entrarNoFeno(p);
+    else { p.dropT = 0.22; p.onPlat = false; }
+  }
   p.dropT = Math.max(0, (p.dropT || 0) - dt);
   if (!p.onGround) p.onPlat = false;
   if (p.vy >= 0 && p.dropT <= 0) for (const pl of PLATS) {
@@ -3189,7 +3219,8 @@ function drawCapim(frente) {
 const MOITAS = FASE.inimigos.filter(d => d.moita).map(d => ({ x: d.moita[0], w: d.moita[1] }));   // [x, largura]
 let moitaCv = null;
 function escondido() {
-  const p = player; if (!p.onGround) return false;
+  const p = player; if (p.noFeno) return true;   // dentro do feno da carroça
+  if (!p.onGround) return false;
   const cx = p.x + p.w / 2;
   return MOITAS.some(m => cx > m.x + 14 && cx < m.x + m.w - 14);
 }
@@ -4522,6 +4553,15 @@ function drawSombra(p) {
 }
 
 function drawPlayer() {
+  const p = player;
+  if (!p.noFeno) return drawPlayerCorpo();
+  // no feno: o herói afunda e só o topo da cabeça fica acima do feno
+  const k = Math.min(1, p.fenoT / .18), topo = p.noFeno.y + 6;
+  ctx.save(); ctx.beginPath(); ctx.rect(-50, topo - 600, W + 100, 600); ctx.clip();
+  ctx.translate(0, k * (p.h - 12) + Math.sin(time * 2.2) * 1.2);
+  drawPlayerCorpo(); ctx.restore();
+}
+function drawPlayerCorpo() {
   const p = player;
   if (p.inv > 0 && Math.floor(p.inv * 12) % 2 === 0 && state === 'play') return;
   // o desenho acompanha o relevo do piso, a curva do galho e o caminho pela frente das árvores

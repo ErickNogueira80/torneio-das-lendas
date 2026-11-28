@@ -1641,6 +1641,35 @@ Baixar em PNG (folha ou quadros soltos, fundo transparente) e, se der, o GIF. Sa
 `img/sprites/inimigos/besouro/` como `andar_folha.png`, `preparar_folha.png`, `investida_folha.png` (ou
 como vier; a ferramenta se ajusta). Com só `andar` o jogo já troca o desenho provisório.
 
+### Pombo bravo no PixelLab (2026-11-28)
+
+Mesmo caminho do besouro: **PixelLab**, Create Character, **vista lateral, East** (o jogo espelha), cores de
+dia. É pequeno no jogo (caixa 26 x 22 px, desenhado no dobro), então criar com **~40 px** (se não aceitar,
+48 px). História do bestiário: os pombos **perderam penas** (foram parar nas asinhas da Vaca) e estão de mau
+humor; isso aparece no desenho (falhas nas penas, penas arrepiadas).
+
+**Descrição (criação do personagem):**
+
+```
+Grumpy grey pigeon, a fantasy game enemy. Plump body in soft blue-grey, iridescent green and purple
+neck, orange eye with a heavy angry eyebrow, small dark beak, pink feet. Some feathers are missing:
+a few bald pink patches on the wings and a messy ruffled tail, like it lost feathers to someone and
+is very annoyed about it. Cute but bad-tempered, not scary. Side view, flying pose with wings open.
+Bright daylight colors, rich readable silhouette, 16-bit detailed pixel art, same style as a 56 px
+fantasy RPG hero.
+```
+
+**Animações** (só East, por descrição de texto, como o besouro):
+
+| Jogo | Quadros | Descrição |
+|---|---|---|
+| `voar` | 4–6 | `Flying to the right, flapping its wings up and down, body bobbing slightly, grumpy face.` |
+| `investida` | 4–6 | `Diving forward fast, wings folded back, beak first, angry eyes, a few loose feathers flying.` |
+| `atordoado` (opcional) | 4 | `Dizzy after a crash, wobbling in the air, eyes spinning, a feather falling.` |
+
+Salvar em `img/sprites/inimigos/pombo/` como `voar_folha.png` e `investida_folha.png` (ou como vier). Com só
+`voar` o jogo já troca o desenho provisório; o jogo ainda não usa `atordoado` (precisa de código se vier).
+
 ### Sala secreta do pasto: cogumelos verdes (2026-11-21)
 
 O Erick quer a sala do pasto com **cogumelos verdes** e o **chão no mesmo padrão da superfície** (pintura lisa,

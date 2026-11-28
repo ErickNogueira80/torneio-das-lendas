@@ -634,10 +634,19 @@ recorte em magenta `#FF00FF`, porque o recorte verde apaga o verde da arte.
     130 px dos buracos e passando por cima das raízes (x1–x2: 1350–2040, 2540–3540, 4030–4940,
     5450–6370, 7820–8400), vel. 55–60.
     **Mato alto:** um trecho pequeno no caminho de cada besouro (`moita: [x, largura]` no besouro,
-    120–130 px: 1940, 3060, 4100, 6290, 8310), fora das raízes, desenhado pelo código (`drawMoitas`,
+    120–130 px: 1660, 2870, 4250, 6100, 8310 desde 2026-11-28), fora das raízes, desenhado pelo código (`drawMoitas`,
     ~80 px). No chão e com o centro dentro do mato, o herói fica escondido (`escondido()`, sem aviso
     na tela) e o besouro passa **na frente** do mato (`drawEnemies(true)` depois de `drawMoitas`).
     **Sem cardos** no pasto (`perigos: []`).
+    **Mato fora dos objetos (2026-11-28, Erick):** o 1º estava em cima do tronco caído, o 2º em cima da
+    pedra e o 4º também na pedra; foram para os vãos livres (entre pilha de feno e tronco, entre carroça
+    e pedra, entre pilha de feno e pedra). O 3º estava colado na beirada do buraco (4100) e foi para 4250.
+    Decisão: o mato continua feito pelo código (densidade e vento aprovados pelo Erick); imagem de IA
+    seria parada e não abriria com a passagem do herói.
+    **Esconder na carroça (2026-11-28, ideia do Erick):** em cima da carroça de feno, ▼ mergulha no feno
+    (`entrarNoFeno`/`ficarNoFeno`; as plataformas dos objetos levam `tipo`). Só o topo da cabeça aparece,
+    `escondido()` vale, não dá para atacar; pulo ou ◀ ▶ saem com um pulinho. Nas outras plataformas ▼
+    continua descendo por elas. A 1ª carroça (2520) fica no caminho do 2º besouro.
   - **Árvores (2026-11-20):** a copa passou a ser desenhada **depois da raiz** (a imagem da raiz traz
     o pé do tronco, que ficava por cima das folhas) e os galhos por cima da copa (camadas: tronco →
     piso → raiz → copa → galhos). Cada árvore varia a copa: até três imagens (`arvore_copa`,
