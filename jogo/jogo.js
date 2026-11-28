@@ -323,7 +323,8 @@ function newGame() {
     camX = SALA.x0; camY = SALA.fundo - H;
   }
   if (params.has('x')) { player.x = +params.get('x'); camX = clamp(player.x - W * 0.4, 0, LEVEL_END - W); }   // teste: começar em x
-  state = 'play';
+  const teste = DEMO || START_BOSS || params.has('x') || params.has('sala') || params.has('ff') || params.has('limpo');
+  state = teste ? 'play' : 'intro';
 }
 
 function respawn() {
@@ -2480,6 +2481,7 @@ function menuTap(p) {
   if (portrait) return;
   if (state === 'title') { goFullscreen(); abrirHerois(); }
   else if (state === 'herois') { tocarHerois(p); }
+  else if (state === 'intro') { state = 'play'; }
   else if (state === 'mapa') { tocarMapa(p); }
   else if (state === 'bestiario') { tocarBestiario(p); }
   else if (state === 'dead') { if (time - deadAt < 0.9) return; respawn(); state = 'play'; }
@@ -2518,7 +2520,7 @@ function posCartao() {
 function entrarLocal(l) {
   if (!l || !l.fase) return;
   if (l.fase === FASE_ID) newGame();
-  else location.search = '?fase=' + l.fase + '&play';
+  else location.search = '?heroi=' + HEROI_ID + '&fase=' + l.fase + '&play';   // (2026-11-28) mantém o herói
 }
 const BOTAO_BEST = { x: 16, y: H - 56, w: 150, h: 40 };
 function tocarMapa(p) {
@@ -2641,7 +2643,8 @@ function drawMapa() {
   ctx.textAlign = 'center'; ctx.fillStyle = '#f5d48a';
   let fs = 19; ctx.font = `bold ${fs}px Cinzel, serif`;
   while (fs > 13 && ctx.measureText(l.nome).width > (C.w - 28) * 2) { fs--; ctx.font = `bold ${fs}px Cinzel, serif`; }
-  wrap(l.nome, C.x + C.w / 2, C.y + 170, C.w - 28, fs + 5);
+  const yN = wrap(l.nome, C.x + C.w / 2, C.y + 170, C.w - 28, fs + 5);
+  if (l.fase) { ctx.fillStyle = '#b3a88f'; ctx.font = 'italic 15px "Crimson Pro", serif'; ctx.fillText('Guardião: ' + l.chefe, C.x + C.w / 2, yN + 2); }
   const B = BOTAO;
   if (l.fase) {
     ctx.fillStyle = 'rgba(227,183,90,.9)'; roundRect(B.x, B.y, B.w, B.h, 10); ctx.fill();
@@ -4687,8 +4690,9 @@ function drawEnemies(frente = false) {
       const face = e.T.mov === 'patrulha' ? (e.vx > 0 ? 1 : -1) : (player.x > e.x ? 1 : -1);
       // besouro (PixelLab, 2026-11-21): andar; ao ser atacado, preparar (a cabeça desce e ele treme) e investida
       const c = e.carga, prep = c && c.fase === 'prepara', vai = c && c.fase === 'vai';
-      const anim = e.T.mov === 'voo' ? 'voar' : prep && S.quadros.preparar ? 'preparar' : vai && S.quadros.investida ? 'investida' : 'andar';
-      const tq = prep ? Math.min(c.t / .55, .99) * S.quadros.preparar.length : vai ? time * 14 : time * (e.T.mov === 'voo' ? 8 : 6) + e.x * .01;
+      // pombo (PixelLab, 2026-11-28): voar; no mergulho (investida) o corpo deitado para a frente
+      const anim = e.T.mov === 'voo' ? (vai && S.quadros.investida ? 'investida' : 'voar') : prep && S.quadros.preparar ? 'preparar' : vai && S.quadros.investida ? 'investida' : 'andar';
+      const tq = anim === 'preparar' ? Math.min(c.t / .55, .99) * S.quadros.preparar.length : anim === 'investida' ? time * 14 : time * (e.T.mov === 'voo' ? 8 : 6) + e.x * .01;
       const treme = prep ? Math.sin(time * 60) * 2 : 0, inclina = prep ? .1 * Math.min(1, c.t / .3) : vai ? .06 : 0;
       if (e.flash > 0) ctx.filter = 'brightness(2.2)';
       drawFrame(S, anim, tq, x + e.w / 2 + treme, e.y + e.h + (e.T.mov === 'voo' ? 6 : 0), face, 1, 1, inclina);
@@ -5016,6 +5020,11 @@ function drawTouch() {
 }
 
 function panel(x, y, w, h) { ctx.fillStyle = 'rgba(14,10,20,.85)'; roundRect(x, y, w, h, 16); ctx.fill(); ctx.strokeStyle = '#e3b75a'; ctx.lineWidth = 1.5; ctx.stroke(); }
+function linhasTexto(text, maxW) {   // quantas linhas o wrap vai usar com a fonte atual
+  let n = 1, line = '';
+  for (const w of text.split(' ')) { const t = line ? line + ' ' + w : w; if (ctx.measureText(t).width > maxW && line) { n++; line = w; } else line = t; }
+  return n;
+}
 function wrap(text, x, y, maxW, lh) {
   const words = text.split(' '); let line = '';
   for (const w of words) { const test = line ? line + ' ' + w : w; if (ctx.measureText(test).width > maxW && line) { ctx.fillText(line, x, y); line = w; y += lh; } else line = test; }
@@ -5032,20 +5041,40 @@ function drawTitle() {
   ctx.fillStyle = 'rgba(10,6,16,.62)'; ctx.fillRect(0, 0, W, H);
   ctx.textAlign = 'center';
   ctx.fillStyle = '#f5d48a'; ctx.font = 'bold 52px Cinzel, serif'; ctx.fillText('TORNEIO DAS LENDAS', W / 2, 108);
-  ctx.fillStyle = '#ece4d4'; ctx.font = '20px "Crimson Pro", serif'; ctx.fillText(`Fase de teste · ${FASE.nome} · com ${HEROI.nome.toLowerCase()}`, W / 2, 142);
-  panel(W / 2 - 330, 170, 660, 190);
-  ctx.fillStyle = '#ffcf8a'; ctx.font = 'bold 20px Cinzel, serif'; ctx.fillText(CHEFE_CFG.nome.charAt(0) + CHEFE_CFG.nome.slice(1).toLowerCase(), W / 2, 202);
-  ctx.fillStyle = '#ece4d4'; ctx.font = 'italic 17px "Crimson Pro", serif';
-  const yy = wrap(FASE.descricao, W / 2, 230, 600, 22);
+  // (2026-11-28, Erick) tela inicial do jogo, não de uma fase: a descrição da fase aparece ao entrar nela (drawIntroFase)
+  ctx.fillStyle = '#ece4d4'; ctx.font = '20px "Crimson Pro", serif'; ctx.fillText('Uma aventura nas lendas do caderno da Milena', W / 2, 142);
+  panel(W / 2 - 330, 176, 660, 136);
+  ctx.fillStyle = '#ffcf8a'; ctx.font = 'bold 20px Cinzel, serif'; ctx.fillText('O chamado', W / 2, 208);
+  ctx.fillStyle = '#ece4d4'; ctx.font = 'italic 18px "Crimson Pro", serif';
+  const yy = wrap('"A Grécia o chama, enfrente o destino e mereça a honra que lhe é desejada, seja quem você merece ser."', W / 2, 240, 600, 24);
+  ctx.fillStyle = '#b3a88f'; ctx.font = '14px "Crimson Pro", serif'; ctx.fillText('do caderno da Milena', W / 2, yy + 4);
+  const pulse = .6 + Math.sin(time * 4) * .4;
+  ctx.globalAlpha = pulse; ctx.fillStyle = '#f5d48a'; ctx.font = 'bold 26px Cinzel, serif';
+  ctx.fillText(showTouch ? 'Toque para começar' : 'Clique ou aperte Enter para começar', W / 2, 400);
+  ctx.globalAlpha = 1;
+  ctx.fillStyle = '#b3a88f'; ctx.font = '15px "Crimson Pro", serif';
+  ctx.fillText(showTouch ? 'Use o celular deitado. Botões: ◀ ▶ andar · pular · ataque · poder'
+    : 'Setas ou A/D andam · ↑, W ou Espaço pulam · J ou Z ataque · K ou X poder', W / 2, 440);
+  ctx.fillText('Escolha seu herói, escolha um local no mundo espiritual e enfrente a lenda que vive lá.', W / 2, 464);
+}
+
+// apresentação da fase (2026-11-28): ao entrar, o nome, o guardião e a descrição do caderno; toque começa
+function drawIntroFase() {
+  ctx.fillStyle = 'rgba(10,6,16,.66)'; ctx.fillRect(0, 0, W, H);
+  ctx.textAlign = 'center';
+  ctx.fillStyle = '#f5d48a'; ctx.font = 'bold 40px Cinzel, serif'; ctx.fillText(FASE.nome, W / 2, 112);
+  const chefe = CHEFE_CFG.nome.charAt(0) + CHEFE_CFG.nome.slice(1).toLowerCase();
+  ctx.fillStyle = '#ece4d4'; ctx.font = '19px "Crimson Pro", serif'; ctx.fillText(`Guardião: ${chefe} · com ${HEROI.nome}`, W / 2, 146);
+  ctx.font = 'italic 17px "Crimson Pro", serif';
+  const n = linhasTexto(FASE.descricao, 600);
+  panel(W / 2 - 330, 172, 660, 62 + n * 22);
+  ctx.fillStyle = '#ece4d4';
+  const yy = wrap(FASE.descricao, W / 2, 206, 600, 22);
   ctx.fillStyle = '#b3a88f'; ctx.font = '14px "Crimson Pro", serif'; ctx.fillText(FASE.fonte, W / 2, yy + 2);
   const pulse = .6 + Math.sin(time * 4) * .4;
   ctx.globalAlpha = pulse; ctx.fillStyle = '#f5d48a'; ctx.font = 'bold 26px Cinzel, serif';
-  ctx.fillText(showTouch ? 'Toque para jogar' : 'Clique ou aperte Enter para jogar', W / 2, 410);
+  ctx.fillText(showTouch ? 'Toque para começar' : 'Clique ou aperte Enter para começar', W / 2, 420);
   ctx.globalAlpha = 1;
-  ctx.fillStyle = '#b3a88f'; ctx.font = '15px "Crimson Pro", serif';
-  ctx.fillText(showTouch ? `Use o celular deitado. Botões: ◀ ▶ andar · pular · espada · ${PODER.nome}`
-    : `Setas ou A/D andam · ↑, W ou Espaço pulam · J ou Z espada · K ou X ${PODER.nome}`, W / 2, 446);
-  ctx.fillText('Derrote as brasas para ganhar XP e subir de nível. No fim, o chefe espera.', W / 2, 470);
 }
 
 function drawLevelUp() {
@@ -5156,6 +5185,7 @@ function draw() {
     const agora = performance.now() / 1000; fpsN++; if (agora - fpsT >= 1) { fps = Math.round(fpsN / (agora - fpsT)); fpsN = 0; fpsT = agora; }
     ctx.fillStyle = '#9f9'; ctx.font = 'bold 16px sans-serif'; ctx.textAlign = 'right'; ctx.fillText(fps + ' fps', W - 12, 46);
   }
+  if (state === 'intro') drawIntroFase();
   if (state === 'levelup') drawLevelUp();
   if (state === 'dead') drawDead();
   if (state === 'victory') drawVictory();

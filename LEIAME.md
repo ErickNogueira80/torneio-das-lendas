@@ -437,6 +437,16 @@ Pessoal (família).
   a ferramenta deixava como contorno; recorte pela distância à cor do fundo + tirar o verde da borda).
   Originais em `img/avatares/heroi-<pasta>-gemini.jpg`; o retrato antigo do encapuzado em
   `img/avatares/humano-retrato-encapuzado.jpg`. Falta o PixelLab dos 4 (o Erick está gerando).
+- **Pombo do PixelLab (2026-11-28):** GIFs do Erick em `img/sprites/inimigos/pombo/` (`voar` = "Flying",
+  `investida` = "tilts forward", quadros 2–5, em que o corpo fica deitado; o "Diving" saiu parado no chão e
+  ficou só em `originais/`, junto com o "Dizzy" e o zip). `altura` 44 e `suavizar` 2 em `ajustes.json`.
+  O PixelLab fez o pombo em pé batendo as asas (pés à mostra): serve, mas um voo de verdade pede outra
+  geração. No jogo: voa com `voar`, mergulha com `investida`.
+- **Navegação (2026-11-28, Erick):** a tela inicial deixou de ser a do Boitatá: título, "O chamado" (frase
+  do caderno, p. 3), controles gerais e o caminho (herói → mapa → local). Ao entrar numa fase aparece a
+  apresentação dela (nome, guardião, herói, descrição do caderno; estado `intro`, toque/Enter começa; os
+  testes pela URL com `x`, `boss`, `demo`, `sala`, `ff` ou `limpo` pulam). O cartão do mapa mostra o
+  guardião do local liberado. Trocar de fase pelo mapa mantém o herói escolhido (`?heroi=` na URL).
 - **Publicar o jogo:** trocar o `?v=` dos três scripts em `jogo/index.html` (qualquer valor novo,
   ex.: o hash do commit), para o celular não misturar arquivos novos com antigos do cache. Erros do
   jogo aparecem numa faixa vermelha embaixo da tela, com o navegador do aparelho. Erros de extensões
