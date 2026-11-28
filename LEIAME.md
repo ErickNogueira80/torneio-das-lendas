@@ -644,7 +644,7 @@ recorte em magenta `#FF00FF`, porque o recorte verde apaga o verde da arte.
     Decisão: o mato continua feito pelo código (densidade e vento aprovados pelo Erick); imagem de IA
     seria parada e não abriria com a passagem do herói.
     **Esconder na carroça (2026-11-28, ideia do Erick):** em cima da carroça de feno, ▼ mergulha no feno
-    (`entrarNoFeno`/`ficarNoFeno`; as plataformas dos objetos levam `tipo`). Só o topo da cabeça aparece,
+    (`entrarNoFeno`/`ficarNoFeno`; as plataformas dos objetos levam `tipo`). O herói afunda até sumir (2026-11-28: sem a cabeça para fora) e sai de dentro do feno com o pulo;
     `escondido()` vale, não dá para atacar; pulo ou ◀ ▶ saem com um pulinho. Nas outras plataformas ▼
     continua descendo por elas. A 1ª carroça (2520) fica no caminho do 2º besouro.
   - **Árvores (2026-11-20):** a copa passou a ser desenhada **depois da raiz** (a imagem da raiz traz

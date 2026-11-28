@@ -2165,8 +2165,8 @@ function ficarNoFeno(p, dir, dt) {
   const pl = p.noFeno;
   p.fenoT += dt;
   if (p.fenoT > .3 && (jumpPressed || dir)) {   // sai com um pulinho
-    p.noFeno = null; p.onGround = false; p.onPlat = false; p.coyote = 0; p.jumpBuf = 0;
-    p.vy = -JUMP_V * .8; p.vx = dir * speed(); if (dir) p.face = dir;
+    p.noFeno = null; p.saiFeno = { y: pl.y + 6, ate: time + .3 }; p.onGround = false; p.onPlat = false; p.coyote = 0; p.jumpBuf = 0;
+    p.y = pl.y + 2; p.vy = -JUMP_V; p.vx = dir * speed() * .7; if (dir) p.face = dir;   // sai lá de dentro
     burst(p.x + p.w / 2, pl.y, 14, FENO_CORES, 160, .6, 260, 3);
     return false;
   }
@@ -4554,11 +4554,16 @@ function drawSombra(p) {
 
 function drawPlayer() {
   const p = player;
+  if (p.saiFeno && time < p.saiFeno.ate) {   // saindo do feno: o corpo aparece de dentro do feno
+    ctx.save(); ctx.beginPath(); ctx.rect(-50, p.saiFeno.y - 600, W + 100, 600); ctx.clip();
+    drawPlayerCorpo(); ctx.restore(); return;
+  }
   if (!p.noFeno) return drawPlayerCorpo();
-  // no feno: o herói afunda e só o topo da cabeça fica acima do feno
-  const k = Math.min(1, p.fenoT / .18), topo = p.noFeno.y + 6;
+  // no feno: o herói afunda até sumir (Erick, 2026-11-28: sem a cabeça para fora)
+  const k = Math.min(1, p.fenoT / .22), topo = p.noFeno.y + 6;
+  if (k >= 1) return;
   ctx.save(); ctx.beginPath(); ctx.rect(-50, topo - 600, W + 100, 600); ctx.clip();
-  ctx.translate(0, k * (p.h - 12) + Math.sin(time * 2.2) * 1.2);
+  ctx.translate(0, k * (p.h + 8));
   drawPlayerCorpo(); ctx.restore();
 }
 function drawPlayerCorpo() {
