@@ -432,6 +432,11 @@ Pessoal (família).
   seção 0.1 de `04-prompts-sprites.md` (retrato do cartão no Gemini/ChatGPT anexando o avatar da mesa e
   boneco no PixelLab, pastas `herois/jane`, `herois/angi`, `herois/jose`; o Sam substitui o encapuzado em
   `herois/humano`).
+  **Retratos dos cartões (2026-11-28):** os 4 do Gemini (Downloads `<jogador>-ia.jpg`) estão em
+  `img/sprites/herois/<pasta>/retrato.png`, já recortados à mão (o Gemini pôs um brilho verde em volta, que
+  a ferramenta deixava como contorno; recorte pela distância à cor do fundo + tirar o verde da borda).
+  Originais em `img/avatares/heroi-<pasta>-gemini.jpg`; o retrato antigo do encapuzado em
+  `img/avatares/humano-retrato-encapuzado.jpg`. Falta o PixelLab dos 4 (o Erick está gerando).
 - **Publicar o jogo:** trocar o `?v=` dos três scripts em `jogo/index.html` (qualquer valor novo,
   ex.: o hash do commit), para o celular não misturar arquivos novos com antigos do cache. Erros do
   jogo aparecem numa faixa vermelha embaixo da tela, com o navegador do aparelho. Erros de extensões

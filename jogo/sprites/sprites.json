@@ -1,4 +1,10 @@
 {
+ "herois/angi": {
+  "tipo": "personagem",
+  "retrato": "herois/angi_retrato.png",
+  "quadros": {},
+  "ver": "7a941824"
+ },
  "herois/humano": {
   "tipo": "personagem",
   "pixel": true,
@@ -263,7 +269,7 @@
    ]
   },
   "retrato": "herois/humano_retrato.png",
-  "ver": "f8925853"
+  "ver": "97ec2aec"
  },
  "herois/humano_lanca": {
   "tipo": "personagem",
@@ -537,6 +543,18 @@
    ]
   },
   "ver": "5d4c9f80"
+ },
+ "herois/jane": {
+  "tipo": "personagem",
+  "retrato": "herois/jane_retrato.png",
+  "quadros": {},
+  "ver": "922fb3a1"
+ },
+ "herois/jose": {
+  "tipo": "personagem",
+  "retrato": "herois/jose_retrato.png",
+  "quadros": {},
+  "ver": "a4cce646"
  },
  "inimigos/besouro": {
   "tipo": "personagem",
